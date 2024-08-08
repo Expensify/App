@@ -1314,7 +1314,7 @@ export default {
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
         header: 'Add more approvers and confirm.',
-        addApproverRow: 'Additional approver',
+        additionalApprover: 'Additional approver',
         submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {

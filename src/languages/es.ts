@@ -1323,7 +1323,7 @@ export default {
     workflowsCreateApprovalsPage: {
         title: 'Confirmar',
         header: 'Agrega más aprobadores y confirma.',
-        addApproverRow: 'Añadir aprobador',
+        additionalApprover: 'Añadir aprobador',
         submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {

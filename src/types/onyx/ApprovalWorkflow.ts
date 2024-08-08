@@ -1,4 +1,5 @@
 import type {AvatarSource} from '@libs/UserUtils';
+import type {TranslationPaths} from '@src/languages/types';
 
 /**
  * Approver in the approval workflow
@@ -105,6 +106,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * List of available members that can be selected in the workflow
      */
     availableMembers: Member[];
+
+    /**
+     * Errors for the workflow
+     */
+    errors?: Record<string, TranslationPaths>;
 };
 
 export default ApprovalWorkflow;

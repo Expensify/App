@@ -1,8 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,14 +31,17 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const formRef = useRef<ScrollView>(null);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const isSubmitDisabled =
-        approvalWorkflow?.approvers.length === 0 || approvalWorkflow?.members.length === 0 || approvalWorkflow?.approvers.some((approver) => !approver || approver.isCircularReference);
 
     const createApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow) {
+            return;
+        }
+
+        if (!isEmptyObject(Workflow.validateApprovalWorkflow(approvalWorkflow))) {
             return;
         }
 
@@ -68,18 +73,19 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         <ApprovalWorkflowEditor
                             approvalWorkflow={approvalWorkflow}
                             policyID={route.params.policyID}
+                            ref={formRef}
                         />
                     )}
 
-                    <Button
-                        success
-                        style={[styles.mb5, styles.mh5]}
-                        onPress={createApprovalWorkflow}
-                        pressOnEnter
-                        large
-                        text={translate('workflowsCreateApprovalsPage.submitButton')}
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                        onSubmit={createApprovalWorkflow}
+                        onFixTheErrorsLinkPressed={() => {
+                            formRef.current?.scrollTo({y: 0, animated: true});
+                        }}
                         isLoading={approvalWorkflow?.isLoading}
-                        isDisabled={isSubmitDisabled}
+                        buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
+                        containerStyles={[styles.mb5, styles.mh5]}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

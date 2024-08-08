@@ -7,6 +7,7 @@ import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, Updat
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -211,7 +212,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 }
 
 function setApprovalWorkflowMembers(members: Member[]) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members});
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, errors: null});
 }
 
 /**
@@ -227,22 +228,48 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         return;
     }
 
-    const updatedApprovers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((newApprover) => (newApprover ? {...newApprover, isInMultipleWorkflows: false} : undefined));
-    updatedApprovers[approverIndex] = approver;
+    const errors: Record<string, TranslationPaths | null> = {};
+
+    // Update the approver at the specified index and reset hints
+    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
+        if (!existingApprover) {
+            return;
+        }
+
+        return {...existingApprover, isInMultipleWorkflows: false};
+    });
+    approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
-    const approverForwardsTo = policy.employeeList[approver.email]?.forwardsTo;
-    if (approverForwardsTo) {
+    if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
             ...additionalApprover,
             isInMultipleWorkflows: true,
-            isCircularReference: !!currentApprovalWorkflow?.approvers.some((existingApprover) => existingApprover?.email === additionalApprover.email),
         }));
-        updatedApprovers.splice(approverIndex, updatedApprovers.length, ...additionalApprovers);
+        approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers});
+    // Check for circular references and reset errors
+    const updatedApprovers = approvers.map((existingApprover, index) => {
+        if (!existingApprover) {
+            return;
+        }
+
+        const hasCircularReference = approvers.slice(0, index).some((previousApprover) => existingApprover.email === previousApprover?.email);
+        if (hasCircularReference) {
+            errors[`approver-${index}`] = 'workflowsPage.approverCircularReference';
+        } else {
+            errors[`approver-${index}`] = null;
+        }
+
+        return {
+            ...existingApprover,
+            isCircularReference: hasCircularReference,
+        };
+    });
+
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: updatedApprovers, errors});
 }
 
 function clearApprovalWorkflowApprover(approverIndex: number) {
@@ -252,7 +279,7 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
 
     const updatedApprovers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((newApprover) => (newApprover ? {...newApprover, isInMultipleWorkflows: false} : undefined));
     updatedApprovers[approverIndex] = undefined;
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(updatedApprovers, (approver) => !approver)});
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(updatedApprovers, (approver) => !approver), errors: null});
 }
 
 function clearApprovalWorkflowApprovers() {
@@ -267,6 +294,31 @@ function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
 
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): Record<string, TranslationPaths> {
+    const errors: Record<string, TranslationPaths> = {};
+
+    approvalWorkflow.approvers.forEach((approver, approverIndex) => {
+        if (!approver) {
+            errors[`approver-${approverIndex}`] = 'common.error.fieldRequired';
+        }
+
+        if (approver?.isCircularReference) {
+            errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
+        }
+    });
+
+    if (!approvalWorkflow.members.length) {
+        errors.members = 'common.error.fieldRequired';
+    }
+
+    if (!approvalWorkflow.approvers.length) {
+        errors.additionalApprover = 'common.error.fieldRequired';
+    }
+
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {errors});
+    return errors;
+}
+
 export {
     createApprovalWorkflow,
     updateApprovalWorkflow,
@@ -277,4 +329,5 @@ export {
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
+    validateApprovalWorkflow,
 };
