@@ -374,14 +374,32 @@ function MoneyRequestView({
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
-    const receiptViolationNames: OnyxTypes.ViolationName[] = [
+    const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
         CONST.VIOLATIONS.RECEIPT_REQUIRED,
         CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
         CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
-    const receiptViolations =
-        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
+    const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+    const [receiptImageViolations, receiptViolations] = useMemo(() => {
+        const imageViolations = [];
+        const allViolations = [];
+
+        for (const violation of transactionViolations ?? []) {
+            const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
+            const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
+            if (!isReceiptFieldViolation && !isReceiptImageViolation) {
+                continue;
+            }
+            const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+            allViolations.push(violationMessage);
+            if (!isReceiptImageViolation) {
+                continue;
+            }
+            imageViolations.push(violationMessage);
+        }
+        return [imageViolations, allViolations];
+    }, [transactionViolations, receiptImageViolationNames, receiptFieldViolationNames, translate]);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
@@ -498,7 +516,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptViolations} />}
+                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
