@@ -5,27 +5,19 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useLocalize from '@hooks/useLocalize';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPlatform from '@libs/getPlatform';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-
-const HEADER_HEIGHT = 80;
-const BUTTON_HEIGHT = 40;
-const BUTTON_MARGIN = 12;
-
-const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 function EmptyCardView() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
-    const safeAreaInsets = useSafeAreaInsets();
-    const headerHeight = isSmallScreenWidth ? HEADER_HEIGHT + BUTTON_HEIGHT + BUTTON_MARGIN + (isIOSNative ? safeAreaInsets.top : 0) : HEADER_HEIGHT;
+    const headerHeight = useEmptyViewHeaderHeight(isSmallScreenWidth);
 
     return (
         <ScrollView>
