@@ -130,7 +130,7 @@ function MoneyRequestPreviewContent({
             )?.data?.duplicates ?? [],
         [transaction?.transactionID, transactionViolations],
     );
-    
+
     const hasDuplicates = duplicates.length > 0;
 
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
