@@ -3879,6 +3879,12 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        reportActionComposeTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+            paddingVertical: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
         quickActionTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
         },

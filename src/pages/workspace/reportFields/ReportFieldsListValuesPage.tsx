@@ -327,7 +327,6 @@ function ReportFieldsListValuesPage({
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
-                        shouldDebounceRowSelect={false}
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
