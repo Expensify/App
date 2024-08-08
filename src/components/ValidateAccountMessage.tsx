@@ -14,7 +14,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import TextLink from './TextLink';
 
-type ValidateAccountMessageProps = {backTo: string | undefined};
+type ValidateAccountMessageProps = {backTo?: string | undefined};
 function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
