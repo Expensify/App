@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {PartialDeep, ValueOf} from 'type-fest';
+import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
@@ -472,6 +472,39 @@ function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanR
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
 }
 
+/** Helper function to get optimistic fields violations onyx data */
+function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData, 'optimisticData' | 'failureData'> {
+    const missingFields: OnyxTypes.ReportFieldsViolations = {};
+    const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
+
+    Object.values(iouReport.fieldList ?? {}).forEach((field) => {
+        if (excludedFields.includes(field.fieldID) || !!field.value || !!field.defaultValue) {
+            return;
+        }
+        // in case of missing field violation the empty object is indicator.
+        missingFields[field.fieldID] = {};
+    });
+
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+                value: {
+                    fieldRequired: missingFields,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+                value: null,
+            },
+        ],
+    };
+}
+
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
@@ -845,31 +878,6 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    const missingFields: OnyxTypes.ReportFieldsViolations = {};
-    const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
-
-    Object.values(iouReport.fieldList ?? {}).forEach((field) => {
-        if (excludedFields.includes(field.fieldID) || !!field.value) {
-            return;
-        }
-        // in case of missing field violation the empty object is indicator.
-        missingFields[field.fieldID] = {};
-    });
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
-        value: {
-            fieldRequired: missingFields,
-        },
-    });
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
-        value: null,
-    });
-
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
@@ -892,6 +900,13 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
+    }
+
+    // Show field violations only for control policies
+    if (PolicyUtils.isControlPolicy(policy)) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
@@ -1636,6 +1651,13 @@ function buildOnyxDataForTrackExpense(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
+    }
+
+    // Show field violations only for control policies
+    if (PolicyUtils.isControlPolicy(policy) && iouReport) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
