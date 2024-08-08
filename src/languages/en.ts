@@ -731,7 +731,6 @@ export default {
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
         expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
-            zero: `0 expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
             one: `1 expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
             other: (count: number) => `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
         }),

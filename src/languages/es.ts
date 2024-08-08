@@ -724,7 +724,6 @@ export default {
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
-            zero: `0 gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
             one: `1 gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
             other: (count: number) => `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
         }),
