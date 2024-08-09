@@ -23,6 +23,7 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +61,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '-1';
     const backTo = route.params?.backTo;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
+    const policy = usePolicy(policyId);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;

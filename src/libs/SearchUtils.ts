@@ -285,8 +285,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
-        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
@@ -465,6 +465,10 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.KEYWORD && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}:${filterValue as string}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)
@@ -521,7 +525,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }
