@@ -3701,9 +3701,9 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
             emptyTripResults: {
-                title: 'Nothing to show',
-                subtitle: 'Try creating something using the green + button.',
-                buttonText: 'Book trip',
+                title: 'Sin viajes para visualizar',
+                subtitle: 'Empiece reservando su primer viaje a continuación.',
+                buttonText: 'Reserve un viaje',
             },
         },
         groupedExpenses: 'gastos agrupados',
