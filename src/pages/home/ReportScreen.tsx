@@ -302,11 +302,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline);
-    const [transactionThreadReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        canEvict: false,
-        selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-    });
-    const combinedReportActions = ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, transactionThreadReportActions);
+    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+    const combinedReportActions = ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
