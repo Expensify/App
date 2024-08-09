@@ -1,5 +1,5 @@
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import {BUTTON_HEIGHT, BUTTON_MARGIN, HEADER_HEIGHT} from './CONST';
+import {BUTTON_HEIGHT, BUTTON_MARGIN, HEADER_HEIGHT} from './const';
 
 function useEmptyViewHeaderHeight(isSmallScreenWidth: boolean): number {
     const safeAreaInsets = useSafeAreaInsets();
