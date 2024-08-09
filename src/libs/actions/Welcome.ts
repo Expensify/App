@@ -15,7 +15,7 @@ type OnboardingData = Onboarding | [] | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
-let onboarding: OnboardingData | undefined;
+let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
