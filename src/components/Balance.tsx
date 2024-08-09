@@ -12,6 +12,7 @@ type BalanceProps = {
 function Balance({textStyles, balance}: BalanceProps) {
     const styles = useThemeStyles();
     const formattedBalance = CurrencyUtils.convertToDisplayString(balance);
+
     return <Text style={[styles.textHeadline, styles.textXXXLarge, textStyles]}>{formattedBalance}</Text>;
 }
 
