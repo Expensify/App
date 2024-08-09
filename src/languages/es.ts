@@ -3701,9 +3701,9 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
             emptyTripResults: {
-                title: 'Sin viajes para visualizar',
-                subtitle: 'Empiece reservando su primer viaje a continuación.',
-                buttonText: 'Reserve un viaje',
+                title: 'No tienes viajes',
+                subtitle: 'Reserva tu primer viaje a continuación.',
+                buttonText: 'Reserva un viaje',
             },
         },
         groupedExpenses: 'gastos agrupados',
