@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,19 +12,15 @@ import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
 
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || -1}`);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const shouldDisableNotificationPreferences =
-        ReportUtils.isArchivedRoom(report, reportNameValuePairs) ||
-        ReportUtils.isSelfDM(report) ||
-        (!isMoneyRequestReport && report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report) || (!isMoneyRequestReport && report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({
