@@ -2899,7 +2899,8 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
 
     const isRequestIOU = isIOUReport(moneyRequestReport);
-    const isRequestHoldCreator = isActionCreator(reportAction) && isRequestIOU;
+    const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID ?? '-1');
+
     const isTrackExpenseMoneyReport = isTrackExpenseReport(moneyRequestReport);
     const isActionOwner =
         typeof parentReportAction?.actorAccountID === 'number' &&
@@ -2911,14 +2912,14 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isClosed = isClosedReport(moneyRequestReport);
 
+    const isActionAndHoldOwner = isActionOwner && isHoldActionCreator;
     const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
-    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || isApprover || isHoldCreator(transaction, moneyRequestReport?.reportID));
     const isDeletedParentAction = isEmptyObject(parentReportAction) || ReportActionsUtils.isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction && !isClosed;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && !!transaction?.reimbursable;
     const canUnholdRequest =
-        !!(canHoldOrUnholdRequest && isOnHold && !TransactionUtils.isDuplicate(transaction.transactionID, true) && (isRequestHoldCreator || (!isRequestIOU && canModifyUnholdStatus))) &&
+        !!(canHoldOrUnholdRequest && isOnHold && !TransactionUtils.isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : (canModifyStatus || isActionAndHoldOwner))) &&
         !!transaction?.reimbursable;
 
     return {canHoldRequest, canUnholdRequest};
