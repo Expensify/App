@@ -456,13 +456,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants);
     }, [participants, personalDetails]);
 
-    const toggleTruncateTitle = useCallback(() => {
-        if (canEditReportDescription) {
-            return;
-        }
-        setShouldTruncateTitle((prev) => !prev);
-    }, [canEditReportDescription]);
-
     const icons = useMemo(() => ReportUtils.getIcons(report, personalDetails, null, '', -1, policy), [report, personalDetails, policy]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
@@ -721,7 +714,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
-                                shouldShowRightIcon={canEditReportDescription}
+                                shouldShowRightIcon
                                 interactive
                                 title={report.description}
                                 shouldRenderAsHTML
@@ -729,13 +722,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 limit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => {
-                                    if (canEditReportDescription) {
-                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
-                                    } else {
-                                        toggleTruncateTitle();
-                                    }
-                                }}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));}
                             />
                         </OfflineWithFeedback>
                     )}

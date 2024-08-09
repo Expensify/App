@@ -60,13 +60,14 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
+    const canEdit = ReportUtils.canEditReportDescription(report, policy);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
+            <FullPageNotFoundView shouldShow={!canEdit}>
                 <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -90,10 +91,8 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                                 if (!el) {
                                     return;
                                 }
-                                if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
                                 reportDescriptionInputRef.current = el;
+                                updateMultilineInputRange(el);
                             }}
                             value={description}
                             onChangeText={handleReportDescriptionChange}
@@ -103,6 +102,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     </View>
                 </FormProvider>
             </FullPageNotFoundView>
+            {!canEdit && <Text>{description}</Text>}
         </ScreenWrapper>
     );
 }
