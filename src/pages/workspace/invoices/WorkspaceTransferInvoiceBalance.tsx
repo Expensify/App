@@ -67,11 +67,7 @@ function WorkspaceTransferInvoiceBalance({
     }
 
     const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
-    const selectedAccount: PaymentMethod | null =
-        paymentMethods.find((paymentMethod) => paymentMethod.methodID === policy?.invoice?.bankAccount?.transferBankAccountID) ??
-        paymentMethods.find((paymentMethod) => paymentMethod.isDefault) ??
-        paymentMethods[0] ??
-        null;
+    const selectedAccount: PaymentMethod | null = paymentMethods.find((paymentMethod) => paymentMethod.methodID === policy?.invoice?.bankAccount?.transferBankAccountID) ?? null;
     const balance = policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0;
     const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(balance, CONST.WALLET.TRANSFER_METHOD_TYPE.ACH);
     const transferAmount = balance - calculatedFee;
