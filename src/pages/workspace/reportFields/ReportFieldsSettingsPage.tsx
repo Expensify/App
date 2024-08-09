@@ -46,7 +46,7 @@ function ReportFieldsSettingsPage({
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
-    const isListFieldEmpty = isListFieldType && reportField.values.length <= 0;
+    const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
 
     const deleteReportFieldAndHideModal = () => {
