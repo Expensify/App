@@ -2919,8 +2919,12 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction && !isClosed;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && !!transaction?.reimbursable;
     const canUnholdRequest =
-        !!(canHoldOrUnholdRequest && isOnHold && !TransactionUtils.isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : (canModifyStatus || isActionAndHoldOwner))) &&
-        !!transaction?.reimbursable;
+        !!(
+            canHoldOrUnholdRequest &&
+            isOnHold &&
+            !TransactionUtils.isDuplicate(transaction.transactionID, true) &&
+            (isRequestIOU ? isHoldActionCreator : canModifyStatus || isActionAndHoldOwner)
+        ) && !!transaction?.reimbursable;
 
     return {canHoldRequest, canUnholdRequest};
 }
