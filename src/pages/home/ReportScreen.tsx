@@ -301,12 +301,25 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
+        [report.reportID, reportActions, isOffline],
+    );
+    const [transactionThreadReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
+        canEvict: false,
+        selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    });
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
-        () =>
-            reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
-                : undefined,
-        [reportActions, parentReportAction],
+        () => {
+            if (!reportActions.length) {
+                return;
+            }
+            return [
+                ...ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, transactionThreadReportActions),
+                parentReportAction,
+            ].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
+        },
+        [reportActions, transactionThreadReportID, transactionThreadReportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -337,11 +350,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
-    );
-
-    const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
-        [report.reportID, reportActions, isOffline],
     );
 
     if (isSingleTransactionView) {
