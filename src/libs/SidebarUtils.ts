@@ -18,19 +18,12 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import Parser from './Parser';
-import Permissions from './Permissions';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; messageText?: string; messageHtml?: string};
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -244,6 +237,7 @@ function getOptionData({
     parentReportAction,
     hasViolations,
     transactionViolations,
+    invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -252,6 +246,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -319,7 +314,6 @@ function getOptionData({
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
         if (
-            Permissions.canUseViolations(allBetas) &&
             ReportUtils.shouldDisplayTransactionThreadViolations(
                 oneTransactionThreadReport,
                 transactionViolations,
@@ -462,14 +456,13 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber;
     }
 
-    const reportName = ReportUtils.getReportName(report, policy);
+    const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy);
-    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy, invoiceReceiverPolicy);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {

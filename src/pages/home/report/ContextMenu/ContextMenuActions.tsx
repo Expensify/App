@@ -66,6 +66,7 @@ type ShouldShow = (
     isUnreadChat: boolean,
     isOffline: boolean,
     isMini: boolean,
+    isProduction: boolean,
 ) => boolean;
 
 type ContextMenuActionPayload = {
@@ -302,9 +303,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
             const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
-            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
-            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
-            return !subscribed && !isWhisperAction && isCommentAction && (!isDeletedAction || shouldDisplayThreadReplies);
+            const isThreadFirstChat = ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
+            const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);
+            return !subscribed && !isWhisperAction && !isExpenseReportAction && !isThreadFirstChat && (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom));
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
@@ -546,7 +548,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type) => type === CONST.CONTEXT_MENU_TYPES.REPORT && (Environment.isDevelopment() || Environment.isStaging() || Environment.isInternalTestBuild()),
+        shouldShow: (type, isProduction) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {reportID}) => {
             const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             Clipboard.setString(JSON.stringify(report, null, 4));
