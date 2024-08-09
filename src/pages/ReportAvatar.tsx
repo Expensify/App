@@ -20,8 +20,9 @@ type ReportAvatarOnyxProps = {
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`];
+function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
+    const policyID = route.params.policyID ?? '-1';
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyName = ReportUtils.getPolicyName(report, false, policy);
     const avatarURL = ReportUtils.getWorkspaceAvatar(report);
 

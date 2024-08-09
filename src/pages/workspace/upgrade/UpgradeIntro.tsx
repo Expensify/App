@@ -27,6 +27,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
     return (
         <View style={styles.p5}>
@@ -35,6 +36,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                     <Avatar
                         type={CONST.ICON_TYPE_AVATAR}
                         source={iconSrc}
+                        iconAdditionalStyles={iconAdditionalStyles}
                     />
                     <Badge
                         icon={Expensicon.Unlock}
