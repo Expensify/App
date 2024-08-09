@@ -112,7 +112,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`, {selector: ReportUtils.getArchiveReason});
 
-    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined), [moneyRequestReport, chatReport, policy, transaction]);
+    const shouldShowPayButton = useMemo(
+        () => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined),
+        [moneyRequestReport, chatReport, policy, transaction],
+    );
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
