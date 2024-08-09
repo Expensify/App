@@ -75,7 +75,7 @@ function IOURequestStepDescription({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment.comment ?? '' : transaction?.comment.comment ?? '';
+    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
