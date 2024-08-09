@@ -157,6 +157,7 @@ type OptimisticExpenseReport = Pick<
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
+    | 'fieldList'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -391,6 +392,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
+    | 'fieldList'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -4079,6 +4081,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
+    const policyID = getReport(chatReportID)?.policyID ?? '-1';
+    const policy = getPolicy(policyID);
 
     const participants: Participants = {
         [payeeAccountID]: {hidden: true},
@@ -4103,6 +4107,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
+        fieldList: policy?.fieldList,
     };
 }
 
@@ -4220,6 +4225,8 @@ function buildOptimisticExpenseReport(
     if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
+
+    expenseReport.fieldList = policy?.fieldList;
 
     return expenseReport;
 }
