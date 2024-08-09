@@ -25,9 +25,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
-type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus;
+type SearchStatus = ExpenseSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;

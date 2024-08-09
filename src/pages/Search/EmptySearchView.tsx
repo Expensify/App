@@ -26,7 +26,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: Illustrations.EmptyStateTravel,
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.mentionBG),
+                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
                     title: translate('search.searchResults.emptyTripResults.title'),
                     subtitle: translate('search.searchResults.emptyTripResults.subtitle'),
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
