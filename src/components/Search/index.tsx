@@ -224,7 +224,10 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
-                <SearchStatusBar type={type} />
+                <SearchStatusBar
+                    type={type}
+                    status={status}
+                />
                 <EmptySearchView type={type} />
             </>
         );
