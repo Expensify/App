@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
@@ -18,7 +17,6 @@ import localeCompare from '@libs/LocaleCompare';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,12 +40,6 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
-
-    const fetchExpensifyCards = useCallback(() => {
-        Policy.openPolicyExpensifyCardsPage(policyID);
-    }, [policyID]);
-
-    useFocusEffect(fetchExpensifyCards);
 
     const sortedCards = useMemo(
         () =>
