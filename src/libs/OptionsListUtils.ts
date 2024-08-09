@@ -2549,7 +2549,7 @@ function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
 }
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
-    return report?.isUnread === true && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    return report.isUnread === true && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 export {
