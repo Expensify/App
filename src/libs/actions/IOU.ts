@@ -2521,11 +2521,13 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
-    if (!hasPendingWaypoints) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
