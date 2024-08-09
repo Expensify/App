@@ -415,7 +415,7 @@ function IOURequestStepDistance({
         if (isEditing) {
             // If nothing was changed, simply go to transaction thread
             // We compare only addresses because numbers are rounded while backup
-            const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
+            const oldWaypoints = transactionBackup?.comment?.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);

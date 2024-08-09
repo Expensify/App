@@ -520,6 +520,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -622,7 +626,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Subscription',
-        cardsAndDomains: 'Cards & Domains',
+        domains: 'Domains',
     },
     tabSelector: {
         chat: 'Chat',
@@ -733,6 +737,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -3665,6 +3670,8 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            keyword: 'Keyword',
+            hasKeywords: 'Has keywords',
             currency: 'Currency',
         },
     },
