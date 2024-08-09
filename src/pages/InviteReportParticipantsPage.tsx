@@ -56,7 +56,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return OptionsListUtils.getEmptyOptions();
         }
 
         return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, false, options.reports, true);

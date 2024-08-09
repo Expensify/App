@@ -2547,6 +2547,18 @@ function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
     return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 }
 
+function getEmptyOptions(): Options {
+    return {
+        recentReports: [],
+        personalDetails: [],
+        userToInvite: null,
+        currentUserOption: null,
+        categoryOptions: [],
+        tagOptions: [],
+        taxRatesOptions: [],
+    };
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2590,6 +2602,7 @@ export {
     shouldShowViolations,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
+    getEmptyOptions,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
