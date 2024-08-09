@@ -71,12 +71,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
             false,
             false,
-            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            0,
             undefined,
             true,
-            false,
-            [],
-            undefined,
         );
     }, [areOptionsInitialized, betas, options.personalDetails, options.reports, selectedOptions]);
 
@@ -85,7 +82,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             betas,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, betas, selectedOptions]);
 
@@ -112,7 +108,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         });
 
         return newSections;
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, translate]);
+    }, [areOptionsInitialized, chatOptions, cleanSearchTerm, selectedOptions, personalDetails, translate]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
