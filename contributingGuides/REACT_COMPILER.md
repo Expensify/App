@@ -52,7 +52,8 @@ const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => i
 // ✅ this code can be compiled successfully
 const reimbursementAccountID = qboConfig?.reimbursementAccountID;
 const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
-// also new version of teh code creates a variable for a repeated code, which is great because reduce amount of duplicated code 👍
+// 👍 also new version of the code creates a variable for a repeated code
+// which is great because it reduces the amount of the duplicated code
 ```
 
 ### `Invalid nesting in program blocks or scopes`
@@ -64,8 +65,6 @@ const qboToggleSettingItems = [
     {
         onToggle: () => console.log('Hello world!'),
         subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
-        errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
-        pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
     },
 ];
 
@@ -74,7 +73,7 @@ return (
     {qboToggleSettingItems.map((item) => (
         <ToggleSettingOptionRow
             onToggle={item.onToggle}
-            // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
+            // ❌ such code triggers the error - `qboConfig?.pendingFields` is an external variable from the closure
             // so this code is pretty complicated for `react-compiler` optimizations 
             pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
             // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
