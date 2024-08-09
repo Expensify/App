@@ -32,6 +32,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import SearchStatusBar from './SearchStatusBar';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -223,6 +224,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+                <SearchStatusBar type={type} />
                 <EmptySearchView type={type} />
             </>
         );
@@ -318,7 +320,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-
+            <SearchStatusBar type={type} />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
