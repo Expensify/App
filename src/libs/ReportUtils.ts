@@ -2971,8 +2971,8 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isClosed = isClosedReport(moneyRequestReport);
 
-    const isActionAndHoldOwner = isActionOwner && isHoldActionCreator;
     const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
+    const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
     const isDeletedParentAction = isEmptyObject(parentReportAction) || ReportActionsUtils.isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction && !isClosed;
@@ -2982,7 +2982,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
             canHoldOrUnholdRequest &&
             isOnHold &&
             !TransactionUtils.isDuplicate(transaction.transactionID, true) &&
-            (isRequestIOU ? isHoldActionCreator : canModifyStatus || isActionAndHoldOwner)
+            (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus)
         ) && !!transaction?.reimbursable;
 
     return {canHoldRequest, canUnholdRequest};
