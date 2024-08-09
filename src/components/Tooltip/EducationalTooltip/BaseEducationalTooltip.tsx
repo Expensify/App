@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldAutoDismiss = false, isUseInInvertedList = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     useEffect(
@@ -56,7 +56,7 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
                                         height,
                                         width,
                                         x: px,
-                                        y: py,
+                                        y: isUseInInvertedList ? py - height : py,
                                     });
                                     showTooltip();
                                 });

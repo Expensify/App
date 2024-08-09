@@ -43,7 +43,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
-    const isFocusedRef = useRef(true);
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -58,9 +58,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     useFocusEffect(
         useCallback(() => {
-            isFocusedRef.current = true;
+            setIsScreenFocused(true);
             return () => {
-                isFocusedRef.current = false;
+                setIsScreenFocused(false);
             };
         }, []),
     );
@@ -133,7 +133,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
      * @param [event] - A press event.
      */
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isFocusedRef.current && shouldUseNarrowLayout) {
+        if (!isScreenFocused && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
@@ -166,7 +166,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
-    const isHomeActiveRoute = useMemo(() => Navigation.isActiveRoute(ROUTES.HOME), [Navigation.getActiveRoute()]);
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -175,12 +174,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={isFirstTimeNewExpensifyUser && hasCompletedGuidedSetupFlow && isHomeActiveRoute && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)}
+                shouldRender={true && hasCompletedGuidedSetupFlow && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)}
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                isUseInInvertedList
                 shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
