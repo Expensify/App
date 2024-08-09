@@ -129,14 +129,14 @@ function CardSection() {
                     )}
                 </View>
 
-                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
+                <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
                 {billingStatus?.isRetryAvailable !== undefined && (
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
                         onPress={handleRetryPayment}
-                        style={[styles.w100, styles.mt5]}
+                        style={[styles.w100, styles.mb3]}
                         large
                     />
                 )}
@@ -150,7 +150,6 @@ function CardSection() {
                         titleStyle={styles.textStrong}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
-                        style={styles.mt5}
                     />
                 )}
 

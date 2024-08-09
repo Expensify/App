@@ -1,12 +1,10 @@
-import type {SortOrder} from '@components/Search/types';
+import type {SearchQueryString} from '@components/Search/types';
 
 type SearchParams = {
     hash: number;
-    query: string;
+    jsonQuery: SearchQueryString;
+    // Tod this is temporary, remove top level policyIDs as part of: https://github.com/Expensify/App/issues/46592
     policyIDs?: string;
-    sortBy?: string;
-    sortOrder?: SortOrder;
-    offset: number;
 };
 
 export default SearchParams;

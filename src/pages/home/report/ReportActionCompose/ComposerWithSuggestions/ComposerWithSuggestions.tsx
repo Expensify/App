@@ -793,7 +793,6 @@ function ComposerWithSuggestions(
                 policyID={policyID}
                 // Input
                 value={value}
-                setValue={setValue}
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
