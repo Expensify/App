@@ -3,7 +3,6 @@ import type {SendPerformanceTimingParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
-import type {FirebaseAttributes} from '@libs/Firebase/types';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 
@@ -20,14 +19,14 @@ let timestampData: Record<string, TimestampData> = {};
  * @param eventName
  * @param shouldUseFirebase - adds an additional trace in Firebase
  */
-function start(eventName: string, firebaseAttributes?: FirebaseAttributes, shouldUseFirebase = true) {
+function start(eventName: string, shouldUseFirebase = true) {
     timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
 
     if (!shouldUseFirebase) {
         return;
     }
 
-    Firebase.startTrace(eventName, firebaseAttributes);
+    Firebase.startTrace(eventName);
 }
 
 /**

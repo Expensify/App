@@ -5,7 +5,7 @@ type Trace = {
     start: number;
 };
 type TraceMap = Record<string, Trace>;
-type StartTrace = (customEventName: string, attributes?: FirebaseAttributes) => void;
+type StartTrace = (customEventName: string) => void;
 type StopTrace = (customEventName: string) => void;
 type Log = (action: string) => void;
 type FirebaseAttributes = {
