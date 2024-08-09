@@ -215,8 +215,7 @@ function ReportActionsView({
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
-        // moneyRequestActions.length === 1 indicates that we have one-transaction report and we don't want to display additonal IOU action
-        return moneyRequestActions.length === 1 ? ReportActionsUtils.getFilteredForOneTransactionView([...actions, createdAction]) : [...actions, createdAction];
+        return [...actions, createdAction];
     }, [allReportActions, report, transactionThreadReport]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
@@ -295,21 +294,6 @@ function ReportActionsView({
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
-    const handleReportActionPagination = useCallback(
-        ({firstReportActionID}: {firstReportActionID: string}) => {
-            // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
-                isFirstLinkedActionRender.current = false;
-                fetchNewerAction(newestReportAction);
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            setCurrentReportActionID(firstReportActionID);
-        },
-        [fetchNewerAction, hasMoreCached, newestReportAction],
-    );
-
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
@@ -343,6 +327,21 @@ function ReportActionsView({
     }, []);
 
     const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
+
+    const handleReportActionPagination = useCallback(
+        ({firstReportActionID}: {firstReportActionID: string}) => {
+            // This function is a placeholder as the actual pagination is handled by visibleReportActions
+            if (!hasMoreCached && !hasNewestReportAction) {
+                isFirstLinkedActionRender.current = false;
+                fetchNewerAction(newestReportAction);
+            }
+            if (isFirstLinkedActionRender.current) {
+                isFirstLinkedActionRender.current = false;
+            }
+            setCurrentReportActionID(firstReportActionID);
+        },
+        [fetchNewerAction, hasMoreCached, newestReportAction, hasNewestReportAction],
+    );
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently

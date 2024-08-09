@@ -18061,7 +18061,9 @@ async function run() {
 }
 run().catch((error) => {
     console.error(error);
-    process.exit(1);
+    // Zero status ensures that the action is marked as successful regardless the outcome
+    // which means that no failure notification is sent to issue's subscribers
+    process.exit(0);
 });
 
 
@@ -18087,6 +18089,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -18629,7 +18632,7 @@ class OpenAIUtils {
                     continue;
                 }
                 response += message.content
-                    .map((contentBlock) => this.isTextContentBlock(contentBlock))
+                    .map((contentBlock) => this.isTextContentBlock(contentBlock) && contentBlock.text.value)
                     .join('\n')
                     .trim();
                 console.log('Parsed assistant response:', response);

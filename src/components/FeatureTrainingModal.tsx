@@ -63,6 +63,9 @@ type FeatureTrainingModalProps = {
     /** A callback to call when user confirms the tutorial */
     onConfirm?: () => void;
 
+    /** A callback to call when modal closes */
+    onClose?: () => void;
+
     /** Text to show on secondary button */
     helpText?: string;
 
@@ -80,6 +83,7 @@ function FeatureTrainingModal({
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
+    onClose = () => {},
     helpText = '',
     onHelp = () => {},
 }: FeatureTrainingModalProps) {
@@ -139,7 +143,7 @@ function FeatureTrainingModal({
                             url={videoURL}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                             onVideoLoaded={setAspectRatio}
-                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
+                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                             shouldUseControlsBottomMargin={false}
                             shouldPlay
                             isLooping
@@ -168,7 +172,8 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         Navigation.goBack();
-    }, [willShowAgain]);
+        onClose?.();
+    }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();
@@ -200,7 +205,7 @@ function FeatureTrainingModal({
                     <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                         <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                         <View style={[styles.mt5, styles.mh5]}>
-                            {title && description && (
+                            {!!title && !!description && (
                                 <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                     <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                     <Text style={styles.textSupporting}>{description}</Text>
@@ -216,7 +221,7 @@ function FeatureTrainingModal({
                                     onInputChange={toggleWillShowAgain}
                                 />
                             )}
-                            {helpText && (
+                            {!!helpText && (
                                 <Button
                                     large
                                     style={[styles.mb3]}
@@ -224,6 +229,12 @@ function FeatureTrainingModal({
                                     text={helpText}
                                 />
                             )}
+                            <Button
+                                large
+                                style={[styles.mb3]}
+                                onPress={onHelp}
+                                text={helpText}
+                            />
                             <Button
                                 large
                                 success

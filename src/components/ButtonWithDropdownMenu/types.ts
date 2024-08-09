@@ -90,6 +90,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 export type {

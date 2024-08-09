@@ -22,6 +22,7 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,7 +53,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {environmentURL} = useEnvironment();
@@ -279,6 +280,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedTagsArray.length}
             />
         );
     };
@@ -372,7 +374,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        shouldDebounceRowSelect={!canSelectMultiple}
+                        shouldSingleExecuteRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

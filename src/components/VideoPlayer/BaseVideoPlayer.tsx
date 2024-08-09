@@ -1,10 +1,12 @@
 /* eslint-disable no-underscore-dangle */
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
+import {debounce} from 'lodash';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
@@ -73,6 +75,11 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const [controlStatusState, setControlStatusState] = useState(controlsStatus);
+    const controlsOpacity = useSharedValue(1);
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
 
     const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -84,6 +91,8 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+    const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumberRef.current = 0;
@@ -96,14 +105,56 @@ function BaseVideoPlayer({
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
+    const hideControl = useCallback(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
+        controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+    }, [controlsOpacity]);
+    const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
+
+    useEffect(() => {
+        if (canUseTouchScreen) {
+            return;
+        }
+        // If the device cannot use touch screen, always set the control status as 'show'.
+        // Then if user hover over the video, controls is shown.
+        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+    }, [canUseTouchScreen]);
+
+    useEffect(() => {
+        // We only auto hide the control if the device can use touch screen.
+        if (!canUseTouchScreen) {
+            return;
+        }
+        if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            return;
+        }
+        if (!isPlaying || isPopoverVisible) {
+            debouncedHideControl.cancel();
+            return;
+        }
+
+        debouncedHideControl();
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
+
+    const toggleControl = useCallback(() => {
+        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            hideControl();
+            return;
+        }
+        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+        controlsOpacity.value = 1;
+    }, [controlStatusState, controlsOpacity, hideControl]);
+
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
         videoPlayerRef.current?.getStatusAsync().then((status) => {
             if (!('rate' in status && status.rate)) {
                 return;
             }
+            if (shouldUseNewRate) {
+                setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+            }
             setIsPopoverVisible(true);
-            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
         });
         if (!event || !('nativeEvent' in event)) {
             return;
@@ -292,12 +343,15 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL(url);
     }, [shouldPlay, updateCurrentlyPlayingURL, url]);
 
+    useEffect(() => {
+        videoPlayerRef.current?.setStatusAsync({volume: 0});
+    }, []);
+
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
-                accessibilityRole="button"
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
@@ -311,7 +365,11 @@ function BaseVideoPlayer({
                                     if (isFullScreenRef.current) {
                                         return;
                                     }
-                                    togglePlayCurrentVideo();
+                                    if (!canUseTouchScreen) {
+                                        togglePlayCurrentVideo();
+                                        return;
+                                    }
+                                    toggleControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
@@ -359,8 +417,7 @@ function BaseVideoPlayer({
                                                     playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
-                                                const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
-                                                if (typeof source === 'number' || !source || source.uri !== sourceURL) {
+                                                if (shouldUseNewRate) {
                                                     return;
                                                 }
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
@@ -373,7 +430,7 @@ function BaseVideoPlayer({
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}
@@ -381,9 +438,9 @@ function BaseVideoPlayer({
                                     videoPlayerRef={videoPlayerRef}
                                     isPlaying={isPlaying}
                                     small={shouldUseSmallVideoControls}
-                                    style={videoControlsStyle}
+                                    style={[videoControlsStyle, controlsAnimatedStyle]}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                    controlsStatus={controlsStatus}
+                                    controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}

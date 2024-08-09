@@ -141,7 +141,10 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
-    return tagArray.join(CONST.COLON).replace(/:*$/, '');
+    return tagArray
+        .map((tagItem) => tagItem.trim())
+        .filter((tagItem) => !!tagItem)
+        .join(CONST.COLON);
 }
 
 function isMovingTransactionFromTrackExpense(action?: IOUAction) {
