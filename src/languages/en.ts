@@ -4017,7 +4017,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
-        customUnitOutOfPolicy: 'Unit no longer valid',
+        customUnitOutOfPolicy: 'Rate not valid for this workspace',
         duplicatedTransaction: 'Duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',

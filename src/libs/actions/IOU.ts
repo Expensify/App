@@ -878,9 +878,8 @@ function buildOnyxDataForMoneyRequest(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1245,9 +1244,8 @@ function buildOnyxDataForInvoice(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -1622,9 +1620,8 @@ function buildOnyxDataForTrackExpense(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
-        !!policy.requiresTag,
+        policy,
         policyTagList ?? {},
-        !!policy.requiresCategory,
         policyCategories ?? {},
         PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
     );
@@ -2637,7 +2634,8 @@ function getUpdateMoneyRequestParams(
     }
 
     // Update recently used categories if the category is changed
-    if ('category' in transactionChanges) {
+    const hasModifiedCategory = 'category' in transactionChanges;
+    if (hasModifiedCategory) {
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
@@ -2649,7 +2647,8 @@ function getUpdateMoneyRequestParams(
     }
 
     // Update recently used categories if the tag is changed
-    if ('tag' in transactionChanges) {
+    const hasModifiedTag = 'tag' in transactionChanges;
+    if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
@@ -2692,15 +2691,14 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
-                !!policy.requiresTag,
+                policy,
                 policyTagList ?? {},
-                !!policy.requiresCategory,
                 policyCategories ?? {},
                 PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
             ),
@@ -5357,9 +5355,8 @@ function editRegularMoneyRequest(
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
-            !!policy.requiresTag,
+            policy,
             policyTags,
-            !!policy.requiresCategory,
             policyCategories,
             PolicyUtils.hasDependentTags(policy, policyTags),
         );

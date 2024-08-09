@@ -4533,7 +4533,7 @@ export default {
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams = {}) => `${surcharge}% de recargo aplicado`,
-        customUnitOutOfPolicy: 'La unidad ya no es válida',
+        customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
         duplicatedTransaction: 'Duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',

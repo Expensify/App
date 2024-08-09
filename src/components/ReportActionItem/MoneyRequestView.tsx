@@ -230,7 +230,8 @@ function MoneyRequestView({
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
+    const isCustomUnitRateIDForP2P = TransactionUtils.isCustomUnitRateIDForP2P(transaction);
+    const mileageRate = isCustomUnitRateIDForP2P ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
     const {unit} = mileageRate;
     const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
@@ -355,6 +356,8 @@ function MoneyRequestView({
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
                     }
+                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={getErrorForField('customUnitRateID')}
                 />
             </OfflineWithFeedback>
         </>

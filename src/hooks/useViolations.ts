@@ -5,7 +5,7 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'none';
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'customUnitRateID' | 'none';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
@@ -17,7 +17,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     cashExpenseWithNoReceipt: 'receipt',
     categoryOutOfPolicy: 'category',
     conversionSurcharge: 'amount',
-    customUnitOutOfPolicy: 'merchant',
+    customUnitOutOfPolicy: 'customUnitRateID',
     duplicatedTransaction: 'merchant',
     fieldRequired: 'merchant',
     futureDate: 'date',
