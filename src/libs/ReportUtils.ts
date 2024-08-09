@@ -4254,7 +4254,7 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
     }
 
-    // For all other types, we present a generic download link
+    // For all other types, we present a generic attachment link
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
