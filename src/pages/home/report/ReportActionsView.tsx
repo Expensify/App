@@ -332,6 +332,10 @@ function ReportActionsView({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
+    const onContentSizeChange = useCallback((w: number, h: number) => {
+        contentListHeight.current = h;
+    }, []);
+
     const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
 
     /**
@@ -424,18 +428,6 @@ function ReportActionsView({
             hasLoadingNewerReportActionsError,
             hasMoreCached,
         ],
-    );
-
-    const onContentSizeChange = useCallback(
-        (w: number, h: number) => {
-            const previousContentListHeight = contentListHeight.current;
-            contentListHeight.current = h;
-            if (!!reportActionID && isFirstLinkedActionRender.current && !previousContentListHeight) {
-                loadNewerChats();
-            }
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [reportActionID],
     );
 
     /**
