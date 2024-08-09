@@ -798,7 +798,6 @@ function setAssigneeValue(
         if (!shareToReportID && !skipShareDestination) {
             setShareDestinationValue(report?.reportID ?? '-1');
         }
-        j;
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
