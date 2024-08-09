@@ -3,7 +3,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
 
@@ -63,7 +63,7 @@ function getAttributes(): FirebaseAttributes {
     const session = SessionUtils.getSession();
 
     const accountId = session?.accountID?.toString() ?? 'N/A';
-    const reportsLength = ReportUtils.getAllReportsLength().toString();
+    const reportsLength = ReportConnection.getAllReportsLength().toString();
     const personalDetailsLength = PersonalDetailsUtils.getPersonalDetailsLength().toString();
 
     return {

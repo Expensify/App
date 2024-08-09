@@ -7492,11 +7492,6 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
-function getAllReportsLength() {
-    const allReports = ReportConnection.getAllReports();
-    return Object.keys(allReports ?? {}).length;
-}
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7573,7 +7568,6 @@ export {
     getAllAncestorReportActions,
     getAllHeldTransactions,
     getAllPolicyReports,
-    getAllReportsLength,
     getAllWorkspaceReports,
     getAvailableReportFields,
     getBankAccountRoute,
