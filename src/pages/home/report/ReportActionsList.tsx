@@ -168,7 +168,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(Visibility.isVisible());
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
@@ -325,7 +325,6 @@ function ReportActionsList({
         if (report.reportID !== prevReportID) {
             return;
         }
-
         if (ReportUtils.isUnread(report)) {
             // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
@@ -488,15 +487,19 @@ function ReportActionsList({
         // show marker based on report.lastReadTime
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
-        if (
-            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
-            !sortedVisibleReportActions.some(
-                (reportAction) =>
-                    newMessageTimeReference &&
-                    newMessageTimeReference < reportAction.created &&
-                    (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
-            )
-        ) {
+        const areSomeReportActionsUnread = sortedVisibleReportActions.some((reportAction) => {
+            /**
+             * The archived reports should not be marked as unread. So we are checking if the report is archived or not.
+             * If the report is archived, we will mark the report as read.
+             */
+            const isArchivedReport = ReportUtils.isArchivedRoom(report);
+            const isUnread = isArchivedReport || (newMessageTimeReference && newMessageTimeReference < reportAction.created);
+            return (
+                isUnread && (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
+            );
+        });
+
+        if (scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !areSomeReportActionsUnread) {
             return;
         }
 
