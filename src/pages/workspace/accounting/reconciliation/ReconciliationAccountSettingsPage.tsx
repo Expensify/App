@@ -29,7 +29,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const paymentBankAccountID = (cardSettings?.paymentBankAccountID as number) ?? 0;
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID.toString()], [paymentBankAccountID, bankAccountList]);
     const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount]);

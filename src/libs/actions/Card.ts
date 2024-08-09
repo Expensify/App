@@ -206,7 +206,7 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
-function updateSettlementFrequency(workspaceAccountID: string, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
+function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
     // TODO: remove this code when the API is ready
     if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
@@ -257,7 +257,7 @@ function updateSettlementFrequency(workspaceAccountID: string, frequency: ValueO
     // API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: string, accountID: number) {
+function updateSettlementAccount(workspaceAccountID: number, accountID: number) {
     // TODO: remove this code when the API is ready
     Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
         paymentBankAccountID: accountID,
@@ -313,7 +313,7 @@ function clearIssueNewCardFlow() {
     });
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: string, cardID: number, newLimit: number, oldLimit?: number) {
+function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, oldLimit?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
