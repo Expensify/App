@@ -1890,20 +1890,22 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
 /**
  * Cache the workspace icons
  */
-const workSpaceIconsCache = new Map<string, Icon>();
+const workSpaceIconsCache = new Map<string, {name: string; icon: Icon}>();
 
 /**
  * Given a report, return the associated workspace icon.
  */
 function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const iconFromCache = workSpaceIconsCache.get(report?.policyID ?? workspaceName);
+    const cacheKey = report?.policyID ?? workspaceName;
+    const iconFromCache = workSpaceIconsCache.get(cacheKey);
     const avatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
 
-    const isSameAvatarURL = iconFromCache?.source === avatarURL;
-    const isDefaultWorkspaceAvatar = !avatarURL && typeof iconFromCache?.source !== 'string';
-    if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar)) {
-        return iconFromCache;
+    const isSameAvatarURL = iconFromCache?.icon?.source === avatarURL;
+    const isDefaultWorkspaceAvatar = !avatarURL && typeof iconFromCache?.icon?.source !== 'string';
+    const hasWorkSpaceNameChanged = iconFromCache?.name !== workspaceName;
+    if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar) && !hasWorkSpaceNameChanged) {
+        return iconFromCache.icon;
     }
     // `avatarURL` can be an empty string, so we have to use || operator here
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1915,7 +1917,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
         name: workspaceName,
         id: report?.policyID,
     };
-    workSpaceIconsCache.set(report?.policyID ?? workspaceName, workspaceIcon);
+    workSpaceIconsCache.set(cacheKey, {name: workspaceName, icon: workspaceIcon});
     return workspaceIcon;
 }
 
