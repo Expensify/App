@@ -314,6 +314,9 @@ function Composer(
                 // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
                 blur: () => textInputRef.blur(),
                 focus: () => textInputRef.focus(),
+                get scrollTop() {
+                    return textInputRef.scrollTop;
+                },
             };
         },
         [clear],

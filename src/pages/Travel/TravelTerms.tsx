@@ -21,9 +21,7 @@ function TravelTerms() {
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
-    const [error, setError] = useState(false);
-
-    const errorMessage = error ? translate('travel.termsAndConditions.error') : '';
+    const [errorMessage, setErrorMessage] = useState('');
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -34,7 +32,7 @@ function TravelTerms() {
             return;
         }
 
-        setError(false);
+        setErrorMessage('');
     }, [hasAcceptedTravelTerms]);
 
     const AgreeToTheLabel = useCallback(
@@ -86,16 +84,19 @@ function TravelTerms() {
                                 isDisabled={!hasAcceptedTravelTerms}
                                 onSubmit={() => {
                                     if (!hasAcceptedTravelTerms) {
-                                        setError(true);
+                                        setErrorMessage(translate('travel.termsAndConditions.error'));
                                         return;
                                     }
+                                    if (errorMessage) {
+                                        setErrorMessage('');
+                                    }
 
-                                    Travel.acceptSpotnanaTerms();
-                                    setError(false);
-                                    Navigation.goBack();
+                                    Travel.acceptSpotnanaTerms()
+                                        .then(() => Navigation.goBack())
+                                        .catch(() => setErrorMessage(translate('travel.errorMessage')));
                                 }}
                                 message={errorMessage}
-                                isAlertVisible={error || !!errorMessage}
+                                isAlertVisible={!!errorMessage}
                                 containerStyles={[styles.mh0, styles.mt5]}
                             />
                         </ScrollView>

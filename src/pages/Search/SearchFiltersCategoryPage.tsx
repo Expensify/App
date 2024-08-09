@@ -17,6 +17,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
@@ -125,10 +126,16 @@ function SearchFiltersCategoryPage() {
             testID={SearchFiltersCategoryPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('common.category')} />
-                <View style={[styles.flex1]}>
+                <HeaderWithBackButton
+                    title={translate('common.category')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    }}
+                />
+                <View style={[styles.flex1, styles.pb5]}>
                     <SelectionList
                         sections={sections}
                         textInputValue={searchTerm}
