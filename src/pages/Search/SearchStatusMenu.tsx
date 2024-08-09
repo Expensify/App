@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {normalizeQuery} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -41,25 +40,25 @@ function SearchStatusMenu({queryJSON, isCustomQuery}: SearchStatusMenuProps) {
             title: translate('common.expenses'),
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
         },
         {
             title: translate('common.shared'),
             status: CONST.SEARCH.STATUS.EXPENSE.SHARED,
             icon: Expensicons.Send,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.SHARED)}),
         },
         {
             title: translate('common.drafts'),
             status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
             icon: Expensicons.Pencil,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.DRAFTS)}),
         },
         {
             title: translate('common.finished'),
             status: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
             icon: Expensicons.CheckCircle,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.FINISHED)}),
         },
     ];
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);

@@ -17,7 +17,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
-import {getCurrentSearchParams} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -81,13 +81,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             return;
         }
         interceptAnonymousUser(() => {
-            const currentSearchParams = getCurrentSearchParams();
+            const currentSearchParams = SearchUtils.getCurrentSearchParams();
             if (currentSearchParams) {
                 const {q, ...rest} = currentSearchParams;
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest}));
                 return;
             }
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
         });
     }, [selectedTab]);
 

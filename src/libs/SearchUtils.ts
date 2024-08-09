@@ -546,6 +546,10 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
+function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): string {
+    return normalizeQuery(`type:${type} status:${status}`);
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -564,4 +568,5 @@ export {
     isTransactionListItemType,
     normalizeQuery,
     shouldShowYear,
+    buildCannedSearchQuery,
 };
