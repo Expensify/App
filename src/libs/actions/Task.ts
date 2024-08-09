@@ -798,6 +798,7 @@ function setAssigneeValue(
         if (!shareToReportID && !skipShareDestination) {
             setShareDestinationValue(report?.reportID ?? '-1');
         }
+        j;
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
@@ -836,6 +837,10 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
  * Start out create task action quick action step
  */
 function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number) {
+    // The second parameter of clearOutTaskInfoAndNavigate is the chat report or DM report
+    // between the user and the person to whom the task is assigned.
+    // Since chatReportID isn't stored in NVP_QUICK_ACTION_GLOBAL_CREATE, we set
+    // it to undefined. This will make setAssigneeValue to search for the correct report.
     clearOutTaskInfoAndNavigate(reportID, undefined, targetAccountID, true);
 }
 
