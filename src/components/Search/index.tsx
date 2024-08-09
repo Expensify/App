@@ -320,7 +320,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-            <SearchStatusBar type={type} />
+            <SearchStatusBar type={type} status={status} />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
