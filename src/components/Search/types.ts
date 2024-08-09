@@ -1,5 +1,6 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -55,7 +56,7 @@ type QueryFilters = {
 type SearchQueryString = string;
 
 type SearchQueryAST = {
-    type: string;
+    type: SearchDataTypes;
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
