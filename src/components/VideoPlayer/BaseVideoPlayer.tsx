@@ -339,12 +339,15 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL(url);
     }, [shouldPlay, updateCurrentlyPlayingURL, url]);
 
+    useEffect(() => {
+        videoPlayerRef.current?.setStatusAsync({volume: 0});
+    }, []);
+
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
-                accessibilityRole="button"
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
