@@ -3527,6 +3527,8 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
     return getPolicyName(report, false, invoiceReceiverPolicy);
 }
 
+const reportNameCache: Record<string, string> = {};
+
 /**
  * Get the title for a report.
  */
@@ -3537,6 +3539,12 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    const reportID = report?.reportID ?? '';
+
+    if (reportNameCache[reportID]) {
+        return reportNameCache[reportID];
+    }
+
     let formattedName: string | undefined;
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
@@ -3628,6 +3636,7 @@ function getReportName(
     }
 
     if (formattedName) {
+        reportNameCache[reportID] = formattedName;
         return formatReportLastMessageText(formattedName);
     }
 
@@ -3640,7 +3649,11 @@ function getReportName(
         }
     });
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+    formattedName = participantNames;
+
+    reportNameCache[reportID] = formattedName;
+    return formattedName;
 }
 
 /**
