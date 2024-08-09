@@ -109,7 +109,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
-    const isArchivedReport = ReportUtils.isArchivedRoom(moneyRequestReport);
+    const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.reportID}`, {selector: ReportUtils.getArchiveReason});
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
@@ -199,10 +200,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isPayAtEndExpense) {
-            if (isArchivedReport) {
+            if (!isArchivedReport) {
+                return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.bookingPendingDescription')};
+            }
+            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
                 return {title: getStatusIcon(Expensicons.Box), description: translate('iou.bookingArchivedDescription')};
             }
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.bookingPendingDescription')};
         }
         if (hasOnlyHeldExpenses) {
             return {title: translate('violations.hold'), description: translate('iou.expensesOnHold'), danger: true};

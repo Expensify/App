@@ -321,15 +321,22 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
-    const isFutureTravelExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID);
+    const isPayAtEndExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: ReportUtils.getArchiveReason});
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (isFutureTravelExpense) {
-            if (isArchivedReport) {
-                return {shouldShow: true, messageIcon: Expensicons.Box, messageDescription: translate('iou.bookingArchived')};
+        if (isPayAtEndExpense) {
+            if (!isArchivedReport) {
+                return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
             }
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
+            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
+                return {
+                    shouldShow: true,
+                    messageIcon: Expensicons.Box,
+                    messageDescription: translate('iou.bookingArchived'),
+                };
+            }
         }
         if (shouldShowScanningSubtitle) {
             return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};

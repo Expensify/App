@@ -2597,6 +2597,16 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<
     return reportOwnerDisplayName;
 }
 
+function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
+    const lastClosedReportAction = ReportActionsUtils.getLastClosedReportAction(reportActions);
+
+    if (!lastClosedReportAction) {
+        return undefined;
+    }
+
+    return ReportActionsUtils.isClosedAction(lastClosedReportAction) ? ReportActionsUtils.getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+}
+
 /**
  * Given a report field, check if the field is for the report title.
  */
@@ -7796,6 +7806,7 @@ export {
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
+    getArchiveReason,
     isIndividualInvoiceRoom,
 };
 
