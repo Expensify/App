@@ -25,7 +25,6 @@ function EmptyStateComponent({
     headerContentStyles,
     emptyStateForegroundStyles,
     minModalHeight = 400,
-    optionalStyles,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -80,7 +79,7 @@ function EmptyStateComponent({
 
     return (
         <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
-            <View style={[styles.skeletonBackground, optionalStyles]}>
+            <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}

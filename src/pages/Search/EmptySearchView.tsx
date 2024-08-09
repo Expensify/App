@@ -19,7 +19,6 @@ function EmptySearchView() {
             headerContentStyles={styles.emptyStateFolderIconSize}
             title={translate('search.searchResults.emptyResults.title')}
             subtitle={translate('search.searchResults.emptyResults.subtitle')}
-            optionalStyles={{padding: 0}}
         />
     );
 }

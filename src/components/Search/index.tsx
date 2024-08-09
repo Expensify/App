@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -196,7 +197,9 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
-                <SearchRowSkeleton shouldAnimate />
+                <View style={[styles.flex1, styles.ph2]}>
+                    <SearchRowSkeleton shouldAnimate />
+                </View>
             </>
         );
     }
