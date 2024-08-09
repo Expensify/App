@@ -3540,9 +3540,10 @@ function getReportName(
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
     const reportID = report?.reportID;
+    const cacheKey = `${reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
-    if (reportID && reportNameCache[reportID]) {
-        return reportNameCache[reportID];
+    if (reportID && reportNameCache[cacheKey]) {
+        return reportNameCache[cacheKey];
     }
 
     let formattedName: string | undefined;
@@ -3637,7 +3638,7 @@ function getReportName(
 
     if (formattedName) {
         if (reportID) {
-            reportNameCache[reportID] = formattedName;
+            reportNameCache[cacheKey] = formattedName;
         }
 
         return formatReportLastMessageText(formattedName);
@@ -3656,7 +3657,7 @@ function getReportName(
     formattedName = participantNames;
 
     if (reportID) {
-        reportNameCache[reportID] = formattedName;
+        reportNameCache[cacheKey] = formattedName;
     }
 
     return formattedName;
