@@ -461,6 +461,32 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
+    }
+    return employee.forwardsTo ?? '';
+}
+
 /**
  * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
  */
@@ -916,7 +942,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
@@ -984,6 +1009,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
@@ -994,6 +1021,9 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getSubmitToEmail,
+    getForwardsToAccount,
+    getSubmitToAccountID,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -7499,6 +7499,23 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
+function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
+    const approvalChain: string[] = [];
+
+    // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
+    if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
+        return approvalChain;
+    }
+
+    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, employeeAccountID);
+
+    while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
+        approvalChain.push(nextApproverEmail);
+        nextApproverEmail = PolicyUtils.getForwardsToAccount(policy, nextApproverEmail, reportTotal);
+    }
+    return approvalChain;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7794,6 +7811,7 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
+    getApprovalChain,
     isIndividualInvoiceRoom,
 };
 
