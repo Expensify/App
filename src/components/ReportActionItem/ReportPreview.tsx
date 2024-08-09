@@ -297,7 +297,7 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
@@ -321,7 +321,8 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
-    const isPayAtEndExpense = ReportUtils.isPayAtEndExpenseReport(iouReportID);
+
+    const isPayAtEndExpense = numberOfRequests === 1 && TransactionUtils.isPayAtEndExpense(allTransactions[0]);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: ReportUtils.getArchiveReason});
 

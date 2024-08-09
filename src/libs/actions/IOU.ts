@@ -6797,6 +6797,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    transactions?: OnyxTypes.Transaction[],
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -6835,7 +6836,7 @@ function canIOUBePaid(
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const shouldBeApproved = canApproveIOU(iouReport, chatReport, policy);
 
-    const isFutureTravelExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID);
+    const isFutureTravelExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
 
     return (
         isPayer &&

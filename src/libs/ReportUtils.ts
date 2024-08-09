@@ -1565,12 +1565,15 @@ function isOneTransactionReport(reportID: string): boolean {
     return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
 }
 
-function isPayAtEndExpenseReport(reportID: string): boolean {
-    if (!isOneTransactionReport(reportID)) {
+/*
+ * Whether the report contains only one expense and the expense should be paid later
+ */
+function isPayAtEndExpenseReport(reportID: string, transactions: Transaction[] | undefined): boolean {
+    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReport(reportID)) {
         return false;
     }
 
-    return TransactionUtils.isPayAtEndExpense(TransactionUtils.getAllReportTransactions(reportID)[0]);
+    return TransactionUtils.isPayAtEndExpense(transactions?.[0] ?? TransactionUtils.getAllReportTransactions(reportID)[0]);
 }
 
 /**
