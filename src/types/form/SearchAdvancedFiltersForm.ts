@@ -2,13 +2,9 @@ import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
-    /** type filter */
     TYPE: 'type',
-    /** status filter */
     STATUS: 'status',
-    /** date after filter */
     DATE_AFTER: 'dateAfter',
-    /** date before filter */
     DATE_BEFORE: 'dateBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
@@ -17,7 +13,7 @@ const INPUT_IDS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
-    /** date after filter */
+    KEYWORD: 'keyword',
     FROM: 'from',
     TO: 'to',
 } as const;
@@ -38,6 +34,7 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.REPORT_ID]: string;
+        [INPUT_IDS.KEYWORD]: string;
         [INPUT_IDS.FROM]: string[];
         [INPUT_IDS.TO]: string[];
     }

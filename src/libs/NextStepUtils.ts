@@ -104,10 +104,9 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'add',
-                        type: 'strong',
                     },
                     {
-                        text: ' expenses.',
+                        text: ' %expenses.',
                     },
                 ],
             };
@@ -119,11 +118,11 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
+                        text: `${ownerDisplayName}'s`,
                         type: 'strong',
                     },
                     {
-                        text: "'s %expenses to ",
+                        text: ' %expenses to automatically submit',
                     },
                 ];
                 let harvestingSuffix = '';
@@ -157,13 +156,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     };
 
                     if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = ` ${harvestingSuffixes[autoReportingFrequency]}`;
+                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
                     }
                 }
 
                 optimisticNextStep.message.push({
-                    text: `automatically submit${harvestingSuffix}`,
-                    type: 'strong',
+                    text: ` ${harvestingSuffix}`,
                 });
             }
 
@@ -188,7 +186,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'approve',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -206,7 +203,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 type,
                 message: [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ],
             };
@@ -230,7 +227,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     message: [
                         {
-                            text: 'Finished! No further action required.',
+                            text: 'No further action required!',
                         },
                     ],
                 };
@@ -253,7 +250,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'pay',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -270,7 +266,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 message: [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ],
             };

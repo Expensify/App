@@ -55,6 +55,7 @@ const ROUTES = {
 
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
