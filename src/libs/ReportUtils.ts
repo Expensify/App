@@ -1568,19 +1568,14 @@ function isOneTransactionThread(reportID: string, parentReportID: string, thread
  *
  */
 function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
+    // console.log('isOneOnOneChat', report, ' participants:', Object.keys(report?.participants ?? {}));
     const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID);
-    return (
-        !isChatRoom(report) &&
-        !isExpenseRequest(report) &&
-        !isMoneyRequestReport(report) &&
-        !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) &&
-        isDM(report) &&
-        !isIOUReport(report) &&
-        participantAccountIDs.length === 1
-    );
+    if (participantAccountIDs.length !== 1) {
+        return false;
+    }
+    return !isChatRoom(report) && !isExpenseRequest(report) && !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isTaskReport(report) && isDM(report) && !isIOUReport(report);
 }
 
 /**
@@ -1995,23 +1990,28 @@ function getDisplayNameForParticipant(
 }
 
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false): number[] {
-    let participantsEntries = Object.entries(report?.participants ?? {});
-
+    const reportParticipants = report?.participants ?? {};
+    let participantsIds = Object.keys(reportParticipants).map(Number);
+    // console.log('getParticipantsAccountIDsForDisplay', participantsIds);
+    // console.log('getParticipantsAccountIDsForDisplay report?.participants', report?.participants);
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
     const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
 
     if (shouldExcludeCurrentUser || shouldExcludeHidden || shouldExcludeDeleted) {
-        participantsEntries = participantsEntries.filter(([accountID, participant]) => {
-            if (shouldExcludeCurrentUser && Number(accountID) === currentUserAccountID) {
+        participantsIds = participantsIds.filter((accountID) => {
+            if (shouldExcludeCurrentUser && accountID === currentUserAccountID) {
                 return false;
             }
 
-            if (shouldExcludeHidden && participant.hidden) {
+            if (shouldExcludeHidden && reportParticipants[accountID]?.hidden) {
                 return false;
             }
 
-            if (shouldExcludeDeleted && report?.pendingChatMembers?.findLast((member) => member.accountID === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (
+                shouldExcludeDeleted &&
+                report?.pendingChatMembers?.findLast((member) => Number(member.accountID) === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            ) {
                 return false;
             }
 
@@ -2019,7 +2019,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
         });
     }
 
-    return participantsEntries.map(([accountID]) => Number(accountID));
+    return participantsIds;
 }
 
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
