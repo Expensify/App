@@ -5285,14 +5285,6 @@ const CONST = {
                 PAID: 'paid',
             },
         },
-        TAB: {
-            EXPENSE: {
-                ALL: 'type:expense status:all',
-                SHARED: 'type:expense status:shared',
-                DRAFTS: 'type:expense status:drafts',
-                FINISHED: 'type:expense status:finished',
-            },
-        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
