@@ -300,7 +300,6 @@ function Expensify({
                         authenticated={isAuthenticated}
                         lastVisitedPath={lastVisitedPath as Route}
                         initialUrl={initialUrl}
-                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
