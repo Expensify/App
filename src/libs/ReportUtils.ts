@@ -3539,9 +3539,9 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID;
 
-    if (reportNameCache[reportID]) {
+    if (reportID && reportNameCache[reportID]) {
         return reportNameCache[reportID];
     }
 
@@ -3636,7 +3636,10 @@ function getReportName(
     }
 
     if (formattedName) {
-        reportNameCache[reportID] = formattedName;
+        if (reportID) {
+            reportNameCache[reportID] = formattedName;
+        }
+
         return formatReportLastMessageText(formattedName);
     }
 
@@ -3652,7 +3655,10 @@ function getReportName(
     const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
     formattedName = participantNames;
 
-    reportNameCache[reportID] = formattedName;
+    if (reportID) {
+        reportNameCache[reportID] = formattedName;
+    }
+
     return formattedName;
 }
 
