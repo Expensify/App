@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Timing from '@libs/actions/Timing';
-import getAttributes from '@libs/Firebase/utils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -47,7 +46,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
             <PressableWithSecondaryInteraction
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(childReportID);
-                    Timing.start(CONST.TIMING.SWITCH_REPORT, getAttributes());
+                    Timing.start(CONST.TIMING.SWITCH_REPORT);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

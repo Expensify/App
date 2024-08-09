@@ -9,6 +9,7 @@ type StartTrace = (customEventName: string, attributes?: FirebaseAttributes) => 
 type StopTrace = (customEventName: string) => void;
 type Log = (action: string) => void;
 type FirebaseAttributes = {
+    accountId: string;
     personalDetailsLength: string;
     reportsLength: string;
 };

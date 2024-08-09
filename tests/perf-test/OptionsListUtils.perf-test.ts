@@ -73,6 +73,11 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@src/libs/actions/Timing', () => ({
+    start: jest.fn(),
+    end: jest.fn(),
+}));
+
 const options = OptionsListUtils.createOptionList(personalDetails, reports);
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */

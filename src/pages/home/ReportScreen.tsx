@@ -30,7 +30,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import Timing from '@libs/actions/Timing';
-import getAttributes from '@libs/Firebase/utils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -273,7 +272,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     const wasReportAccessibleRef = useRef(false);
     if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER, getAttributes());
+        Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
     const [isComposerFocus, setIsComposerFocus] = useState(false);

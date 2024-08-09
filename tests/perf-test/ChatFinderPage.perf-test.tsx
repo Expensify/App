@@ -71,6 +71,11 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@src/libs/actions/Timing', () => ({
+    start: jest.fn(),
+    end: jest.fn(),
+}));
+
 jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
     function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
