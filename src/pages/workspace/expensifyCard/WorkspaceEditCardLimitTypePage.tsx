@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -95,7 +95,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
     };
 
-    const data = () => {
+    const data = useMemo(() => {
         const options = [];
         let shouldShowFixedOption = true;
 
@@ -137,7 +137,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    };
+    }, [areApprovalsConfigured, card, initialLimitType, translate, typeSelected]);
 
     return (
         <AccessOrNotFoundWrapper
