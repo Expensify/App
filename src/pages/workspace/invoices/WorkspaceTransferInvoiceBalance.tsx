@@ -140,9 +140,7 @@ function WorkspaceTransferInvoiceBalance({
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',
-                        })}
+                        buttonText={translate('common.transfer')}
                         isLoading={invoiceBalanceTransfer?.loading}
                         onSubmit={() => PaymentMethods.transferInvoiceBalance(policyID)}
                         isDisabled={isButtonDisabled || isOffline}

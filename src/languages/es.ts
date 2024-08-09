@@ -274,6 +274,7 @@ export default {
         join: 'Unirse',
         leave: 'Salir',
         decline: 'Rechazar',
+        transfer: 'Transferencia',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Introducir manualmente',
