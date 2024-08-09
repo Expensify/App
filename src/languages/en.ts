@@ -626,7 +626,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Subscription',
-        cardsAndDomains: 'Cards & Domains',
+        domains: 'Domains',
     },
     tabSelector: {
         chat: 'Chat',
@@ -3667,6 +3667,8 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            keyword: 'Keyword',
+            hasKeywords: 'Has keywords',
             currency: 'Currency',
         },
     },

@@ -619,7 +619,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
-        cardsAndDomains: 'Tarjetas y Dominios',
+        domains: 'Dominios',
     },
     tabSelector: {
         chat: 'Chat',
@@ -3721,6 +3721,8 @@ export default {
                 after: (date?: string) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
+            keyword: 'Palabra clave',
+            hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
         },
     },

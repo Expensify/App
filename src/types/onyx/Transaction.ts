@@ -319,7 +319,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the expense was created */
         created: string;
