@@ -5143,10 +5143,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.emptyFolderBG,
         },
 
-        emptyTripBG: {
-            backgroundColor: theme.mentionBG,
-        },
-
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
