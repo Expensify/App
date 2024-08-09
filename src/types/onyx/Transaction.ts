@@ -316,7 +316,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the expense was created */
         created: string;
@@ -353,6 +353,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
+
+        /** The edited distance rate for the distance request */
+        modifiedCustomUnitRateID?: string;
 
         /**
          * Used during the creation flow before the transaction is saved to the server and helps dictate where
@@ -446,7 +449,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
     },
-    keyof Comment
+    keyof Comment | keyof TransactionCustomUnit
 >;
 
 /** Keys of pending transaction fields */
@@ -459,6 +462,9 @@ type AdditionalTransactionChanges = {
 
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** The ID of the distance rate */
+    customUnitRateID?: string;
 
     /** Previous amount before changes */
     oldAmount?: number;

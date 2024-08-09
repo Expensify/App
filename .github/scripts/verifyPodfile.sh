@@ -63,6 +63,7 @@ if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modu
   cleanupAndExit 1
 fi
 
+# Retrieve a list of podspec paths from react-native config
 if ! read_lines_into_array PODSPEC_PATHS < <(npx react-native config | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
   error "Error: could not parse podspec paths from react-native config command"
   cleanupAndExit 1

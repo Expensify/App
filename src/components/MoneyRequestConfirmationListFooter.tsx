@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -217,7 +216,6 @@ function MoneyRequestConfirmationListFooter({
     const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseViolations} = usePermissions(iouType);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // A flag and a toggler for showing the rest of the form fields
@@ -433,7 +431,7 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired && canUseViolations ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -458,7 +456,7 @@ function MoneyRequestConfirmationListFooter({
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
-                        rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
+                        rightLabel={isTagRequired ? translate('common.required') : ''}
                     />
                 ),
                 shouldShow,
