@@ -50,6 +50,9 @@ type OptionRowLHNDataProps = {
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
 
+    /** Invoice receiver policy */
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+
     /** The action from the parent report */
     parentReportAction?: OnyxEntry<ReportAction>;
 
@@ -81,9 +84,6 @@ type OptionRowLHNDataProps = {
 
     /** List of transaction violation */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-
-    /** Whether the user can use violations */
-    canUseViolations: boolean | undefined;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;

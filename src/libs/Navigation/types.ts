@@ -1269,6 +1269,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
+            policyID?: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
