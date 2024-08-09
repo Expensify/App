@@ -43,6 +43,76 @@ If you added a modification to `SharedValue`, you'll likely encounter this error
 
 This error usually occurs when a dependency used inside a hook is omitted. This omission creates a memoization that is too complex to optimize automatically. Try including the missing dependencies.
 
+Please be aware that `react-compiler` struggles with memoization of nested fields, i. e.:
+
+```ts
+// ❌ such code triggers the error
+const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === qboConfig?.reimbursementAccountID)?.name, [qboAccountOptions, qboConfig?.reimbursementAccountID]);
+
+// ✅ this code can be compiled successfully
+const reimbursementAccountID = qboConfig?.reimbursementAccountID;
+const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+// also new version of teh code creates a variable for a repeated code, which is great because reduce amount of duplicated code 👍
+```
+
+### `Invalid nesting in program blocks or scopes`
+
+Such error may happen if we have a nested memoization, i. e.:
+
+```tsx
+const qboToggleSettingItems = [
+    {
+        onToggle: () => console.log('Hello world!'),
+        subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
+        errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
+        pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
+    },
+];
+
+return (
+  <Container>
+    {qboToggleSettingItems.map((item) => (
+        <ToggleSettingOptionRow
+            onToggle={item.onToggle}
+            // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
+            // so this code is pretty complicated for `react-compiler` optimizations 
+            pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
+            // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
+            errors={ErrorUtils.getLatestErrorField(qboConfig, item.subscribedSetting)}
+        />
+    ))}
+  </Container>
+)
+```
+
+And below is a corrected version of the code:
+
+```tsx
+const qboToggleSettingItems = [
+    {
+        onToggle: () => console.log('Hello world!'),
+        subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
+        // 👇 calculate variables and memoize `qboToggleSettingItems` object (done by `react-compiler`)
+        errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
+        pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
+    },
+];
+
+return (
+  <Container>
+    {qboToggleSettingItems.map((item) => (
+        <ToggleSettingOptionRow
+            onToggle={item.onToggle}
+            // ✅ we depend only on `qboToggleSettingItems`, no more complex closures, so everything is fine
+            pendingAction={item.pendingAction}
+            // ✅ we depend only on `qboToggleSettingItems`, no more complex closures, so everything is fine
+            errors={item.errors}
+        />
+    ))}
+  </Container>
+)
+```
+
 ## What if my type of error is not listed here?
 
 This list is actively maintained. If you discover a new error that is not listed and find a way to fix it, please update this documentation and create a PR.
