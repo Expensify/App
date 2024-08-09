@@ -25,6 +25,7 @@ type SharedProps<T> = {
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
     headerMedia: HeaderMedia;
+    optionalStyles?: ViewStyle;
 };
 
 type VideoProps = MediaType<string, 'video'>;
