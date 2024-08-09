@@ -30,13 +30,19 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const policyID = route?.params?.policyID ?? '-1';
 
+    // TODO: change for getWorkspaceAccountID
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const workspaceAccountID = policy?.workspaceAccountID ?? 0;
+
     const handleAddBankAccount = () => {
         // TODO: call to API - UpdateCardSettlementAccount
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value: number) => {
-        Card.updateSettlementAccount(policyID, value);
+        // TODO: policy domainName
+        Card.updateSettlementAccount(workspaceAccountID, '', value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 

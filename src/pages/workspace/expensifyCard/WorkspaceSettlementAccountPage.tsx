@@ -31,10 +31,15 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
+    // TODO: change for getWorkspaceAccountID
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const workspaceAccountID = policy?.workspaceAccountID ?? 0;
+
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
@@ -70,7 +75,8 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        Card.updateSettlementAccount(policyID, value);
+        // TODO: policy domainName
+        Card.updateSettlementAccount(workspaceAccountID, '', value);
         Navigation.goBack();
     };
 
