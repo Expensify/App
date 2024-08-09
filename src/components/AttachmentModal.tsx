@@ -196,7 +196,7 @@ function AttachmentModal({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
+    const isLocalSource = typeof sourceState === 'string' && FileUtils.isLocalFile(sourceState);
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
