@@ -536,7 +536,7 @@ function setPaymentCardForm(values: AccountData) {
 /**
  * Transfers invoice balance to a bank account
  */
-function transferInvoiceBalance(policyID: string, bankAccountID: number) {
+function transferInvoiceBalance(policyID: string) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -575,7 +575,6 @@ function transferInvoiceBalance(policyID: string, bankAccountID: number) {
 
     const parameters: TransferInvoiceBalanceParams = {
         policyID,
-        bankAccountID,
         authToken,
     };
 

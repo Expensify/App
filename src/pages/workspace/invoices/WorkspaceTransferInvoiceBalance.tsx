@@ -148,7 +148,7 @@ function WorkspaceTransferInvoiceBalance({
                             amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',
                         })}
                         isLoading={invoiceBalanceTransfer?.loading}
-                        onSubmit={() => selectedAccount?.methodID && PaymentMethods.transferInvoiceBalance(policyID, selectedAccount.methodID)}
+                        onSubmit={() => PaymentMethods.transferInvoiceBalance(policyID)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
