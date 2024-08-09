@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -68,15 +68,11 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [isEmptyList, setIsEmptyList] = useState(false);
-
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-
-    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !isEmptyList;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -342,6 +338,26 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
     );
 
+    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+
+    const optionLength = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return 0;
+        }
+        let length = 0;
+        sections.forEach((section) => {
+            length += section.data.length;
+        });
+        return length;
+    }, [areOptionsInitialized, sections]);
+
+    const shouldShowListEmptyContent = useMemo(
+        () => optionLength === 0 && !searchTerm && !showLoadingPlaceholder && header !== translate('common.noResultsFound'),
+        [optionLength, searchTerm, showLoadingPlaceholder, header, translate],
+    );
+
+    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -415,10 +431,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const onListEmptyChange = useCallback((isEmpty: boolean) => {
-        setIsEmptyList(isEmpty);
-    }, []);
-
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -433,11 +445,11 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            onListEmptyChange={onListEmptyChange}
             headerMessage={header}
-            showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+            showLoadingPlaceholder={showLoadingPlaceholder}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
             isLoadingNewOptions={!!isSearchingForReports}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
         />
     );
 }

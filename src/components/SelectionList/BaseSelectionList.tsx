@@ -62,7 +62,6 @@ function BaseSelectionList<TItem extends ListItem>(
         footerContent,
         listFooterContent,
         listEmptyContent,
-        onListEmptyChange,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -98,6 +97,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
+        shouldShowListEmptyContent = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -474,19 +474,6 @@ function BaseSelectionList<TItem extends ListItem>(
             </>
         );
     };
-
-    const shouldShowListEmptyContent = useMemo(
-        () => flattenedSections.allOptions.length === 0 && !!listEmptyContent && !textInputValue && !showLoadingPlaceholder && headerMessage !== translate('common.noResultsFound'),
-        [textInputValue, showLoadingPlaceholder, headerMessage, listEmptyContent],
-    );
-
-    useEffect(() => {
-        if (!onListEmptyChange) {
-            return;
-        }
-
-        onListEmptyChange(shouldShowListEmptyContent);
-    }, [shouldShowListEmptyContent]);
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
