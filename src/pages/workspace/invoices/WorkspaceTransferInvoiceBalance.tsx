@@ -116,7 +116,6 @@ function WorkspaceTransferInvoiceBalance({
                                 ...styles.transferBalanceSelectedPayment,
                             }}
                             interactive={false}
-                            onPress={() => console.debug('ACH')}
                         />
                     </View>
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
