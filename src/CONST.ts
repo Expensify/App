@@ -83,6 +83,50 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 };
 
+const onboardingEmployerOrSubmitMessage = {
+    message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
+    video: {
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
+        thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
+        duration: 55,
+        width: 1280,
+        height: 960,
+    },
+    tasks: [
+        {
+            type: 'submitExpense',
+            autoCompleted: false,
+            title: 'Submit an expense',
+            description:
+                '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                '\n' +
+                'Here’s how to submit an expense:\n' +
+                '\n' +
+                '1. Click the green *+* button.\n' +
+                '2. Choose *Submit expense*.\n' +
+                '3. Enter an amount or scan a receipt.\n' +
+                '4. Add your reimburser to the request.\n' +
+                '\n' +
+                'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
+        },
+        {
+            type: 'enableWallet',
+            autoCompleted: false,
+            title: 'Enable your wallet',
+            description:
+                'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
+                '\n' +
+                'Here’s how to set up your wallet:\n' +
+                '\n' +
+                '1. Click your profile picture.\n' +
+                '2. Click *Wallet* > *Enable wallet*.\n' +
+                '3. Connect your bank account.\n' +
+                '\n' +
+                'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+        },
+    ],
+};
+
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const onboardingInviteTypes = {
@@ -4278,49 +4322,8 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
-        [onboardingChoices.EMPLOYER || onboardingChoices.SUBMIT]: {
-            message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
-            video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
-                duration: 55,
-                width: 1280,
-                height: 960,
-            },
-            tasks: [
-                {
-                    type: 'submitExpense',
-                    autoCompleted: false,
-                    title: 'Submit an expense',
-                    description:
-                        '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                        '\n' +
-                        'Here’s how to submit an expense:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Submit expense*.\n' +
-                        '3. Enter an amount or scan a receipt.\n' +
-                        '4. Add your reimburser to the request.\n' +
-                        '\n' +
-                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-                },
-                {
-                    type: 'enableWallet',
-                    autoCompleted: false,
-                    title: 'Enable your wallet',
-                    description:
-                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
-                        '\n' +
-                        'Here’s how to set up your wallet:\n' +
-                        '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Click *Wallet* > *Enable wallet*.\n' +
-                        '3. Connect your bank account.\n' +
-                        '\n' +
-                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
-                },
-            ],
-        },
+        [onboardingChoices.EMPLOYER]: {...onboardingEmployerOrSubmitMessage},
+        [onboardingChoices.SUBMIT]: {...onboardingEmployerOrSubmitMessage},
         [onboardingChoices.MANAGE_TEAM]: {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
