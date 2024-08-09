@@ -70,6 +70,13 @@ Onyx.connect({
     },
 });
 
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
 /**
  * Attempt to close the user's accountt
  */
@@ -765,7 +772,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -858,7 +865,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
         },
     ];
 
-    Object.values(policies ?? {}).forEach((policy) => {
+    Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
         }
