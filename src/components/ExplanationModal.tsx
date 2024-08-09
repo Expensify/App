@@ -10,7 +10,7 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 function ExplanationModal() {
     const {translate} = useLocalize();
 
-    const onConfirm = useCallback(() => {
+    const onClose = useCallback(() => {
         Welcome.completeHybridAppOnboarding();
 
         // We need to check if standard NewDot onboarding is completed.
@@ -32,7 +32,7 @@ function ExplanationModal() {
             secondaryDescription={translate('onboarding.explanationModal.secondaryDescription')}
             confirmText={translate('footer.getStarted')}
             videoURL={CONST.WELCOME_VIDEO_URL}
-            onConfirm={onConfirm}
+            onClose={onClose}
         />
     );
 }
