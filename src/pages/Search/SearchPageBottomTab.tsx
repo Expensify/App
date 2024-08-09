@@ -17,7 +17,7 @@ import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopB
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchStatusMenu from './SearchStatusMenu';
+import SearchTypeMenu from './SearchTypeMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -62,7 +62,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchStatusMenu
+                        <SearchTypeMenu
                             isCustomQuery={isCustomQuery}
                             queryJSON={queryJSON}
                         />
