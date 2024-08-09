@@ -1905,7 +1905,9 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
     if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar)) {
         return iconFromCache;
     }
-    const policyExpenseChatAvatarSource = avatarURL ?? getDefaultWorkspaceAvatar(workspaceName);
+    // `avatarURL` can be an empty string, so we have to use || operator here
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyExpenseChatAvatarSource = avatarURL || getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
