@@ -95,8 +95,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID ?? '0'];
 }
 
-let scrollPosition;
-
 function ReportScreen({route, currentReportID = '', navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -269,14 +267,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [route, reportActionIDFromRoute]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
-
-    const setScrollPosition = useCallback((pos) => {
-        scrollPosition = pos;
-    }, []);
-
-    const getScrollPosition = useCallback(() => {
-        return scrollPosition;
-    }, []);
+    const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
     if (firstRenderRef.current) {
@@ -692,7 +683,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         };
     }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
 
-    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, setScrollPosition, getScrollPosition}), [flatListRef, setScrollPosition, getScrollPosition]);
+    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
