@@ -71,9 +71,6 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** There an error when loading newer report actions */
     hasLoadingNewerReportActionsError?: boolean;
 
-    /** Whether the report is ready for comment linking */
-    isReadyForCommentLinking?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -96,7 +93,6 @@ function ReportActionsView({
     hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
-    isReadyForCommentLinking = false,
     transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -123,7 +119,6 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
-    const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
         if (!shouldFetchReport(report)) {
@@ -157,7 +152,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions, reportActionID]);
+    }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -245,7 +240,7 @@ function ReportActionsView({
         if (!reportActionID) {
             return combinedReportActions;
         }
-        if (isLoading || indexOfLinkedAction === -1) {
+        if (indexOfLinkedAction === -1) {
             return [];
         }
 
@@ -257,7 +252,7 @@ function ReportActionsView({
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+    }, [reportActionID, combinedReportActions, indexOfLinkedAction, currentReportActionID]);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions.map((action) => action.reportActionID);
@@ -295,21 +290,6 @@ function ReportActionsView({
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
-    const handleReportActionPagination = useCallback(
-        ({firstReportActionID}: {firstReportActionID: string}) => {
-            // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
-                isFirstLinkedActionRender.current = false;
-                fetchNewerAction(newestReportAction);
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            setCurrentReportActionID(firstReportActionID);
-        },
-        [fetchNewerAction, hasMoreCached, newestReportAction],
-    );
-
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
@@ -343,6 +323,21 @@ function ReportActionsView({
     }, []);
 
     const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
+
+    const handleReportActionPagination = useCallback(
+        ({firstReportActionID}: {firstReportActionID: string}) => {
+            // This function is a placeholder as the actual pagination is handled by visibleReportActions
+            if (!hasMoreCached && !hasNewestReportAction) {
+                isFirstLinkedActionRender.current = false;
+                fetchNewerAction(newestReportAction);
+            }
+            if (isFirstLinkedActionRender.current) {
+                isFirstLinkedActionRender.current = false;
+            }
+            setCurrentReportActionID(firstReportActionID);
+        },
+        [fetchNewerAction, hasMoreCached, newestReportAction, hasNewestReportAction],
+    );
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -405,7 +400,7 @@ function ReportActionsView({
                 !force &&
                 (!reportActionID ||
                     !isFocused ||
-                    isLoadingInitialReportActions ||
+                    (isLoadingInitialReportActions && !hasMoreCached) ||
                     isLoadingNewerReportActions ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
@@ -521,10 +516,6 @@ ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
     if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
-        return false;
-    }
-
-    if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
 
