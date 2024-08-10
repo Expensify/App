@@ -157,6 +157,7 @@ type OptimisticExpenseReport = Pick<
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
+    | 'fieldList'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -391,6 +392,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
+    | 'fieldList'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -2848,6 +2850,11 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return true;
     }
 
+    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
+        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport.ownerAccountID ?? 0) !== moneyRequestReport.managerID;
+        return !isForwarded;
+    }
+
     return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
@@ -2891,17 +2898,22 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         return false;
     }
 
-    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && TransactionUtils.isDistanceRequest(transaction)) {
-        const policy = getPolicy(moneyRequestReport?.reportID ?? '-1');
-        const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
-        const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
+    const policy = getPolicy(moneyRequestReport?.reportID ?? '-1');
+    const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
 
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && TransactionUtils.isDistanceRequest(transaction)) {
         return isAdmin || isManager;
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-        return !isInvoiceReport(moneyRequestReport) && !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
+        return (
+            !isInvoiceReport(moneyRequestReport) &&
+            !TransactionUtils.isReceiptBeingScanned(transaction) &&
+            !TransactionUtils.isDistanceRequest(transaction) &&
+            (isAdmin || isManager || isRequestor)
+        );
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
@@ -4082,6 +4094,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
+    const policyID = getReport(chatReportID)?.policyID ?? '-1';
+    const policy = getPolicy(policyID);
 
     const participants: Participants = {
         [payeeAccountID]: {hidden: true},
@@ -4106,6 +4120,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
+        fieldList: policy?.fieldList,
     };
 }
 
@@ -4223,6 +4238,8 @@ function buildOptimisticExpenseReport(
     if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
+
+    expenseReport.fieldList = policy?.fieldList;
 
     return expenseReport;
 }
@@ -7492,6 +7509,23 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
+function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
+    const approvalChain: string[] = [];
+
+    // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
+    if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
+        return approvalChain;
+    }
+
+    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, employeeAccountID);
+
+    while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
+        approvalChain.push(nextApproverEmail);
+        nextApproverEmail = PolicyUtils.getForwardsToAccount(policy, nextApproverEmail, reportTotal);
+    }
+    return approvalChain;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7787,6 +7821,7 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
+    getApprovalChain,
     isIndividualInvoiceRoom,
 };
 
