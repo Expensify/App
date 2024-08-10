@@ -2563,7 +2563,7 @@ export default {
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
-                        recordTitle: 'Custom segment',
+                        recordTitle: 'Custom segment/record',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'View detailed instructions',
                         helpText: ' on configuring custom segments/records.',

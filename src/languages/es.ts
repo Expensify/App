@@ -2612,7 +2612,7 @@ export default {
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
                         addText: 'Añadir segmento/registro personalizado',
-                        recordTitle: 'Segmento personalizado',
+                        recordTitle: 'Segmento/registro personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'Ver instrucciones detalladas',
                         helpText: ' sobre la configuración de segmentos/registros personalizado.',
