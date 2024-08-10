@@ -66,7 +66,7 @@ describe('getViolationsOnyxData', () => {
 
     describe('distance rate was modified', () => {
         beforeEach(() => {
-            transactionViolations = [customUnitOutOfPolicyViolation,];
+            transactionViolations = [customUnitOutOfPolicyViolation];
 
             const customUnitRateID = 'rate_id';
             transaction.modifiedCustomUnitRateID = customUnitRateID;
@@ -83,10 +83,10 @@ describe('getViolationsOnyxData', () => {
                             customUnitRateID,
                             enabled: true,
                             name: 'Default Rate',
-                            rate: 65.5
-                        }
-                    }
-                }
+                            rate: 65.5,
+                        },
+                    },
+                },
             };
         });
 
@@ -123,14 +123,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should not add a category violation when the transaction is partial', () => {
             const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
-            const result = ViolationsUtils.getViolationsOnyxData(
-                partialTransaction,
-                transactionViolations,
-                policy,
-                policyTags,
-                policyCategories,
-                false,
-            );
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
 
@@ -213,14 +206,7 @@ describe('getViolationsOnyxData', () => {
 
         it('should not add a tag violation when the transaction is partial', () => {
             const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
-            const result = ViolationsUtils.getViolationsOnyxData(
-                partialTransaction,
-                transactionViolations,
-                policy,
-                policyTags,
-                policyCategories,
-                false,
-            );
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false);
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
