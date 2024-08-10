@@ -5327,6 +5327,7 @@ export default {
         missingProperty: ({propertyName}) => `Falta ${propertyName}`,
         invalidProperty: ({propertyName, expectedType}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
         invalidValue: ({expectedValues}) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingValue: 'Valor en falta',
         createReportAction: 'Crear Report Action',
         reportAction: 'Report Action',
         report: 'Report',

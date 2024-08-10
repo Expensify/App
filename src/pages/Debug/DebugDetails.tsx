@@ -42,7 +42,10 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                             setErrors((currentErrors) => ({...currentErrors, [key]: ''}));
                         } catch (e) {
                             const {cause, message} = e as SyntaxError;
-                            setErrors((currentErrors) => ({...currentErrors, [key]: cause ? translate(message as TranslationPaths, cause as never) : message}));
+                            setErrors((currentErrors) => ({
+                                ...currentErrors,
+                                [key]: cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message,
+                            }));
                         } finally {
                             setDraftData((currentDraftData) => ({...currentDraftData, [key]: updatedValue}));
                         }

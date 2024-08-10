@@ -19,11 +19,11 @@ import type {DebugParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
-import { TranslationPaths } from '@src/languages/types';
 
 type DebugReportActionCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
