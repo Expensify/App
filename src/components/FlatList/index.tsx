@@ -96,7 +96,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
         const firstVisibleView = firstVisibleViewRef.current;
         const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
-        if (firstVisibleView == null || prevFirstVisibleOffset == null) {
+        if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
             return;
         }
 
@@ -120,28 +120,39 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
         mutationObserverRef.current?.disconnect();
 
-        const mutationObserver = new MutationObserver(() => {
+        const mutationObserver = new MutationObserver((mutations) => {
+            // Check if the first visible view is removed and re-calculate it
+            // if needed.
+            mutations.forEach((mutation) => {
+                mutation.removedNodes.forEach((node) => {
+                    if (node !== firstVisibleViewRef.current) {
+                        return;
+                    }
+                    firstVisibleViewRef.current = null;
+                });
+            });
+
+            if (firstVisibleViewRef.current == null) {
+                prepareForMaintainVisibleContentPosition();
+            }
+
             // When the list is hidden, the size will be 0.
             // Ignore the callback if the list is hidden because scrollOffset will always be 0.
             if (!getScrollableNode(scrollRef.current)?.clientHeight) {
                 return;
             }
 
-            // This needs to execute after scroll events are dispatched, but
-            // in the same tick to avoid flickering. rAF provides the right timing.
-            requestAnimationFrame(() => {
-                // Chrome adjusts scroll position when elements are added at the top of the
-                // view. We want to have the same behavior as react-native / Safari so we
-                // reset the scroll position to the last value we got from an event.
-                const lastScrollOffset = lastScrollOffsetRef.current;
-                const scrollOffset = getScrollOffset();
-                if (lastScrollOffset !== scrollOffset) {
-                    scrollToOffset(lastScrollOffset, false);
-                }
+            // Chrome adjusts scroll position when elements are added at the top of the
+            // view. We want to have the same behavior as react-native / Safari so we
+            // reset the scroll position to the last value we got from an event.
+            const lastScrollOffset = lastScrollOffsetRef.current;
+            const scrollOffset = getScrollOffset();
+            if (lastScrollOffset !== scrollOffset) {
+                scrollToOffset(lastScrollOffset, false);
+            }
 
-                adjustForMaintainVisibleContentPosition();
-                prepareForMaintainVisibleContentPosition();
-            });
+            adjustForMaintainVisibleContentPosition();
+            prepareForMaintainVisibleContentPosition();
         });
         mutationObserver.observe(contentView, {
             attributes: true,
