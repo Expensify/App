@@ -71,9 +71,9 @@ describe('getViolationsOnyxData', () => {
             const customUnitRateID = 'rate_id';
             transaction.modifiedCustomUnitRateID = customUnitRateID;
             policy.customUnits = {
-                unit_id: {
+                unitId: {
                     attributes: {unit: 'mi'},
-                    customUnitID: 'unit_id',
+                    customUnitID: 'unitId',
                     defaultCategory: 'Car',
                     enabled: true,
                     name: 'Distance',
