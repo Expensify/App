@@ -5017,8 +5017,8 @@ function buildOptimisticRoomDescriptionUpdatedReportAction(description: string):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 style: 'strong',
-                text: `set the room description to: ${Parser.htmlToText(description)}`,
-                html: `<muted-text>set the room description to: ${description}</muted-text>`,
+                text: description ? `set the room description to: ${Parser.htmlToText(description)}` : 'cleared the room description',
+                html: description ? `<muted-text>set the room description to: ${description}</muted-text>` : '<muted-text>cleared the room description</muted-text>',
             },
         ],
         person: [
