@@ -2020,12 +2020,20 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
     }
 
     const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
+    const optimisticDescriptionUpdatedReportAction = ReportUtils.buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: optimisticDescriptionUpdatedReportAction,
+            },
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -2034,6 +2042,13 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {description: previousValue, pendingFields: {description: null}},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: null,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -2041,9 +2056,16 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {pendingFields: {description: null}},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
     ];
 
-    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription};
+    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription, reportActionID: optimisticDescriptionUpdatedReportAction.reportActionID};
 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData, successData});
     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
