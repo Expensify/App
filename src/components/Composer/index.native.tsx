@@ -1,10 +1,11 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,6 +45,18 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+
+    useEffect(() => {
+        if (!autoFocus) {
+            inputCallbackRef(null);
+            return;
+        }
+        if (textInput.current && !autoFocusInputRef.current) {
+            inputCallbackRef(textInput.current);
+        }
+    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
     /**
      * Set the TextInput Ref
      * @param {Element} el
@@ -53,6 +66,10 @@ function Composer(
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
+        }
+
+        if (autoFocus) {
+            inputCallbackRef(el);
         }
 
         // This callback prop is used by the parent component using the constructor to
