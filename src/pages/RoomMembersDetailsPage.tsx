@@ -54,7 +54,7 @@ function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDet
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
-        Report.removeFromGroupChat(report?.reportID, [accountID]);
+        Report.removeFromRoom(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
     }, [backTo, report, accountID]);
 
