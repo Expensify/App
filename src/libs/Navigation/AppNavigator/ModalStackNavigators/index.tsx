@@ -156,6 +156,9 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
 });
 
+const RoomMembersDetailsModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
+    [SCREENS.ROOM_MEMBERS_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersDetailsPage').default,
+});
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewChatSelectorPage').default,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/NewChatConfirmPage').default,
@@ -549,6 +552,7 @@ export {
     ReportSettingsModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
+    RoomMembersDetailsModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     CategoriesModalStackNavigator,

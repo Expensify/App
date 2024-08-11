@@ -771,6 +771,13 @@ type RoomInviteNavigatorParamList = {
     };
 };
 
+type RoomMembersDetailsNavigatorParamList = {
+    [SCREENS.ROOM_MEMBERS_DETAILS_ROOT]: {
+        reportID: string;
+        accountID: string;
+    };
+};
+
 type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: {
         iouType: IOUType;
@@ -1073,6 +1080,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ROOM_MEMBERS_DETAILS]: NavigatorScreenParams<Roo>;
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
@@ -1357,6 +1365,7 @@ export type {
     RightModalNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
+    RoomMembersDetailsNavigatorParamList,
     RootStackParamList,
     SearchNavigatorParamList,
     SettingsNavigatorParamList,

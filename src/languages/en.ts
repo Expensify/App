@@ -2999,6 +2999,7 @@ export default {
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
             removeMemberGroupButtonTitle: 'Remove from group',
+            removeMemberRoomButtonTitle: 'Remove from room',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
@@ -3581,6 +3582,7 @@ export default {
         },
     },
     roomMembersPage: {
+        roomMembersListTitle: 'Directory of all room members.',
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',

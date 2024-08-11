@@ -862,6 +862,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.ROOM_MEMBERS_ROOT]: ROUTES.ROOM_MEMBERS.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.ROOM_MEMBERS_DETAILS]: {
+                    screens: {
+                        [SCREENS.ROOM_MEMBERS_DETAILS_ROOT]: ROUTES.ROOM_MEMBERS_DETAILS.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                     screens: {
                         [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
