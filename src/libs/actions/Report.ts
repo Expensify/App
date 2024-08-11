@@ -2021,13 +2021,19 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
 
     const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = ReportUtils.buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
-    const prevLastActorID = ReportUtils.getReport(reportID)?.lastActorAccountID;
+    const report = ReportUtils.getReport(reportID);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}, lastActorAccountID: currentUserAccountID},
+            value: {
+                description: parsedDescription,
+                pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                lastActorAccountID: currentUserAccountID,
+                lastVisibleActionCreated: optimisticDescriptionUpdatedReportAction.created,
+                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.[0]?.text,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2041,7 +2047,13 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: previousValue, pendingFields: {description: null}, lastActorAccountID: prevLastActorID},
+            value: {
+                description: previousValue,
+                pendingFields: {description: null},
+                lastActorAccountID: report?.lastActorAccountID,
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+                lastMessageText: report?.lastMessageText,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
