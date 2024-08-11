@@ -618,7 +618,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
-        cardsAndDomains: 'Tarjetas y Dominios',
+        domains: 'Dominios',
     },
     tabSelector: {
         chat: 'Chat',

@@ -32,7 +32,6 @@ import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
-import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
@@ -220,7 +219,6 @@ export {
     Calendar,
     Camera,
     Car,
-    CardsAndDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
