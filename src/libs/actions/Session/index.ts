@@ -677,7 +677,7 @@ function clearSignInData() {
  */
 function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState().routes;
+        const routes = navigationRef.current?.getState()?.routes;
         const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
 
         const emptyParams: Record<string, undefined> = {};
