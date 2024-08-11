@@ -152,7 +152,7 @@ function CreateReportFieldsPage({
                                     description={translate('workspace.reportFields.listValues')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
-                                    title={formDraft?.[INPUT_IDS.LIST_VALUES].sort(localeCompare)?.join(', ')}
+                                    title={formDraft?.[INPUT_IDS.LIST_VALUES]?.sort(localeCompare)?.join(', ')}
                                     numberOfLinesTitle={5}
                                 />
                             )}
