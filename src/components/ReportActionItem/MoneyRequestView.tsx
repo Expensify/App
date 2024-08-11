@@ -89,6 +89,15 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
+const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
+    CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+    CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+    CONST.VIOLATIONS.SMARTSCAN_FAILED,
+];
+
+const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
+
 const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) => {
     if (!parentReportAction) {
         return;
@@ -132,7 +141,7 @@ function MoneyRequestView({
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
+    const {canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
@@ -191,6 +200,7 @@ function MoneyRequestView({
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
     const canEditDistance = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditDistanceRate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -218,14 +228,14 @@ function MoneyRequestView({
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
-        [canUseViolations, getViolationsForField],
+            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
+        [getViolationsForField],
     );
 
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
-    const rateID = transaction?.comment?.customUnit?.customUnitRateID ?? '-1';
+    const rateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -344,17 +354,16 @@ function MoneyRequestView({
                     }
                 />
             </OfflineWithFeedback>
-            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36987 */}
-            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
-                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
-                    interactive={false}
-                    shouldShowRightIcon={false}
+                    interactive={canEditDistanceRate}
+                    shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
-                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
-                    onPress={() => {}}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
+                    }
                 />
             </OfflineWithFeedback>
         </>
@@ -374,19 +383,28 @@ function MoneyRequestView({
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
-    const receiptViolationNames: OnyxTypes.ViolationName[] = [
-        CONST.VIOLATIONS.RECEIPT_REQUIRED,
-        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
-        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
-        CONST.VIOLATIONS.SMARTSCAN_FAILED,
-    ];
-    const receiptViolations =
-        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
+
+    const [receiptImageViolations, receiptViolations] = useMemo(() => {
+        const imageViolations = [];
+        const allViolations = [];
+
+        for (const violation of transactionViolations ?? []) {
+            const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
+            const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
+            if (isReceiptFieldViolation || isReceiptImageViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                allViolations.push(violationMessage);
+                if (isReceiptImageViolation) {
+                    imageViolations.push(violationMessage);
+                }
+            }
+        }
+        return [imageViolations, allViolations];
+    }, [transactionViolations, translate]);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage =
-        !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage = !isReceiptBeingScanned && hasReceipt && !!(receiptViolations.length || didReceiptScanSucceed) && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -499,7 +517,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptViolations} />}
+                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
