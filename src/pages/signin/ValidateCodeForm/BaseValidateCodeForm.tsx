@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -51,11 +52,18 @@ type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
         autoComplete: 'sms-otp' | 'one-time-code';
     };
 
+type BaseValidateCodeFormRef = {
+    clearSignInData: () => void;
+};
+
 type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryCode';
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, setClearSignInData}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm(
+    {account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps,
+    forwardedRef: ForwardedRef<BaseValidateCodeFormRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -184,9 +192,9 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         SessionActions.clearSignInData();
     }, [clearLocalSignInData]);
 
-    useEffect(() => {
-        setClearSignInData(clearSignInData);
-    }, [clearSignInData, setClearSignInData]);
+    useImperativeHandle(forwardedRef, () => ({
+        clearSignInData,
+    }));
 
     useEffect(() => {
         if (!needToClearError) {
@@ -419,5 +427,7 @@ export default withToggleVisibilityView(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
-    })(BaseValidateCodeForm),
+    })(forwardRef(BaseValidateCodeForm)),
 );
+
+export type {BaseValidateCodeFormRef};
