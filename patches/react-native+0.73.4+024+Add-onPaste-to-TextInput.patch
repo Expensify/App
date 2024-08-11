@@ -170,38 +170,41 @@ index 346acaa..abec1ee 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 582b49c..ac31cb1 100644
+index 582b49c..20807aa 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -13,6 +13,9 @@
+@@ -13,6 +13,10 @@
  #import <React/RCTBackedTextInputDelegateAdapter.h>
  #import <React/RCTTextAttributes.h>
  
++#import <MobileCoreServices/MobileCoreServices.h>
 +#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -166,7 +169,30 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+@@ -166,7 +170,32 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    for (NSItemProvider *itemProvider in [clipboard itemProviders]) {
-+      if ([itemProvider canLoadObjectOfClass:[UIImage class]]) {
-+        NSString *identifier = itemProvider.registeredTypeIdentifiers.firstObject;
-+        if (identifier != nil) {
-+          NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
-+          NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+          NSString *fileName = [NSString stringWithFormat:@"%@.%@", itemProvider.suggestedName ?: @"file", fileExtension];
-+          NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
-+          NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-+          NSData *fileData = [clipboard dataForPasteboardType:identifier];
-+          [fileData writeToFile:filePath atomically:YES];
-+          [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++    for (NSItemProvider *itemProvider in clipboard.itemProviders) {
++      if ([itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
++        for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
++          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
++            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
++            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
++            NSData *fileData = [clipboard dataForPasteboardType:identifier];
++            [fileData writeToFile:filePath atomically:YES];
++            [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++            break;
++          }
 +        }
 +        break;
 +      }
@@ -215,7 +218,7 @@ index 582b49c..ac31cb1 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -258,6 +284,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -258,6 +287,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -342,20 +345,21 @@ index 4785987..16a9b8e 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 4d0afd9..a6afc7b 100644
+index 4d0afd9..507df43 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -12,6 +12,9 @@
+@@ -12,6 +12,10 @@
  #import <React/RCTUtils.h>
  #import <React/UIView+React.h>
  
++#import <MobileCoreServices/MobileCoreServices.h>
 +#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -139,6 +142,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -139,6 +143,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -366,25 +370,27 @@ index 4d0afd9..a6afc7b 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -204,7 +211,30 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
+@@ -204,7 +212,32 @@ - (void)setSelectedTextRange:(UITextRange *)selectedTextRange notifyDelegate:(BO
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    for (NSItemProvider *itemProvider in [clipboard itemProviders]) {
-+      if ([itemProvider canLoadObjectOfClass:[UIImage class]]) {
-+        NSString *identifier = itemProvider.registeredTypeIdentifiers.firstObject;
-+        if (identifier != nil) {
-+          NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
-+          NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+          NSString *fileName = [NSString stringWithFormat:@"%@.%@", itemProvider.suggestedName ?: @"file", fileExtension];
-+          NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
-+          NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-+          NSData *fileData = [clipboard dataForPasteboardType:identifier];
-+          [fileData writeToFile:filePath atomically:YES];
-+          [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++    for (NSItemProvider *itemProvider in clipboard.itemProviders) {
++      if ([itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
++        for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
++          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
++            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
++            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
++            NSData *fileData = [clipboard dataForPasteboardType:identifier];
++            [fileData writeToFile:filePath atomically:YES];
++            [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
++            break;
++          }
 +        }
 +        break;
 +      }
