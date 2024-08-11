@@ -18061,7 +18061,9 @@ async function run() {
 }
 run().catch((error) => {
     console.error(error);
-    process.exit(1);
+    // Zero status ensures that the action is marked as successful regardless the outcome
+    // which means that no failure notification is sent to issue's subscribers
+    process.exit(0);
 });
 
 
@@ -18087,6 +18089,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -18488,12 +18491,6 @@ class GithubUtils {
             .then((response) => response.data.workflow_runs[0]?.id);
     }
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
@@ -18635,7 +18632,7 @@ class OpenAIUtils {
                     continue;
                 }
                 response += message.content
-                    .map((contentBlock) => this.isTextContentBlock(contentBlock))
+                    .map((contentBlock) => this.isTextContentBlock(contentBlock) && contentBlock.text.value)
                     .join('\n')
                     .trim();
                 console.log('Parsed assistant response:', response);

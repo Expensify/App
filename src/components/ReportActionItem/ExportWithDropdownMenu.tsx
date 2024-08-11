@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type ExportWithDropdownMenuProps = {
     policy: OnyxEntry<Policy>;
@@ -23,9 +24,19 @@ type ExportWithDropdownMenuProps = {
     report: OnyxEntry<Report>;
 
     connectionName: ConnectionName;
+
+    dropdownAnchorAlignment?: AnchorAlignment;
 };
 
-function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDropdownMenuProps) {
+function ExportWithDropdownMenu({
+    policy,
+    report,
+    connectionName,
+    dropdownAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
+}: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -74,7 +85,7 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
         if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
             ReportActions.exportToIntegration(reportID, connectionName);
         } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            ReportActions.markAsManuallyExported(reportID);
+            ReportActions.markAsManuallyExported(reportID, connectionName);
         }
     }, [connectionName, modalStatus, reportID]);
 
@@ -91,10 +102,7 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
                 success={!hasIntegrationAutoSync}
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
+                anchorAlignment={dropdownAnchorAlignment}
                 onPress={(_, value) => {
                     if (isExported) {
                         setModalStatus(value);
@@ -106,7 +114,7 @@ function ExportWithDropdownMenu({policy, report, connectionName}: ExportWithDrop
                     if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                         ReportActions.exportToIntegration(reportID, connectionName);
                     } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                        ReportActions.markAsManuallyExported(reportID);
+                        ReportActions.markAsManuallyExported(reportID, connectionName);
                     }
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}

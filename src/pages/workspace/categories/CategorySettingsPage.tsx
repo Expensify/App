@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,8 +41,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const backTo = route.params?.backTo;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-    const shouldDisablePayrollCode = !isControlPolicy(policy);
+    const policy = usePolicy(route.params.policyID);
 
     const policyCategory =
         policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
@@ -131,7 +131,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
                         />
@@ -142,13 +142,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             description={translate(`workspace.categories.glCode`)}
                             onPress={() => {
                                 if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            route.params.policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
-                                        ),
-                                    );
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
@@ -162,19 +156,12 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             description={translate(`workspace.categories.payrollCode`)}
                             onPress={() => {
                                 if (!isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            route.params.policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
-                                        ),
-                                    );
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
                             }}
                             shouldShowRightIcon
-                            disabled={shouldDisablePayrollCode}
                         />
                     </OfflineWithFeedback>
                     {!isThereAnyAccountingConnection && (

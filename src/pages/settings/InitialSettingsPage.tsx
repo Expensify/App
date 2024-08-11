@@ -29,8 +29,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import {splitTextWithEmojis} from '@libs/EmojiUtils';
-import type {TextWithEmoji} from '@libs/EmojiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -196,8 +194,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
-                translationKey: 'allSettingsScreen.cardsAndDomains',
-                icon: Expensicons.CardsAndDomains,
+                translationKey: 'allSettingsScreen.domains',
+                icon: Expensicons.Globe,
                 action: () => {
                     Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
@@ -366,16 +364,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
-    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
-
-    const processedTextArray: TextWithEmoji[] = useMemo(() => {
-        const doesUsernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
-        if (!doesUsernameContainEmojis) {
-            return [];
-        }
-        return splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
-    }, [currentUserPersonalDetails?.displayName]);
+    const currentUserDetails = currentUserPersonalDetails;
+    const avatarURL = currentUserDetails?.avatar ?? '';
+    const accountID = currentUserDetails?.accountID ?? '-1';
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
@@ -425,7 +416,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     </View>
                     <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
                             source={avatarURL}
                             avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
@@ -438,27 +429,18 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             onErrorClose={PersonalDetails.clearAvatarErrors}
                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                            originalFileName={currentUserPersonalDetails.originalFileName}
+                            originalFileName={currentUserDetails.originalFileName}
                             headerTitle={translate('profilePage.profileAvatar')}
-                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                            fallbackIcon={currentUserDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
                     </View>
-                    {processedTextArray.length !== 0 ? (
-                        <Text
-                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                            numberOfLines={1}
-                        >
-                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))}
-                        </Text>
-                    ) : (
-                        <Text
-                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                            numberOfLines={1}
-                        >
-                            {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
-                        </Text>
-                    )}
+                    <Text
+                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                        numberOfLines={1}
+                    >
+                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
+                    </Text>
                     {!!currentUserPersonalDetails.displayName && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
