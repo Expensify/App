@@ -295,7 +295,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
-                Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
+                Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                 action,
                 transaction.actionableWhisperReportActionID,
                 transaction.linkedTrackedExpenseReportAction,
@@ -323,7 +323,7 @@ function IOURequestStepConfirmation({
                 transaction.currency,
                 transaction.merchant,
                 transaction.billable,
-                TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
                 policy,
                 policyTags,
                 policyCategories,
@@ -350,7 +350,7 @@ function IOURequestStepConfirmation({
                     participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
                 );
             }
-            const trimmedComment = (transaction?.comment.comment ?? '').trim();
+            const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
             if (formHasBeenSubmitted.current) {
@@ -533,9 +533,7 @@ function IOURequestStepConfirmation({
     const sendMoney = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
             const currency = transaction?.currency;
-
-            const trimmedComment = transaction?.comment?.comment ? transaction.comment.comment.trim() : '';
-
+            const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
             const participant = participants?.[0];
 
             if (!participant || !transaction?.amount || !currency) {
@@ -611,7 +609,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouComment={transaction?.comment.comment ?? ''}
+                        iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
                         onToggleBillable={setBillable}

@@ -31,12 +31,11 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const policyID = route?.params?.policyID ?? '-1';
 
     const handleAddBankAccount = () => {
-        // TODO: call to API - UpdateCardSettlementAccount
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
-    const handleSelectBankAccount = (value: number) => {
-        Card.updateSettlementAccount(policyID, value);
+    const handleSelectBankAccount = (value?: number) => {
+        Card.configureExpensifyCardsForPolicy(policyID, value);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
@@ -45,14 +44,12 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        // const eligibleBankAccounts = Object.values(bankAccountsList).filter((bankAccount) => bankAccount.accountData.allowDebit || bankAccount.accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
         const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
             const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            // TODO: change 1 to 0 - applied for testing purposes, as sometimes accountData lacks fundID
-            const bankAccountID = bankAccount.accountData?.fundID ?? 1;
+            const bankAccountID = bankAccount.accountData?.bankAccountID;
 
             const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
