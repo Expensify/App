@@ -39,17 +39,21 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if ((fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) && filters[fieldName]) {
+    if (
+        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
+            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) &&
+        filters[fieldName]
+    ) {
         const filterArray = filters[fieldName] ?? [];
         return filterArray.join(', ');
     }
 
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
         return filters[fieldName];
-    }
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters[fieldName]) {
-        const cards = filters[fieldName] ?? [];
-        return cards.join(', ');
     }
 
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
@@ -72,7 +76,6 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
     const selectedTaxRateKeys = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
     if (!selectedTaxRateKeys) {
-        console.log('%%%%%\n', 'i go here');
         return undefined;
     }
 

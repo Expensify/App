@@ -1,13 +1,13 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import Button from '@components/Button';
+import SelectionList from '@components/SelectionList';
+import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
-import Button from './Button';
-import SelectionList from './SelectionList';
-import SelectableListItem from './SelectionList/SelectableListItem';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
