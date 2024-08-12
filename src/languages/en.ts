@@ -604,6 +604,7 @@ export default {
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
     },
     writeCapabilityPage: {
         label: 'Who can post',
@@ -854,6 +855,10 @@ export default {
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
+        bookingPending: 'This booking is pending',
+        bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
+        bookingArchived: 'This booking is archived',
+        bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

@@ -845,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
