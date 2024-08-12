@@ -3575,7 +3575,7 @@ function requestMoney(
                 reimbursible,
             };
 
-            Report.removeHighlightOnCurrentUserAction(payeeAccountID);
+            Report.clearHighlightIfCurrentUserAction(payeeAccountID);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -3621,7 +3621,7 @@ function sendInvoice(
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
-    Report.removeHighlightOnCurrentUserAction(receiver.accountID);
+    Report.clearHighlightIfCurrentUserAction(receiver.accountID);
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
     Navigation.dismissModalWithReport(invoiceRoom);
@@ -3799,7 +3799,7 @@ function trackExpense(
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
-            Report.removeHighlightOnCurrentUserAction(payeeAccountID);
+            Report.clearHighlightIfCurrentUserAction(payeeAccountID);
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
@@ -4367,7 +4367,7 @@ function splitBill({
         taxAmount,
     };
 
-    Report.removeHighlightOnCurrentUserAction(currentUserAccountID);
+    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     Navigation.dismissModal(existingSplitChatReportID);
@@ -4435,7 +4435,7 @@ function splitBillAndOpenReport({
         taxAmount,
     };
 
-    Report.removeHighlightOnCurrentUserAction(currentUserAccountID);
+    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
     Navigation.dismissModal(splitData.chatReportID);
@@ -4745,7 +4745,7 @@ function startSplitBill({
         taxAmount,
     };
 
-    Report.removeHighlightOnCurrentUserAction(currentUserAccountID);
+    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModalWithReport(splitChatReport);
@@ -4992,7 +4992,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         billable: transactionBillable,
     };
 
-    Report.removeHighlightOnCurrentUserAction(sessionAccountID);
+    Report.clearHighlightIfCurrentUserAction(sessionAccountID);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
@@ -5149,7 +5149,7 @@ function createDistanceRequest(
         };
     }
 
-    Report.removeHighlightOnCurrentUserAction(userAccountID);
+    Report.clearHighlightIfCurrentUserAction(userAccountID);
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
     Navigation.dismissModal(activeReportID);
@@ -6751,7 +6751,7 @@ function getPayMoneyRequestParams(
 function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
-    Report.removeHighlightOnCurrentUserAction(managerID);
+    Report.clearHighlightIfCurrentUserAction(managerID);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
@@ -6765,7 +6765,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
-    Report.removeHighlightOnCurrentUserAction(managerID);
+    Report.clearHighlightIfCurrentUserAction(managerID);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);

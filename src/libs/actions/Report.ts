@@ -64,6 +64,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -436,13 +437,16 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
-/** Clears the highlight of a linked report action */
-function removeHighlightOnCurrentUserAction(accountID?: number) {
-    const isFromCurrentUser = accountID === currentUserAccountID;
-    const currentReportActionID = Navigation.getTopmostReportActionId();
-    if (!isFromCurrentUser || !currentReportActionID) {
+/** Clears the highlight of a report action if it’s from the current user */
+function clearHighlightIfCurrentUserAction(accountID?: number) {
+    const isCurrentUserAction = accountID === currentUserAccountID;
+    const state = navigationRef.getRootState();
+    const topReportActionID = getTopmostReportActionID(state);
+
+    if (!isCurrentUserAction || !topReportActionID) {
         return;
     }
+
     Navigation.setParams({reportActionID: ''});
 }
 
@@ -615,7 +619,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         DateUtils.setTimezoneUpdated();
     }
 
-    removeHighlightOnCurrentUserAction(lastAction?.actorAccountID);
+    clearHighlightIfCurrentUserAction(lastAction?.actorAccountID);
     API.write(commandName, parameters, {
         optimisticData,
         successData,
@@ -4109,7 +4113,7 @@ export {
     updateReportName,
     deleteReportField,
     clearReportFieldKeyErrors,
-    removeHighlightOnCurrentUserAction,
+    clearHighlightIfCurrentUserAction,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     updateRoomVisibility,
