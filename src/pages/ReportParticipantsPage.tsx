@@ -50,7 +50,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
-    const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
