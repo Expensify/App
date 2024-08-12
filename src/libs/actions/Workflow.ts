@@ -228,10 +228,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         return;
     }
 
-    const errors: Record<string, TranslationPaths | null> = {};
-
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    // Update the approver at the specified index
     approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
@@ -241,6 +238,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
+    const errors: Record<string, TranslationPaths | null> = {additionalApprover: null};
     // Check for circular references and reset errors
     const updatedApprovers = approvers.map((existingApprover, index) => {
         if (!existingApprover) {
@@ -269,7 +267,6 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
     }
 
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    // Update the approver at the specified index
     approvers[approverIndex] = undefined;
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});
