@@ -228,14 +228,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         return;
     }
 
-    // Update the approver at the specified index and reset hints
-    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
-        if (!existingApprover) {
-            return;
-        }
-
-        return {...existingApprover, isInMultipleWorkflows: false};
-    });
+    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
     approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
@@ -276,14 +269,7 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
         return;
     }
 
-    // Update the approver at the specified index and reset hints
-    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
-        if (!existingApprover) {
-            return;
-        }
-
-        return {...existingApprover, isInMultipleWorkflows: false};
-    });
+    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
     approvers[approverIndex] = undefined;
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});
