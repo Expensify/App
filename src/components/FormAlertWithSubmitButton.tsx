@@ -84,8 +84,9 @@ function FormAlertWithSubmitButton({
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
-    const platform = getPlatform();
-    const pressOnEnter = platform === CONST.PLATFORM.ANDROID ? false : !disablePressOnEnter;
+    // Disable pressOnEnter only for Android Native due to bug here: https://github.com/Expensify/App/issues/46644
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const pressOnEnter = isAndroidNative ? false : !disablePressOnEnter;
 
     return (
         <FormAlertWrapper
