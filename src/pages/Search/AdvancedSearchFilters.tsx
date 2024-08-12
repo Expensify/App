@@ -69,9 +69,22 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         : undefined;
 }
 
-function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string>) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
-    return filterValue ? filterValue.map((taxRateKey) => taxRates[taxRateKey]).join(', ') : undefined;
+function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
+    const selectedTaxRateKeys = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
+    if (!selectedTaxRateKeys) {
+        console.log('%%%%%\n', 'i go here');
+        return undefined;
+    }
+
+    const result: string[] = [];
+    Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
+        if (!taxRateKeys.some((taxRateKey) => selectedTaxRateKeys.includes(taxRateKey)) || result.includes(taxRateName)) {
+            return;
+        }
+        result.push(taxRateName);
+    });
+
+    return result.join(', ');
 }
 
 function AdvancedSearchFilters() {

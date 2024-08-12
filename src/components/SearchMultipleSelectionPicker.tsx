@@ -34,16 +34,18 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((item) => ({
                 text: item.name,
-                keyForList: item.value,
+                keyForList: item.name,
                 isSelected: true,
+                value: item.value,
             }));
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((item) => ({
                 text: item.name,
-                keyForList: item.value,
+                keyForList: item.name,
                 isSelected: false,
+                value: item.value,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
         return {
@@ -66,21 +68,21 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
     const onSelectItem = useCallback(
-        (item: Partial<OptionData>) => {
-            if (!item.text || !item.keyForList) {
+        (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
+            if (!item.text || !item.keyForList || !item.value) {
                 return;
             }
             if (item.isSelected) {
-                setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.value !== item.keyForList));
+                setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.name));
             } else {
-                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.keyForList}]);
+                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
             }
         },
         [selectedItems],
     );
 
     const handleConfirmSelection = useCallback(() => {
-        onSaveSelection(selectedItems.map((item) => item.value));
+        onSaveSelection(selectedItems.map((item) => item.value).flat());
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [onSaveSelection, selectedItems]);
 
