@@ -108,7 +108,7 @@ type Account = {
     hasPurchases?: boolean;
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess?: DelegatedAccess;
 };
 
 export default Account;
