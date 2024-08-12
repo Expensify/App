@@ -189,7 +189,16 @@ function isActionOfType<T extends ReportActionName[]>(
 ): action is {
     [K in keyof T]: ReportAction<T[K]>;
 }[number] {
-    return actionNames.includes(action?.actionName as T[number]);
+    const actionName = action?.actionName as T[number];
+
+    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
+    for (const i of actionNames) {
+        if (i === actionName) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -383,14 +392,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     });
 
     return sortedActions;
-}
-
-/**
- * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
- * Separated it from getCombinedReportActions, so it can be reused
- */
-function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
-    return reportActions.filter((action) => !isSentMoneyReportAction(action));
 }
 
 /**
@@ -1606,7 +1607,6 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
-    getFilteredForOneTransactionView,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
