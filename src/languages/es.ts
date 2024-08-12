@@ -3705,6 +3705,11 @@ export default {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
+            emptyTripResults: {
+                title: 'No tienes viajes',
+                subtitle: 'Reserva tu primer viaje a continuación.',
+                buttonText: 'Reserva un viaje',
+            },
         },
         groupedExpenses: 'gastos agrupados',
         bulkActions: {

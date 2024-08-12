@@ -3651,6 +3651,11 @@ export default {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyTripResults: {
+                title: 'No trips to display',
+                subtitle: 'Get started by booking your first trip below.',
+                buttonText: 'Book a trip',
+            },
         },
         groupedExpenses: 'grouped expenses',
         bulkActions: {
