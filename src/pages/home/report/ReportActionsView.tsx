@@ -99,6 +99,7 @@ function ReportActionsView({
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
+    const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -141,7 +142,7 @@ function ReportActionsView({
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID) {
+        if (!reportActionID && !prevReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
