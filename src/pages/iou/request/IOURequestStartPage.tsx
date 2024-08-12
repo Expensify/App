@@ -129,7 +129,7 @@ function IOURequestStartPage({
                 shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
-                focusTrapSettings={{containerElements: focusTrapContainerElements, focusTrapOptions: {preventScroll: true}}}
+                focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <DragAndDropProvider

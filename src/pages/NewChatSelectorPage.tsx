@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,10 +15,12 @@ function NewChatSelectorPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const navigation = useNavigation();
+    // The focus trap container elements of the header and back button, tab bar, and active tab
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
+    // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
@@ -37,13 +38,14 @@ function NewChatSelectorPage() {
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{containerElements}}
         >
-            <FocusTrapContainerElement onContainerElementChanged={setHeaderWithBackButtonContainerElement}>
-                <View style={[styles.w100]}>
-                    <HeaderWithBackButton
-                        title={translate('sidebarScreen.fabNewChat')}
-                        onBackButtonPress={navigation.goBack}
-                    />
-                </View>
+            <FocusTrapContainerElement
+                onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                style={[styles.w100]}
+            >
+                <HeaderWithBackButton
+                    title={translate('sidebarScreen.fabNewChat')}
+                    onBackButtonPress={navigation.goBack}
+                />
             </FocusTrapContainerElement>
 
             <OnyxTabNavigator

@@ -16,10 +16,7 @@ function FocusTrapContainerElement({onContainerElementChanged, ...props}: FocusT
                 } else if (r) {
                     r.current = node;
                 }
-                if (node) {
-                    onContainerElementChanged?.(node as unknown as HTMLElement);
-                    return () => onContainerElementChanged?.(null);
-                }
+                onContainerElementChanged?.(node as unknown as HTMLElement | null);
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
