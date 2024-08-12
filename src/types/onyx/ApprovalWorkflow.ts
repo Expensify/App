@@ -1,4 +1,6 @@
+import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 /**
@@ -24,11 +26,6 @@ type Approver = {
      * Display name of the current user from their personal details
      */
     displayName: string;
-
-    /**
-     * Is this user used as an approver in more than one workflow (used to show a warning)
-     */
-    isInMultipleWorkflows?: boolean;
 
     /**
      * Is this approver in a circular reference (approver forwards to themselves, or a cycle of forwards)
@@ -95,7 +92,7 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     /**
      * The current state of the workflow, used to navigate between different screens
      */
-    flow: 'create' | 'edit';
+    flow: ValueOf<typeof CONST.APPROVAL_WORKFLOW.FLOW>;
 
     /**
      * Whether we are waiting for the API action to complete

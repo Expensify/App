@@ -53,7 +53,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const previousEmployeeList = {...policy.employeeList};
     const previousApprovalMode = policy.approvalMode;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'create'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.CREATE});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -109,7 +109,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'update'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.UPDATE});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -159,7 +159,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'remove'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
@@ -228,28 +228,17 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         return;
     }
 
-    const errors: Record<string, TranslationPaths | null> = {};
-
-    // Update the approver at the specified index and reset hints
-    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
-        if (!existingApprover) {
-            return;
-        }
-
-        return {...existingApprover, isInMultipleWorkflows: false};
-    });
+    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
     approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
-            ...additionalApprover,
-            isInMultipleWorkflows: true,
-        }));
+        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
+    const errors: Record<string, TranslationPaths | null> = {additionalApprover: null};
     // Check for circular references and reset errors
     const updatedApprovers = approvers.map((existingApprover, index) => {
         if (!existingApprover) {
@@ -277,14 +266,7 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
         return;
     }
 
-    // Update the approver at the specified index and reset hints
-    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
-        if (!existingApprover) {
-            return;
-        }
-
-        return {...existingApprover, isInMultipleWorkflows: false};
-    });
+    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
     approvers[approverIndex] = undefined;
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});

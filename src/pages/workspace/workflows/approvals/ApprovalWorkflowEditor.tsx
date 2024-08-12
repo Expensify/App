@@ -54,7 +54,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     return;
                 }
                 return translate('workflowsPage.approverCircularReference', {
-                    name1: approver?.displayName,
+                    name1: approver.displayName,
                     name2: previousApprover.displayName,
                 });
             }
@@ -67,9 +67,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const approverHintMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
             const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
-            if (approver?.isInMultipleWorkflows && !!previousApprover) {
+            if (approver && previousApprover && approver.email === previousApprover.forwardsTo) {
                 return translate('workflowsPage.approverInMultipleWorkflows', {
-                    name1: approver?.displayName,
+                    name1: approver.displayName,
                     name2: previousApprover.displayName,
                 });
             }

@@ -57,7 +57,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const isInitialCreationFlow = approvalWorkflow?.flow === 'create' && !route.params.backTo;
+    const isInitialCreationFlow = approvalWorkflow?.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE && !route.params.backTo;
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -135,7 +135,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             return;
         }
 
-        if (approvalWorkflow?.flow === 'create') {
+        if (approvalWorkflow?.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';

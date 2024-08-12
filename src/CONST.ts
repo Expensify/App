@@ -5454,6 +5454,18 @@ const CONST = {
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',
     },
+
+    APPROVAL_WORKFLOW: {
+        FLOW: {
+            CREATE: 'create',
+            EDIT: 'edit',
+        },
+        MODE: {
+            CREATE: 'create',
+            UPDATE: 'update',
+            REMOVE: 'remove',
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

@@ -1,4 +1,6 @@
 import lodashMapKeys from 'lodash/mapKeys';
+import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -9,7 +11,7 @@ const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     approvers: [],
     availableMembers: [],
     isDefault: false,
-    flow: 'create',
+    flow: CONST.APPROVAL_WORKFLOW.FLOW.CREATE,
     isLoading: false,
 };
 
@@ -48,7 +50,6 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             forwardsTo: employees[nextEmail].forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
-            isInMultipleWorkflows: false,
             isCircularReference,
         });
 
@@ -85,9 +86,6 @@ type ConvertPolicyEmployeesToApprovalWorkflowsParams = {
 /** Convert a list of policy employees to a list of approval workflows */
 function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails}: ConvertPolicyEmployeesToApprovalWorkflowsParams): ApprovalWorkflow[] {
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
-
-    // Keep track of how many times each approver is used to detect approvers in multiple workflows
-    const approverCountsByEmail: Record<string, number> = {};
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
     // Add each employee to the appropriate workflow
@@ -100,7 +98,6 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
-            approvers.forEach((approver) => (approverCountsByEmail[approver.email] = (approverCountsByEmail[approver.email] ?? 0) + 1));
 
             approvalWorkflows[submitsTo] = {
                 members: [],
@@ -134,14 +131,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         });
     }
 
-    // Add a flag to each approver to indicate if they are in multiple workflows
-    return sortedApprovalWorkflows.map((workflow) => ({
-        ...workflow,
-        approvers: workflow.approvers.map((approver) => ({
-            ...approver,
-            isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
-        })),
-    }));
+    return sortedApprovalWorkflows;
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
@@ -158,7 +148,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Mode to use when converting the approval workflow
      */
-    mode: 'create' | 'update' | 'remove';
+    mode: ValueOf<typeof CONST.APPROVAL_WORKFLOW.MODE>;
 };
 
 /** Convert an approval workflow to a list of policy employees */
@@ -178,14 +168,14 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
-            forwardsTo: mode === 'remove' ? '' : nextApprover?.email ?? '',
+            forwardsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
-            submitsTo: mode === 'remove' ? '' : firstApprover.email ?? '',
+            submitsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : firstApprover.email ?? '',
         };
     });
 
