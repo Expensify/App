@@ -5,6 +5,13 @@ type PayInvoiceParams = {
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
     payAsBusiness: boolean;
+    policyID?: string;
+    announceChatReportID?: string;
+    adminsChatReportID?: string;
+    expenseChatReportID?: string;
+    announceCreatedReportActionID?: string;
+    adminsCreatedReportActionID?: string;
+    expenseCreatedReportActionID?: string;
 };
 
 export default PayInvoiceParams;
