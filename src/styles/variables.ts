@@ -214,8 +214,7 @@ export default {
     fontSizeOnlyEmojisHeight: 35,
     emojiSize: 20,
     emojiLineHeight: 28,
-    fontSizeEmojisWithinTextLarge: getValueUsingPixelRatio(17, 19),
-    fontSizeEmojisWithinTextXLarge: 19,
+    fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

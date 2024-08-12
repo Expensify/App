@@ -1713,13 +1713,21 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
 
-        emojisWithTextFontSizeLarge: {
-            fontSize: variables.fontSizeEmojisWithinTextLarge,
+        emojisWithTextFontSizeAligned: {
+            fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
         },
 
-        emojisWithTextFontSizeXLarge: {
-            fontSize: variables.fontSizeEmojisWithinTextXLarge,
+        emojisWithTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        emojisWithTextFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightXLarge,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>

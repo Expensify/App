@@ -9,7 +9,7 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
     const styles = useThemeStyles();
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
 
-    return <Text style={style}>{processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithTextFontSizeXLarge}>{text}</Text> : convertToLTR(text)))}</Text>;
+    return <Text style={style}>{processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithTextFontSize}>{text}</Text> : convertToLTR(text)))}</Text>;
 }
 
 TextWithEmojiFragment.displayName = 'TextWithEmojiFragment';

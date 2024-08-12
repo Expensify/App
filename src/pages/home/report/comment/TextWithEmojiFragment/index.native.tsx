@@ -15,7 +15,7 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
             {processedTextArray.map(({text, isEmoji}) =>
                 isEmoji ? (
                     <View>
-                        <Text style={styles.emojisWithTextFontSizeLarge}>{text}</Text>
+                        <Text style={styles.emojisWithTextFontSizeAligned}>{text}</Text>
                     </View>
                 ) : (
                     convertToLTR(text)
