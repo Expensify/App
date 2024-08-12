@@ -78,7 +78,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={selectedFrequency}
                 />
             </ScreenWrapper>

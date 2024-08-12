@@ -13,8 +13,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-// import * as CardUtils from '@libs/CardUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -34,20 +34,13 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
-    // TODO: uncomment after integration with the BE
-    // const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`);
-    // const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
-
-    // TODO: remove after integration with the BE
-    const isUsedContinuousReconciliation = true;
-    const reconciliationConnection = CONST.POLICY.CONNECTIONS.NAME.QBO;
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policyID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policyID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
 
-    // TODO: for now not filtering the accounts for easier testing
-    // const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
-    const eligibleBankAccounts = Object.values(bankAccountsList ?? {});
+    const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -113,7 +106,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                         sections={[{data}]}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={paymentBankAccountID.toString()}
                     />
                 </ScrollView>
