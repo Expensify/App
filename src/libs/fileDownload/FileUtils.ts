@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
@@ -65,7 +66,7 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-function showCameraPermissionsAlert(screenName: string | undefined) {
+function showCameraPermissionsAlert(screenName: IOUType | '') {
     Alert.alert(
         Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
         Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),

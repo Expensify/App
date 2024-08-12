@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 
 type PickerOptions = {
     /** A callback that will be called with the selected attachment. */
@@ -42,7 +43,7 @@ type AttachmentPickerProps = {
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 
     /** Last screen to save for navigating after granting camera permission from settings in ios */
-    lastScreen?: string | undefined;
+    lastScreen?: IOUType | '';
 };
 
 export default AttachmentPickerProps;

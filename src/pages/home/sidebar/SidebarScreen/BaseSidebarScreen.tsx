@@ -17,9 +17,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import * as IOU from '@userActions/IOU';
 import Timing from '@userActions/Timing';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 
 /**
  * Function called when a pinned chat is selected.
@@ -31,7 +31,7 @@ const startTimer = () => {
 
 type BaseSidebarScreenOnyxProps = {
     /** last visited screen */
-    lastScreen: OnyxEntry<string>;
+    lastScreen: OnyxEntry<IOUType | ''>;
 };
 
 type BaseSidebarScreenProps = BaseSidebarScreenOnyxProps;
@@ -61,14 +61,13 @@ function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
      * This will only works for ios application because we are saving last screen only for ios
      */
     useEffect(() => {
-        if (lastScreen !== SCREENS.RIGHT_MODAL.MONEY_REQUEST) {
+        if (!lastScreen) {
             return;
         }
-
         interceptAnonymousUser(() => {
             updateLastScreen('');
             IOU.startMoneyRequest(
-                CONST.IOU.TYPE.SUBMIT,
+                lastScreen,
                 // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                 // for all of the routes in the creation flow.
                 ReportUtils.generateReportID(),
