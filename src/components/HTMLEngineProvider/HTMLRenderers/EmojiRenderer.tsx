@@ -11,7 +11,7 @@ function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
         }
 
         if ('ismedium' in tnode.attributes) {
-            return [styles.emojisWithTextFontSize, styles.verticalAlignMiddle];
+            return [styles.emojisWithTextFontSizeXLarge, styles.verticalAlignMiddle];
         }
 
         return null;

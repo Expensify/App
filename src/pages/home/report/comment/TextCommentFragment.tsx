@@ -49,6 +49,10 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    const message = isEmpty(iouMessage) ? text : iouMessage;
+
+    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
+
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
@@ -79,23 +83,23 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         );
     }
 
-    const message = isEmpty(iouMessage) ? text : iouMessage;
-
-    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
-
     return (
         <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            {processedTextArray.length !== 0 ? (
+            {processedTextArray.length !== 0 && !containsOnlyEmojis ? (
                 <TextWithEmojiFragment
                     message={message}
-                    passedStyles={style}
-                    styleAsDeleted={styleAsDeleted}
-                    styleAsMuted={styleAsMuted}
-                    hasEmojisOnly={containsOnlyEmojis}
+                    style={[
+                        containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                        styles.ltr,
+                        style,
+                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsMuted ? styles.colorMuted : undefined,
+                        !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                    ]}
                 />
             ) : (
                 <Text

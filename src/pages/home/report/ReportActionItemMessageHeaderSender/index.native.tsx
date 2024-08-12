@@ -38,7 +38,7 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
                     {processedTextArray.map(({text, isEmoji}) =>
                         isEmoji ? (
                             <View>
-                                <Text style={[{fontSize: 19, fontFamily: 'System', marginBottom: -4}]}>😁</Text>
+                                <Text style={[{fontSize: 17, fontFamily: 'System', marginBottom: -4}]}>😁</Text>
                             </View>
                         ) : (
                             <Text

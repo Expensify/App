@@ -1713,8 +1713,13 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
 
-        emojisWithTextFontSize: {
-            fontSize: variables.fontSizeEmojisWithinText,
+        emojisWithTextFontSizeLarge: {
+            fontSize: variables.fontSizeEmojisWithinTextLarge,
+            marginVertical: -7,
+        },
+
+        emojisWithTextFontSizeXLarge: {
+            fontSize: variables.fontSizeEmojisWithinTextXLarge,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
