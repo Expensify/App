@@ -104,8 +104,8 @@ const headerContent: {[key in SearchDataTypes]: {icon: IconAsset; titleText: Tra
     transaction: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
     report: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
     expense: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
-    invoice: {icon: Illustrations.MoneyEnvelopeBlue, titleText: 'workspace.common.invoices'},
-    trip: {icon: Illustrations.Pencil, titleText: 'travel.trips'},
+    invoice: {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'},
+    trip: {icon: Illustrations.Luggage, titleText: 'travel.trips'},
 };
 
 function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
