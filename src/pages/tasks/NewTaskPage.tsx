@@ -1,8 +1,9 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -21,6 +22,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TaskActions from '@userActions/Task';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -58,6 +60,17 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
+
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const confirmButtonRef = useRef<View>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                confirmButtonRef.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     useEffect(() => {
         setErrorMessage('');
@@ -205,6 +218,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline
+                            buttonRef={confirmButtonRef}
                             buttonText={translate('newTaskPage.confirmTask')}
                             containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
                         />
