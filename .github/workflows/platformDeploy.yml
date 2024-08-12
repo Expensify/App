@@ -1,15 +1,12 @@
 name: Build and deploy android, desktop, iOS, and web clients
 
-# This workflow is run when any tag is published
+# This workflow is run when a release or prerelease is created
 on:
-  push:
-    tags:
-      - '*'
   release:
-    types: [created]
+    types: [prereleased, released]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
+  SHOULD_DEPLOY_PRODUCTION: ${{ github.event.action == 'released' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}
@@ -36,7 +33,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: ${{ github.event_name != 'release' }}
+    if: ${{ github.event.action != 'released' }}
     needs: validateActor
     secrets: inherit
 
@@ -226,7 +223,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && bundle exec pod install
+          command: scripts/pod-install.sh
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
