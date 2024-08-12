@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import type {Constructor} from 'type-fest';
+import type NonPartial from '@src/types/utils/NonPartial';
 import type {TakeFirst} from '@src/types/utils/TupleOperations';
 import ArrayCache from './cache/ArrayCache';
 import {MemoizeStats} from './stats';
-import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
+import type {Callable, ClientOptions, Constructable, IsomorphicFn, IsomorphicParameters, IsomorphicReturnType, MemoizedFn, Stats} from './types';
 import {getEqualityComparator, mergeOptions, truncateArgs} from './utils';
 
 /**
@@ -43,14 +43,18 @@ class Memoize {
  * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number = Parameters<Fn>['length'], Key = TakeFirst<Parameters<Fn>, MaxArgs>>(fn: Fn, opts?: ClientOptions<Fn, MaxArgs, Key>) {
+function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<IsomorphicParameters<Fn>>['length'], Key = TakeFirst<IsomorphicParameters<Fn>, MaxArgs>>(
+    fn: Fn,
+    opts?: ClientOptions<Fn, MaxArgs, Key>,
+) {
     const options = mergeOptions<Fn, MaxArgs, Key>(opts);
 
-    const cache = ArrayCache<Key, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
+    const cache = ArrayCache<Key, IsomorphicReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
 
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
-    const memoized = function memoized(...args: Parameters<Fn>): ReturnType<Fn> {
+    const memoized = function memoized(...args: IsomorphicParameters<Fn>): IsomorphicReturnType<Fn> {
+        // Detect if memoized function was called with `new` keyword. If so we need to call the original function as constructor.
         const constructable = !!new.target;
 
         const truncatedArgs = truncateArgs(args, options.maxArgs);
@@ -63,9 +67,9 @@ function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number = Paramet
         const retrievalTimeStart = performance.now();
         const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
-            // If the function is constructable, we need to call it with the `new` keyword
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const result = constructable ? new (fn as unknown as Constructor<ReturnType<Fn>, Parameters<Fn>>)(...args) : fn(...args);
+
+            const result = (constructable ? new (fn as Constructable)(...args) : (fn as Callable)(...args)) as IsomorphicReturnType<Fn>;
+
             statsEntry.trackTime('fnTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
@@ -78,7 +82,7 @@ function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number = Paramet
         statsEntry.save();
 
         return cached.value;
-    };
+    } as MemoizedFn<Fn, Key>;
 
     /**
      * Cache API attached to the memoized function. Currently there is an issue with typing cache keys, but the functionality works as expected.
@@ -90,7 +94,7 @@ function memoize<Fn extends MemoizeFnPredicate, MaxArgs extends number = Paramet
 
     Memoize.registerMemoized(options.monitoringName ?? fn.name, memoized);
 
-    return memoized as MemoizedFn<Fn, Key>;
+    return memoized;
 }
 
 export default memoize;

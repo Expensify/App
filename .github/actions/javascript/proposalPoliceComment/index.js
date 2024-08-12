@@ -18089,6 +18089,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -18631,7 +18632,7 @@ class OpenAIUtils {
                     continue;
                 }
                 response += message.content
-                    .map((contentBlock) => this.isTextContentBlock(contentBlock))
+                    .map((contentBlock) => this.isTextContentBlock(contentBlock) && contentBlock.text.value)
                     .join('\n')
                     .trim();
                 console.log('Parsed assistant response:', response);

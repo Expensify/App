@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,7 +16,6 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -120,7 +119,6 @@ function ReportPreview({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseViolations} = usePermissions();
     const {isOffline} = useNetwork();
     const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID, transactions), [iouReportID, transactions]);
 
@@ -141,6 +139,9 @@ function ReportPreview({
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
+    );
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -149,6 +150,7 @@ function ReportPreview({
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
@@ -163,7 +165,8 @@ function ReportPreview({
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
+        ReportUtils.hasViolations(iouReportID, transactionViolations) ||
+        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
@@ -188,7 +191,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const confirmPayment = (type: PaymentMethodType | undefined) => {
+    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
         }
@@ -198,7 +201,7 @@ function ReportPreview({
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
             if (ReportUtils.isInvoiceReport(iouReport)) {
-                IOU.payInvoice(type, chatReport, iouReport);
+                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {
                 IOU.payMoneyRequest(type, chatReport, iouReport);
             }
@@ -269,7 +272,16 @@ function ReportPreview({
         if (isScanning) {
             return translate('common.receipt');
         }
-        let payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+
+        let payerOrApproverName;
+        if (isPolicyExpenseChat) {
+            payerOrApproverName = ReportUtils.getPolicyName(chatReport);
+        } else if (isInvoiceRoom) {
+            payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport, invoiceReceiverPolicy);
+        } else {
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(managerID, true);
+        }
+
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
@@ -350,7 +362,7 @@ function ReportPreview({
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     return (
         <OfflineWithFeedback
@@ -361,7 +373,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT);
+                        Timing.start(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
