@@ -3572,6 +3572,8 @@ export default {
                 subtitle: 'Automatiza la conformidad, aprobaciones y pagos de informes de gastos.',
                 customReportNamesTitle: 'Nombres personalizados de informes',
                 customReportNamesSubtitle: 'Nombres personalizados de informes',
+                customNameTitle: 'Nombre personalizado',
+                preventMembersFromChangingCustomNamesTitle: 'Impedir que los miembros cambien los nombres de los informes personalizados',
                 preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
                 preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
                 autoApproveCompliantReportsTitle: 'Aprobación automática de informes conformes',

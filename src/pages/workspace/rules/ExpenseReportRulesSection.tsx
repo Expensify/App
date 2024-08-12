@@ -23,27 +23,25 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             onToggle: (isEnabled: boolean) => {},
             subMenuItems: [
                 <MenuItem
-                    title="Custom name"
+                    title={translate('workspace.rules.expenseReportRules.customNameTitle')}
                     titleStyle={styles.textLabelSupportingEmptyValue}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => {}}
                 />,
                 <MenuItem
-                    title="Prevent members from changing custom report names"
+                    title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     titleStyle={{...styles.textLabelSupportingEmptyValue, ...styles.textWhite}}
                     onPress={() => {}}
                     rightComponent={
                         <Switch
-                            accessibilityLabel="Prevent members from changing custom report names"
+                            accessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                             onToggle={() => {}}
                             isOn={false}
                         />
                     }
                     shouldShowRightComponent
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    // wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                    // brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />,
             ],
         },

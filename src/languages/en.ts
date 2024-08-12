@@ -3533,6 +3533,8 @@ export default {
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 customReportNamesTitle: 'Custom report names',
                 customReportNamesSubtitle: 'Create custom names using our extensive formulas.',
+                customNameTitle: 'Custom name',
+                preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
                 autoApproveCompliantReportsTitle: 'Auto-approve compliant reports',
