@@ -41,6 +41,9 @@ type Response = {
     /** Used to load resources like attachment videos and images */
     encryptedAuthToken?: string;
 
+    /** User session auth token when connecting as a delegate */
+    restrictedToken?: string;
+
     /** Used to pass error messages for error handling purposes */
     message?: string;
 
