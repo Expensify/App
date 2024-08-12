@@ -1565,6 +1565,17 @@ function isOneTransactionReport(reportID: string): boolean {
     return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
 }
 
+/*
+ * Whether the report contains only one expense and the expense should be paid later
+ */
+function isPayAtEndExpenseReport(reportID: string, transactions: Transaction[] | undefined): boolean {
+    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReport(reportID)) {
+        return false;
+    }
+
+    return TransactionUtils.isPayAtEndExpense(transactions?.[0] ?? TransactionUtils.getAllReportTransactions(reportID)[0]);
+}
+
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
@@ -2610,6 +2621,16 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<
     return reportOwnerDisplayName;
 }
 
+function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
+    const lastClosedReportAction = ReportActionsUtils.getLastClosedReportAction(reportActions);
+
+    if (!lastClosedReportAction) {
+        return undefined;
+    }
+
+    return ReportActionsUtils.isClosedAction(lastClosedReportAction) ? ReportActionsUtils.getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+}
+
 /**
  * Given a report field, check if the field is for the report title.
  */
@@ -2874,7 +2895,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return !isForwarded;
     }
 
-    return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
+    return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
 }
 
 /**
@@ -7843,6 +7864,8 @@ export {
     getReport,
     getReportNameValuePairs,
     hasReportViolations,
+    isPayAtEndExpenseReport,
+    getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
 };

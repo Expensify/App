@@ -11,6 +11,9 @@ const INPUT_IDS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
+    TAX_RATE: 'taxRate',
+    EXPENSE_TYPE: 'expenseType',
+    TAG: 'tag',
     KEYWORD: 'keyword',
 } as const;
 
@@ -29,6 +32,9 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.REPORT_ID]: string;
         [INPUT_IDS.KEYWORD]: string;
+        [INPUT_IDS.TAX_RATE]: string[];
+        [INPUT_IDS.EXPENSE_TYPE]: string[];
+        [INPUT_IDS.TAG]: string[];
     }
 >;
 

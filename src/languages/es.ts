@@ -598,6 +598,7 @@ export default {
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
     writeCapabilityPage: {
         label: 'Quién puede postear',
@@ -861,6 +862,10 @@ export default {
             `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
         reimbursable: 'reembolsable',
         nonReimbursable: 'no reembolsable',
+        bookingPending: 'Esta reserva está pendiente',
+        bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
+        bookingArchived: 'Esta reserva está archivada',
+        bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -3703,9 +3708,9 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
             emptyTripResults: {
-                title: 'Sin viajes para visualizar',
-                subtitle: 'Empiece reservando su primer viaje a continuación.',
-                buttonText: 'Reserve un viaje',
+                title: 'No tienes viajes',
+                subtitle: 'Reserva tu primer viaje a continuación.',
+                buttonText: 'Reserva un viaje',
             },
         },
         groupedExpenses: 'gastos agrupados',
@@ -3727,6 +3732,7 @@ export default {
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
         },
+        expenseType: 'Tipo de gasto',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
