@@ -94,6 +94,8 @@ jobs:
       - name: Upload Android sourcemaps to GitHub Release
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: gh release upload ${{ github.event.release.tag_name }} android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map#android-sourcemap-${{ github.event.release.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload Android build to GitHub Release
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -154,6 +156,8 @@ jobs:
 
       - name: Upload desktop sourcemaps to GitHub Release
         run: gh release upload ${{ github.event.release.tag_name }} desktop/dist/www/merged-source-map.js.map#desktop-sourcemap-${{ github.event.release.tag_name }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload desktop build to GitHub Release
         run: gh release upload ${{ github.event.release.tag_name }} desktop-build/NewExpensify.dmg --clobber
@@ -244,6 +248,8 @@ jobs:
       - name: Upload iOS sourcemaps to GitHub Release
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: gh release upload ${{ github.event.release.tag_name }} main.jsbundle.map#ios-sourcemap-${{ github.event.release.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload iOS build to GitHub Release
         if:  ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -341,6 +347,8 @@ jobs:
 
       - name: Upload web sourcemaps to GitHub Release
         run: gh release upload ${{ github.event.release.tag_name }} dist/merged-source-map.js.map#web-sourcemap-${{ github.event.release.tag_name }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload web build to GitHub Release
         run: |
