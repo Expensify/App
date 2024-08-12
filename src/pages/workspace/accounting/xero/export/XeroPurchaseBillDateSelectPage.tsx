@@ -52,7 +52,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,
                     {billDate: row.value},
-                    {billDate: config?.export?.billDate},
+                    {billDate: config?.export?.billDate ?? null},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));

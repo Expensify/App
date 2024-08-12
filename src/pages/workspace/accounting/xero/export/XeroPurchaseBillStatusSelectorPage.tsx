@@ -59,7 +59,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
                     {
                         billStatus: {...config?.export?.billStatus, purchase: row.value},
                     },
-                    {billStatus: config?.export?.billStatus},
+                    {billStatus: config?.export?.billStatus ?? null},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID));

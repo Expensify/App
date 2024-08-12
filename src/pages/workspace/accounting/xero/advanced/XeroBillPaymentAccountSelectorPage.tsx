@@ -49,7 +49,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
                 {
                     reimbursementAccountID: value,
                 },
-                {reimbursementAccountID},
+                {reimbursementAccountID: reimbursementAccountID ?? null},
             );
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },

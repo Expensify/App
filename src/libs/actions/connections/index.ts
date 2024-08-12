@@ -13,6 +13,10 @@ import type Policy from '@src/types/onyx/Policy';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
+type Nullable<T> = {
+    [P in keyof T]: T[P] | null;
+};
+
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -73,7 +77,7 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
     connectionName: TConnectionName,
     settingName: TSettingName,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+    oldSettingValue?: Nullable<Partial<Connections[TConnectionName]['config'][TSettingName]>>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {

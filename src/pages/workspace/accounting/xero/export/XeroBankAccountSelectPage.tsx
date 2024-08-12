@@ -53,7 +53,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                     {
                         nonReimbursableAccount: value,
                     },
-                    {nonReimbursableAccount: config?.export?.nonReimbursableAccount},
+                    {nonReimbursableAccount: config?.export?.nonReimbursableAccount ?? null},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));

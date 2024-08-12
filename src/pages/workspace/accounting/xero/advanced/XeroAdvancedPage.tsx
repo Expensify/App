@@ -66,7 +66,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         {
                             enabled: !autoSync?.enabled,
                         },
-                        {enabled: autoSync?.enabled},
+                        {enabled: autoSync?.enabled ?? null},
                     )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
@@ -89,7 +89,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         {
                             syncReimbursedReports: !sync?.syncReimbursedReports,
                         },
-                        {syncReimbursedReports: sync?.syncReimbursedReports},
+                        {syncReimbursedReports: sync?.syncReimbursedReports ?? null},
                     )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}

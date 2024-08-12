@@ -49,7 +49,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 {
                     invoiceCollectionsAccountID: value,
                 },
-                {invoiceCollectionsAccountID},
+                {invoiceCollectionsAccountID: invoiceCollectionsAccountID ?? null},
             );
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },

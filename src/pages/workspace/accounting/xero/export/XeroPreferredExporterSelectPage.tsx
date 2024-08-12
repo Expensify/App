@@ -72,7 +72,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,
                     {exporter: row.value},
-                    {exporter: config?.export?.exporter},
+                    {exporter: config?.export?.exporter ?? null},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
