@@ -50,7 +50,6 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             forwardsTo: employees[nextEmail].forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
-            isInMultipleWorkflows: false,
             isCircularReference,
         });
 
@@ -87,9 +86,6 @@ type ConvertPolicyEmployeesToApprovalWorkflowsParams = {
 /** Convert a list of policy employees to a list of approval workflows */
 function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails}: ConvertPolicyEmployeesToApprovalWorkflowsParams): ApprovalWorkflow[] {
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
-
-    // Keep track of how many times each approver is used to detect approvers in multiple workflows
-    const approverCountsByEmail: Record<string, number> = {};
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
     // Add each employee to the appropriate workflow
@@ -102,7 +98,6 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
-            approvers.forEach((approver) => (approverCountsByEmail[approver.email] = (approverCountsByEmail[approver.email] ?? 0) + 1));
 
             approvalWorkflows[submitsTo] = {
                 members: [],
@@ -136,14 +131,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         });
     }
 
-    // Add a flag to each approver to indicate if they are in multiple workflows
-    return sortedApprovalWorkflows.map((workflow) => ({
-        ...workflow,
-        approvers: workflow.approvers.map((approver) => ({
-            ...approver,
-            isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
-        })),
-    }));
+    return sortedApprovalWorkflows;
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {

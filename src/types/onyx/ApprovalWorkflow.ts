@@ -28,11 +28,6 @@ type Approver = {
     displayName: string;
 
     /**
-     * Is this user used as an approver in more than one workflow (used to show a warning)
-     */
-    isInMultipleWorkflows?: boolean;
-
-    /**
      * Is this approver in a circular reference (approver forwards to themselves, or a cycle of forwards)
      *
      * example: A -> A (self forwards)

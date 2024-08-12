@@ -32,7 +32,6 @@ function buildApprover(accountID: number, approver: Partial<Approver> = {}): App
         forwardsTo: undefined,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${accountID}@example.com User`,
-        isInMultipleWorkflows: false,
         isCircularReference: false,
         ...approver,
     };
@@ -322,13 +321,9 @@ describe('WorkflowUtils', () => {
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
             defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
-            defaultWorkflow.approvers[1].isInMultipleWorkflows = true;
-            defaultWorkflow.approvers[2].isInMultipleWorkflows = true;
             const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
             secondWorkflow.approvers[0].forwardsTo = '3@example.com';
             secondWorkflow.approvers[1].forwardsTo = '4@example.com';
-            secondWorkflow.approvers[1].isInMultipleWorkflows = true;
-            secondWorkflow.approvers[2].isInMultipleWorkflows = true;
 
             expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
