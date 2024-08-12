@@ -5,12 +5,17 @@ import {withOnyx} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +27,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -181,6 +187,25 @@ function ProfilePage({
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
+                            <View style={[styles.alignSelfStart, styles.pt3]}>
+                                <Tooltip text={translate('common.shareCode')}>
+                                    <PressableWithFeedback
+                                        accessibilityLabel={translate('common.shareCode')}
+                                        accessibilityRole="button"
+                                        accessible
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                                        style={[styles.button, styles.flexRow, styles.gap1]}
+                                    >
+                                        <Icon
+                                            src={Expensicons.QrCode}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                            fill={theme.icon}
+                                        />
+                                        <Text style={styles.buttonText}>{translate('common.share')}</Text>
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            </View>
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}

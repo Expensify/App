@@ -365,23 +365,6 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
-                    <Tooltip text={translate('common.shareCode')}>
-                        <PressableWithFeedback
-                            accessibilityLabel={translate('common.shareCode')}
-                            accessibilityRole="button"
-                            accessible
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                <Icon
-                                    src={Expensicons.QrCode}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    fill={theme.icon}
-                                />
-                            </View>
-                        </PressableWithFeedback>
-                    </Tooltip>
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
                             accessibilityLabel={translate('statusPage.status')}
