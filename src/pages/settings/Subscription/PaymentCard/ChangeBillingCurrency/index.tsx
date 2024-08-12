@@ -22,14 +22,15 @@ function ChangeBillingCurrency() {
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
     const formDataComplete = formData?.isLoading === false && !formData.errors;
+    const prevIsLoading = usePrevious(formData?.isLoading);
     const prevFormDataComplete = usePrevious(formDataComplete);
 
     useEffect(() => {
-        if (!formDataComplete || prevFormDataComplete) {
+        if (!formDataComplete || prevFormDataComplete || !prevIsLoading) {
             return;
         }
         Navigation.goBack();
-    }, [formDataComplete, prevFormDataComplete]);
+    }, [formDataComplete, prevFormDataComplete, prevIsLoading]);
 
     const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
         if (!values?.securityCode) {
