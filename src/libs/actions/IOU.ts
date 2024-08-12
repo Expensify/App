@@ -4241,7 +4241,7 @@ function createSplitsAndOnyxData(
         // Add category to optimistic policy recently used categories when a participant is a workspace
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
-        // Add category to optimistic policy recently used currencies when a participant is a workspace
+        // Add currency to optimistic policy recently used currencies when a participant is a workspace
         const optimisticPolicyRecentlyUsedCurrencies = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCurrencies(participant.policyID, currency) : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
