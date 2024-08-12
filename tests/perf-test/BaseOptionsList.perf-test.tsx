@@ -11,11 +11,6 @@ type BaseOptionsListWrapperProps = {
     canSelectMultipleOptions?: boolean;
 };
 
-jest.mock('@src/libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-}));
-
 describe('[BaseOptionsList]', () => {
     function BaseOptionsListWrapper({canSelectMultipleOptions = false}: BaseOptionsListWrapperProps) {
         const [selectedIds, setSelectedIds] = useState<string[]>([]);
