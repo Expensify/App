@@ -60,7 +60,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             '',
             selectedOptions,
             CONST.EXPENSIFY_EMAILS,
-            true,
+            false,
             true,
             false,
             {},
@@ -82,6 +82,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             betas,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, betas, selectedOptions]);
 
@@ -91,9 +92,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return newSections;
         }
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+        );
 
-        newSections.push(formatResults.section);
+        const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+
+        newSections.push(formattedResults.section);
+
+        if (chatOptions.currentUserOption && !isCurrentUserSelected) {
+            newSections.push({
+                title: translate('newTaskPage.assignMe'),
+                data: [chatOptions.currentUserOption],
+                shouldShow: true,
+            });
+        }
 
         newSections.push({
             title: translate('common.recents'),
