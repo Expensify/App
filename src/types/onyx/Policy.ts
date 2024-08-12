@@ -1208,16 +1208,16 @@ type Connection<ConnectionData, ConnectionConfig> = {
 /** Available integration connections */
 type Connections = {
     /** QuickBooks integration connection */
-    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
-    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.XERO]: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** NetSuite integration connection */
-    netsuite: NetSuiteConnection;
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1272,6 +1272,9 @@ type PolicyReportField = {
 
     /** Value of the field */
     value?: string | null;
+
+    /** Value of the target */
+    target?: 'expense' | 'invoice' | 'paycheck';
 
     /** Options to select from if field is of type dropdown */
     values: string[];
