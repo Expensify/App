@@ -222,7 +222,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean};
+> & {preferChatroomsOverThreads?: boolean};
 
 type HasText = {
     text?: string;
@@ -465,31 +465,6 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
         isSelected: participant.selected,
         searchText: participant.searchText ?? undefined,
     };
-}
-
-/**
- * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
- * to be used in isSearchStringMatch.
- */
-function getParticipantNames(personalDetailList?: Array<Partial<PersonalDetails>> | null): Set<string> {
-    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
-    // `_.contains(Array, value)` for an Array with n members.
-    const participantNames = new Set<string>();
-    personalDetailList?.forEach((participant) => {
-        if (participant.login) {
-            participantNames.add(participant.login.toLowerCase());
-        }
-        if (participant.firstName) {
-            participantNames.add(participant.firstName.toLowerCase());
-        }
-        if (participant.lastName) {
-            participantNames.add(participant.lastName.toLowerCase());
-        }
-        if (participant.displayName) {
-            participantNames.add(PersonalDetailsUtils.getDisplayNameOrDefault(participant).toLowerCase());
-        }
-    });
-    return participantNames;
 }
 
 /**
@@ -2413,15 +2388,7 @@ function getCurrentUserSearchTerms(item: ReportUtils.OptionData) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {
-        sortByReportTypeInSearch = false,
-        canInviteUser = true,
-        betas = [],
-        maxRecentReportsToShow = 0,
-        excludeLogins = [],
-        preferChatroomsOverThreads = false,
-        includeChatRoomsByParticipants = false,
-    } = config ?? {};
+    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0, excludeLogins = [], preferChatroomsOverThreads = false} = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
@@ -2436,29 +2403,9 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         optionsToExclude.push({login});
     });
 
-    const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
-        const keys: string[] = [];
-        const visibleChatMemberAccountIDs = item.participantsList ?? [];
-        if (allPersonalDetails) {
-            visibleChatMemberAccountIDs.forEach((participant) => {
-                const login = participant?.login;
-
-                if (participant?.displayName) {
-                    keys.push(participant.displayName);
-                }
-
-                if (login) {
-                    keys.push(login);
-                    keys.push(login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
-                }
-            });
-        }
-
-        return keys;
-    };
     const matchResults = searchTerms.reduceRight((items, term) => {
         const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
-            let values: string[] = [];
+            const values: string[] = [];
             if (item.text) {
                 values.push(item.text);
             }
