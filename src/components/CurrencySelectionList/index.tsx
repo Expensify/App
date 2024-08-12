@@ -3,6 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -10,13 +11,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
 
-function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList, policyRecentlyUsedCurrencies}: CurrencySelectionListProps) {
+function CurrencySelectionList({
+    searchInputLabel,
+    initiallySelectedCurrencyCode,
+    onSelect,
+    currencyList,
+    selectedCurrencies = [],
+    canSelectMultiple = false,
+    policyRecentlyUsedCurrencies,
+}: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
     const {sections, headerMessage} = useMemo(() => {
         const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
-            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
+            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
             return {
                 currencyName: currencyInfo?.name ?? '',
                 text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
@@ -43,20 +52,32 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
         const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
-        const selectedOption = currencyOptions.find((option) => option.isSelected);
-        const shouldDisplaySelectedOptionOnTop = selectedOption && !searchValue;
-        const sections = [];
+        const selectedOptions = currencyOptions.filter((option) => option.isSelected);
+        const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0 && !searchValue;
+        const result = [];
+
+        if (canSelectMultiple) {
+            filteredCurrencies.sort((currencyA, currencyB) => {
+                if (currencyA.isSelected === currencyB.isSelected) {
+                    return 0;
+                }
+
+                return currencyA.isSelected ? -1 : 1;
+            });
+        }
+
         if (shouldDisplaySelectedOptionOnTop) {
-            sections.push({
+            result.push({
                 title: '',
-                data: [selectedOption],
+                data: selectedOptions,
                 shouldShow: true,
             });
         }
+
         if (shouldDisplayRecentlyOptions) {
             const cutPolicyRecentlyUsedCurrencyOptions = policyRecentlyUsedCurrencyOptions.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
             if (!isEmpty) {
-                sections.push(
+                result.push(
                     {
                         title: translate('common.recents'),
                         data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutPolicyRecentlyUsedCurrencyOptions) : cutPolicyRecentlyUsedCurrencyOptions,
@@ -66,25 +87,27 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
                 );
             }
         } else if (!isEmpty) {
-            sections.push({
+            result.push({
                 data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(filteredCurrencies) : filteredCurrencies,
             });
         }
-        return {sections, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, policyRecentlyUsedCurrencies, getUnselectedOptions]);
+
+        return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
+    }, [currencyList, searchValue, canSelectMultiple, translate, initiallySelectedCurrencyCode, selectedCurrencies]);
 
     return (
         <SelectionList
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
             textInputLabel={searchInputLabel}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             headerMessage={headerMessage}
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator
+            canSelectMultiple={canSelectMultiple}
         />
     );
 }

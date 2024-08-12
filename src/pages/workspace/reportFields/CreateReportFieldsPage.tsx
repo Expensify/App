@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -93,6 +94,8 @@ function CreateReportFieldsPage({
         ReportField.setInitialCreateReportFieldsForm();
     }, []);
 
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -119,6 +122,7 @@ function CreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
+                    disablePressOnEnter={!!modal?.isVisible}
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -142,6 +146,16 @@ function CreateReportFieldsPage({
                                 rightLabel={translate('common.required')}
                                 onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
                             />
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.reportFields.listValues')}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
+                                    title={formDraft?.[INPUT_IDS.LIST_VALUES]?.sort(localeCompare)?.join(', ')}
+                                    numberOfLinesTitle={5}
+                                />
+                            )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
                                 <InputWrapper
@@ -173,14 +187,6 @@ function CreateReportFieldsPage({
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                     rightLabel={translate('common.required')}
-                                />
-                            )}
-
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reportFields.listValues')}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
                                 />
                             )}
                         </View>

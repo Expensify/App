@@ -141,6 +141,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                             }}
                             containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
+                            shouldSubmitForm
                         />
                     </>
                 )}

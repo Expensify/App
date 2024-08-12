@@ -4,7 +4,6 @@ import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
@@ -20,7 +20,6 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
@@ -71,7 +70,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
