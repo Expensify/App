@@ -11,7 +11,7 @@ import SelectableListItem from './SelectionList/SelectableListItem';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
-    value: string;
+    value: string | string[];
 };
 
 type SearchMultipleSelectionPickerProps = {

@@ -25,7 +25,6 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
-    TaxRates,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -423,14 +422,20 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
-function getAllTaxRates(): Record<string, string> {
-    const allTaxRates: Record<string, string> = {};
+/** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
+ * We want to allow user to choose over TaxRateName and there might be a situation when on TaxRateName has two possible keys in different policies */
+function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+    const allTaxRates: Record<string, string[]> = {};
     Object.values(allPolicies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
         }
         Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
-            allTaxRates[taxRateKey] = taxRate.name;
+            if (!allTaxRates[taxRate.name]) {
+                allTaxRates[taxRate.name] = [taxRateKey];
+                return;
+            }
+            allTaxRates[taxRate.name].push(taxRateKey);
         });
     });
     return allTaxRates;
@@ -1019,7 +1024,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
-    getAllTaxRates,
+    getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
 };
 

@@ -133,7 +133,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     );
     const {status} = queryJSON;
     const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
-    console.log('%%%%%\n', 'headerSubtitle', headerSubtitle);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
