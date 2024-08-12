@@ -3545,6 +3545,11 @@ export default {
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
+                receiptRequiredAmount: 'Receipt required amount',
+                maxExpenseAmount: 'Max expense amount',
+                maxExpenseAge: 'Max expense age',
+                billableDefault: 'Billable default',
+                eReceipts: 'eReceipts',
             },
             expenseReportRules: {
                 title: 'Expense reports',

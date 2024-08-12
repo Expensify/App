@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -6,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type IndividualExpenseRulesSectionProps = {
@@ -35,6 +38,16 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
     };
 
+    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const maxExpenseAmountNoReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoReceipt === CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT || !policy?.maxExpenseAmountNoReceipt) {
+            return '';
+        }
+
+        return `${(policy.maxExpenseAmountNoReceipt / 100).toFixed(2)} ${policyCurrency}`;
+    }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+
     return (
         <Section
             isCentralPane
@@ -60,7 +73,21 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             )}
             subtitle={translate('workspace.rules.individualExpenseRules.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
-        />
+        >
+            <View style={[styles.mt3]}>
+                <MenuItemWithTopDescription
+                    key={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
+                    shouldShowRightIcon
+                    title={maxExpenseAmountNoReceiptText}
+                    description={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID));
+                    }}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    numberOfLinesTitle={2}
+                />
+            </View>
+        </Section>
     );
 }
 
