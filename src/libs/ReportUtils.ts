@@ -3527,7 +3527,12 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
     return getPolicyName(report, false, invoiceReceiverPolicy);
 }
 
-const reportNameCache: Record<string, string> = {};
+const reportNameCache = new Map<string, {lastVisibleActionCreated: string; reportName: string}>();
+
+/**
+ * Get a cache key for the report name.
+ */
+const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
 /**
  * Get the title for a report.
@@ -3539,11 +3544,15 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    const reportID = report?.reportID;
-    const cacheKey = `${reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
+    const cacheKey = getCacheKey(report);
+    let reportNameFromCache;
 
-    if (reportID && reportNameCache[cacheKey]) {
-        return reportNameCache[cacheKey];
+    if (cacheKey) {
+        reportNameFromCache = reportNameCache.get(cacheKey);
+    }
+
+    if (cacheKey && reportNameFromCache) {
+        return reportNameFromCache.reportName;
     }
 
     let formattedName: string | undefined;
@@ -3637,8 +3646,8 @@ function getReportName(
     }
 
     if (formattedName) {
-        if (reportID) {
-            reportNameCache[cacheKey] = formattedName;
+        if (cacheKey) {
+            reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
         }
 
         return formatReportLastMessageText(formattedName);
@@ -3656,8 +3665,8 @@ function getReportName(
     const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
     formattedName = participantNames;
 
-    if (reportID) {
-        reportNameCache[cacheKey] = formattedName;
+    if (cacheKey) {
+        reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
     }
 
     return formattedName;
