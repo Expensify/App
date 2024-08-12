@@ -194,7 +194,7 @@ function ProfilePage({
                                         accessibilityRole="button"
                                         accessible
                                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                        style={[styles.button, styles.flexRow, styles.gap1]}
+                                        style={[styles.button, styles.flexRow, styles.gap1, styles.ph4]}
                                     >
                                         <Icon
                                             src={Expensicons.QrCode}
