@@ -2296,6 +2296,7 @@ export default {
                 'Elige si quieres volver a facturar a los clientes en Expensify. Tus contactos de clientes de Xero se pueden etiquetar como gastos, y se exportarán a Xero como una factura de venta.',
             taxesDescription: 'Elige cómo gestionar los impuestos de Xero en Expensify.',
             notImported: 'No importado',
+            notConfigured: 'No configurado',
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
                 tag: 'Etiquetas',
