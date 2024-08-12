@@ -2674,6 +2674,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     }
 }
 
+function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+    return lastAccessedReportID ?? conciergeChatReportID;
+}
+
 function joinRoom(report: OnyxEntry<Report>) {
     if (!report) {
         return;
@@ -4031,6 +4036,7 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     shouldShowReportActionNotification,
+    getMostRecentReportID,
     joinRoom,
     leaveRoom,
     inviteToRoom,
