@@ -233,8 +233,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
     return (
         <Section
-            subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
-            title={translate('walletPage.bankAccounts')}
+            title={translate('common.bankAccounts')}
+            subtitle={translate('workspace.invoices.bankAccountsSubtitle')}
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
         >
@@ -249,7 +249,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
             />
-
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}
                 onClose={hideDefaultDeleteMenu}
@@ -309,7 +308,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                     onModalHide={resetSelectedPaymentMethodData}
                 />
             </Popover>
-
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 onClose={hideAddPaymentMenu}

@@ -369,7 +369,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                             >
                                 <Section
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
-                                    title={translate('walletPage.bankAccounts')}
+                                    title={translate('common.bankAccounts')}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     illustration={Illustrations.BigVault}
