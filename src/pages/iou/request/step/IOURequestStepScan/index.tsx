@@ -549,7 +549,6 @@ function IOURequestStepScan({
 
     const mobileCameraView = () => (
         <>
-            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             <View style={[styles.cameraView]}>
                 {PDFThumbnailView}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
@@ -650,7 +649,6 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {PDFThumbnailView}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
@@ -702,28 +700,31 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
-                    {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptAndNavigate(file);
-                            }
-                        }}
-                        receiptImageTopPosition={receiptImageTopPosition}
-                    />
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideRecieptModal}
-                        onCancel={hideRecieptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                </View>
+                <>
+                    {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptAndNavigate(file);
+                                }
+                            }}
+                            receiptImageTopPosition={receiptImageTopPosition}
+                        />
+                        <ConfirmModal
+                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                            onConfirm={hideRecieptModal}
+                            onCancel={hideRecieptModal}
+                            isVisible={isAttachmentInvalid}
+                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
+                        />
+                    </View>
+                </>
             )}
         </StepScreenDragAndDropWrapper>
     );
