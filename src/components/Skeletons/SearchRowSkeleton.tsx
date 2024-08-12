@@ -35,7 +35,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
         return (
             <ItemListSkeletonView
                 itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr5, styles.ml5]}
+                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
