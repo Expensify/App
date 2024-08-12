@@ -50,11 +50,11 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
+import ReportActionsListItemRenderer from './report/ReportActionsListItemRenderer';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import ReportActionsListItemRenderer from './report/ReportActionsListItemRenderer';
 
 type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
@@ -726,6 +726,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [report]);
     const firstReportAction = reportActions[0];
 
+    console.log({firstReportAction});
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -796,23 +798,25 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {shouldShowSkeleton && (
                                     <>
                                         <ReportActionsSkeletonView />
-                                        <ReportActionsListItemRenderer
-                                            reportAction={firstReportAction}
-                                            reportActions={reportActions}
-                                            parentReportAction={parentReportAction}
-                                            // parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                                            index={0}
-                                            report={report}
-                                            // transactionThreadReport={transactionThreadReport}
-                                            // linkedReportActionID={linkedReportActionID}
-                                            displayAsGroup={false}
-                                            // mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                                            shouldHideThreadDividerLine={true}
-                                            shouldDisplayNewMarker={false}
-                                            shouldDisplayReplyDivider={false}
-                                            isFirstVisibleReportAction={true}
-                                            shouldUseThreadDividerLine={false}
-                                        />
+                                        {!!firstReportAction && (
+                                            <ReportActionsListItemRenderer
+                                                reportAction={firstReportAction}
+                                                reportActions={reportActions}
+                                                parentReportAction={parentReportAction}
+                                                // parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                                                index={0}
+                                                report={report}
+                                                // transactionThreadReport={transactionThreadReport}
+                                                // linkedReportActionID={linkedReportActionID}
+                                                displayAsGroup={false}
+                                                // mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                                                shouldHideThreadDividerLine={true}
+                                                shouldDisplayNewMarker={false}
+                                                shouldDisplayReplyDivider={false}
+                                                isFirstVisibleReportAction={true}
+                                                shouldUseThreadDividerLine={false}
+                                            />
+                                        )}
                                     </>
                                 )}
 
