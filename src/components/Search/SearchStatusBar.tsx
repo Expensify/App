@@ -14,6 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SearchQueryString, SearchStatus} from './types';
+import ScrollView from '@components/ScrollView';
 
 type SearchStatusBarProps = {
     type: SearchDataTypes;
@@ -115,7 +116,11 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.mh5, styles.mb5, styles.overflowScroll]}>
+        <ScrollView
+            style={[styles.flexRow, styles.mh5, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+        >
             {options[type].map((item) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
                 const isActive = status === item.key;
@@ -133,7 +138,7 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                     />
                 );
             })}
-        </View>
+        </ScrollView>
     );
 }
 
