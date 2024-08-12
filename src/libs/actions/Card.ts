@@ -381,7 +381,11 @@ function startIssueNewCardFlow(policyID: string) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
-function configureExpensifyCardsForPolicy(policyID: string, bankAccountID: number) {
+function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: number) {
+    if (!bankAccountID) {
+        return;
+    }
+
     const parameters = {
         policyID,
         bankAccountID,
