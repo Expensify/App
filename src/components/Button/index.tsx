@@ -177,7 +177,7 @@ function Button(
 
         small = false,
         large = false,
-        medium = false,
+        medium = true,
 
         isLoading = false,
         isDisabled = false,
