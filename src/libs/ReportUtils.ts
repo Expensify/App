@@ -1573,7 +1573,7 @@ function isPayAtEndExpenseReport(reportID: string, transactions: Transaction[] |
         return false;
     }
 
-    return TransactionUtils.isPayAtEndExpense(transactions?.[0] ?? TransactionUtils.getAllReportTransactions(reportID)[0]);
+    return TransactionUtils.isPayAtEndExpense(transactions[0]);
 }
 
 /**
