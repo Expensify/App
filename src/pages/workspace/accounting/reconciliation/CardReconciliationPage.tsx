@@ -26,7 +26,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.workspaceAccountID}`);
+    const [reconciliationConnectionSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.workspaceAccountID}`);
     const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policy?.workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -101,7 +101,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]}
                         </Text>
                     )}
-                    {!!reconciliationConnection && (
+                    {!!reconciliationConnectionSettings?.bankAccountID && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}

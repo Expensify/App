@@ -1573,6 +1573,15 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 };
 
+/** Expensify Card Reconciliation Settings */
+type ReconciliationConnectionSettings = {
+    /** Name of the connection */
+    connectionName: ConnectionName;
+
+    /** Reconciliation account ID */
+    bankAccountID: number;
+};
+
 export default Policy;
 
 export type {
@@ -1625,4 +1634,5 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    ReconciliationConnectionSettings,
 };
