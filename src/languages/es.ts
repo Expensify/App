@@ -3720,6 +3720,7 @@ export default {
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
         },
+        expenseType: 'Tipo de gasto',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
