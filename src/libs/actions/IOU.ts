@@ -6847,7 +6847,7 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !shouldBeApproved &&
-        !isFutureTravelExpenseReport
+        !isPayAtEndExpenseReport
     );
 }
 
