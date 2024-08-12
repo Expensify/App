@@ -435,20 +435,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             editIconStyle={styles.smallEditIconAccount}
                         />
                     </View>
-                    <Text
-                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                        numberOfLines={1}
-                    >
-                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
-                    </Text>
-                    {!!currentUserPersonalDetails.displayName && (
-                        <Text
-                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
-                            numberOfLines={1}
-                        >
-                            {formatPhoneNumber(session?.email ?? '')}
-                        </Text>
-                    )}
                 </>
             )}
         </View>
