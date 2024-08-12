@@ -49,17 +49,17 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
-    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
         : {
               ...item,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
-              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple)),
+              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -91,6 +91,8 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -211,7 +213,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
     const data = SearchUtils.getSections(searchResults.data, searchResults.search, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
@@ -304,8 +306,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
     const shouldShowSorting = sortableSearchStatuses.includes(status);
-
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     return (
         <>
