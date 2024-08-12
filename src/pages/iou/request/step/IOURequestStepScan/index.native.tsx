@@ -14,6 +14,7 @@ import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -67,6 +68,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -398,7 +400,13 @@ function IOURequestStepScan({
             return;
         }
 
+        // With the image size > 24MB, we use manipulateAsync to resize the image.
+        // It takes a long time so we should display a loading indicator while the resize image progresses.
+        if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setIsLoadingReceipt(true);
+        }
         FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            setIsLoadingReceipt(false);
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
@@ -470,6 +478,7 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
+            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {pdfFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
