@@ -15,12 +15,10 @@
 
 <section>
     <div class="cards-group">
-        {% if section.articles %}
-            {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
-            {% for article in sortedArticles %}
-                {% assign article_href = section.href | append: '/' | append: article.href %}
-                {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
-            {% endfor %}
-        {% endif %}
+        {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
+        {% for article in sortedArticles %}
+            {% assign article_href = section.href | append: '/' | append: article.href %}
+            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+        {% endfor %}
     </div>
 </section>

@@ -91,7 +91,7 @@ function shouldOpenOnAdminRoom() {
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString()};
+        return {q: buildSearchQueryString(), isCustomQuery: false};
     }
 
     if (screenName === SCREENS.REPORT) {
@@ -182,6 +182,9 @@ const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true);
     },
+    blur: () => {
+        Modal.setModalVisibility(false);
+    },
     beforeRemove: () => {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
@@ -224,7 +227,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         if (!initialReportID) {
-            initialReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
+            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+            initialReportID = initialReport?.reportID ?? '';
         }
 
         isInitialRender.current = false;

@@ -178,8 +178,16 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
-    const hasCalledReadNewestAction = useRef(false);
     const isFocused = useIsFocused();
+    const hasCalledReadNewestAction = useRef(false);
+
+    useEffect(() => {
+        /**
+         * This allows to mark the report as read, when
+         * report is opened and new report actions are received.
+         */
+        hasCalledReadNewestAction.current = false;
+    }, [reportActions]);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -528,11 +536,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
         if (hasCalledReadNewestAction.current) {
             return;
         }
-
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
@@ -555,9 +561,11 @@ function ReportActionsList({
                 isUnread && (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID()
             );
         });
+
         if (scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !areSomeReportActionsUnread) {
             return;
         }
+
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
         lastReadTimeRef.current = newMessageTimeReference;

@@ -13,19 +13,21 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,10 +61,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '-1';
     const backTo = route.params?.backTo;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
+    const policy = usePolicy(policyId);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+
+    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -100,7 +105,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         [policyCategories, selectedCategories, translate],
     );
 
-    const toggleCategory = (category: PolicyOption) => {
+    const toggleCategory = useCallback((category: PolicyOption) => {
         setSelectedCategories((prev) => {
             if (prev[category.keyForList]) {
                 const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
@@ -108,7 +113,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             }
             return {...prev, [category.keyForList]: true};
         });
-    };
+    }, []);
 
     const toggleAllCategories = () => {
         const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -117,7 +122,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9, !canSelectMultiple && styles.m5]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
@@ -163,7 +168,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (selectedCategoriesArray.length > 0) {
+        if (shouldUseNarrowLayout ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -228,6 +233,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    isDisabled={!selectedCategoriesArray.length}
                 />
             );
         }
@@ -257,6 +263,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isLoading = !isOffline && policyCategories === undefined;
 
+    useEffect(() => {
+        if (selectionMode?.isEnabled) {
+            return;
+        }
+
+        setSelectedCategories({});
+    }, [setSelectedCategories, selectionMode?.isEnabled]);
+
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderText = () => (
@@ -278,6 +292,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </View>
     );
 
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -292,10 +308,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.FolderOpen}
-                    title={translate('workspace.common.categories')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
+                    icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedCategories({});
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack(backTo);
+                    }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -331,8 +354,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
-                    <SelectionList
-                        canSelectMultiple
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         sections={[{data: categoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
                         onSelectRow={navigateToCategorySettings}

@@ -20,6 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -75,7 +76,8 @@ function ReportActionItemImage({
     const {translate} = useLocalize();
     const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields);
+    const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
 
     if (showMapAsImage) {
         return (
