@@ -2412,6 +2412,7 @@ const CONST = {
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
         WORKSPACE_FEATURES: 'WorkspaceFeatures',
+        WORKSPACE_RULES: 'WorkspaceRules',
     },
     get EXPENSIFY_EMAILS() {
         return [
