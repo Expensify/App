@@ -87,9 +87,9 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 }
 
 /**
- * Checks if the policy has auto-sync error.
+ * Checks if the policy had a sync error.
  */
-function hasAutoSyncError(policy: OnyxEntry<Policy>): boolean {
+function hasSyncError(policy: OnyxEntry<Policy>): boolean {
     return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, false));
 }
 
@@ -153,7 +153,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasAutoSyncError(policy)) {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -932,7 +932,7 @@ export {
     getUnitRateValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
-    hasAutoSyncError,
+    hasSyncError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
