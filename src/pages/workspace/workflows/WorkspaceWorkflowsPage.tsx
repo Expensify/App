@@ -95,14 +95,20 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }, [fetchData]),
     );
 
-    const createNewApprovalWorkflow = useCallback(() => {
+    // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
+    const addApprovalAction = useCallback(() => {
+        if (!PolicyUtils.isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+            );
+            return;
+        }
         Workflow.setApprovalWorkflow({
             ...EMPTY_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
         });
-
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [approvalWorkflows, route.params.policyID]);
+    }, [approvalWorkflows, policy, route.params.policyID]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
@@ -173,7 +179,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             iconWidth={20}
                             iconFill={theme.success}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                            onPress={createNewApprovalWorkflow}
+                            onPress={addApprovalAction}
                         />
                     </>
                 ) : (
@@ -285,8 +291,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         approvalWorkflows,
         theme.success,
         theme.spinner,
+        addApprovalAction,
         policyApproverName,
-        createNewApprovalWorkflow,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
