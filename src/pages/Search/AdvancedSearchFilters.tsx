@@ -40,12 +40,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     }
 
     if (
-        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
-            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
-            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
-            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
-            fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) &&
+        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
         filters[fieldName]
     ) {
         const filterArray = filters[fieldName] ?? [];
@@ -88,6 +83,16 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     });
 
     return result.join(', ');
+}
+
+function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
+    return filterValue
+        ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
+              .filter((expenseType) => filterValue.includes(expenseType))
+              .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
+              .join(', ')
+        : undefined;
 }
 
 function AdvancedSearchFilters() {
@@ -159,7 +164,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, translate),
+                title: getExpenseTypeDisplayTitle(searchAdvancedFilters, translate),
                 description: 'search.expenseType' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
             },

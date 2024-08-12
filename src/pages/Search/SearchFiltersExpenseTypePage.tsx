@@ -8,23 +8,11 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getExpenseTypeTranslationKey} from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
-    // eslint-disable-next-line default-case
-    switch (expenseType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return 'common.distance';
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return 'common.card';
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
-            return 'iou.cash';
-    }
-}
 
 function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();

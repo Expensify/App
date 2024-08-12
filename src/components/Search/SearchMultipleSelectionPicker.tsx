@@ -73,7 +73,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 return;
             }
             if (item.isSelected) {
-                setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.name));
+                setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
             } else {
                 setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
             }
