@@ -439,9 +439,9 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
 /** Clears the highlight of a report action if it’s from the current user */
 function clearHighlightIfCurrentUserAction(accountID?: number) {
     const isCurrentUserAction = accountID === currentUserAccountID;
-    const reportActionID = Navigation.getTopmostReportActionId() || '-1';
+    const reportActionID = Navigation.getTopmostReportActionId();
 
-    if (!isCurrentUserAction || !reportActionID || reportActionID === '-1') {
+    if (!isCurrentUserAction || !reportActionID) {
         return;
     }
 
