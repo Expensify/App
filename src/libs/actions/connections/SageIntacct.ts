@@ -239,9 +239,9 @@ function prepareOnyxDataForUserDimensionUpdate(
     policyID: string,
     dimensionName: string,
     newDimensions: SageIntacctDimension[],
-    pendingAction: OnyxCommon.PendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-    oldDimensions?: SageIntacctDimension[],
-    oldDimensionName?: string,
+    oldDimensions: SageIntacctDimension[],
+    oldDimensionName: string,
+    pendingAction: OnyxCommon.PendingAction,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -274,12 +274,11 @@ function prepareOnyxDataForUserDimensionUpdate(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: oldDimensions ?? newDimensions,
+                                dimensions: oldDimensions,
                             },
-                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName ?? dimensionName}`]: pendingActionAfterFailure},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName}`]: pendingActionAfterFailure},
                             errorFields: {
-                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName ?? dimensionName}`]:
-                                    ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -322,7 +321,7 @@ function addSageIntacctUserDimensions(
     API.write(
         WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
         {policyID, dimensions: JSON.stringify(newDimensions)},
-        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, undefined),
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, newDimensions, dimensionName, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
     );
 }
 
@@ -343,7 +342,7 @@ function editSageIntacctUserDimensions(
     API.write(
         WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
         {policyID, dimensions: JSON.stringify(newDimensions)},
-        prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, existingUserDimensions, previousName),
+        prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions, existingUserDimensions, previousName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
     );
 }
 
@@ -353,7 +352,7 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
     API.write(
         WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
         {policyID, dimensions: JSON.stringify(newDimensions)},
-        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, existingUserDimensions),
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, existingUserDimensions, dimensionName, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 }
 
