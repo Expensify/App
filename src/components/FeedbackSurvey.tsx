@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FixedFooter from './FixedFooter';
@@ -20,6 +20,9 @@ import Text from './Text';
 import TextInput from './TextInput';
 
 type FeedbackSurveyProps = {
+    /** A unique Onyx key identifying the form */
+    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM;
+
     /** Title of the survey */
     title: string;
 
@@ -49,10 +52,10 @@ const OPTIONS: Choice[] = [
     {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
 ];
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft, draftResults] = useOnyx(ONYXKEYS.FORMS.FEEDBACK_SURVEY_FORM_DRAFT);
+    const [draft, draftResults] = useOnyx(`${formID}Draft`);
     const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
     const [reason, setReason] = useState<FeedbackSurveyOptionID | undefined>(draft?.reason);
@@ -65,7 +68,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
         setNote(draft?.note);
         setReason(draft?.reason);
-    // eslint-disable-next-line react-hooks/exhaustive-deps - only sync with Onyx after finish loading
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps - only sync with Onyx after finish loading
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (option: FeedbackSurveyOptionID) => {
@@ -92,7 +95,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.FEEDBACK_SURVEY_FORM}
+            formID={formID}
             style={[styles.flexGrow1, styles.justifyContentBetween]}
             onSubmit={handleSubmit}
             submitButtonText={translate('common.submit')}
