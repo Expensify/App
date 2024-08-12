@@ -363,7 +363,7 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        outstanding: 'Outstanding',
+        outstanding: 'Pendiente',
     },
     connectionComplete: {
         title: 'Conexión completa',
