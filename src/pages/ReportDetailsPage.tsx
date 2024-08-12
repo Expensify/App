@@ -443,6 +443,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         leaveChat,
