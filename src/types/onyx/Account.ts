@@ -6,6 +6,24 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** Model of delegate */
+type Delegate = {
+    /** The email of the delegate */
+    email: string;
+
+    /** The role of the delegate */
+    role: 'submitter' | 'all';
+};
+
+/** Model of delegated access data */
+type DelegatedAccess = {
+    /** The the users you can access as a delegate */
+    delegates: Delegate[];
+
+    /** The users that can access your account as a delegate */
+    delegators: Delegate[];
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -88,6 +106,9 @@ type Account = {
 
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
+
+    /** The users you can access as delegate and the users who can access your account as a delegate */
+    delegatedAccess: DelegatedAccess;
 };
 
 export default Account;
