@@ -5243,6 +5243,7 @@ const CONST = {
             TRANSACTION: 'transaction',
             REPORT: 'report',
             EXPENSE: 'expense',
+            INVOICE: 'invoice',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5272,9 +5273,11 @@ const CONST = {
                 DRAFTS: 'drafts',
                 FINISHED: 'finished',
             },
-        },
-        TYPE: {
-            EXPENSE: 'expense',
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {

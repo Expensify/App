@@ -80,16 +80,6 @@ function AdvancedSearchFilters() {
     const advancedFilters = useMemo(
         () => [
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, translate),
-                description: 'common.type' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, translate),
-                description: 'search.filters.status' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
-            },
-            {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
                 description: 'common.date' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
