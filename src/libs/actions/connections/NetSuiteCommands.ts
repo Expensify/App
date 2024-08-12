@@ -142,12 +142,6 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
     modifiedFieldID?: string,
     pendingAction?: OnyxCommon.PendingAction,
 ) {
-    let syncOptionsOptimisticValue;
-    if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        syncOptionsOptimisticValue = {
-            [settingName]: settingValue ?? null,
-        };
-    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -157,7 +151,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                     netsuite: {
                         options: {
                             config: {
-                                syncOptions: syncOptionsOptimisticValue,
+                                [settingName]: settingValue ?? null,
                                 pendingFields: {
                                     [modifiedFieldID ?? settingName]: pendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
