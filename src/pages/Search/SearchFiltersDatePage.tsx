@@ -34,6 +34,7 @@ function SearchFiltersDatePage() {
             testID={SearchFiltersDatePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton

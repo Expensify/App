@@ -22,6 +22,7 @@ import type {
     NetSuiteCustomSegment,
     NetSuiteTaxAccount,
     NetSuiteVendor,
+    PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
     Tenant,
@@ -414,7 +415,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * Whether the tax rate can be deleted and disabled
  */
 function canEditTaxRate(policy: Policy, taxID: string): boolean {
-    return policy.taxRates?.defaultExternalID !== taxID;
+    return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
@@ -460,6 +461,32 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
+    }
+    return employee.forwardsTo ?? '';
+}
+
 /**
  * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
  */
@@ -497,9 +524,17 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Poli
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
+/** Whether the user can send invoice from the workspace */
+function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    const policy = getPolicy(policyID);
+    return policy?.areInvoicesEnabled ?? false;
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+    // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
@@ -751,14 +786,26 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
-function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
+function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections], connectionSyncProgress?: PolicyConnectionSyncProgress) {
+    let syncSuccessfulDate;
     if (!connection) {
         return undefined;
     }
     if ((connection as NetSuiteConnection)?.lastSyncDate) {
-        return (connection as NetSuiteConnection)?.lastSyncDate;
+        syncSuccessfulDate = (connection as NetSuiteConnection)?.lastSyncDate;
+    } else {
+        syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
-    return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+
+    if (
+        connectionSyncProgress &&
+        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        syncSuccessfulDate &&
+        connectionSyncProgress.timestamp > syncSuccessfulDate
+    ) {
+        syncSuccessfulDate = connectionSyncProgress.timestamp;
+    }
+    return syncSuccessfulDate;
 }
 
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
@@ -895,7 +942,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
@@ -927,6 +973,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    canSendInvoiceFromWorkspace,
     canSendInvoice,
     hasDependentTags,
     getXeroTenants,
@@ -962,6 +1009,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
@@ -972,6 +1021,9 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getSubmitToEmail,
+    getForwardsToAccount,
+    getSubmitToAccountID,
 };
 
 export type {MemberEmailsToAccountIDs};
