@@ -5270,6 +5270,8 @@ const CONST = {
                 ALL: 'all',
                 SHARED: 'shared',
                 DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
                 FINISHED: 'finished',
             },
             INVOICE: {

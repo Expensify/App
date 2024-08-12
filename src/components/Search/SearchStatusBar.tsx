@@ -35,10 +35,16 @@ const options: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAs
             query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
         },
         {
-            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
-            icon: Expensicons.Send,
-            text: 'common.shared',
-            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+            key: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            icon: Expensicons.Hourglass,
+            text: 'common.outstanding',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+            icon: Expensicons.ThumbsUp,
+            text: 'iou.approved',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.APPROVED),
         },
         {
             key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
@@ -61,10 +67,16 @@ const options: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAs
             query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
         },
         {
-            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
-            icon: Expensicons.Send,
-            text: 'common.shared',
-            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+            key: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            icon: Expensicons.Hourglass,
+            text: 'common.outstanding',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+            icon: Expensicons.ThumbsUp,
+            text: 'iou.approved',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.APPROVED),
         },
         {
             key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
@@ -87,10 +99,16 @@ const options: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAs
             query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
         },
         {
-            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
-            icon: Expensicons.Send,
-            text: 'common.shared',
-            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+            key: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+            icon: Expensicons.Hourglass,
+            text: 'common.outstanding',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+            icon: Expensicons.ThumbsUp,
+            text: 'iou.approved',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.APPROVED),
         },
         {
             key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
@@ -108,8 +126,8 @@ const options: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAs
         },
         {
             key: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING,
-            icon: Expensicons.All,
-            text: 'common.all',
+            icon: Expensicons.Hourglass,
+            text: 'common.outstanding',
             query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.OUTSTANDING),
         },
         {
@@ -134,9 +152,15 @@ const options: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAs
         },
         {
             key: CONST.SEARCH.STATUS.TRIP.OUTSTANDING,
-            icon: Expensicons.Send,
-            text: 'common.shared',
+            icon: Expensicons.Hourglass,
+            text: 'common.outstanding',
             query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.OUTSTANDING),
+        },
+        {
+            key: CONST.SEARCH.STATUS.TRIP.APPROVED,
+            icon: Expensicons.ThumbsUp,
+            text: 'iou.approved',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.APPROVED),
         },
         {
             key: CONST.SEARCH.STATUS.TRIP.PAID,

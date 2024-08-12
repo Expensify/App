@@ -373,6 +373,7 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        outstanding: 'Outstanding',
     },
     location: {
         useCurrent: 'Use current location',
