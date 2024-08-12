@@ -726,8 +726,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [report]);
     const firstReportAction = reportActions[0];
 
-    console.log({firstReportAction});
-
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -803,13 +801,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                                 reportAction={firstReportAction}
                                                 reportActions={reportActions}
                                                 parentReportAction={parentReportAction}
-                                                // parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                                                 index={0}
                                                 report={report}
-                                                // transactionThreadReport={transactionThreadReport}
-                                                // linkedReportActionID={linkedReportActionID}
                                                 displayAsGroup={false}
-                                                // mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                                                 shouldHideThreadDividerLine={true}
                                                 shouldDisplayNewMarker={false}
                                                 shouldDisplayReplyDivider={false}
