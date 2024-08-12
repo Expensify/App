@@ -22,7 +22,7 @@ function WorkspaceCardListHeader() {
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     // TODO: uncomment the code line below to use cardSettings data from Onyx when it's supported
-    // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const cardSettings = mockedSettings;
 
     return (

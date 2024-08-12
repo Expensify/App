@@ -209,11 +209,11 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
 function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
     // TODO: remove this code when the API is ready
     if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
             monthlySettlementDate: null,
         });
     } else {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
             monthlySettlementDate: new Date(),
         });
     }
@@ -222,7 +222,7 @@ function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueO
     // const optimisticData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: '',
     //         },
@@ -232,7 +232,7 @@ function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueO
     // const successData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: '',
     //         },
@@ -242,7 +242,7 @@ function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueO
     // const failureData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: null,
     //         },
@@ -259,7 +259,7 @@ function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueO
 
 function updateSettlementAccount(workspaceAccountID: number, accountID: number) {
     // TODO: remove this code when the API is ready
-    Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
         paymentBankAccountID: accountID,
     });
 
@@ -267,7 +267,7 @@ function updateSettlementAccount(workspaceAccountID: number, accountID: number) 
     // const optimisticData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: accountID,
     //         },
@@ -277,7 +277,7 @@ function updateSettlementAccount(workspaceAccountID: number, accountID: number) 
     // const successData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: accountID,
     //         },
@@ -287,7 +287,7 @@ function updateSettlementAccount(workspaceAccountID: number, accountID: number) 
     // const failureData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: null,
     //         },
