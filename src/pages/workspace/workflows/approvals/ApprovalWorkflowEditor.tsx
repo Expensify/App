@@ -3,10 +3,13 @@ import React, {forwardRef, useCallback} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -15,12 +18,19 @@ import type {ApprovalWorkflowOnyx} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 
 type ApprovalWorkflowEditorProps = {
+    /** The approval workflow to display */
     approvalWorkflow: ApprovalWorkflowOnyx;
+
+    /** Function to remove the approval workflow */
+    removeApprovalWorkflow?: () => void;
+
+    /** The policy ID */
     policyID: string;
 };
 
-function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
+function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
 
     const approverDescription = useCallback(
@@ -73,7 +83,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
             ref={ref}
         >
             <View style={[styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
+                {approvalWorkflow.flow === 'create' && <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>}
 
                 <MenuItemWithTopDescription
                     title={members}
@@ -126,6 +136,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                     errorText={approvalWorkflow?.errors?.additionalApprover ? translate(approvalWorkflow.errors.additionalApprover) : undefined}
                     brickRoadIndicator={approvalWorkflow?.errors?.additionalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
+
+                {removeApprovalWorkflow && (
+                    <MenuItem
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                        icon={Expensicons.Trashcan}
+                        iconFill={theme.icon}
+                        title={translate('common.delete')}
+                        onPress={() => removeApprovalWorkflow()}
+                    />
+                )}
             </View>
         </ScrollView>
     );
