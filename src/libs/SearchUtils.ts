@@ -291,8 +291,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
-        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
