@@ -178,6 +178,12 @@ type ConnectionLastSync = {
     /** Date when the connection's last failed sync occurred */
     errorDate?: string;
 
+    /** Error message when the connection's last sync failed */
+    errorMessage?: string;
+
+    /** If the connection's last sync failed due to authentication error */
+    isAuthenticationError: boolean;
+
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
 
@@ -1202,16 +1208,16 @@ type Connection<ConnectionData, ConnectionConfig> = {
 /** Available integration connections */
 type Connections = {
     /** QuickBooks integration connection */
-    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
-    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.XERO]: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** NetSuite integration connection */
-    netsuite: NetSuiteConnection;
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
