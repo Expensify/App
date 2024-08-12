@@ -378,7 +378,7 @@ function ReportPreview({
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(iouReport);
 
     return (
         <OfflineWithFeedback
@@ -389,7 +389,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT);
+                        Timing.start(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}

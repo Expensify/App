@@ -3655,7 +3655,7 @@ export default {
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor, introduce un título',
-        pleaseEnterTaskDestination: 'Por favor, selecciona con quién deseas compartir.',
+        pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },
     task: {
         task: 'Tarea',

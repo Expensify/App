@@ -6862,6 +6862,13 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedI
     });
 }
 
+function isLastApprover(approvalChain: string[]): boolean {
+    if (approvalChain.length === 0) {
+        return true;
+    }
+    return approvalChain[approvalChain.length - 1] === currentUserEmail;
+}
+
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (expenseReport?.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
@@ -6875,7 +6882,13 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         total = expenseReport?.unheldTotal;
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1');
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
+
+    const approvalChain = ReportUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport?.ownerAccountID ?? -1, expenseReport?.total ?? 0);
+
+    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport?.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
@@ -6895,8 +6908,8 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             ...expenseReport,
             lastMessageText: ReportActionsUtils.getReportActionText(optimisticApprovedReportAction),
             lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticApprovedReportAction),
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: predictedNextState,
+            statusNum: predictedNextStatus,
             pendingFields: {
                 partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
