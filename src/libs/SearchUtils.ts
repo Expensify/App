@@ -1,19 +1,19 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
-import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
-import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -76,7 +76,11 @@ function isSearchDataType(type: string): type is SearchDataTypes {
     return searchDataTypes.includes(type);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
+    if (!search) {
+        return undefined;
+    }
+
     if (!isSearchDataType(search.type)) {
         return undefined;
     }
@@ -220,7 +224,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
+            } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
@@ -229,39 +233,39 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-const searchTypeToItemMap: SearchTypeToItemMap = {
-    [CONST.SEARCH.DATA_TYPES.TRANSACTION]: {
-        listItem: TransactionListItem,
-        getSections: getTransactionsSections,
-        getSortedSections: getSortedTransactionData,
-    },
-    [CONST.SEARCH.DATA_TYPES.REPORT]: {
-        listItem: ReportListItem,
-        getSections: getReportSections,
-        // sorting for ReportItems not yet implemented
-        getSortedSections: getSortedReportData,
-    },
-};
-
-function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeToItemMap[K]['listItem'] {
-    return searchTypeToItemMap[type].listItem;
+function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+        default:
+            return TransactionListItem;
+    }
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(
-    data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
-    type: K,
-): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+        default:
+            return getTransactionsSections(data, metadata);
+    }
 }
 
-function getSortedSections<K extends keyof SearchTypeToItemMap>(
-    type: K,
-    data: SectionsType<K>,
-    sortBy?: SearchColumnType,
-    sortOrder?: SortOrder,
-): ReturnType<SearchTypeToItemMap[K]['getSortedSections']> {
-    return searchTypeToItemMap[type].getSortedSections(data, sortBy, sortOrder) as ReturnType<SearchTypeToItemMap[K]['getSortedSections']>;
+function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
+                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
+                : getSortedReportData(data as ReportListItemType[]);
+        default:
+            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    }
 }
 
 function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
@@ -281,8 +285,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
-        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
@@ -314,8 +318,20 @@ function getSortedReportData(data: ReportListItemType[]) {
 }
 
 function getCurrentSearchParams() {
-    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
+    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+
+    const lastSearchCentralPaneRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+    const lastSearchBottomTabRoute = rootState.routes[0].state?.routes.filter((route) => route.name === SCREENS.SEARCH.BOTTOM_TAB).at(-1);
+
+    if (lastSearchCentralPaneRoute) {
+        return lastSearchCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    }
+
+    if (lastSearchBottomTabRoute) {
+        const {policyID, ...rest} = lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
+        const params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE] = {policyIDs: policyID, ...rest};
+        return params;
+    }
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
@@ -449,6 +465,10 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${cardIDs.join(',')}`;
             }
 
+            if (filterKey === INPUT_IDS.KEYWORD && filterValue) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}:${filterValue as string}`;
+            }
+
             return undefined;
         })
         .filter(Boolean)
@@ -505,7 +525,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
         }

@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -9,6 +8,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,7 +18,6 @@ import variables from '@styles/variables';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -30,7 +29,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const {translate} = useLocalize();
 
     const policyID = route.params.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 

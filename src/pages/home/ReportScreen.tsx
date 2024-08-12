@@ -306,13 +306,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
-        () =>
-            reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
-                : undefined,
-        [reportActions, parentReportAction],
-    );
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline);
+    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+    const combinedReportActions = ReportActionsUtils.getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action));
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const isTopMostReportId = currentReportID === reportIDFromRoute;
@@ -342,11 +339,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
-    );
-
-    const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
-        [report.reportID, reportActions, isOffline],
     );
 
     if (isSingleTransactionView) {
@@ -408,12 +400,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
-        (!isLinkingToMessage && !isInitialPageReady) ||
-        isLoadingReportOnyx ||
-        !isCurrentReportLoadedFromOnyx ||
-        isLoading;
+        (isLinkingToMessage && !isLinkedMessagePageReady) || (!isLinkingToMessage && !isInitialPageReady) || isLoadingReportOnyx || !isCurrentReportLoadedFromOnyx || isLoading;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
@@ -794,7 +781,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
-                                        isReadyForCommentLinking={!shouldShowSkeleton}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}

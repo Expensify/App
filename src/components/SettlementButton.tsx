@@ -113,6 +113,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 function SettlementButton({
@@ -148,6 +151,7 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
 }: SettlementButtonProps) {
@@ -322,6 +326,7 @@ function SettlementButton({
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
                 />
             )}
         </KYCWall>

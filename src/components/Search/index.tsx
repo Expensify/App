@@ -43,23 +43,23 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.ALL];
+const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.EXPENSE.ALL];
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
-    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
         : {
               ...item,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
-              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple)),
+              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -91,6 +91,8 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -188,6 +190,46 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
+    if (shouldShowLoadingState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <SearchRowSkeleton shouldAnimate />
+            </>
+        );
+    }
+
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (searchResults === undefined || type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(type, status);
+    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
+
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <EmptySearchView />
+            </>
+        );
+    }
+
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
         if (SearchUtils.isTransactionListItemType(item)) {
             if (!item.keyForList) {
@@ -215,34 +257,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         });
     };
 
-    if (shouldShowLoadingState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
-    }
-
-    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
-
-    if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <EmptySearchView />
-            </>
-        );
-    }
-
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
         let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
 
@@ -265,19 +279,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
-
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (type === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return null;
-    }
-
-    const ListItem = SearchUtils.getListItem(type);
-
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
-    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
@@ -305,8 +306,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
     const shouldShowSorting = sortableSearchStatuses.includes(status);
-
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     return (
         <>
