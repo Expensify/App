@@ -2112,11 +2112,9 @@ function buildOptimisticPolicyRecentlyUsedCurrencies(policyID?: string, currency
     if (!policyID && !personalPolicyID) {
         return [];
     }
-   
     const policyRecentlyUsedCurrencies = policyID
         ? allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`]
         : allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${personalPolicyID}`];
-        console.log("111111111", {policyID, personalPolicyID, name: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${personalPolicyID}`})
     return lodashUnion([currency], policyRecentlyUsedCurrencies);
 }
 
