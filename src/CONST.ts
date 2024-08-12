@@ -5238,8 +5238,6 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
-            TRANSACTION: 'transaction',
-            REPORT: 'report',
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',

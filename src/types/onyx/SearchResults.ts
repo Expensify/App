@@ -14,13 +14,6 @@ type ListItemType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS
 /** Model of search list item data type */
 type ListItemDataType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItemType[] : ReportListItemType[];
 
-/** Model of search result section */
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
-    ? TransactionListItemType[]
-    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-    ? ReportListItemType[]
-    : never;
-
 /** Model of columns to show for search results */
 type ColumnsToShow = {
     /** Whether the category column should be shown */
@@ -253,5 +246,4 @@ export type {
     SearchAccountDetails,
     SearchDataTypes,
     SearchReport,
-    SectionsType,
 };

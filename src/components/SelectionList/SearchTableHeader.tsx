@@ -88,8 +88,6 @@ const expenseHeaders: SearchColumnConfig[] = [
 
 function getSearchColumns(type: SearchDataTypes): SearchColumnConfig[] {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
         case CONST.SEARCH.DATA_TYPES.TRIP:

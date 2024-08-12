@@ -284,7 +284,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     };
 
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
+        const areItemsOfReportType = searchResults?.search.status === CONST.SEARCH.DATA_TYPES.REPORT;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 

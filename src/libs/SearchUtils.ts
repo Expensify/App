@@ -235,9 +235,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
 function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
@@ -248,9 +246,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
 
 function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
@@ -261,9 +257,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
 
 function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return status === CONST.SEARCH.STATUS.EXPENSE.ALL
