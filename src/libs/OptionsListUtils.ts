@@ -2472,21 +2472,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.alternateText) {
                     values.push(item.alternateText);
                 }
-                values = values.concat(getParticipantsLoginsArray(item));
             } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-
-                if (includeChatRoomsByParticipants) {
-                    values = values.concat(getParticipantsLoginsArray(item));
-                }
-            }
-
-            if (!item.isChatRoom) {
-                const participantNames = getParticipantNames(item.participantsList ?? []);
-                values = values.concat(Array.from(participantNames));
-                values = values.concat(getParticipantsLoginsArray(item));
             }
 
             return uniqFast(values);
