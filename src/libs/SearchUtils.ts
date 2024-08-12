@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -10,7 +10,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
@@ -233,39 +233,39 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-const searchTypeToItemMap: SearchTypeToItemMap = {
-    [CONST.SEARCH.DATA_TYPES.TRANSACTION]: {
-        listItem: TransactionListItem,
-        getSections: getTransactionsSections,
-        getSortedSections: getSortedTransactionData,
-    },
-    [CONST.SEARCH.DATA_TYPES.REPORT]: {
-        listItem: ReportListItem,
-        getSections: getReportSections,
-        // sorting for ReportItems not yet implemented
-        getSortedSections: getSortedReportData,
-    },
-};
-
-function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeToItemMap[K]['listItem'] {
-    return searchTypeToItemMap[type].listItem;
+function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+        default:
+            return TransactionListItem;
+    }
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(
-    data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
-    type: K,
-): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+        default:
+            return getTransactionsSections(data, metadata);
+    }
 }
 
-function getSortedSections<K extends keyof SearchTypeToItemMap>(
-    type: K,
-    data: SectionsType<K>,
-    sortBy?: SearchColumnType,
-    sortOrder?: SortOrder,
-): ReturnType<SearchTypeToItemMap[K]['getSortedSections']> {
-    return searchTypeToItemMap[type].getSortedSections(data, sortBy, sortOrder) as ReturnType<SearchTypeToItemMap[K]['getSortedSections']>;
+function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
+                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
+                : getSortedReportData(data as ReportListItemType[]);
+        default:
+            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    }
 }
 
 function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
