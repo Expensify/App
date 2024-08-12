@@ -292,7 +292,7 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+    return tag?.replace(/\\:/g, CONST.COLON);
 }
 
 /**
@@ -459,6 +459,32 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     }
 
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
+    }
+    return employee.forwardsTo ?? '';
 }
 
 /**
@@ -925,7 +951,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
@@ -993,6 +1018,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
@@ -1003,6 +1030,9 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getSubmitToEmail,
+    getForwardsToAccount,
+    getSubmitToAccountID,
     getWorkspaceAccountID,
 };
 
