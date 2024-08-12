@@ -312,40 +312,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isTopMostReportId = currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
 
-    /**
-     * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
-     */
-    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
-        // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
-        const isTransitioning = report && report.reportID !== reportIDFromRoute;
-        return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
-    }, [report, reportIDFromRoute]);
-
-    const isInitialPageReady = isOffline
-        ? reportActions.length > 0
-        : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
-
-    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
-    const isLinkedActionInaccessibleWhisper = useMemo(
-        () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
-        [currentUserAccountID, linkedAction],
-    );
-
-    /**
-     * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
-     * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
-     * Ideally, `isLoading` should be set initially to true and then set to false. We can achieve this by using logical OR operator.
-     */
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
-    const shouldShowSkeleton =
-        (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
-        (!isLinkingToMessage && !isInitialPageReady) ||
-        isLoadingReportOnyx ||
-        !isCurrentReportLoadedFromOnyx ||
-        isLoading;
-
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
             wasReportAccessibleRef.current = false;
@@ -369,7 +335,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
-            shouldShowSkeleton={shouldShowSkeleton}
         />
     );
 
@@ -409,6 +374,40 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             />
         );
     }
+
+    /**
+     * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
+     */
+    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
+        // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
+        const isTransitioning = report && report.reportID !== reportIDFromRoute;
+        return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
+    }, [report, reportIDFromRoute]);
+
+    const isInitialPageReady = isOffline
+        ? reportActions.length > 0
+        : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
+
+    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const isLinkedActionInaccessibleWhisper = useMemo(
+        () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
+        [currentUserAccountID, linkedAction],
+    );
+
+    /**
+     * Using logical OR operator because with nullish coalescing operator, when `isLoadingApp` is false, the right hand side of the operator
+     * is not evaluated. This causes issues where we have `isLoading` set to false and later set to true and then set to false again.
+     * Ideally, `isLoading` should be set initially to true and then set to false. We can achieve this by using logical OR operator.
+     */
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const shouldShowSkeleton =
+        (isLinkingToMessage && !isLinkedMessagePageReady) ||
+        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
+        (!isLinkingToMessage && !isInitialPageReady) ||
+        isLoadingReportOnyx ||
+        !isCurrentReportLoadedFromOnyx ||
+        isLoading;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
