@@ -54,6 +54,7 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import ReportActionsListItemRenderer from './report/ReportActionsListItemRenderer';
 
 type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
@@ -723,6 +724,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
+    const firstReportAction = reportActions[0];
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -791,7 +793,28 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+                                {shouldShowSkeleton && (
+                                    <>
+                                        <ReportActionsSkeletonView />
+                                        <ReportActionsListItemRenderer
+                                            reportAction={firstReportAction}
+                                            reportActions={reportActions}
+                                            parentReportAction={parentReportAction}
+                                            // parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                                            index={0}
+                                            report={report}
+                                            // transactionThreadReport={transactionThreadReport}
+                                            // linkedReportActionID={linkedReportActionID}
+                                            displayAsGroup={false}
+                                            // mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                                            shouldHideThreadDividerLine={true}
+                                            shouldDisplayNewMarker={false}
+                                            shouldDisplayReplyDivider={false}
+                                            isFirstVisibleReportAction={true}
+                                            shouldUseThreadDividerLine={false}
+                                        />
+                                    </>
+                                )}
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
