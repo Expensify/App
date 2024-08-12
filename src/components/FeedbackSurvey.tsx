@@ -1,15 +1,21 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FixedFooter from './FixedFooter';
+import FormProvider from './Form/FormProvider';
+import InputWrapper from './Form/InputWrapper';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
-import SingleOptionSelector from './SingleOptionSelector';
+import RadioButtons from './RadioButtons';
+import type {Choice} from './RadioButtons';
 import Text from './Text';
 import TextInput from './TextInput';
 
@@ -36,40 +42,44 @@ type FeedbackSurveyProps = {
     isLoading?: boolean;
 };
 
-type Option = {
-    key: FeedbackSurveyOptionID;
-    label: TranslationPaths;
-};
-
-const OPTIONS: Option[] = [
-    {key: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY},
-    {key: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY},
-    {key: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY},
-    {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
+const OPTIONS: Choice[] = [
+    {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY)},
+    {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY)},
+    {value: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY)},
+    {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
 ];
 
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const [draft, draftResults] = useOnyx(ONYXKEYS.FORMS.FEEDBACK_SURVEY_FORM_DRAFT);
+    const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
-    const selectCircleStyles: StyleProp<ViewStyle> = {borderColor: theme.border};
-    const [reason, setReason] = useState<Option>();
-    const [note, setNote] = useState('');
+    const [reason, setReason] = useState<FeedbackSurveyOptionID | undefined>(draft?.reason);
+    const [note, setNote] = useState(draft?.note);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
-    const handleOptionSelect = (option: Option) => {
+    useEffect(() => {
+        if (isLoadingDraft) {
+            return;
+        }
+        setNote(draft?.note);
+        setReason(draft?.reason);
+    // eslint-disable-next-line react-hooks/exhaustive-deps - only sync with Onyx after finish loading
+    }, [isLoadingDraft]);
+
+    const handleOptionSelect = (option: FeedbackSurveyOptionID) => {
         setShouldShowReasonError(false);
         setReason(option);
     };
 
     const handleSubmit = () => {
-        if (!reason || (isNoteRequired && !note.trim())) {
+        if (!reason || (isNoteRequired && !note?.trim())) {
             setShouldShowReasonError(true);
             return;
         }
 
-        onSubmit(reason.key, note.trim());
+        onSubmit(reason, note?.trim());
     };
 
     const handleSetNote = (text: string) => {
@@ -81,25 +91,37 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
     };
 
     return (
-        <View style={[styles.flexGrow1, styles.justifyContentBetween]}>
+        <FormProvider
+            formID={ONYXKEYS.FORMS.FEEDBACK_SURVEY_FORM}
+            style={[styles.flexGrow1, styles.justifyContentBetween]}
+            onSubmit={handleSubmit}
+            submitButtonText={translate('common.submit')}
+            isSubmitButtonVisible={false}
+            enabledWhenOffline
+        >
             <View style={styles.mh5}>
                 <Text style={styles.textHeadline}>{title}</Text>
                 <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
-                <SingleOptionSelector
-                    options={OPTIONS}
-                    optionRowStyles={[styles.mb7, optionRowStyles]}
-                    selectCircleStyles={selectCircleStyles}
-                    selectedOptionKey={reason?.key}
-                    onSelectOption={handleOptionSelect}
+                <InputWrapper
+                    InputComponent={RadioButtons}
+                    inputID={INPUT_IDS.REASON}
+                    items={OPTIONS}
+                    radioButtonStyle={[styles.mb7, optionRowStyles]}
+                    value={reason as string}
+                    onPress={handleOptionSelect as (value: string) => void}
+                    shouldSaveDraft
                 />
                 {!!reason && (
                     <>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.NOTE}
                             label={translate('feedbackSurvey.additionalInfoInputLabel')}
                             accessibilityLabel={translate('feedbackSurvey.additionalInfoInputLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             onChangeText={handleSetNote}
+                            shouldSaveDraft
                             value={note}
                         />
                     </>
@@ -117,7 +139,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     isLoading={isLoading}
                 />
             </FixedFooter>
-        </View>
+        </FormProvider>
     );
 }
 

@@ -5,6 +5,7 @@ export type {DisplayNameForm} from './DisplayNameForm';
 export type {EditTaskForm} from './EditTaskForm';
 export type {ExitSurveyReasonForm} from './ExitSurveyReasonForm';
 export type {ExitSurveyResponseForm} from './ExitSurveyResponseForm';
+export type {FeedbackSurveyForm} from './FeedbackSurveyForm';
 export type {GetPhysicalCardForm} from './GetPhysicalCardForm';
 export type {HomeAddressForm} from './HomeAddressForm';
 export type {IKnowTeacherForm} from './IKnowTeacherForm';
