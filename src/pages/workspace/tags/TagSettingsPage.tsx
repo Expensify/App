@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +40,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const policy = usePolicy(route.params.policyID);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 

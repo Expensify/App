@@ -166,6 +166,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 title={title}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                                 shouldShowRightIcon
+                                rightLabel={translate('common.required')}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
@@ -194,6 +195,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
                                 titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
+                                rightLabel={translate('common.required')}
                             />
                         </View>
                     </View>

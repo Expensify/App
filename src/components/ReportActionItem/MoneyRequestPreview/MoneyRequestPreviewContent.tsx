@@ -19,7 +19,6 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -84,7 +83,6 @@ function MoneyRequestPreviewContent({
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const {canUseViolations} = usePermissions();
 
     const participantAccountIDs =
         ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? ReportActionsUtils.getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
@@ -112,11 +110,7 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations);
-    const hasNoticeTypeViolations = !!(
-        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) &&
-        ReportUtils.isPaidGroupPolicy(iouReport) &&
-        canUseViolations
-    );
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -127,13 +121,7 @@ function MoneyRequestPreviewContent({
 
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
-    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
-    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
-    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const duplicates = useMemo(
         () =>
@@ -142,6 +130,16 @@ function MoneyRequestPreviewContent({
             )?.data?.duplicates ?? [],
         [transaction?.transactionID, transactionViolations],
     );
+
+    const hasDuplicates = duplicates.length > 0;
+
+    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
+    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
+    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -279,8 +277,7 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        const allTransactionIDsDuplicates = [reviewingTransactionID, ...duplicates].filter((id) => id !== transaction?.transactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates: allTransactionIDsDuplicates, transactionID: transaction?.transactionID ?? ''});
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
         } else if ('category' in comparisonResult.change) {

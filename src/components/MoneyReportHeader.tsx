@@ -118,7 +118,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin;
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
 
@@ -135,7 +135,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined) => {
+    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type || !chatReport) {
             return;
         }
@@ -144,7 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport);
+            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
         } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
