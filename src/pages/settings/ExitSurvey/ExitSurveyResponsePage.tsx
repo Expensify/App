@@ -116,7 +116,6 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                 }}
                 shouldValidateOnBlur
                 shouldValidateOnChange
-                disablePressOnEnter
             >
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (

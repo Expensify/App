@@ -95,7 +95,6 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                 submitButtonText={translate('closeAccountPage.closeAccount')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
-                disablePressOnEnter
             >
                 <View style={[styles.flexGrow1]}>
                     <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>

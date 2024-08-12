@@ -3,6 +3,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -82,6 +84,9 @@ function FormAlertWithSubmitButton({
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
+    const platform = getPlatform();
+    const pressOnEnter = platform === CONST.PLATFORM.ANDROID ? false : !disablePressOnEnter;
+
     return (
         <FormAlertWrapper
             containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
@@ -106,7 +111,7 @@ function FormAlertWithSubmitButton({
                     ) : (
                         <Button
                             success
-                            pressOnEnter={!disablePressOnEnter}
+                            pressOnEnter={pressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}

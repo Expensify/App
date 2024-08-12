@@ -93,7 +93,6 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                     onSubmit={submit}
                     validate={validate}
                     enabledWhenOffline
-                    disablePressOnEnter
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

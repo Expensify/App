@@ -126,7 +126,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report, session}: Pri
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
-                disablePressOnEnter
             >
                 <Text style={[styles.mb5]}>
                     {translate(
