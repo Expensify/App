@@ -2674,6 +2674,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     }
 }
 
+function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+    return lastAccessedReportID ?? conciergeChatReportID;
+}
+
 function joinRoom(report: OnyxEntry<Report>) {
     if (!report) {
         return;
@@ -3232,6 +3237,9 @@ function completeOnboarding(
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
 
+    // If the target report isn't opened, the permission field will not exist. So we should add the fallback permission for task report
+    const fallbackPermission = isAccountIDOdd ? [CONST.REPORT.PERMISSIONS.READ] : [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE];
+
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3347,6 +3355,7 @@ function completeOnboarding(
                     },
                     isOptimisticReport: true,
                     managerID: currentUserAccountID,
+                    permissions: targetChatReport?.permissions ?? fallbackPermission,
                 },
             },
             {
@@ -4027,6 +4036,7 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     shouldShowReportActionNotification,
+    getMostRecentReportID,
     joinRoom,
     leaveRoom,
     inviteToRoom,

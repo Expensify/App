@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -22,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -80,6 +82,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
@@ -116,21 +119,28 @@ function ReportActionItemSingle({
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+        if (ReportUtils.isInvoiceRoom(report) && !ReportUtils.isIndividualInvoiceRoom(report)) {
+            const secondaryPolicyAvatar = invoiceReceiverPolicy?.avatarURL ?? ReportUtils.getDefaultWorkspaceAvatar(invoiceReceiverPolicy?.name);
 
-        if (!isInvoiceReport) {
-            displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+            secondaryAvatar = {
+                source: secondaryPolicyAvatar,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: invoiceReceiverPolicy?.name,
+                id: invoiceReceiverPolicy?.id,
+            };
+        } else {
+            // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
+            const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
+            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+
+            secondaryAvatar = {
+                source: secondaryUserAvatar,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: secondaryDisplayName ?? '',
+                id: secondaryAccountId,
+            };
         }
-
-        secondaryAvatar = {
-            source: secondaryUserAvatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: secondaryDisplayName ?? '',
-            id: secondaryAccountId,
-        };
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;

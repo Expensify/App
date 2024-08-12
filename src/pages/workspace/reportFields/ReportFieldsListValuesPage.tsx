@@ -92,7 +92,7 @@ function ReportFieldsListValuesPage({
                 index,
                 text: value,
                 keyForList: value,
-                isSelected: selectedValues[value],
+                isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues[index] ?? true,
                 rightElement: (
                     <ListItemRightCaretWithLabel
@@ -103,7 +103,7 @@ function ReportFieldsListValuesPage({
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, selectedValues, translate]);
+    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -326,7 +326,6 @@ function ReportFieldsListValuesPage({
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
-                        shouldDebounceRowSelect={false}
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
