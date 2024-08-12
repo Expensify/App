@@ -73,18 +73,21 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const submit = () => {
         let shouldShowConfirmModal = false;
-        if (card.unapprovedSpend !== undefined && card.nameValuePairs?.limit) {
+        if (!!card.unapprovedSpend && card.nameValuePairs?.limit) {
             // Spends are coming as negative numbers from the backend and we need to make it positive for the correct expression.
             const unapprovedSpend = Math.abs(card.unapprovedSpend);
             const isUnapprovedSpendOverLimit = unapprovedSpend >= card.nameValuePairs.limit;
-            if (
-                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) ||
-                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY) ||
-                (initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)
-            ) {
-                if (isUnapprovedSpendOverLimit) {
-                    shouldShowConfirmModal = true;
-                }
+
+            const validCombinations = [
+                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+                [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+            ];
+            // Check if the combination exists in validCombinations
+            const isValidCombination = validCombinations.some(([limitType, selectedType]) => initialLimitType === limitType && typeSelected === selectedType);
+
+            if (isValidCombination && isUnapprovedSpendOverLimit) {
+                shouldShowConfirmModal = true;
             }
         }
 
