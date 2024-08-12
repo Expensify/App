@@ -179,7 +179,7 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.mh5, styles.mb5]}>
+        <View style={[styles.flexRow, styles.mh5, styles.mb5, styles.overflowScroll]}>
             {options[type].map((item) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
                 const isActive = status === item.key;
