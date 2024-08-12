@@ -1,7 +1,8 @@
+import lodashIsEqual from 'lodash/isEqual';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -35,29 +36,30 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
-function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
+function ReportActionItemCreated({report, personalDetails, policy, reportID}: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
-    if (!ReportUtils.isChatReport(props.report)) {
+    if (!ReportUtils.isChatReport(report)) {
         return null;
     }
 
-    let icons = ReportUtils.getIcons(props.report, props.personalDetails);
-    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+    let icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
-    if (ReportUtils.isInvoiceRoom(props.report) && ReportUtils.isCurrentUserInvoiceReceiver(props.report)) {
+    if (ReportUtils.isInvoiceRoom(report) && ReportUtils.isCurrentUserInvoiceReceiver(report)) {
         icons = [...icons].reverse();
     }
 
     return (
         <OfflineWithFeedback
-            pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat}
-            errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat}
+            pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
+            errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID, undefined, true)}
+            onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID ?? reportID, undefined, true)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
@@ -65,9 +67,9 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
-                    <OfflineWithFeedback pendingAction={props.report?.pendingFields?.avatar}>
+                    <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            onPress={() => ReportUtils.navigateToDetailsPage(report)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
@@ -84,8 +86,8 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                     </OfflineWithFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText
-                            report={props.report}
-                            policy={props.policy}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 </View>
@@ -122,6 +124,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.policy?.description === nextProps.policy?.description &&
             prevProps.report?.reportName === nextProps.report?.reportName &&
             prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
+            lodashIsEqual(prevProps.report?.invoiceReceiver, nextProps.report?.invoiceReceiver) &&
             prevProps.report?.errorFields === nextProps.report?.errorFields,
     ),
 );
