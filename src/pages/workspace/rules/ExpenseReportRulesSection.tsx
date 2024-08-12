@@ -4,7 +4,9 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import ROUTES from '@src/ROUTES';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -27,7 +29,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     titleStyle={styles.textLabelSupportingEmptyValue}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
                 />,
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}

@@ -435,6 +435,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
         RULES: 'Policy_Rules',
+        RULES_CUSTOM_NAME: 'Rules_Custom_Name',
     },
 
     EDIT_REQUEST: {
