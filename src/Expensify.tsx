@@ -36,12 +36,17 @@ import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
+import type worker from './libs/worker/exampleWorker';
+import {createWorkerFactory, useWorkerMemo} from './libs/worker/index.web';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
+
+console.log('URL', new URL('./libs/worker/exampleWorker.ts', import.meta.url));
+const workerFactory = createWorkerFactory<typeof worker>(() => new Worker(new URL('./libs/worker/exampleWorker.ts', import.meta.url)));
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -245,6 +250,12 @@ function Expensify({
         }
         setCrashlyticsUserId(session?.accountID ?? -1);
     }, [isAuthenticated, session?.accountID]);
+
+    const test = useWorkerMemo(
+        workerFactory,
+        useMemo((): [string] => ['WhatsUp'], []),
+    );
+    console.log('test', test);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
