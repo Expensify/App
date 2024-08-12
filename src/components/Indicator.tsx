@@ -55,6 +55,7 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
         () => Object.values(cleanPolicies).some(PolicyUtils.hasPolicyError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasEmployeeListError),
+        () => Object.values(cleanPolicies).some(PolicyUtils.hasSyncError),
         () => SubscriptionUtils.hasSubscriptionRedDotError(),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         () => !!loginList && UserUtils.hasLoginListError(loginList),

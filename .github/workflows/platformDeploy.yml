@@ -88,7 +88,7 @@ jobs:
       - name: Archive Android sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: android-sourcemap-${{ github.ref_name }}
+          name: android-sourcemap-${{ github.event.release.tag_name }}
           path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android build to GitHub artifacts
@@ -179,7 +179,7 @@ jobs:
       - name: Archive desktop sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-sourcemap-${{ github.ref_name }}
+          name: desktop-sourcemap-${{ github.event.release.tag_name }}
           path: desktop/dist/www/merged-source-map.js.map
 
   iOS:
@@ -260,7 +260,7 @@ jobs:
       - name: Archive iOS sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: ios-sourcemap-${{ github.ref_name }}
+          name: ios-sourcemap-${{ github.event.release.tag_name }}
           path: main.jsbundle.map
 
       - name: Upload iOS build to GitHub artifacts
@@ -353,7 +353,7 @@ jobs:
       - name: Archive web sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: web-sourcemap-${{ github.ref_name }}
+          name: web-sourcemap-${{ github.event.release.tag_name }}
           path: dist/merged-source-map.js.map
 
       - name: Purge Cloudflare cache
@@ -365,7 +365,7 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ github.ref_name }}' != "$DOWNLOADED_VERSION" ]]; then
+          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
             echo "Error: deployed version does not match local version. Something went wrong..."
             exit 1
           fi

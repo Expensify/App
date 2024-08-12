@@ -40,8 +40,6 @@ const ROUTES = {
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
@@ -708,12 +706,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+        getRoute: (policyID: string, connection?: ConnectionName) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) =>
-            `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
+        getRoute: (policyID: string, connection?: ConnectionName) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',

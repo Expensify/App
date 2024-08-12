@@ -2,8 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
-    TYPE: 'type',
-    STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     CURRENCY: 'currency',
@@ -24,10 +22,8 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
-        [INPUT_IDS.TYPE]: string;
         [INPUT_IDS.DATE_AFTER]: string;
         [INPUT_IDS.DATE_BEFORE]: string;
-        [INPUT_IDS.STATUS]: string;
         [INPUT_IDS.CURRENCY]: string[];
         [INPUT_IDS.CATEGORY]: string[];
         [INPUT_IDS.POLICY_ID]: string;
