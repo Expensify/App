@@ -174,8 +174,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                                 if (isHEIC && targetAssetUri) {
                                     manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
                                         .then((manipResult) => {
+                                            const uri = manipResult.uri;
                                             const convertedAsset = {
-                                                uri: manipResult.uri,
+                                                uri,
+                                                name: uri.substring(uri.lastIndexOf('/') + 1).split('?')[0],
                                                 type: 'image/jpeg',
                                                 width: manipResult.width,
                                                 height: manipResult.height,
