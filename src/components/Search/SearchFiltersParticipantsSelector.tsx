@@ -130,24 +130,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0) {
+        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
             return;
         }
 
-        const [, recents = {data: []}, contacts = {data: []}] = sections;
-        const allOptions = [...recents.data, ...contacts.data];
-        const preSelectedOptions: OptionData[] = allOptions
-            .filter((option) => {
-                if (!option.accountID) {
-                    return false;
+        const preSelectedOptions = initialAccountIDs
+            .map((accountID) => {
+                const participant = personalDetails[accountID];
+                if (!participant) {
+                    return;
                 }
-                return initialAccountIDs.includes(option.accountID.toString());
+
+                return getSelectedOptionData(participant);
             })
-            .map(getSelectedOptionData);
+            .filter((option): option is NonNullable<OptionData> => {
+                return !!option;
+            });
 
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs]);
+    }, [initialAccountIDs, personalDetails]);
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
