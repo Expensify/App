@@ -91,6 +91,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton?: boolean;
 
+    /** Whether the add Bank account button be shown on the list */
+    shouldShowAddBankAccountButton?: boolean;
+
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
@@ -183,6 +186,7 @@ function PaymentMethodList({
     onPress,
     shouldShowSelectedState = false,
     shouldShowAddPaymentMethodButton = true,
+    shouldShowAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
     shouldShowEmptyListMessage = true,
     shouldShowAssignedCards = false,
@@ -313,19 +317,30 @@ function PaymentMethodList({
     const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
 
     const renderListFooterComponent = useCallback(
-        () => (
-            <MenuItem
-                onPress={onPress}
-                title={translate('walletPage.addBankAccount')}
-                icon={Expensicons.Plus}
-                wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                hoverAndPressStyle={styles.hoveredComponentBG}
-                ref={buttonRef}
-                disabled={!isUserValidated}
-            />
-        ),
+        () =>
+            shouldShowAddBankAccountButton ? (
+                <Button
+                    ref={buttonRef}
+                    key="addBankAccountButton"
+                    text={translate('walletPage.addBankAccount')}
+                    large
+                    success
+                    isDisabled={isLoadingPaymentMethods}
+                    onPress={onPress}
+                />
+            ) : (
+                <MenuItem
+                    onPress={onPress}
+                    title={translate('walletPage.addBankAccount')}
+                    icon={Expensicons.Plus}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
+                    ref={buttonRef}
+                    disabled={!isUserValidated}
+                />
+            ),
 
-        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef, isUserValidated],
+        [shouldShowAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, isUserValidated],
     );
 
     /**

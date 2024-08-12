@@ -239,6 +239,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             titleStyles={styles.accountSettingsSectionTitle}
         >
             <PaymentMethodList
+                shouldShowAddBankAccountButton={!hasBankAccount}
                 shouldShowAddPaymentMethodButton={false}
                 shouldShowEmptyListMessage={false}
                 onPress={paymentMethodPressed}
@@ -246,7 +247,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                 buttonRef={addPaymentMethodAnchorRef}
                 shouldEnableScroll={false}
-                style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                style={[styles.mt5, hasBankAccount && [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
             />
             <Popover
