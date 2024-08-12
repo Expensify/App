@@ -3544,16 +3544,18 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
-    let reportNameFromCache;
 
-    if (cacheKey) {
-        reportNameFromCache = reportNameCache.get(cacheKey);
+    if (reportID) {
+        const reportNameFromCache = reportNameCache.get(cacheKey);
+
+        if (reportNameFromCache && reportNameFromCache.reportName === report?.reportName) {
+            return reportNameFromCache.reportName;
+        }
     }
 
-    if (cacheKey && reportNameFromCache) {
-        return reportNameFromCache.reportName;
-    }
+
 
     let formattedName: string | undefined;
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
@@ -3646,7 +3648,7 @@ function getReportName(
     }
 
     if (formattedName) {
-        if (cacheKey) {
+        if (reportID) {
             reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
         }
 
@@ -3665,7 +3667,7 @@ function getReportName(
     const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
     formattedName = participantNames;
 
-    if (cacheKey) {
+    if (reportID) {
         reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
     }
 
