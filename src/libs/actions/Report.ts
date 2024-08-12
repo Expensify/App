@@ -64,7 +64,6 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -440,10 +439,9 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
 /** Clears the highlight of a report action if it’s from the current user */
 function clearHighlightIfCurrentUserAction(accountID?: number) {
     const isCurrentUserAction = accountID === currentUserAccountID;
-    const state = navigationRef.getRootState();
-    const topReportActionID = getTopmostReportActionID(state);
+    const reportActionID = Navigation.getTopmostReportActionId();
 
-    if (!isCurrentUserAction || !topReportActionID) {
+    if (!isCurrentUserAction || !reportActionID) {
         return;
     }
 
