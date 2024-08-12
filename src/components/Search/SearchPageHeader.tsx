@@ -101,8 +101,6 @@ type SearchPageHeaderProps = {
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
 const headerContent: {[key in SearchDataTypes]: {icon: IconAsset; titleText: TranslationPaths}} = {
-    transaction: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
-    report: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
     expense: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
     invoice: {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'},
     trip: {icon: Illustrations.Luggage, titleText: 'travel.trips'},
