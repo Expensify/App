@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import * as Expensicons from '@components/Icon/Expensicons';
-import useSingleExecution from '@hooks/useSingleExecution';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from '@hooks/useLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
@@ -110,25 +110,26 @@ const statusMenuOptions: {[key in SearchDataTypes]: Array<{key: SearchStatus; ic
 function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.mh5, styles.flexBasisAuto]}>
+        <View style={[styles.flexRow, styles.mh5, styles.mb5]}>
             {statusMenuOptions[type].map((item) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
                 const isActive = status === item.key;
 
                 return (
-                    <TabSelectorItem
+                    <Button
                         key={item.key}
-                        title={translate(item.text)}
+                        text={translate(item.text)}
                         onPress={onPress}
                         icon={item.icon}
-                        isActive={isActive}
-                        activeOpacity={isActive ? 1 : 0}
-                        inactiveOpacity={isActive ? 0 : 1}
-                        backgroundColor={isActive ? theme.border : theme.appBG}
+                        iconFill={isActive ? theme.success : undefined}
+                        innerStyles={!isActive && styles.bgTransparent}
+                        textStyles={!isActive ? StyleUtils.getTextColorStyle(theme.textSupporting) : undefined}
+                        medium
                     />
                 );
             })}
