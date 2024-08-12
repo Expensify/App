@@ -1,4 +1,6 @@
 import lodashMapKeys from 'lodash/mapKeys';
+import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -9,7 +11,7 @@ const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     approvers: [],
     availableMembers: [],
     isDefault: false,
-    flow: 'create',
+    flow: CONST.APPROVAL_WORKFLOW.FLOW.CREATE,
     isLoading: false,
 };
 
@@ -158,7 +160,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Mode to use when converting the approval workflow
      */
-    mode: 'create' | 'update' | 'remove';
+    mode: ValueOf<typeof CONST.APPROVAL_WORKFLOW.MODE>;
 };
 
 /** Convert an approval workflow to a list of policy employees */
@@ -178,14 +180,14 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
-            forwardsTo: mode === 'remove' ? '' : nextApprover?.email ?? '',
+            forwardsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
-            submitsTo: mode === 'remove' ? '' : firstApprover.email ?? '',
+            submitsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : firstApprover.email ?? '',
         };
     });
 

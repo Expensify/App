@@ -53,7 +53,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const previousEmployeeList = {...policy.employeeList};
     const previousApprovalMode = policy.approvalMode;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'create'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.CREATE});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -109,7 +109,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'update'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.UPDATE});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -159,7 +159,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: 'remove'});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)

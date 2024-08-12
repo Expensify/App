@@ -82,7 +82,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
     const approverIndex = Number(route.params.approverIndex) ?? 0;
-    const isInitialCreationFlow = approvalWorkflow?.flow === 'create' && !route.params.backTo;
+    const isInitialCreationFlow = approvalWorkflow?.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
 
     useEffect(() => {
@@ -183,7 +183,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
             Workflow.clearApprovalWorkflowApprover(approverIndex);
         }
 
-        if (approvalWorkflow?.flow === 'create') {
+        if (approvalWorkflow?.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE) {
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID), CONST.NAVIGATION.TYPE.UP);
         } else {
