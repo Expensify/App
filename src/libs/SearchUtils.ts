@@ -422,7 +422,7 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
 }
 
 function sanitizeString(str: string) {
-    if (str.includes(' ')) {
+    if (str.includes(' ') || str.includes(',')) {
         return `"${str}"`;
     }
     return str;
