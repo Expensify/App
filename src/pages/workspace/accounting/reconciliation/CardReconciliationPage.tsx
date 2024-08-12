@@ -15,6 +15,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,9 +27,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [reconciliationConnectionSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.workspaceAccountID}`);
-    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policy?.workspaceAccountID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+
+    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
@@ -40,10 +42,8 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const toggleContinuousReconciliation = () => {
-        if (!isContinuousReconciliationOn) {
-            Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
-        }
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407834
+        Card.toggleContinuousReconciliation(workspaceAccountID, true, {connectionName: connection});
+        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
     };
 
     const navigateToAdvancedSettings = useCallback(() => {
@@ -101,7 +101,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]}
                         </Text>
                     )}
-                    {!!reconciliationConnectionSettings?.bankAccountID && (
+                    {!!paymentBankAccountID && isContinuousReconciliationOn && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}

@@ -1577,9 +1577,6 @@ type PolicyConnectionSyncProgress = {
 type ReconciliationConnectionSettings = {
     /** Name of the connection */
     connectionName: ConnectionName;
-
-    /** Reconciliation account ID */
-    bankAccountID: number;
 };
 
 export default Policy;
