@@ -203,7 +203,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         );
     }
 
-    const type = "trip";
+    const type = SearchUtils.getSearchType(searchResults?.search);
 
     if (searchResults === undefined || type === undefined) {
         Log.alert('[Search] Undefined search type');
@@ -217,7 +217,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
-    if (true) {
+    if (shouldShowEmptyState) {
         return (
             <>
                 <SearchPageHeader
