@@ -74,7 +74,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             }
 
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID);
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
@@ -106,7 +106,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
