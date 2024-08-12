@@ -3562,6 +3562,24 @@ export default {
             chatInAdmins: 'Chatea en #admins',
             addPaymentCard: 'Agregar tarjeta de pago',
         },
+        rules: {
+            individualExpenseRules: {
+                title: 'Gastos',
+                subtitle: 'Establece controles de gasto y valores predeterminados para gastos individuales. También puedes crear reglas para categorías y etiquetas.',
+            },
+            expenseReportRules: {
+                title: 'Informes de gastos',
+                subtitle: 'Automatiza la conformidad, aprobaciones y pagos de informes de gastos.',
+                customReportNamesTitle: 'Nombres personalizados de informes',
+                customReportNamesDescription: 'Nombres personalizados de informes',
+                preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
+                preventSelfApprovalsDescription: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
+                autoApproveCompliantReportsTitle: 'Aprobación automática de informes conformes',
+                autoApproveCompliantReportsDescription: 'Configura qué informes de gastos son elegibles para la aprobación automática.',
+                autoPayApprovedReportsTitle: 'Pago automático de informes aprobados',
+                autoPayApprovedReportsDescription: 'Configura qué informes de gastos son elegibles para el pago automático.',
+            },
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',

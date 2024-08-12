@@ -693,6 +693,7 @@ function MenuItem(
                                                                 )}
                                                             </View>
                                                         )}
+                                                        {titleComponent}
                                                         {!!description && !shouldShowDescriptionOnTop && (
                                                             <Text
                                                                 style={descriptionTextStyles}
@@ -720,7 +721,6 @@ function MenuItem(
                                                             </View>
                                                         )}
                                                         {!!furtherDetailsComponent && <View style={[styles.flexRow, styles.alignItemsCenter]}>{furtherDetailsComponent}</View>}
-                                                        {titleComponent}
                                                     </View>
                                                 </View>
                                             </View>
