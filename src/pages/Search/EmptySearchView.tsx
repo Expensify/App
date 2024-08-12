@@ -26,7 +26,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 return {
                     headerMedia: Illustrations.EmptyStateTravel,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h170),
+                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h172),
                     title: translate('search.searchResults.emptyTripResults.title'),
                     subtitle: translate('search.searchResults.emptyTripResults.subtitle'),
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
