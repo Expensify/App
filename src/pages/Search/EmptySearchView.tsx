@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -27,6 +28,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 return {
                     headerMedia: Illustrations.EmptyStateTravel,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
+                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h170),
                     title: translate('search.searchResults.emptyTripResults.title'),
                     subtitle: translate('search.searchResults.emptyTripResults.subtitle'),
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
@@ -40,6 +42,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 return {
                     headerMedia: Illustrations.EmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
+                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w184, variables.h112),
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     buttonText: undefined,
