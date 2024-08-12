@@ -70,7 +70,8 @@ function Confirmation() {
         return unsubscribeBeforeRemove;
     }, [navigation]);
 
-    const doesTransactionBelongToReport = TransactionUtils.getTransactionID(report?.reportID ?? '') === transaction.transactionID;
+    const reportTransactionID = TransactionUtils.getTransactionID(report?.reportID ?? '');
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || reviewDuplicates?.duplicates.includes(reportTransactionID);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
