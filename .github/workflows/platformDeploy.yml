@@ -85,31 +85,19 @@ jobs:
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
           VERSION: ${{ env.VERSION_CODE }}
 
-      - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-sourcemap-${{ github.event.release.tag_name }}
-          path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
-
-      - name: Upload Android build to GitHub artifacts
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-production-release.aab
-          path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
-
       - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Upload Android sourcemaps to GitHub Release
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: gh release upload ${{ github.event.release.tag_name }} android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map#android-sourcemap-${{ github.event.release.tag_name }}
+
       - name: Upload Android build to GitHub Release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
-          gh run download "$RUN_ID" --name app-production-release.aab
-          gh release upload ${{ github.event.release.tag_name }} app-production-release.aab
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: gh release upload ${{ github.event.release.tag_name }} android/app/build/outputs/bundle/productionRelease/app-production-release.aab
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -164,23 +152,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
 
-      - name: Upload desktop build to GitHub Workflow
-        uses: actions/upload-artifact@v4
-        with:
-          name: NewExpensify.dmg
-          path: desktop-build/NewExpensify.dmg
+      - name: Upload desktop sourcemaps to GitHub Release
+        run: gh release upload ${{ github.event.release.tag_name }} desktop/dist/www/merged-source-map.js.map#desktop-sourcemap-${{ github.event.release.tag_name }} --clobber
 
       - name: Upload desktop build to GitHub Release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} desktop-build/NewExpensify.dmg
+        run: gh release upload ${{ github.event.release.tag_name }} desktop-build/NewExpensify.dmg --clobber
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Archive desktop sourcemaps
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-sourcemap-${{ github.event.release.tag_name }}
-          path: desktop/dist/www/merged-source-map.js.map
 
   iOS:
     name: Build and deploy iOS
@@ -257,31 +235,19 @@ jobs:
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
           VERSION: ${{ env.IOS_VERSION }}
 
-      - name: Archive iOS sourcemaps
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemap-${{ github.event.release.tag_name }}
-          path: main.jsbundle.map
-
-      - name: Upload iOS build to GitHub artifacts
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: New Expensify.ipa
-          path: /Users/runner/work/App/App/New Expensify.ipa
-
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Upload iOS sourcemaps to GitHub Release
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: gh release upload ${{ github.event.release.tag_name }} main.jsbundle.map#ios-sourcemap-${{ github.event.release.tag_name }}
+
       - name: Upload iOS build to GitHub Release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          RUN_ID="$(gh run list --workflow platformDeploy.yml --event push --branch ${{ github.event.release.tag_name }} --json databaseId --jq '.[0].databaseId')"
-          gh run download "$RUN_ID" --name 'New Expensify.ipa'
-          gh release upload ${{ github.event.release.tag_name }} 'New Expensify.ipa'
+        if:  ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New Expensify.ipa
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -350,12 +316,6 @@ jobs:
         env:
           S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}expensify-cash
 
-      - name: Archive web sourcemaps
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-sourcemap-${{ github.event.release.tag_name }}
-          path: dist/merged-source-map.js.map
-
       - name: Purge Cloudflare cache
         run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
@@ -379,18 +339,14 @@ jobs:
             exit 1
           fi
 
-      - name: Upload web build to GitHub artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: dist
+      - name: Upload web sourcemaps to GitHub Release
+        run: gh release upload ${{ github.event.release.tag_name }} dist/merged-source-map.js.map#web-sourcemap-${{ github.event.release.tag_name }} --clobber
 
       - name: Upload web build to GitHub Release
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           tar -czvf webBuild.tar.gz dist
           zip -r webBuild.zip dist
-          gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip
+          gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip --clobber
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -412,7 +368,7 @@ jobs:
   hybridApp:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name == 'push' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.action != 'released' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
