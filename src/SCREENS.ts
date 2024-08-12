@@ -40,6 +40,7 @@ const SCREENS = {
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
         ADVANCED_FILTERS_REPORT_ID_RHP: 'Search_Advanced_Filters_ReportID_RHP',
         ADVANCED_FILTERS_CATEGORY_RHP: 'Search_Advanced_Filters_Category_RHP',
+        ADVANCED_FILTERS_KEYWORD_RHP: 'Search_Advanced_Filters_Keyword_RHP',
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
         ADVANCED_FILTERS_TAX_RATE_RHP: 'Search_Advanced_Filters_Tax_Rate_RHP',
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',

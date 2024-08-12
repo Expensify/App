@@ -40,7 +40,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = values.tagName.trim();
+            const tagName = PolicyUtils.escapeTagName(values.tagName.trim());
             const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {

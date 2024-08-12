@@ -127,6 +127,11 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
             },
             {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
+                description: 'search.filters.hasKeywords' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+            },
+            {
                 title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
                 description: 'common.card' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
