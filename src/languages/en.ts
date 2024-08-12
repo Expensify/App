@@ -3666,6 +3666,7 @@ export default {
             hasKeywords: 'Has keywords',
             currency: 'Currency',
         },
+        expenseType: 'Expense type',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
