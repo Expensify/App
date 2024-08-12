@@ -40,6 +40,9 @@ type AttachmentPickerProps = {
 
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
+
+    /** Last screen to save for navigating after granting camera permission from settings in ios */
+    lastScreen?: string | undefined;
 };
 
 export default AttachmentPickerProps;
