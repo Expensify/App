@@ -377,7 +377,7 @@ export default {
         padding: 20,
     },
 
-    pb6: {
+    p6: {
         padding: 24,
     },
 
@@ -611,6 +611,10 @@ export default {
 
     pb5: {
         paddingBottom: 20,
+    },
+
+    pb6: {
+        paddingBottom: 24,
     },
 
     pb8: {
