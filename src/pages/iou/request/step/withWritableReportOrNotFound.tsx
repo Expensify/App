@@ -60,14 +60,16 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
+        const isCreating = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.CREATE;
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
             if (!!report?.reportID || !route.params.reportID || !!reportDraft) {
                 return;
             }
-
-            ReportActions.openReport(route.params.reportID);
+            if (!isCreating) {
+                ReportActions.openReport(route.params.reportID);
+            }
 
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
