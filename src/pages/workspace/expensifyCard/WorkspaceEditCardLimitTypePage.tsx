@@ -54,7 +54,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
     const initialLimitType = card.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
-        initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY
+        initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED
             ? 'workspace.expensifyCard.changeCardSmartLimitTypeWarning'
             : 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 
