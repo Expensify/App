@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -18,6 +18,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {getCurrentSearchParams} from '@libs/SearchUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -41,6 +42,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const navigation = useNavigation();
     const {activeWorkspaceID} = useActiveWorkspace();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
+    }, [activeWorkspaceID, transactionViolations]);
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
@@ -67,7 +74,6 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
-    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
             return;
