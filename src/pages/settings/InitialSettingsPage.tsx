@@ -6,7 +6,6 @@ import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import Icon from '@components/Icon';
@@ -37,7 +36,6 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -51,9 +49,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InitialSettingsPageOnyxProps = {
-    /** The user's session */
-    session: OnyxEntry<OnyxTypes.Session>;
-
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
@@ -97,14 +92,14 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
+function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
@@ -364,57 +359,51 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
-    const currentUserDetails = currentUserPersonalDetails;
-    const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '-1';
-
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
-                <>
-                    <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
-                        <Tooltip text={translate('common.shareCode')}>
-                            <PressableWithFeedback
-                                accessibilityLabel={translate('common.shareCode')}
-                                accessibilityRole="button"
-                                accessible
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                            >
-                                <View style={styles.primaryMediumIcon}>
+                <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
+                    <Tooltip text={translate('common.shareCode')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('common.shareCode')}
+                            accessibilityRole="button"
+                            accessible
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                <Icon
+                                    src={Expensicons.QrCode}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                    fill={theme.icon}
+                                />
+                            </View>
+                        </PressableWithFeedback>
+                    </Tooltip>
+                    <Tooltip text={translate('statusPage.status')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('statusPage.status')}
+                            accessibilityRole="button"
+                            accessible
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                {emojiCode ? (
+                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                ) : (
                                     <Icon
-                                        src={Expensicons.QrCode}
+                                        src={Expensicons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}
                                     />
-                                </View>
-                            </PressableWithFeedback>
-                        </Tooltip>
-                        <Tooltip text={translate('statusPage.status')}>
-                            <PressableWithFeedback
-                                accessibilityLabel={translate('statusPage.status')}
-                                accessibilityRole="button"
-                                accessible
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                            >
-                                <View style={styles.primaryMediumIcon}>
-                                    {emojiCode ? (
-                                        <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                    ) : (
-                                        <Icon
-                                            src={Expensicons.Emoji}
-                                            width={variables.iconSizeNormal}
-                                            height={variables.iconSizeNormal}
-                                            fill={theme.icon}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
-                        </Tooltip>
-                    </View>
-                </>
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    </Tooltip>
+                </View>
             )}
         </View>
     );
@@ -493,9 +482,6 @@ export default withCurrentUserPersonalDetails(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
