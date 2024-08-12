@@ -322,7 +322,7 @@ function ReportPreview({
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
-    const isPayAtEndExpense = numberOfRequests === 1 && TransactionUtils.isPayAtEndExpense(allTransactions[0]);
+    const isPayAtEndExpense = ReportUtils.isPayAtEndExpenseReport(reportID, allTransactions);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: ReportUtils.getArchiveReason});
 
