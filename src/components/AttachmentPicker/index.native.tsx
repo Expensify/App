@@ -196,7 +196,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                     }
                 });
             }),
-        [showGeneralAlert, type],
+        [showGeneralAlert, type, lastScreen],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
