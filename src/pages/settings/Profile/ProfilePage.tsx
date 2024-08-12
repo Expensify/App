@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -21,6 +22,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +69,9 @@ function ProfilePage({
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
+
+    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -143,6 +148,27 @@ function ProfilePage({
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
+                            <View style={[styles.pt3, styles.pb6]}>
+                                <AvatarWithImagePicker
+                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                    source={avatarURL}
+                                    avatarID={accountID}
+                                    onImageSelected={PersonalDetails.updateAvatar}
+                                    onImageRemoved={PersonalDetails.deleteAvatar}
+                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    avatarStyle={styles.avatarXLarge}
+                                    pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                    errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                    errorRowStyles={styles.mt6}
+                                    onErrorClose={PersonalDetails.clearAvatarErrors}
+                                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                    originalFileName={currentUserPersonalDetails.originalFileName}
+                                    headerTitle={translate('profilePage.profileAvatar')}
+                                    fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                    editIconStyle={styles.smallEditIconAccount}
+                                />
+                            </View>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
                                     // eslint-disable-next-line react/no-array-index-key

@@ -414,27 +414,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[styles.mb3, styles.w100]}>
-                        <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
-                            source={avatarURL}
-                            avatarID={accountID}
-                            onImageSelected={PersonalDetails.updateAvatar}
-                            onImageRemoved={PersonalDetails.deleteAvatar}
-                            size={CONST.AVATAR_SIZE.XLARGE}
-                            avatarStyle={styles.avatarXLarge}
-                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                            errorRowStyles={styles.mt6}
-                            onErrorClose={PersonalDetails.clearAvatarErrors}
-                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                            originalFileName={currentUserDetails.originalFileName}
-                            headerTitle={translate('profilePage.profileAvatar')}
-                            fallbackIcon={currentUserDetails?.fallbackIcon}
-                            editIconStyle={styles.smallEditIconAccount}
-                        />
-                    </View>
                 </>
             )}
         </View>
