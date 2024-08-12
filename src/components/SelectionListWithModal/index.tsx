@@ -42,7 +42,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     }, [sections, selectionMode, isSmallScreenWidth]);
 
     const handleLongPressRow = (item: TItem) => {
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
             return;
         }
         setLongPressedItem(item);
