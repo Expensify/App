@@ -79,6 +79,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         <ApprovalWorkflowEditor
                             approvalWorkflow={approvalWorkflow}
                             removeApprovalWorkflow={() => setIsDeleteModalVisible(true)}
+                            policy={policy}
                             policyID={route.params.policyID}
                             ref={formRef}
                         />

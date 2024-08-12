@@ -72,6 +72,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                     {approvalWorkflow && (
                         <ApprovalWorkflowEditor
                             approvalWorkflow={approvalWorkflow}
+                            policy={policy}
                             policyID={route.params.policyID}
                             ref={formRef}
                         />

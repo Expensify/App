@@ -40,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Beta} from '@src/types/onyx';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -115,6 +116,19 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [approvalWorkflows, policy, route.params.policyID]);
 
+    const editApprovalAction = useCallback(
+        (workflow: ApprovalWorkflow) => {
+            Workflow.setApprovalWorkflow({
+                ...workflow,
+                availableMembers: approvalWorkflows.at(0)?.members ?? [],
+                flow: CONST.APPROVAL_WORKFLOW.FLOW.EDIT,
+                isLoading: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email));
+        },
+        [approvalWorkflows, route.params.policyID],
+    );
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -175,7 +189,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
                                 approvalWorkflow={workflow}
-                                policyID={route.params.policyID}
+                                onPress={() => editApprovalAction(workflow)}
                             />
                         ))}
                         <MenuItem
@@ -305,6 +319,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
+        editApprovalAction,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

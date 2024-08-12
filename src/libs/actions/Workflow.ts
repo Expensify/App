@@ -162,8 +162,9 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList: previousEmployeeList, mode: CONST.APPROVAL_WORKFLOW.MODE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
+    const defaultApprover = policy.approver ?? policy.owner;
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
-    const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== policy.approver);
+    const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
 
     const optimisticData: OnyxUpdate[] = [
         {
