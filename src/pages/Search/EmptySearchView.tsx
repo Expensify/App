@@ -5,7 +5,6 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -17,7 +16,6 @@ type EmptySearchViewProps = {
 };
 
 function EmptySearchView({type}: EmptySearchViewProps) {
-    const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -57,7 +55,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={content.headerMedia}
             headerStyles={content.headerStyles}
-            headerContentStyles={styles.emptyStateFolderIconSize}
+            headerContentStyles={content.headerContentStyles}
             title={content.title}
             subtitle={content.subtitle}
             buttonText={content.buttonText}
