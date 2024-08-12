@@ -228,13 +228,23 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
         return;
     }
 
-    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
+    // Update the approver at the specified index and reset hints
+    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
+        if (!existingApprover) {
+            return;
+        }
+
+        return {...existingApprover, isInMultipleWorkflows: false};
+    });
     approvers[approverIndex] = approver;
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
+        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
+            ...additionalApprover,
+            isInMultipleWorkflows: true,
+        }));
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
@@ -266,7 +276,14 @@ function clearApprovalWorkflowApprover(approverIndex: number) {
         return;
     }
 
-    const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
+    // Update the approver at the specified index and reset hints
+    const approvers: Array<Approver | undefined> = currentApprovalWorkflow.approvers.map((existingApprover) => {
+        if (!existingApprover) {
+            return;
+        }
+
+        return {...existingApprover, isInMultipleWorkflows: false};
+    });
     approvers[approverIndex] = undefined;
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: lodashDropRightWhile(approvers, (approver) => !approver), errors: null});

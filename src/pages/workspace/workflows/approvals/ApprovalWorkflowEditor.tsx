@@ -44,7 +44,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
                     return;
                 }
                 return translate('workflowsPage.approverCircularReference', {
-                    name1: approver.displayName,
+                    name1: approver?.displayName,
                     name2: previousApprover.displayName,
                 });
             }
@@ -57,9 +57,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, policyID}: ApprovalWorkflowEd
     const approverHintMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
             const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
-            if (approver && previousApprover && approver.email === previousApprover.forwardsTo) {
+            if (approver?.isInMultipleWorkflows && !!previousApprover) {
                 return translate('workflowsPage.approverInMultipleWorkflows', {
-                    name1: approver.displayName,
+                    name1: approver?.displayName,
                     name2: previousApprover.displayName,
                 });
             }
