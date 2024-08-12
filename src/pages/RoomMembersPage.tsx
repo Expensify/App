@@ -172,10 +172,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
 
         participants.forEach((accountID) => {
-            const details = personalDetails[accountID] as PersonalDetails;
+            const details = personalDetails[accountID];
 
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+            if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());

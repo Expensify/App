@@ -101,7 +101,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
