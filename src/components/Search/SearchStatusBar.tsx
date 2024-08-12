@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
@@ -21,22 +22,82 @@ type SearchStatusBarProps = {
 
 const statusMenuOptions: {[key in SearchDataTypes]: Array<{key: SearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}>} = {
     [CONST.SEARCH.DATA_TYPES.TRANSACTION]: [
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            icon: Expensicons.All,
+            text: 'common.all',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.ALL),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            icon: Expensicons.Pencil,
+            text: 'common.drafts',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
+            icon: Expensicons.Send,
+            text: 'common.shared',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
+            icon: Expensicons.MoneyBag,
+            text: 'common.finished',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRANSACTION, CONST.SEARCH.STATUS.EXPENSE.FINISHED),
+        },
     ],
     [CONST.SEARCH.DATA_TYPES.REPORT]: [
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            icon: Expensicons.All,
+            text: 'common.all',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            icon: Expensicons.Pencil,
+            text: 'common.drafts',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
+            icon: Expensicons.Send,
+            text: 'common.shared',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
+            icon: Expensicons.MoneyBag,
+            text: 'common.finished',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.REPORT, CONST.SEARCH.STATUS.EXPENSE.FINISHED),
+        },
     ],
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
-        {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            icon: Expensicons.All,
+            text: 'common.all',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            icon: Expensicons.Pencil,
+            text: 'common.drafts',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.DRAFTS),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.SHARED,
+            icon: Expensicons.Send,
+            text: 'common.shared',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.SHARED),
+        },
+        {
+            key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
+            icon: Expensicons.MoneyBag,
+            text: 'common.finished',
+            query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.FINISHED),
+        },
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         {key: CONST.SEARCH.STATUS.EXPENSE.ALL, icon: Expensicons.Inbox, text: 'common.expenses', query: SearchUtils.buildCannedSearchQuery()},
@@ -49,12 +110,14 @@ const statusMenuOptions: {[key in SearchDataTypes]: Array<{key: SearchStatus; ic
 function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.mh5, styles.gap5]}>
+        <View style={[styles.flexRow, styles.mh5, styles.flexBasisAuto]}>
             {statusMenuOptions[type].map((item) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
+                const isActive = status === item.key;
 
                 return (
                     <TabSelectorItem
@@ -62,7 +125,10 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                         title={translate(item.text)}
                         onPress={onPress}
                         icon={item.icon}
-                        isActive={status === item.key}
+                        isActive={isActive}
+                        activeOpacity={isActive ? 1 : 0}
+                        inactiveOpacity={isActive ? 0 : 1}
+                        backgroundColor={isActive ? theme.border : theme.appBG}
                     />
                 );
             })}
