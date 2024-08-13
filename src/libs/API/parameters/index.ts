@@ -272,3 +272,4 @@ export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, Remov
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
+export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
