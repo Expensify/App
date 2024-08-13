@@ -414,8 +414,8 @@ function MoneyRequestView({
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tag = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
-        const shouldShowTag = !!tag || OptionsListUtils.hasEnabledOptions(tags);
-        if (!shouldShowTag) {
+        const shouldShow = !!tag || OptionsListUtils.hasEnabledOptions(tags);
+        if (!shouldShow) {
             return null;
         }
 
