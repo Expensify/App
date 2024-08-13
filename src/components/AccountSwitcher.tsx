@@ -1,4 +1,3 @@
-import {set} from 'lodash';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
@@ -14,7 +13,7 @@ import Avatar from './Avatar';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
-import type {PopoverMenuItem} from './PopoverMenu/types';
+import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
