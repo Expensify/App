@@ -2722,8 +2722,8 @@ export default {
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
-            cashBack: 'Cash back',
-            cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            earnedCashback: 'Cash back',
+            earnedCashbackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
             issueNewCard: 'Issue new card',
             finishSetup: 'Finish setup',
             chooseBankAccount: 'Choose bank account',
@@ -3319,6 +3319,10 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            invoicingDetails: 'Invoicing details',
+            invoicingDetailsDescription: 'This info will appear on your invoices.',
+            companyName: 'Company name',
+            companyWebsite: 'Company website',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Business',

@@ -10,56 +10,49 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
+import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyNameForm';
 
-type WorkspaceEditCardNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME>;
+type WorkspaceInvoicingDetailsNameProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_NAME>;
 
-function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
-    const {policyID, cardID} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNameProps) {
+    const {policyID} = route.params;
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const card = cardsList?.[cardID];
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407832
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>) => {
+        // TODO: implement UpdateInvoiceCompanyName API call when it's supported
         Navigation.goBack();
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM> =>
+        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME]);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            // TODO: uncomment when CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED is supported
+            // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardNamePage.displayName}
+                testID={WorkspaceInvoicingDetailsName.displayName}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.card.issueNewCard.cardName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
-                />
+                <HeaderWithBackButton title={translate('workspace.invoices.companyName')} />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
                     style={[styles.flex1, styles.mh5]}
@@ -68,12 +61,11 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('workspace.card.issueNewCard.cardName')}
-                        hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
-                        aria-label={translate('workspace.card.issueNewCard.cardName')}
+                        inputID={INPUT_IDS.COMPANY_NAME}
+                        label={translate('workspace.invoices.companyName')}
+                        accessibilityLabel={translate('workspace.invoices.companyName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={card?.nameValuePairs?.cardTitle}
+                        defaultValue={policy?.invoice?.companyName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>
@@ -82,6 +74,6 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     );
 }
 
-WorkspaceEditCardNamePage.displayName = 'WorkspaceEditCardNamePage';
+WorkspaceInvoicingDetailsName.displayName = 'WorkspaceInvoicingDetailsName';
 
-export default WorkspaceEditCardNamePage;
+export default WorkspaceInvoicingDetailsName;
