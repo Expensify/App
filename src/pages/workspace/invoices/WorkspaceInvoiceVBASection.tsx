@@ -16,7 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import type {FormattedSelectedPaymentMethodIcon} from '@pages/settings/Wallet/WalletPage/types';
+import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon, PaymentMethodState} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -24,21 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type FormattedSelectedPaymentMethod = {
-    title: string;
-    icon?: FormattedSelectedPaymentMethodIcon;
-    description?: string;
-    type?: string;
-};
-
-type PaymentMethodState = {
-    isSelectedPaymentMethodDefault: boolean;
-    selectedPaymentMethod: AccountData;
-    formattedSelectedPaymentMethod: FormattedSelectedPaymentMethod;
-    methodID: string | number;
-    selectedPaymentMethodType: string;
-};
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */

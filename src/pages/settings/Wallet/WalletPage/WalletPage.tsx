@@ -39,22 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
-
-type FormattedSelectedPaymentMethod = {
-    title: string;
-    icon?: FormattedSelectedPaymentMethodIcon;
-    description?: string;
-    type?: string;
-};
-
-type PaymentMethodState = {
-    isSelectedPaymentMethodDefault: boolean;
-    selectedPaymentMethod: AccountData;
-    formattedSelectedPaymentMethod: FormattedSelectedPaymentMethod;
-    methodID: string | number;
-    selectedPaymentMethodType: string;
-};
+import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon, PaymentMethodState, WalletPageOnyxProps, WalletPageProps} from './types';
 
 function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadingPaymentMethods = true, shouldListenForResize = false, userWallet, walletTerms = {}}: WalletPageProps) {
     const theme = useTheme();
