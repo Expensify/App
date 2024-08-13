@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * @param customName - name pattern to be used for the reports
  * @param policyID - id of the policy to apply the naming pattern to
  */
-function modifyExpenseReportsNames(customName: string, policyID: string) {
+function modifyPolicyDefaultReportTitle(customName: string, policyID: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -55,4 +55,4 @@ function modifyExpenseReportsNames(customName: string, policyID: string) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {modifyExpenseReportsNames};
+export {modifyPolicyDefaultReportTitle};

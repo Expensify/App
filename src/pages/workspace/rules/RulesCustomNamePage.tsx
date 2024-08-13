@@ -67,7 +67,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({customName}) => WorkspaceRulesActions.modifyExpenseReportsNames(customName, policyID)}
+                    onSubmit={({customName}) => WorkspaceRulesActions.modifyPolicyDefaultReportTitle(customName, policyID)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
