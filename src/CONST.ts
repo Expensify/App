@@ -845,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
@@ -5242,6 +5243,9 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
+            INVOICE: 'invoice',
+            TRIP: 'trip',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5265,13 +5269,24 @@ const CONST = {
             DESC: 'desc',
         },
         STATUS: {
-            ALL: 'all',
-            SHARED: 'shared',
-            DRAFTS: 'drafts',
-            FINISHED: 'finished',
-        },
-        TYPE: {
-            EXPENSE: 'expense',
+            EXPENSE: {
+                ALL: 'all',
+                SHARED: 'shared',
+                DRAFTS: 'drafts',
+                FINISHED: 'finished',
+            },
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
+            TRIP: {
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {
