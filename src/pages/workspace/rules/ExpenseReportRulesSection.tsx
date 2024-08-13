@@ -1,4 +1,5 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
@@ -6,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type ExpenseReportRulesSectionProps = {
@@ -15,6 +17,7 @@ type ExpenseReportRulesSectionProps = {
 function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const optionItems = [
         {
@@ -39,7 +42,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         <Switch
                             accessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                             onToggle={() => {}}
-                            isOn={false}
+                            disabled={!!policy?.fieldList?.deletable}
+                            isOn={policy?.fieldList}
                         />
                     }
                     shouldShowRightComponent

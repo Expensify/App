@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 
@@ -16,7 +15,6 @@ type BulletListProps = {
 };
 
 function BulletList({items, header}: BulletListProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
 
     const baseTextStyles = [styles.mutedNormalTextLabel];

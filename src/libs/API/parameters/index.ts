@@ -270,4 +270,4 @@ export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyC
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
-export type {default as SetWorkspaceReportTitleParams} from './SetWorkspaceReportTitleParams';
+export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitleParams';
