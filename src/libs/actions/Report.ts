@@ -64,6 +64,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -111,7 +112,6 @@ import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
-import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -439,17 +439,13 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
 
 /** Clears the highlight of a report action if it’s from the current user */
 function clearHighlightIfCurrentUserAction(accountID?: number) {
-    if(!navigationRef){
-        return;
-    }
     const isCurrentUserAction = accountID === currentUserAccountID;
-    const state = navigationRef.getState();
+    const state = navigationRef?.getState();
     const reportActionID = getTopmostReportActionID(state);
 
     if (!isCurrentUserAction || !reportActionID) {
         return;
     }
-
     Navigation.setParams({reportActionID: ''});
 }
 
@@ -622,12 +618,12 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         DateUtils.setTimezoneUpdated();
     }
 
-    clearHighlightIfCurrentUserAction(lastAction?.actorAccountID);
     API.write(commandName, parameters, {
         optimisticData,
         successData,
         failureData,
     });
+    clearHighlightIfCurrentUserAction(lastAction?.actorAccountID);
     notifyNewAction(reportID, lastAction?.actorAccountID, lastAction?.reportActionID);
 }
 
