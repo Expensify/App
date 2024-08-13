@@ -15,7 +15,7 @@ type ApprovalWorkflowSectionProps = {
     /** Single workflow displayed in this component */
     approvalWorkflow: ApprovalWorkflow;
 
-    /** Function to call when the user clicks on section */
+    /** A function that is called when the section is pressed */
     onPress: () => void;
 };
 
