@@ -82,7 +82,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             betas,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, betas, selectedOptions]);
 
@@ -92,14 +91,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return newSections;
         }
 
-        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-        );
+        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, [], chatOptions.personalDetails, personalDetails, true);
 
         const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
@@ -112,12 +104,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 shouldShow: true,
             });
         }
-
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
 
         newSections.push({
             title: '',
@@ -179,6 +165,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         [selectedOptions],
     );
 
+    const noResultsFound = chatOptions.personalDetails.length === 0 && !chatOptions.currentUserOption;
+    const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
+
     const footerContent = (
         <Button
             success
@@ -200,6 +189,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections={sections}
             ListItem={InviteMemberListItem}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+            headerMessage={headerMessage}
             textInputValue={searchTerm}
             footerContent={footerContent}
             showScrollIndicator
