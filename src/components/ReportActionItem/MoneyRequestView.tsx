@@ -412,7 +412,13 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
-    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
+    const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
+        const tag = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
+        const shouldShowTag = !!tag || OptionsListUtils.hasEnabledOptions(tags);
+        if (!shouldShowTag) {
+            return null;
+        }
+
         const tagError = getErrorForField(
             'tag',
             {
@@ -429,7 +435,7 @@ function MoneyRequestView({
             >
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
-                    title={TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index)}
+                    title={tag}
                     interactive={canEdit && !readonly}
                     shouldShowRightIcon={canEdit && !readonly}
                     titleStyle={styles.flex1}
