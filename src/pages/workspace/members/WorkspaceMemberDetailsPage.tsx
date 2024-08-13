@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -32,113 +33,12 @@ import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
-
-// TODO: remove when Onyx data is available
-const mockedCards: OnyxEntry<WorkspaceCardsList> = {
-    test1: {
-        accountID: 885646,
-        cardID: 1,
-        nameValuePairs: {
-            limit: 1000,
-            cardTitle: 'Test 1',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test2: {
-        accountID: 885646,
-        cardID: 2,
-        nameValuePairs: {
-            limit: 2000,
-            cardTitle: 'Test 2',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test3: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test4: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test5: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test6: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-    test7: {
-        accountID: 885646,
-        cardID: 3,
-        nameValuePairs: {
-            limit: 3000,
-            cardTitle: 'Test 3',
-        },
-        lastFourPAN: '1234',
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-        bank: '',
-        availableSpend: 1,
-        domainName: '',
-        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
-    },
-};
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -155,16 +55,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
-    // const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const cardList = mockedCards;
-
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
@@ -362,10 +259,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {Object.values(cardList ?? {}).map((card) => (
+                                            {Object.values(cardsList ?? {}).map((card) => (
                                                 <MenuItem
                                                     title={card.nameValuePairs?.cardTitle}
-                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.limit)}
+                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit)}
                                                     icon={ExpensifyCardImage}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}
