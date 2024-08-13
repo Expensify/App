@@ -30,7 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -349,7 +349,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
+        const synchronizationError = getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+        const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
@@ -406,7 +407,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: isSyncInProgress

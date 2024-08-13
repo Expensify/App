@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -19,14 +20,15 @@ type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParam
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID ?? '-1';
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const fetchExpensifyCards = useCallback(() => {
-        Policy.openPolicyExpensifyCardsPage(policyID, policy?.workspaceAccountID ?? -1);
-    }, [policyID, policy?.workspaceAccountID]);
+        Policy.openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 

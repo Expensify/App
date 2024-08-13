@@ -2672,7 +2672,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
+function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2715,7 +2715,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }

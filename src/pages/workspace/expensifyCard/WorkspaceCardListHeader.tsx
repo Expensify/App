@@ -22,8 +22,7 @@ function WorkspaceCardListHeader() {
     const policyID = route.params.policyID;
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     return (
         <View style={styles.appBG}>
