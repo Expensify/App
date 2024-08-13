@@ -115,7 +115,8 @@ const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
-        ...FontUtils.fontFamily.platform.EXP_NEUE,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -3873,6 +3874,12 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        reportActionComposeTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+            paddingVertical: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
         quickActionTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
         },
@@ -4707,6 +4714,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeNormal,
         },
 
+        walletIllustration: {
+            width: 262,
+            height: 152,
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -4739,13 +4751,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textLight,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
-        },
-
-        walletBalance: {
-            lineHeight: undefined,
-            fontSize: 45,
-            paddingTop: 0,
-            paddingBottom: 0,
         },
 
         walletRedDotSectionTitle: {
@@ -5099,23 +5104,19 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: '100%',
-            paddingRight: 8,
-            paddingLeft: 8,
         },
 
         emptyStateScrollView: {
-            minHeight: 400,
             height: '100%',
             flex: 1,
         },
 
-        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+        emptyStateForeground: {
+            margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100%',
-            padding: isSmallScreenWidth ? 32 : 0,
-            width: '100%',
-        }),
+            flex: 1,
+        },
 
         emptyStateContent: {
             backgroundColor: theme.cardBG,
@@ -5143,6 +5144,13 @@ const styles = (theme: ThemeColors) =>
         emptyStateFolderIconSize: {
             width: 184,
             height: 112,
+        },
+
+        workflowApprovalVerticalLine: {
+            height: 16,
+            width: 1,
+            marginLeft: 19,
+            backgroundColor: theme.border,
         },
     } satisfies Styles);
 

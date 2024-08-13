@@ -1056,7 +1056,13 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? '-1'));
+        if (parentReport?.reportID) {
+            return ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID);
+        }
+        const mostRecentReportID = Report.getMostRecentReportID(report);
+        if (mostRecentReportID) {
+            return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
+        }
     }
 }
 

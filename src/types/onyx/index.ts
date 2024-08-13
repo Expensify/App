@@ -31,6 +31,7 @@ import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -49,7 +50,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -98,6 +99,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
+import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -149,7 +151,7 @@ export type {
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
-    PolicyTagList,
+    PolicyTagLists,
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
@@ -216,4 +218,6 @@ export type {
     BillingStatus,
     CancellationDetails,
     ApprovalWorkflow,
+    MobileSelectionMode,
+    WorkspaceTooltip,
 };

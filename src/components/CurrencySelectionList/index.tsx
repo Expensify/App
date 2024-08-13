@@ -3,18 +3,19 @@ import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
 
-function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList}: CurrencySelectionListProps) {
+function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList, selectedCurrencies = [], canSelectMultiple = false}: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
 
     const {sections, headerMessage} = useMemo(() => {
         const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
-            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
+            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
             return {
                 currencyName: currencyInfo?.name ?? '',
                 text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
@@ -28,6 +29,16 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
+        if (canSelectMultiple) {
+            filteredCurrencies.sort((currencyA, currencyB) => {
+                if (currencyA.isSelected === currencyB.isSelected) {
+                    return 0;
+                }
+
+                return currencyA.isSelected ? -1 : 1;
+            });
+        }
+
         return {
             sections: isEmpty
                 ? []
@@ -38,20 +49,21 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
                   ],
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
         };
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode]);
+    }, [currencyList, searchValue, canSelectMultiple, translate, initiallySelectedCurrencyCode, selectedCurrencies]);
 
     return (
         <SelectionList
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
             textInputLabel={searchInputLabel}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             headerMessage={headerMessage}
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator
+            canSelectMultiple={canSelectMultiple}
         />
     );
 }
