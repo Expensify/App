@@ -12,6 +12,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -46,6 +47,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID] ?? mockedCard;
@@ -66,7 +68,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const updateCardLimit = (newLimit: string) => {
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimit(policyID, Number(cardID), Number(newLimit) * 100, card.nameValuePairs?.limit);
+        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), Number(newLimit) * 100, card.nameValuePairs?.limit);
 
         Navigation.goBack();
     };
