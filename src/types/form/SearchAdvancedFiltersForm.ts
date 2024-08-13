@@ -17,6 +17,7 @@ const FILTER_KEYS = {
     KEYWORD: 'keyword',
     FROM: 'from',
     TO: 'to',
+    IN: 'in',
 } as const;
 
 type InputID = ValueOf<typeof FILTER_KEYS>;
@@ -39,6 +40,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
+        [FILTER_KEYS.IN]: string[];
     }
 >;
 
