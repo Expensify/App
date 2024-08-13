@@ -79,17 +79,20 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const currentApprovalWorkflow = workflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail);
 
         if (!currentApprovalWorkflow) {
+            Workflow.clearApprovalWorkflow();
             return Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
         }
 
-        Workflow.setApprovalWorkflow({
-            ...currentApprovalWorkflow,
-            availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
-            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-            isLoading: false,
-        });
+        if (!approvalWorkflow) {
+            Workflow.setApprovalWorkflow({
+                ...currentApprovalWorkflow,
+                availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                isLoading: false,
+            });
+        }
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);
+    }, [approvalWorkflow, initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -108,9 +111,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsEditApprovalsPage.title')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            Workflow.clearApprovalWorkflow();
+                            Navigation.goBack();
+                        }}
                     />
-                    {approvalWorkflow ? (
+                    {approvalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -130,9 +136,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 containerStyles={[styles.mb5, styles.mh5]}
                             />
                         </>
-                    ) : (
-                        <FullScreenLoadingIndicator />
                     )}
+                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
                 </FullPageNotFoundView>
                 <ConfirmModal
                     title={translate('workflowsEditApprovalsPage.deleteTitle')}

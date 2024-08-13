@@ -65,9 +65,12 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            Workflow.clearApprovalWorkflow();
+                            Navigation.goBack();
+                        }}
                     />
-                    {approvalWorkflow ? (
+                    {approvalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -87,9 +90,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 enabledWhenOffline
                             />
                         </>
-                    ) : (
-                        <FullScreenLoadingIndicator />
                     )}
+                    {!approvalWorkflow && <FullScreenLoadingIndicator />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
