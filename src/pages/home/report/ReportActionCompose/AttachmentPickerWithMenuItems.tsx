@@ -23,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
-import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
@@ -225,13 +224,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () =>
-                            Modal.close(() => {
-                                if (Browser.isSafari()) {
-                                    return;
-                                }
-                                triggerAttachmentPicker();
-                            }),
+                        onSelected: () => {
+                            if (Browser.isSafari()) {
+                                return;
+                            }
+                            triggerAttachmentPicker();
+                        },
+                        shouldCallAfterModalHide: true,
                     },
                 ];
                 return (
