@@ -3,6 +3,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -21,7 +22,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -120,7 +120,6 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
-    const waitForNavigation = useWaitForNavigation();
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -189,7 +188,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 Navigation.dismissModal(report.reportID);
-                waitForNavigation(() => {
+                InteractionManager.runAfterInteractions(() => {
                     if (option.accountID === report.managerID) {
                         return;
                     }
@@ -203,14 +202,11 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
                     // Pass through the selected assignee
                     TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
-                })();
+                });
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 Navigation.goBack(ROUTES.NEW_TASK);
-                waitForNavigation(() => {
-                    if (!option.accountID) {
-                        return;
-                    }
+                InteractionManager.runAfterInteractions(() => {
                     TaskActions.setAssigneeValue(
                         option?.login ?? '',
                         option.accountID,
@@ -218,10 +214,10 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         undefined, // passing null as report is null in this condition
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                     );
-                })();
+                });
             }
         },
-        [session?.accountID, task?.shareDestination, report, waitForNavigation],
+        [session?.accountID, task?.shareDestination, report],
     );
 
     const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
