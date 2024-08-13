@@ -189,9 +189,6 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             if (report) {
                 Navigation.dismissModal(report.reportID);
                 InteractionManager.runAfterInteractions(() => {
-                    if (option.accountID === report.managerID) {
-                        return;
-                    }
                     const assigneeChatReport = TaskActions.setAssigneeValue(
                         option?.login ?? '',
                         option?.accountID ?? -1,
