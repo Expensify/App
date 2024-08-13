@@ -7409,6 +7409,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID: reportID,
         created,
+        modifiedCreated: undefined,
         amount,
         currency,
         comment,
