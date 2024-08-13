@@ -54,7 +54,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const config = policy?.connections?.intacct?.config;
     const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
-
+    const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
@@ -77,7 +77,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE}
+                isActive={isImportMappingEnable}
                 onToggle={(enabled) => {
                     const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
                     updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
@@ -86,7 +86,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
-            {config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE && (
+            {isImportMappingEnable && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
