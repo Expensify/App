@@ -4353,4 +4353,7 @@ export default {
         updateRoomDescription: 'set the room description to:',
         clearRoomDescription: 'cleared the room description',
     },
+    delegate: {
+        switchAccount: 'Switch accounts:',
+    },
 } satisfies TranslationBase;

@@ -4873,4 +4873,7 @@ export default {
         updateRoomDescription: 'establece la descripción de la sala a:',
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
     },
+    delegate: {
+        switchAccount: 'Cambiar cuentas:',
+    },
 } satisfies EnglishTranslation;
