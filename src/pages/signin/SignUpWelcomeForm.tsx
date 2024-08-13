@@ -6,11 +6,8 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
-import redirectToSignIn from '@userActions/SignInRedirect';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Account} from '@src/types/onyx';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -40,15 +37,7 @@ function SignUpWelcomeForm({account}: SignUpWelcomeFormProps) {
                     pressOnEnter
                     style={[styles.mb2]}
                 />
-                <ChangeExpensifyLoginLink
-                    onPress={() => {
-                        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-                            Session.clearSignInData();
-                            return;
-                        }
-                        redirectToSignIn();
-                    }}
-                />
+                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
