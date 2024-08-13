@@ -142,10 +142,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             onPress={() => editApprover(approverIndex)}
                             shouldShowRightIcon
                             hintText={hintText}
-                            shouldParseHintText
+                            shouldRenderHintAsHTML
                             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={errorText}
-                            shouldParseErrorText
+                            shouldRenderErrorAsHTML
                         />
                     );
                 })}
