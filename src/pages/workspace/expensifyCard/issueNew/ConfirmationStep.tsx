@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,15 +18,14 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
-    // The policy that the card will be issued under
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    // ID of the policy that the card will be issued under
+    policyID: string;
 };
 
-function ConfirmationStep({policy}: ConfirmationStepProps) {
+function ConfirmationStep({policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -35,7 +33,6 @@ function ConfirmationStep({policy}: ConfirmationStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const data = issueNewCard?.data;
-    const policyID = policy?.id ?? '-1';
 
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
