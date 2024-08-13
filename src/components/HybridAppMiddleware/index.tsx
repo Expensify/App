@@ -54,10 +54,6 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 
     // We need to ensure that the BootSplash is always hidden after a certain period.
     useEffect(() => {
-        if (!NativeModules.HybridAppModule) {
-            return;
-        }
-
         maxTimeoutRef.current = setTimeout(() => {
             Log.info('[HybridApp] Forcing transition due to unknown problem', true);
             setStartedTransition(true);
@@ -69,7 +65,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
      * We propagate it from OldDot to NewDot with native method due to limitations of old app.
      */
     useEffect(() => {
-        if (completedHybridAppOnboarding === undefined || !NativeModules.HybridAppModule) {
+        if (completedHybridAppOnboarding === undefined) {
             return;
         }
 
@@ -80,7 +76,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     // Save `exitTo` when we reach /transition route.
     // `exitTo` should always exist during OldDot -> NewDot transitions.
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !exitToParam || exitTo) {
+        if (!exitToParam || exitTo) {
             return;
         }
 
