@@ -27,14 +27,6 @@ type ConfirmationStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-const defaultData = {
-    assigneeEmail: '',
-    cardTitle: '',
-    cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL,
-    limit: 0,
-    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
-};
-
 function ConfirmationStep({policy}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
