@@ -28,7 +28,10 @@ function BulletList({items, header}: BulletListProps) {
 
     const renderBulletPoint = (item: string) => {
         return (
-            <Text style={baseTextStyles}>
+            <Text
+                style={baseTextStyles}
+                key={item}
+            >
                 <Text style={[styles.ph2, baseTextStyles]}>•</Text>
                 {item}
             </Text>

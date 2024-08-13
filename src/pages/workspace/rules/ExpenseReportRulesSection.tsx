@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -34,20 +35,17 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
                 />,
-                <MenuItem
+                <ToggleSettingOptionRow
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                    titleStyle={{...styles.textLabelSupportingEmptyValue, ...styles.textWhite}}
-                    onPress={() => {}}
-                    rightComponent={
-                        <Switch
-                            accessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                            onToggle={() => {}}
-                            disabled={!!policy?.fieldList?.deletable}
-                            isOn={policy?.fieldList}
-                        />
-                    }
-                    shouldShowRightComponent
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                    switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, {marginTop: 24}]}
+                    titleStyle={{paddingVertical: 10}}
+                    // titleStyle={styles.pv2}
+                    // subtitleStyle={styles.pt1}
+                    isActive={false}
+                    onToggle={(isOn) => WorkspaceRulesActions.setPolicyPreventMemberCreatedTitle(!isOn, policyID)}
+                    //             disabled={!!policy?.fieldList?.deletable}
+                    //             isOn={false}
                 />,
             ],
         },
