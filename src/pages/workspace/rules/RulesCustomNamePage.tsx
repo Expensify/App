@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,13 +14,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 
-type RulesReceiptRequiredAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
+type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
-function RulesCustomNamePage({route}: RulesReceiptRequiredAmountPageProps) {
+function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
+    const {policyID} = route.params;
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -29,7 +34,7 @@ function RulesCustomNamePage({route}: RulesReceiptRequiredAmountPageProps) {
         translate('workspace.rules.expenseReportRules.customNameWorkspaceNameExample'),
         translate('workspace.rules.expenseReportRules.customNameReportIDExample'),
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
-    ] as const;
+    ] as const satisfies string[];
 
     return (
         <AccessOrNotFoundWrapper
@@ -51,7 +56,7 @@ function RulesCustomNamePage({route}: RulesReceiptRequiredAmountPageProps) {
                         {translate('workspace.rules.expenseReportRules.customNameDescription')}
                         <TextLink
                             style={[styles.link]}
-                            onPress={() => {}}
+                            href="https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates"
                         >
                             {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
                         </TextLink>
@@ -62,14 +67,18 @@ function RulesCustomNamePage({route}: RulesReceiptRequiredAmountPageProps) {
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={() => {}}
+                    onSubmit={({customName}) => WorkspaceRulesActions.modifyExpenseReportsNames(customName, policyID)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <TextInput
-                        accessibilityLabel={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.CUSTOM_NAME}
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                        aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
+                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                     />
+
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
                         header="Examples:"
