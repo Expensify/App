@@ -253,7 +253,7 @@ jobs:
 
       - name: Upload iOS build to GitHub Release
         if:  ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New Expensify.ipa
+        run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New\ Expensify.ipa
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -332,7 +332,7 @@ jobs:
         run: |
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
           if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version does not match local version. Something went wrong..."
+            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ github.event.release.tag_name }}. Something went wrong..."
             exit 1
           fi
 
@@ -341,7 +341,7 @@ jobs:
         run: |
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
           if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version does not match local version. Something went wrong..."
+            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ github.event.release.tag_name }}. Something went wrong..."
             exit 1
           fi
 

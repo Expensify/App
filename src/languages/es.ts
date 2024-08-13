@@ -5,6 +5,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -1320,6 +1321,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -1327,7 +1332,10 @@ export default {
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCreateApprovalsPage: {
-        title: 'Añadir flujo de aprobación',
+        title: 'Confirmar',
+        header: 'Agrega más aprobadores y confirma.',
+        additionalApprover: 'Añadir aprobador',
+        submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
@@ -2298,6 +2306,7 @@ export default {
                 'Elige si quieres volver a facturar a los clientes en Expensify. Tus contactos de clientes de Xero se pueden etiquetar como gastos, y se exportarán a Xero como una factura de venta.',
             taxesDescription: 'Elige cómo gestionar los impuestos de Xero en Expensify.',
             notImported: 'No importado',
+            notConfigured: 'No configurado',
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
                 tag: 'Etiquetas',
@@ -2773,8 +2782,8 @@ export default {
             requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
-            cashBack: 'Reembolso',
-            cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            earnedCashback: 'Reembolso',
+            earnedCashbackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
             issueNewCard: 'Emitir nueva tarjeta',
             finishSetup: 'Terminar configuración',
             chooseBankAccount: 'Elegir cuenta bancaria',
@@ -3371,6 +3380,10 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviar desde',
+            invoicingDetails: 'Detalles de facturación',
+            invoicingDetailsDescription: 'Esta información aparecerá en tus facturas.',
+            companyName: 'Nombre de la empresa',
+            companyWebsite: 'Sitio web de la empresa',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Empresas',
