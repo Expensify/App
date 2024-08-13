@@ -6,12 +6,12 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
-const EMPTY_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
+const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
     approvers: [],
     availableMembers: [],
     isDefault: false,
-    flow: CONST.APPROVAL_WORKFLOW.FLOW.CREATE,
+    action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
     isLoading: false,
 };
 
@@ -160,11 +160,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Mode to use when converting the approval workflow
      */
-    mode: ValueOf<typeof CONST.APPROVAL_WORKFLOW.MODE>;
+    type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, mode}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -173,25 +173,21 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     }
 
     approvalWorkflow.approvers.forEach((approver, index) => {
-        if (updatedEmployeeList[approver.email]) {
-            return;
-        }
-
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
-            forwardsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : nextApprover?.email ?? '',
+            forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
-            submitsTo: mode === CONST.APPROVAL_WORKFLOW.MODE.REMOVE ? '' : firstApprover.email ?? '',
+            submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
         };
     });
 
     return updatedEmployeeList;
 }
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, EMPTY_APPROVAL_WORKFLOW};
+export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW};

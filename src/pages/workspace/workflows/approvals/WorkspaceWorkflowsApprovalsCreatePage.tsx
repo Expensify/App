@@ -87,6 +87,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         isLoading={approvalWorkflow?.isLoading}
                         buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
                         containerStyles={[styles.mb5, styles.mh5]}
+                        enabledWhenOffline
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
