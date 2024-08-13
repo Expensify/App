@@ -394,8 +394,7 @@ function getOptionData({
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
-            const newName = ReportActionsUtils.getOriginalMessage(lastAction)?.newName ?? '';
-            result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+            result.alternateText = ReportActionsUtils.getRenamedAction(lastAction);
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
         } else if (ReportActionsUtils.isInviteOrRemovedAction(lastAction)) {
