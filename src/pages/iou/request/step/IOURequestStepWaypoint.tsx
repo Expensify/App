@@ -67,7 +67,7 @@ function IOURequestStepWaypoint({
     const {isOffline} = useNetwork();
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const allWaypoints = transaction?.comment?.waypoints ?? {};
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
