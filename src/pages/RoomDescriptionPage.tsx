@@ -21,6 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -67,7 +69,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!canEdit}>
+            <FullPageNotFoundView>
                 <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -101,8 +103,12 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                         />
                     </View>
                 </FormProvider>
+                {!canEdit && (
+                    <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
+                        <RenderHTML html={Parser.replace(description)} />
+                    </ScrollView>
+                )}
             </FullPageNotFoundView>
-            {!canEdit && <Text>{description}</Text>}
         </ScreenWrapper>
     );
 }
