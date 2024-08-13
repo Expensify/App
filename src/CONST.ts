@@ -845,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
@@ -970,6 +971,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
+        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
+        SWITCH_REPORT_THREAD: 'switch_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -5244,6 +5247,9 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
+            INVOICE: 'invoice',
+            TRIP: 'trip',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5267,13 +5273,24 @@ const CONST = {
             DESC: 'desc',
         },
         STATUS: {
-            ALL: 'all',
-            SHARED: 'shared',
-            DRAFTS: 'drafts',
-            FINISHED: 'finished',
-        },
-        TYPE: {
-            EXPENSE: 'expense',
+            EXPENSE: {
+                ALL: 'all',
+                SHARED: 'shared',
+                DRAFTS: 'drafts',
+                FINISHED: 'finished',
+            },
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
+            TRIP: {
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {

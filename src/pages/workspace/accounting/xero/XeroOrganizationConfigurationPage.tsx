@@ -59,7 +59,7 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList);
+        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList, xeroConfig?.tenantID);
         Navigation.goBack();
     };
 
