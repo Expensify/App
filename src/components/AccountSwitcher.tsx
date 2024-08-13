@@ -39,7 +39,7 @@ function AccountSwitcher() {
                     <View style={[styles.flexRow, styles.gap1]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textBold, styles.optionDisplayNameCompact, styles.pre]}
+                            style={[styles.textBold]}
                         >
                             {currentUserPersonalDetails?.displayName}
                         </Text>
