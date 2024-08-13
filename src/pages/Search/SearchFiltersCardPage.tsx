@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -90,25 +89,23 @@ function SearchFiltersCardPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.card')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('common.card')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <View style={[styles.flex1]}>
+                <SelectionList
+                    sections={sections}
+                    onSelectRow={updateNewCards}
+                    footerContent={footerContent}
+                    shouldStopPropagation
+                    shouldShowTooltips
+                    canSelectMultiple
+                    ListItem={CardListItem}
                 />
-                <View style={[styles.flex1]}>
-                    <SelectionList
-                        sections={sections}
-                        onSelectRow={updateNewCards}
-                        footerContent={footerContent}
-                        shouldStopPropagation
-                        shouldShowTooltips
-                        canSelectMultiple
-                        ListItem={CardListItem}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
         </ScreenWrapper>
     );
 }
