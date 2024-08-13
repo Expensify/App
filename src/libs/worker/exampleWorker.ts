@@ -1,7 +1,7 @@
 import {expose} from './index.web';
 
 const worker = expose((input: string) => {
-    console.log('hello from web worker');
+    console.log('[Hanno] hello from web worker');
     return input.length;
 });
 

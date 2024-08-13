@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 
 function expose<Args extends any[], Return>(callback: (...args: Args) => Return) {
     // eslint-disable-next-line no-restricted-globals
@@ -47,12 +47,14 @@ type WorkerMemoResult<Result> =
 function useWorkerMemo<TArgs extends any[], TResult>(workerFactory: WorkerFunctionLoader<SingleArgumentFunction<TArgs, TResult>>, inputArs: TArgs): WorkerMemoResult<TResult> {
     const [value, setValue] = useState<WorkerMemoResult<TResult>>({state: 'loading'});
 
-    const worker = useMemo(() => workerFactory(), [workerFactory]);
-
+    const workerRef = useRef<Worker>();
     // Listen for messages from the worker
     useEffect(() => {
+        workerRef.current = workerFactory();
+        console.log('[Hanno] Worker created');
+
         // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-        worker.onmessage = ({data}: MessageEvent<{result: TResult} | {error: unknown}>) => {
+        workerRef.current.onmessage = ({data}: MessageEvent<{result: TResult} | {error: unknown}>) => {
             if ('error' in data) {
                 setValue({state: 'error', error: data.error});
             } else {
@@ -61,15 +63,22 @@ function useWorkerMemo<TArgs extends any[], TResult>(workerFactory: WorkerFuncti
         };
 
         return () => {
-            worker.terminate();
+            workerRef.current?.terminate();
+            workerRef.current = undefined;
+            console.log('[Hanno] Worker terminated');
         };
-    }, [worker]);
+    }, [workerFactory]);
 
     // Send the worker the input arguments
     useEffect(() => {
+        const worker = workerRef.current;
+        if (!worker) {
+            return;
+        }
+
         console.log('sending message to worker', inputArs);
         worker.postMessage(inputArs);
-    }, [inputArs, worker]);
+    }, [inputArs]);
 
     return value;
 }
