@@ -153,18 +153,13 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
 
     /**
-     * Current list of employees in the policy
-     */
-    employeeList: PolicyEmployeeList;
-
-    /**
      * Mode to use when converting the approval workflow
      */
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -175,14 +170,14 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
-            ...employeeList[approver.email],
+            email: approver.email,
             forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
         };
     });
