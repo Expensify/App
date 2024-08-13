@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -38,34 +37,32 @@ function SearchFiltersReportIDPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.reportID')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
-                />
-                <FormProvider
-                    style={[styles.flex1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateReportIDFilter}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.REPORT_ID}
-                            name={INPUT_IDS.REPORT_ID}
-                            defaultValue={reportID}
-                            label={translate('common.reportID')}
-                            accessibilityLabel={translate('common.reportID')}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
-                </FormProvider>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('common.reportID')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <FormProvider
+                style={[styles.flex1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                onSubmit={updateReportIDFilter}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.REPORT_ID}
+                        name={INPUT_IDS.REPORT_ID}
+                        defaultValue={reportID}
+                        label={translate('common.reportID')}
+                        accessibilityLabel={translate('common.reportID')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

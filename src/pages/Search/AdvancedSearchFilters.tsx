@@ -13,6 +13,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
@@ -64,7 +65,10 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
-    if ((fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) && filters[fieldName]) {
+    if (
+        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
+        filters[fieldName]
+    ) {
         const filterArray = filters[fieldName] ?? [];
         return filterArray.join(', ');
     }
@@ -73,16 +77,38 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filters[fieldName];
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters[fieldName]) {
-        const cards = filters[fieldName] ?? [];
-        return cards.join(', ');
-    }
-
     // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
     // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
     // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
     const filterValue = filters[fieldName] as string;
     return filterValue ? Str.recapitalize(filterValue) : undefined;
+}
+
+function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
+    const selectedTaxRateKeys = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE];
+    if (!selectedTaxRateKeys) {
+        return undefined;
+    }
+
+    const result: string[] = [];
+    Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
+        if (!taxRateKeys.some((taxRateKey) => selectedTaxRateKeys.includes(taxRateKey)) || result.includes(taxRateName)) {
+            return;
+        }
+        result.push(taxRateName);
+    });
+
+    return result.join(', ');
+}
+
+function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
+    return filterValue
+        ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
+              .filter((expenseType) => filterValue.includes(expenseType))
+              .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
+              .join(', ')
+        : undefined;
 }
 
 function AdvancedSearchFilters() {
@@ -93,20 +119,11 @@ function AdvancedSearchFilters() {
 
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
     const advancedFilters = useMemo(
         () => [
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, translate),
-                description: 'common.type' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, translate),
-                description: 'search.filters.status' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
-            },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
                 description: 'common.date' as const,
@@ -149,6 +166,21 @@ function AdvancedSearchFilters() {
                 shouldHide: Object.keys(cardList).length === 0,
             },
             {
+                title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
+                description: 'workspace.taxes.taxRate' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+            },
+            {
+                title: getExpenseTypeDisplayTitle(searchAdvancedFilters, translate),
+                description: 'search.expenseType' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
+                description: 'common.tag' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+            },
+            {
                 title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
                 description: 'common.from' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
@@ -159,7 +191,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
         ],
-        [searchAdvancedFilters, translate, cardList, personalDetails],
+        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
     );
 
     const onFormSubmit = () => {
