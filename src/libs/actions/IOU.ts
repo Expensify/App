@@ -2805,7 +2805,7 @@ function getUpdateTrackExpenseParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, false),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -3145,9 +3145,9 @@ function updateMoneyRequestDistanceRate(
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
-    if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
+    if (ReportUtils.isTrackExpenseReport(transactionThreadReport) && ReportUtils.isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
