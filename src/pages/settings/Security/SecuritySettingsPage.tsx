@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ function SecuritySettingsPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const {canUseNewDotCopilot} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegates = account?.delegatedAccess?.delegates ?? [];
@@ -124,28 +126,30 @@ function SecuritySettingsPage() {
                             shouldUseSingleExecution
                         />
                     </Section>
-                    <Section
-                        title={translate('delegate.copilotDelegatedAccess')}
-                        subtitle={translate('delegate.copilotDelegatedAccessDescription')}
-                        isCentralPane
-                        subtitleMuted
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        childrenStyles={styles.pt5}
-                    >
-                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
-                        <MenuItemList menuItems={delegateMenuItems} />
-                        <MenuItem
-                            title={translate('delegate.addCopilot')}
-                            // TODO: replace with user plus icon
-                            icon={Expensicons.UserCheck}
-                            iconFill={theme.iconSuccessFill}
-                            onPress={() => {}}
-                            shouldShowRightIcon
-                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                        />
-                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                        <MenuItemList menuItems={delegatorsMenuItems} />
-                    </Section>
+                    {canUseNewDotCopilot && (
+                        <Section
+                            title={translate('delegate.copilotDelegatedAccess')}
+                            subtitle={translate('delegate.copilotDelegatedAccessDescription')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt5}
+                        >
+                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                            <MenuItemList menuItems={delegateMenuItems} />
+                            <MenuItem
+                                title={translate('delegate.addCopilot')}
+                                // TODO: replace with user plus icon
+                                icon={Expensicons.UserCheck}
+                                iconFill={theme.iconSuccessFill}
+                                onPress={() => {}}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                            />
+                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                            <MenuItemList menuItems={delegatorsMenuItems} />
+                        </Section>
+                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>
