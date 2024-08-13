@@ -51,7 +51,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow);
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        Navigation.goBack();
     }, [approvalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
@@ -61,7 +61,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Remove the approval workflow using the initial data as it could be already edited
         Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        Navigation.goBack();
     }, [initialApprovalWorkflow, route.params.policyID]);
 
     // Set the initial approval workflow when the page is loaded
@@ -79,7 +79,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const currentApprovalWorkflow = workflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail);
 
         if (!currentApprovalWorkflow) {
-            return Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            return Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
         }
 
         Workflow.setApprovalWorkflow({
