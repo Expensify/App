@@ -121,7 +121,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             Workflow.setApprovalWorkflow({
                 ...workflow,
                 availableMembers: approvalWorkflows.at(0)?.members ?? [],
-                flow: CONST.APPROVAL_WORKFLOW.FLOW.EDIT,
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
                 isLoading: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email));
