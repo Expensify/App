@@ -37,69 +37,67 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
-    const handleSelectBankAccount = (value?: number) => {
+    const handleSelectBankAccount = (value: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
-        const handleSelectBankAccount = (value: number) => {
-            const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
-            Card.updateSettlementAccount(workspaceAccountID, domainName, value);
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
-        };
+        const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
+        Card.updateSettlementAccount(workspaceAccountID, domainName, value);
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+    };
 
-        const renderBankOptions = () => {
-            if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
-                return null;
-            }
+    const renderBankOptions = () => {
+        if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+            return null;
+        }
 
-            const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
 
-            return eligibleBankAccounts.map((bankAccount) => {
-                const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
-                const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-                const bankAccountID = bankAccount.accountData?.bankAccountID;
+        return eligibleBankAccounts.map((bankAccount) => {
+            const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+            const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+            const bankAccountID = bankAccount.accountData?.bankAccountID;
 
-                const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
+            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 
-                return (
-                    <MenuItem
-                        title={bankName}
-                        description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
-                        onPress={() => handleSelectBankAccount(bankAccountID)}
-                        icon={icon}
-                        iconHeight={iconSize}
-                        iconWidth={iconSize}
-                        iconStyles={iconStyles}
-                        shouldShowRightIcon
-                        displayInDefaultIconColor
-                    />
-                );
-            });
-        };
-
-        return (
-            <ScreenWrapper
-                testID={WorkspaceExpensifyCardBankAccounts.displayName}
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-            >
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    title={translate('workspace.expensifyCard.chooseBankAccount')}
+            return (
+                <MenuItem
+                    title={bankName}
+                    description={`${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`}
+                    onPress={() => handleSelectBankAccount(bankAccountID)}
+                    icon={icon}
+                    iconHeight={iconSize}
+                    iconWidth={iconSize}
+                    iconStyles={iconStyles}
+                    shouldShowRightIcon
+                    displayInDefaultIconColor
                 />
-                <View style={styles.flex1}>
-                    <Text
-                        style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                    {renderBankOptions()}
-                    <MenuItem
-                        icon={Expensicons.Plus}
-                        title={translate('workspace.expensifyCard.addNewBankAccount')}
-                        onPress={handleAddBankAccount}
-                    />
-                </View>
-            </ScreenWrapper>
-        );
-    }
+            );
+        });
+    };
 
-    WorkspaceExpensifyCardBankAccounts.displayName = 'WorkspaceExpensifyCardBankAccounts';
+    return (
+        <ScreenWrapper
+            testID={WorkspaceExpensifyCardBankAccounts.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+        >
+            <HeaderWithBackButton
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+                title={translate('workspace.expensifyCard.chooseBankAccount')}
+            />
+            <View style={styles.flex1}>
+                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                {renderBankOptions()}
+                <MenuItem
+                    icon={Expensicons.Plus}
+                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                    onPress={handleAddBankAccount}
+                />
+            </View>
+        </ScreenWrapper>
+    );
+}
 
-    export default WorkspaceExpensifyCardBankAccounts;
+WorkspaceExpensifyCardBankAccounts.displayName = 'WorkspaceExpensifyCardBankAccounts';
+
+export default WorkspaceExpensifyCardBankAccounts;

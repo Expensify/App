@@ -247,7 +247,11 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: number, domainName: string, settlementBankAccountID: number) {
+function updateSettlementAccount(workspaceAccountID: number, domainName: string, settlementBankAccountID?: number) {
+    if (!settlementBankAccountID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
