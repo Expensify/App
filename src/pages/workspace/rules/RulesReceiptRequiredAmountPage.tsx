@@ -4,9 +4,10 @@ import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -15,6 +16,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -28,17 +30,31 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(route.params.policyID);
 
-    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
-    const decimals = CurrencyUtils.getCurrencyDecimals(policy?.outputCurrency);
+    const defaultValue =
+        policy?.maxExpenseAmountNoReceipt === CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT || !policy?.maxExpenseAmountNoReceipt
+            ? ''
+            : CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>) => {}, []);
-
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
-            return {};
+    const submit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>) => {
+            const value = values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT];
+            let amountBackend;
+            if (!value) {
+                amountBackend = CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT;
+            }
+            amountBackend = CurrencyUtils.convertToBackendAmount(+values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT]);
+            Policy.setPolicyMaxExpenseAmountNoReceipt(route.params.policyID, amountBackend);
+            Navigation.goBack();
         },
-        [],
+        [route.params.policyID],
     );
+
+    // const validate = useCallback(
+    //     (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
+    //         return {};
+    //     },
+    //     [],
+    // );
 
     return (
         <AccessOrNotFoundWrapper
@@ -61,7 +77,7 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     onSubmit={submit}
-                    validate={validate}
+                    // validate={validate}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
@@ -77,6 +93,7 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                             amountMaxLength={20}
                             displayAsTextInput
                         />
+                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.receiptRequiredAmountDescription')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>

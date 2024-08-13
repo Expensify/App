@@ -218,7 +218,6 @@ function AmountForm(
                 label={label}
                 value={formattedAmount}
                 onChangeText={setNewAmount}
-                placeholder={numberFormat(0)}
                 ref={(ref: BaseTextInputRef) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
