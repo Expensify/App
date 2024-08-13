@@ -68,7 +68,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
         setNote(draft?.note);
         setReason(draft?.reason);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps - only sync with Onyx after finish loading
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (option: FeedbackSurveyOptionID) => {
