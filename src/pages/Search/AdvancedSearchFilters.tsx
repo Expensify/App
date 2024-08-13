@@ -39,6 +39,19 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        const {lessThan, greaterThan} = filters;
+        if (lessThan && greaterThan) {
+            return translate('search.filters.amount.between', lessThan, greaterThan);
+        }
+        if (lessThan) {
+            return translate('search.filters.amount.lessThan', lessThan);
+        }
+        if (greaterThan) {
+            return translate('search.filters.amount.greaterThan', greaterThan);
+        }
+    }
+
     if (
         (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
         filters[fieldName]
@@ -131,6 +144,11 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
                 description: 'common.reportID' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
+                description: 'iou.amount' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
