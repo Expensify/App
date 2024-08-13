@@ -14,7 +14,7 @@ type UnitSelectorProps = {
     setNewUnit: (value: UnitItemType) => void;
 
     /** Currently selected unit */
-    defaultValue: Unit;
+    defaultValue?: Unit;
 
     /** Label to display on field */
     label: string;
