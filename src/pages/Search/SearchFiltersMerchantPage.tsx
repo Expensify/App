@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -38,35 +37,33 @@ function SearchFiltersMerchantPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.merchant')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
-                />
-                <FormProvider
-                    style={[styles.flex1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateMerchantFilter}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.MERCHANT}
-                            name={INPUT_IDS.MERCHANT}
-                            defaultValue={merchant}
-                            maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
-                            label={translate('common.merchant')}
-                            accessibilityLabel={translate('common.merchant')}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
-                </FormProvider>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('common.merchant')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <FormProvider
+                style={[styles.flex1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                onSubmit={updateMerchantFilter}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.MERCHANT}
+                        name={INPUT_IDS.MERCHANT}
+                        defaultValue={merchant}
+                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

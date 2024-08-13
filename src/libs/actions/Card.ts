@@ -328,7 +328,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: newLimit,
+                        unapprovedExpenseLimit: newLimit,
                     },
                     isLoading: true,
                     errors: null,
@@ -356,7 +356,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: oldLimit,
+                        unapprovedExpenseLimit: oldLimit,
                     },
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -393,6 +393,30 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     };
 
     API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
+}
+
+function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+    if (!data) {
+        return;
+    }
+
+    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+
+    const parameters = {
+        policyID,
+        assigneeEmail,
+        limit,
+        limitType,
+        cardTitle,
+    };
+
+    if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
+        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
 }
 
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, reconciliationSettings?: ReconciliationConnectionSettings) {
@@ -466,6 +490,7 @@ export {
     updateSettlementAccount,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
+    issueExpensifyCard,
     toggleContinuousReconciliation,
 };
 export type {ReplacementReason};

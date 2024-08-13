@@ -31,7 +31,7 @@ function BaseSidebarScreen() {
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useEffect(() => {
