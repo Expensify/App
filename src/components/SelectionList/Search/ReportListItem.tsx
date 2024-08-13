@@ -189,6 +189,7 @@ function ReportListItem<TItem extends ListItem>({
                 </View>
                 {reportItem.transactions.map((transaction) => (
                     <TransactionListItemRow
+                        key={transaction.transactionID}
                         parentAction={reportItem.action}
                         item={transaction}
                         showTooltip={showTooltip}

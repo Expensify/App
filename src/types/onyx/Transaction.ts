@@ -229,6 +229,9 @@ type Reservation = {
 
     /** In car reservations, this represents the details of the car */
     carInfo?: CarInfo;
+
+    /** Payment type of the reservation */
+    paymentType?: string;
 };
 
 /** Model of trip reservation time details */
@@ -316,7 +319,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the expense was created */
         created: string;
