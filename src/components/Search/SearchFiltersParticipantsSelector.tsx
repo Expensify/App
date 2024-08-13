@@ -107,20 +107,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         if (chatOptions.currentUserOption && !isCurrentUserSelected) {
             newSections.push({
-                title: translate('newTaskPage.assignMe'),
+                title: '',
                 data: [chatOptions.currentUserOption],
                 shouldShow: true,
             });
         }
 
         newSections.push({
-            title: translate('common.recents'),
+            title: '',
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
         newSections.push({
-            title: translate('common.contacts'),
+            title: '',
             data: chatOptions.personalDetails,
             shouldShow: chatOptions.personalDetails.length > 0,
         });

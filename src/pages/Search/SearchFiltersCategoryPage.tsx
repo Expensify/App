@@ -32,40 +32,6 @@ function SearchFiltersCategoryPage() {
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
 
-    const handleConfirmSelection = useCallback(() => {
-        updateCategory({
-            category: newCategories.sort((a, b) => localeCompare(a, b)),
-        });
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [newCategories, updateCategory]);
-
-    const updateNewCategories = useCallback(
-        (item: Partial<OptionData>) => {
-            if (!item.text) {
-                return;
-            }
-            if (item.isSelected) {
-                setNewCategories(newCategories?.filter((category) => category !== item.text));
-            } else {
-                setNewCategories([...(newCategories ?? []), item.text]);
-            }
-        },
-        [newCategories],
-    );
-
-    const footerContent = useMemo(
-        () => (
-            <Button
-                success
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
-            />
-        ),
-        [translate, handleConfirmSelection],
-    );
-
     return (
         <ScreenWrapper
             testID={SearchFiltersCategoryPage.displayName}
