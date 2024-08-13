@@ -801,13 +801,15 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                                 reportAction={firstReportAction}
                                                 reportActions={reportActions}
                                                 parentReportAction={parentReportAction}
+                                                parentReportActionForTransactionThread={undefined}
+                                                transactionThreadReport={undefined}
                                                 index={0}
                                                 report={report}
                                                 displayAsGroup={false}
-                                                shouldHideThreadDividerLine={true}
+                                                shouldHideThreadDividerLine
                                                 shouldDisplayNewMarker={false}
                                                 shouldDisplayReplyDivider={false}
-                                                isFirstVisibleReportAction={true}
+                                                isFirstVisibleReportAction
                                                 shouldUseThreadDividerLine={false}
                                             />
                                         )}
