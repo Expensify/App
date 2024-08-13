@@ -74,6 +74,10 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
+function replaceCommaWithDot(amount: string): string {
+    return amount.replace(/,/g, '.');
+}
+
 function isSearchDataType(type: string): type is SearchDataTypes {
     const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
     return searchDataTypes.includes(type);
@@ -574,4 +578,5 @@ export {
     normalizeQuery,
     shouldShowYear,
     getExpenseTypeTranslationKey,
+    replaceCommaWithDot,
 };
