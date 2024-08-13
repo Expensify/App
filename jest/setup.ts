@@ -73,3 +73,8 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
+
+jest.mock('@src/libs/actions/Timing', () => ({
+    start: jest.fn(),
+    end: jest.fn(),
+}));

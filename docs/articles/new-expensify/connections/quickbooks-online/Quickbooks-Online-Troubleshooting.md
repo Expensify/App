@@ -17,16 +17,15 @@ An error on a report will prevent it from automatically exporting.
 
 To resolve this, open the expense and make the required changes. Then an admin must manually export the report to QuickBooks Online by clicking on Details > Export:
 
-<img width="1000" alt="QBO_help_02" src="https://github.com/user-attachments/assets/40a3ca81-0035-4799-b855-9f2379e913b3">
+![Click the Export button found in the Details tab](https://help.expensify.com/assets/images/QBO_help_02.png){:width="100%"}
 
-<img width="1000" alt="QBO_help_03" src="https://github.com/user-attachments/assets/de2553e0-90ab-46a5-befb-3c102e8362b4">
+![Select QuickBooks Online in the Export tab](https://help.expensify.com/assets/images/QBO_help_03.png){:width="100%"}
 
 ## Unable to manually export a report
 
 To export a report, it must be in the Approved, Closed, or Reimbursed state. If it is in the Open state, clicking “Export” will lead to an empty page, as the data is not yet available for export:
 
-<img width="1000" alt="QBO_help_04" src="https://github.com/user-attachments/assets/38fa0d10-b590-4800-88bb-0d42b8619e1b">
-
+![If the Report is in the Open status, the Not Ready to Export message shows](https://help.expensify.com/assets/images/QBO_help_04.png){:width="100%"}
 
 ### How to resolve:
 

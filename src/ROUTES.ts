@@ -37,32 +37,22 @@ const ROUTES = {
         route: 'search',
         getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
     },
-
     SEARCH_ADVANCED_FILTERS: 'search/filters',
-
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-
-    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-
-    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
-
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
-
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
-
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
-
+    SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
+    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
     },
-
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -715,12 +705,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+        getRoute: (policyID: string, connection?: ConnectionName) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) =>
-            `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
+        getRoute: (policyID: string, connection?: ConnectionName) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
