@@ -397,7 +397,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
                             Navigation.resetToHome();
-                            Navigation.navigate(route.params?.backTo as Route);
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
                             Navigation.dismissModal();
                         }
