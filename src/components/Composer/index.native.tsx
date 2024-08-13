@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -20,8 +20,7 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-        shouldClear = false,
-        onClear = () => {},
+        onClear: onClearProp = () => {},
         onPasteFile = () => {},
         isDisabled = false,
         maxLines,
@@ -66,6 +65,13 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const onClear = useCallback(
+        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            onClearProp(nativeEvent.text);
+        },
+        [onClearProp],
+    );
+
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items[0];
@@ -79,14 +85,6 @@ function Composer(
         },
         [onPasteFile],
     );
-
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
@@ -116,6 +114,7 @@ function Composer(
                 }
                 props?.onBlur?.(e);
             }}
+            onClear={onClear}
         />
     );
 }
