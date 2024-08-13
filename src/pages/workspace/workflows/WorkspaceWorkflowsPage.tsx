@@ -185,10 +185,12 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 subMenuItems: canUseAdvancedApproval ? (
                     <>
                         {approvalWorkflows.map((workflow, index) => (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.employeeList}>
+                            <OfflineWithFeedback
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`workflow-${index}`}
+                                pendingAction={policy?.pendingFields?.employeeList}
+                            >
                                 <ApprovalWorkflowSection
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`workflow-${index}`}
                                     approvalWorkflow={workflow}
                                     onPress={() => editApprovalAction(workflow)}
                                 />
