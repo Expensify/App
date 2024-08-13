@@ -2,6 +2,6 @@ function HybridAppError() {
     return null;
 }
 
-HybridAppError.displayName = 'HybridAppDefaultError';
+HybridAppError.displayName = 'HybridAppError';
 
 export default HybridAppError;
