@@ -204,16 +204,15 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         );
     }
 
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (searchResults === undefined || type === undefined) {
+    if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         return null;
     }
 
+    const type = SearchUtils.getSearchType(searchResults?.search);
     const ListItem = SearchUtils.getListItem(status);
-    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
-    const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
+    const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;

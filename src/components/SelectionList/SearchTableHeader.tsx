@@ -101,9 +101,8 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-    const type = SearchUtils.getSearchType(metadata);
 
-    if (displayNarrowVersion || !type) {
+    if (displayNarrowVersion) {
         return;
     }
 

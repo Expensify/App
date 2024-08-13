@@ -79,13 +79,9 @@ function isSearchDataType(type: string): type is SearchDataTypes {
     return searchDataTypes.includes(type);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
-    if (!search) {
-        return undefined;
-    }
-
-    if (!isSearchDataType(search.type)) {
-        return undefined;
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes {
+    if (!search || !isSearchDataType(search.type)) {
+        return CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
     return search.type;
@@ -236,39 +232,16 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
-        default:
-            return TransactionListItem;
-    }
+function getListItem(status: SearchStatus): ListItemType<typeof status> {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem; 
 }
 
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
-        default:
-            return getTransactionsSections(data, metadata);
-    }
+function getSections(status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
 }
 
-function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
-                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
-                : getSortedReportData(data as ReportListItemType[]);
-        default:
-            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
-    }
+function getSortedSections(status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
 function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
