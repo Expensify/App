@@ -1,7 +1,5 @@
-import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {AccountData, BankAccountList, CardList, FundList, UserWallet, WalletTerms, WalletTransfer} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {BankAccountList, CardList, FundList, UserWallet, WalletTerms, WalletTransfer} from '@src/types/onyx';
 
 type WalletPageOnyxProps = {
     /** Wallet balance transfer props */
@@ -30,27 +28,4 @@ type WalletPageProps = WalletPageOnyxProps & {
     shouldListenForResize?: boolean;
 };
 
-type FormattedSelectedPaymentMethodIcon = {
-    icon: IconAsset;
-    iconHeight?: number;
-    iconWidth?: number;
-    iconStyles?: ViewStyle[];
-    iconSize?: number;
-};
-
-type FormattedSelectedPaymentMethod = {
-    title: string;
-    icon?: FormattedSelectedPaymentMethodIcon;
-    description?: string;
-    type?: string;
-};
-
-type PaymentMethodState = {
-    isSelectedPaymentMethodDefault: boolean;
-    selectedPaymentMethod: AccountData;
-    formattedSelectedPaymentMethod: FormattedSelectedPaymentMethod;
-    methodID: string | number;
-    selectedPaymentMethodType: string;
-};
-
-export type {WalletPageOnyxProps, WalletPageProps, FormattedSelectedPaymentMethodIcon, FormattedSelectedPaymentMethod, PaymentMethodState};
+export type {WalletPageOnyxProps, WalletPageProps};

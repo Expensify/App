@@ -22,6 +22,8 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentMethodState from '@hooks/usePaymentMethodState';
+import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +41,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon, PaymentMethodState, WalletPageOnyxProps, WalletPageProps} from './types';
+import type {WalletPageOnyxProps, WalletPageProps} from './types';
 
 function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadingPaymentMethods = true, shouldListenForResize = false, userWallet, walletTerms = {}}: WalletPageProps) {
     const theme = useTheme();
@@ -48,19 +50,10 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const network = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodState>({
-        isSelectedPaymentMethodDefault: false,
-        selectedPaymentMethod: {},
-        formattedSelectedPaymentMethod: {
-            title: '',
-        },
-        methodID: '',
-        selectedPaymentMethodType: '',
-    });
-
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -117,19 +110,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             return paymentMethod.selectedPaymentMethod.fundID;
         }
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
-
-    const resetSelectedPaymentMethodData = useCallback(() => {
-        // Reset to same values as in the constructor
-        setPaymentMethod({
-            isSelectedPaymentMethodDefault: false,
-            selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {
-                title: '',
-            },
-            methodID: '',
-            selectedPaymentMethodType: '',
-        });
-    }, [setPaymentMethod]);
 
     /**
      * Display the delete/default menu, or the add payment method menu

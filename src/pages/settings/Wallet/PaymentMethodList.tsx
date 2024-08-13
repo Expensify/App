@@ -18,6 +18,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -35,7 +36,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */

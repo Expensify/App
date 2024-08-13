@@ -10,13 +10,14 @@ import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
+import usePaymentMethodState from '@hooks/usePaymentMethodState';
+import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon, PaymentMethodState} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -37,20 +38,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodState>({
-        isSelectedPaymentMethodDefault: false,
-        selectedPaymentMethod: {},
-        formattedSelectedPaymentMethod: {
-            title: '',
-        },
-        methodID: '',
-        selectedPaymentMethodType: '',
-    });
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -166,19 +159,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
         }
     }, [paymentMethod.methodID, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, bankAccountList, styles]);
-
-    const resetSelectedPaymentMethodData = useCallback(() => {
-        // Reset to same values as in the constructor
-        setPaymentMethod({
-            isSelectedPaymentMethodDefault: false,
-            selectedPaymentMethod: {},
-            formattedSelectedPaymentMethod: {
-                title: '',
-            },
-            methodID: '',
-            selectedPaymentMethodType: '',
-        });
-    }, [setPaymentMethod]);
 
     /**
      * Navigate to the appropriate payment type addition screen
