@@ -18,6 +18,9 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
+const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
+
 function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
@@ -32,10 +35,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID;
 
-    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === qboConfig?.reimbursementAccountID)?.name, [qboAccountOptions, qboConfig?.reimbursementAccountID]);
+    const reimbursementAccountID = qboConfig?.reimbursementAccountID;
+    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+    const collectionAccountID = qboConfig?.collectionAccountID;
+
     const selectedInvoiceCollectionAccountName = useMemo(
-        () => invoiceAccountCollectionOptions?.find(({id}) => id === qboConfig?.collectionAccountID)?.name,
-        [invoiceAccountCollectionOptions, qboConfig?.collectionAccountID],
+        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
+        [invoiceAccountCollectionOptions, collectionAccountID],
     );
 
     const sectionMenuItems = [
@@ -43,27 +49,31 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID],
+            subscribedSettings: reimbursementOrCollectionAccountIDs,
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(reimbursementOrCollectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: PolicyUtils.settingsPendingAction(reimbursementOrCollectionAccountIDs, qboConfig?.pendingFields),
         },
         {
             title: selectedInvoiceCollectionAccountName,
             description: translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID))),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID],
+            subscribedSettings: collectionAccountIDs,
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: PolicyUtils.settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
         },
     ];
 
     const syncReimbursedSubMenuItems = () => (
         <View style={[styles.mt3]}>
             {sectionMenuItems.map((item) => (
-                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction(item.subscribedSettings, qboConfig?.pendingFields)}>
+                <OfflineWithFeedback pendingAction={item.pendingAction}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={item.title}
                         description={item.description}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={item.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(item.subscribedSettings, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={item.brickRoadIndicator}
                     />
                 </OfflineWithFeedback>
             ))}
@@ -89,6 +99,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     },
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.ENABLED,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLED),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLED], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
@@ -98,6 +110,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, !qboConfig?.syncPeople, qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
@@ -113,6 +127,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     qboConfig?.autoCreateVendor,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR], qboConfig?.pendingFields),
         },
         {
             title: translate('workspace.accounting.reimbursedReports'),
@@ -128,6 +144,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     qboConfig?.collectionAccountID,
                 ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+            errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields),
         },
     ];
 
@@ -152,8 +170,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     wrapperStyle={styles.mv3}
                     isActive={item.isActive}
                     onToggle={item.onToggle}
-                    pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
-                    errors={ErrorUtils.getLatestErrorField(qboConfig, item.subscribedSetting)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
                     onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
                 />
             ))}

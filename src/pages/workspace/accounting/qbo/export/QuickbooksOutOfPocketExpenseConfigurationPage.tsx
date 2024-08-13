@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +11,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type QBOSectionType = {
     title?: string;
@@ -18,7 +20,11 @@ type QBOSectionType = {
     errorText?: string;
     hintText?: string;
     subscribedSettings: string[];
+    pendingAction?: PendingAction;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
+const account = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
+const accountOrExportDestination = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
 
 function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -56,13 +62,17 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
             hintText: exportHintText,
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
+            subscribedSettings: accountOrExportDestination,
+            pendingAction: PolicyUtils.settingsPendingAction(accountOrExportDestination, qboConfig?.pendingFields),
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             title: qboConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
-            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
+            subscribedSettings: account,
+            pendingAction: PolicyUtils.settingsPendingAction(account, qboConfig?.pendingFields),
+            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
@@ -81,7 +91,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
         >
             {sections.map((section, index) => (
                 <OfflineWithFeedback
-                    pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
+                    pendingAction={section.pendingAction}
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                 >
@@ -90,7 +100,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                         description={section.description}
                         onPress={section.onPress}
                         shouldShowRightIcon
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={section.brickRoadIndicator}
                         hintText={section.hintText}
                     />
                 </OfflineWithFeedback>
