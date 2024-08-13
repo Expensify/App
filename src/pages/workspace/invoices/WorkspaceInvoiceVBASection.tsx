@@ -14,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {FormattedSelectedPaymentMethodIcon} from '@pages/settings/Wallet/WalletPage/types';
@@ -23,7 +22,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -54,9 +52,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -77,10 +72,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const hasBankAccount = !isEmptyObject(bankAccountList) || !isEmptyObject(fundList);
-    const hasWallet = !isEmptyObject(userWallet);
-    const hasAssignedCard = !isEmptyObject(cardList);
-    const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
+    const hasBankAccount = !isEmptyObject(bankAccountList);
+    const shouldShowEmptyState = !hasBankAccount;
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton =
@@ -179,26 +172,15 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
-        const paymentCardList = fundList ?? {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, {}, styles);
 
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? -1, 0, previousPaymentMethod, currentPaymentMethod);
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? -1, previousPaymentMethod, currentPaymentMethod);
         }
-    }, [
-        paymentMethod.methodID,
-        paymentMethod.selectedPaymentMethod.bankAccountID,
-        paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.selectedPaymentMethodType,
-        bankAccountList,
-        fundList,
-        styles,
-    ]);
+    }, [paymentMethod.methodID, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, bankAccountList, styles]);
 
     const resetSelectedPaymentMethodData = useCallback(() => {
         // Reset to same values as in the constructor
@@ -218,11 +200,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
      */
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
-
-        if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
-            return;
-        }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
             return;
