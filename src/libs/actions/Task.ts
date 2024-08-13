@@ -798,6 +798,13 @@ function setAssigneeValue(
         if (!shareToReportID && !skipShareDestination) {
             setShareDestinationValue(report?.reportID ?? '-1');
         }
+    } else {
+        const selfDMReportID = ReportUtils.findSelfDMReportID();
+        // If there is no share destination set, automatically set it to the assignee chat report
+        // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
+        if (!shareToReportID && !skipShareDestination) {
+            setShareDestinationValue(selfDMReportID ?? '-1');
+        }
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
