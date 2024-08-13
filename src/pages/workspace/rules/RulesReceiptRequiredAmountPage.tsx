@@ -1,18 +1,44 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+import AmountForm from '@components/AmountForm';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/RulesRequiredReceiptAmountForm';
 
 type RulesReceiptRequiredAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT>;
 
 function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const policy = usePolicy(route.params.policyID);
+
+    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
+    const decimals = CurrencyUtils.getCurrencyDecimals(policy?.outputCurrency);
+
+    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>) => {}, []);
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
+            return {};
+        },
+        [],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -29,6 +55,30 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                     title={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    scrollContextEnabled
+                    onSubmit={submit}
+                    validate={validate}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            label={translate('iou.amount')}
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT}
+                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            defaultValue={defaultValue}
+                            isCurrencyPressable={false}
+                            ref={inputCallbackRef}
+                            // @TODO Replace it when maxLength of this field is known
+                            amountMaxLength={20}
+                            displayAsTextInput
+                        />
+                    </View>
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
