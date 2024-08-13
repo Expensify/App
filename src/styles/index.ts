@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
-import {min} from 'lodash';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -1710,12 +1709,6 @@ const styles = (theme: ThemeColors) =>
         onlyEmojisTextLineHeight: {
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
-
-        createAccountSwitcherPosition: () =>
-            ({
-                horizontal: 12,
-                vertical: 285,
-            } satisfies AnchorPosition),
 
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
@@ -5170,6 +5163,10 @@ const styles = (theme: ThemeColors) =>
         accountSwitcherWrapper: {
             minWidth: 0,
             flex: 1,
+        },
+
+        accountSwitcherPopover: {
+            width: variables.sideBarWidth - 19,
         },
     } satisfies Styles);
 
