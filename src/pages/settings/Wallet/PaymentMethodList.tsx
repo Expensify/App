@@ -92,7 +92,7 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     shouldShowAddPaymentMethodButton?: boolean;
 
     /** Whether the add Bank account button be shown on the list */
-    shouldShowAddBankAccountButton?: boolean;
+    shouldUseSuccessAddBankAccountButton?: boolean;
 
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
@@ -186,7 +186,7 @@ function PaymentMethodList({
     onPress,
     shouldShowSelectedState = false,
     shouldShowAddPaymentMethodButton = true,
-    shouldShowAddBankAccountButton = false,
+    shouldUseSuccessAddBankAccountButton = false,
     shouldShowAddBankAccount = true,
     shouldShowEmptyListMessage = true,
     shouldShowAssignedCards = false,
@@ -318,7 +318,7 @@ function PaymentMethodList({
 
     const renderListFooterComponent = useCallback(
         () =>
-            shouldShowAddBankAccountButton ? (
+            shouldUseSuccessAddBankAccountButton ? (
                 <Button
                     ref={buttonRef}
                     key="addBankAccountButton"
@@ -340,7 +340,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldShowAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, isUserValidated],
+        [shouldUseSuccessAddBankAccountButton, translate, onPress, isLoadingPaymentMethods, buttonRef, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, isUserValidated],
     );
 
     /**
