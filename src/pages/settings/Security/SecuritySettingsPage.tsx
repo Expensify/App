@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -74,6 +75,23 @@ function SecuritySettingsPage() {
                         <MenuItemList
                             menuItems={menuItems}
                             shouldUseSingleExecution
+                        />
+                    </Section>
+                    <Section
+                        title={translate('delegate.copilotDelegatedAccess')}
+                        subtitle={translate('delegate.copilotDelegatedAccessDescription')}
+                        isCentralPane
+                        subtitleMuted
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                    >
+                        {/* add copilot menu item with add member icon */}
+                        <MenuItem
+                            title={translate('delegate.addCopilot')}
+                            icon={Expensicons.User}
+                            onPress={() => {}}
+                            shouldShowRightIcon
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         />
                     </Section>
                 </View>
