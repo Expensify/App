@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,7 @@ function SecuritySettingsPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
 
     const menuItems = useMemo(() => {
         const baseMenuItems = [
@@ -88,7 +90,9 @@ function SecuritySettingsPage() {
                         {/* add copilot menu item with add member icon */}
                         <MenuItem
                             title={translate('delegate.addCopilot')}
-                            icon={Expensicons.User}
+                            // TODO: replace with user plus icon
+                            icon={Expensicons.UserCheck}
+                            iconFill={theme.iconSuccessFill}
                             onPress={() => {}}
                             shouldShowRightIcon
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
