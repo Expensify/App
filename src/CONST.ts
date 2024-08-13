@@ -973,6 +973,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
+        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
+        SWITCH_REPORT_THREAD: 'switch_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -5248,6 +5250,7 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5271,10 +5274,12 @@ const CONST = {
             DESC: 'desc',
         },
         STATUS: {
-            ALL: 'all',
-            SHARED: 'shared',
-            DRAFTS: 'drafts',
-            FINISHED: 'finished',
+            EXPENSE: {
+                ALL: 'all',
+                SHARED: 'shared',
+                DRAFTS: 'drafts',
+                FINISHED: 'finished',
+            },
         },
         TYPE: {
             EXPENSE: 'expense',

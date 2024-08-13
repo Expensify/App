@@ -29,6 +29,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getSynchronizationErrorMessage} from './actions/connections';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -83,6 +84,13 @@ function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
     return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
+}
+
+/**
+ * Checks if the policy had a sync error.
+ */
+function hasSyncError(policy: OnyxEntry<Policy>): boolean {
+    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, false));
 }
 
 /**
@@ -145,7 +153,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -292,7 +300,7 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+    return tag?.replace(/\\:/g, CONST.COLON);
 }
 
 /**
@@ -949,6 +957,7 @@ export {
     getUnitRateValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
+    hasSyncError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
