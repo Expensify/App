@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
@@ -61,12 +62,14 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const confirmButtonRef = useRef<View>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                confirmButtonRef.current?.focus();
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
         }, []),
