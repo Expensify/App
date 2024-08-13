@@ -1,21 +1,28 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SecuritySettingsPage() {
@@ -25,7 +32,11 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
 
-    const menuItems = useMemo(() => {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const delegates = account?.delegatedAccess?.delegates ?? [];
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+
+    const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
@@ -49,6 +60,24 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [translate, waitForNavigate, styles]);
+
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
+        const personalDetail = getPersonalDetailByEmail(email);
+
+        return {
+            title: personalDetail?.displayName ?? email,
+            description: personalDetail?.displayName ? email : '',
+            // TODO: replace with Full or Limited
+            badgeText: Str.recapitalize(role),
+            avatarID: personalDetail?.accountID ?? -1,
+            icon: personalDetail?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            numberOfLinesDescription: 1,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            iconRight: Expensicons.ThreeDots,
+            shouldShowRightIcon: true,
+        };
+    });
 
     return (
         <ScreenWrapper
@@ -75,7 +104,7 @@ function SecuritySettingsPage() {
                         childrenStyles={styles.pt5}
                     >
                         <MenuItemList
-                            menuItems={menuItems}
+                            menuItems={securityMenuItems}
                             shouldUseSingleExecution
                         />
                     </Section>
@@ -87,7 +116,8 @@ function SecuritySettingsPage() {
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >
-                        {/* add copilot menu item with add member icon */}
+                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                        <MenuItemList menuItems={delegateMenuItems} />
                         <MenuItem
                             title={translate('delegate.addCopilot')}
                             // TODO: replace with user plus icon
