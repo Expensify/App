@@ -465,7 +465,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY) &&
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -474,16 +476,6 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
                 }
-            }
-
-            if (filterKey === INPUT_IDS.FROM && Array.isArray(filterValue) && filterValue.length > 0) {
-                const accountIDs = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}:${accountIDs.join(',')}`;
-            }
-
-            if (filterKey === INPUT_IDS.TO && Array.isArray(filterValue) && filterValue.length > 0) {
-                const accountIDs = filterValues[filterKey] ?? [];
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${accountIDs.join(',')}`;
             }
 
             return undefined;
