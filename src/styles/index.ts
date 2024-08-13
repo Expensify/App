@@ -4515,6 +4515,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        profilePageAvatar: {
+            borderColor: theme.highlightBG,
+        },
+
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
