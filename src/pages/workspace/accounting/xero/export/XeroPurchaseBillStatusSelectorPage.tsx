@@ -52,9 +52,15 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
                 return;
             }
             if (row.value !== invoiceStatus) {
-                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
-                    billStatus: {...config?.export?.billStatus, purchase: row.value},
-                });
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {
+                        billStatus: {...config?.export?.billStatus, purchase: row.value},
+                    },
+                    {billStatus: config?.export?.billStatus ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID));
         },

@@ -9,7 +9,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     remainingLimit: number;
 
     /** The total amount of cash back earned thus far */
-    cashBack: number;
+    earnedCashback: number;
 
     /** The date of the last settlement */
     monthlySettlementDate: Date;
@@ -19,6 +19,9 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The bank account chosen for the card settlement */
     paymentBankAccountID: number;
+
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
 }>;
 
 export default ExpensifyCardSettings;
