@@ -206,7 +206,7 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
-function updateSettlementFrequency(workspaceAccountID: number, settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
+function updateSettlementFrequency(workspaceAccountID: number, settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentFrequency?: Date) {
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
 
     const optimisticData: OnyxUpdate[] = [
@@ -234,7 +234,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
-                monthlySettlementDate: null,
+                monthlySettlementDate: currentFrequency,
             },
         },
     ];
@@ -247,7 +247,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: number, domainName: string, settlementBankAccountID?: number) {
+function updateSettlementAccount(workspaceAccountID: number, domainName: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
@@ -277,7 +277,7 @@ function updateSettlementAccount(workspaceAccountID: number, domainName: string,
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
-                paymentBankAccountID: null,
+                paymentBankAccountID: currentSettlementBankAccountID,
             },
         },
     ];

@@ -55,7 +55,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        Card.updateSettlementFrequency(workspaceAccountID, value);
+        Card.updateSettlementFrequency(workspaceAccountID, value, cardSettings?.monthlySettlementDate);
     };
 
     return (
