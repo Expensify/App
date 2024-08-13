@@ -40,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Beta} from '@src/types/onyx';
-import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -109,25 +108,13 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             );
             return;
         }
+
         Workflow.setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
         });
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [approvalWorkflows, policy, route.params.policyID]);
-
-    const editApprovalAction = useCallback(
-        (workflow: ApprovalWorkflow) => {
-            Workflow.setApprovalWorkflow({
-                ...workflow,
-                availableMembers: approvalWorkflows.at(0)?.members ?? [],
-                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-                isLoading: false,
-            });
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email));
-        },
-        [approvalWorkflows, route.params.policyID],
-    );
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
@@ -192,7 +179,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
-                                    onPress={() => editApprovalAction(workflow)}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
                                 />
                             </OfflineWithFeedback>
                         ))}
@@ -323,7 +310,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
-        editApprovalAction,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
