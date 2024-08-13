@@ -190,7 +190,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         title={translate('workflowsExpensesFromPage.title')}
                         onBackButtonPress={goBack}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                    )}
                     <SelectionList
                         canSelectMultiple
                         sections={sections}

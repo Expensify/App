@@ -242,7 +242,9 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         title={translate('workflowsPage.approver')}
                         onBackButtonPress={goBack}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    )}
                     <SelectionList
                         sections={sections}
                         ListItem={InviteMemberListItem}
