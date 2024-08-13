@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -31,18 +32,15 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID ?? '-1';
-    // TODO: change for getWorkspaceAccountID
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const workspaceAccountID = policy?.workspaceAccountID ?? 0;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
-    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID]?.accountData?.accountNumber ?? '';
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
 
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
@@ -76,7 +74,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
 
     const updateSettlementAccount = (value: number) => {
         // TODO: policy domainName
-        Card.updateSettlementAccount(workspaceAccountID, '', value);
+        Card.updateSettlementAccount(workspaceAccountID, value);
         Navigation.goBack();
     };
 
