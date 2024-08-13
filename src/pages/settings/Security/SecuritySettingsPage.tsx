@@ -79,6 +79,22 @@ function SecuritySettingsPage() {
         };
     });
 
+    const delegatorsMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+        const personalDetail = getPersonalDetailByEmail(email);
+
+        return {
+            title: personalDetail?.displayName ?? email,
+            description: personalDetail?.displayName ? email : '',
+            badgeText: Str.recapitalize(role),
+            avatarID: personalDetail?.accountID ?? -1,
+            icon: personalDetail?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            numberOfLinesDescription: 1,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            interactive: false,
+        };
+    });
+
     return (
         <ScreenWrapper
             testID={SecuritySettingsPage.displayName}
@@ -125,8 +141,10 @@ function SecuritySettingsPage() {
                             iconFill={theme.iconSuccessFill}
                             onPress={() => {}}
                             shouldShowRightIcon
-                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
                         />
+                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                        <MenuItemList menuItems={delegatorsMenuItems} />
                     </Section>
                 </View>
             </ScrollView>
