@@ -97,8 +97,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     );
 
     const renderActiveIntegration = () => {
-        console.log('rerender');
-        console.log('activeIntegration', activeIntegration);
         if (!activeIntegration) {
             return null;
         }
