@@ -133,7 +133,6 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: updatedEmployees,
-
                 pendingFields: {employeeList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
