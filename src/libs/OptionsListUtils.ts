@@ -23,7 +23,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
-    PolicyTagList,
+    PolicyTagLists,
     PolicyTags,
     Report,
     ReportAction,
@@ -656,6 +656,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 });
                 break;
             }
+            case CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`);
+                break;
+            }
             default: {
                 lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
             }
@@ -793,6 +797,7 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
+        result.notificationPreference = report.notificationPreference;
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1350,7 +1355,7 @@ function getTagListSections(
 /**
  * Verifies that there is at least one enabled tag
  */
-function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
     const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
 
     return hasEnabledOptions(policyTagValueList);
@@ -2545,6 +2550,10 @@ function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
     return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 }
 
+function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
+    return report.isUnread === true && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2588,6 +2597,7 @@ export {
     shouldShowViolations,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
+    shouldUseBoldText,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
