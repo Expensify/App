@@ -3,7 +3,7 @@
 //
 // Here's a general grammar structure:
 //
-// query: entry point for the parserand and rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
+// query: entry point for the parser and rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
 // filterList: rule to process the array of filters returned by the filter rule. It takes head and tail as arguments, filters it for null values and builds the AST.
 // filter: rule to build the filter object. It takes field, operator and value as input and returns {operator, left: field, right: value} or null if the left value is a defaultValues
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
@@ -51,7 +51,7 @@ filterList
       if (!allFilters.length) {
       	return null;
       }
-     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left == "keyword")
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
      const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
      if(!nonKeywords.length){
      	return keywords.reduce((result, filter) => buildFilter("or", result, filter))

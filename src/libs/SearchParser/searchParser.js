@@ -167,7 +167,6 @@ peg$SyntaxError.buildMessage = function(expected, found) {
 };
 
 function peg$parse(input, options) {
-  console.log(input)
   options = options !== undefined ? options : {};
 
   var peg$FAILED = {};
@@ -244,7 +243,7 @@ function peg$parse(input, options) {
       if (!allFilters.length) {
       	return null;
       }
-     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left == "keyword")
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
      const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
      if(!nonKeywords.length){
      	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
