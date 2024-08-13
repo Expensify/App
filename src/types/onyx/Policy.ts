@@ -1540,7 +1540,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether GL codes are enabled */
         glCodes?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'generalSettings' | 'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount
 >;
 
 /** Stages of policy connection sync */

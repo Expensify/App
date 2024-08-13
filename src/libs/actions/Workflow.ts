@@ -69,6 +69,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                pendingFields: {employeeList: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
         },
     ];
@@ -85,6 +86,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: previousApprovalMode,
+                pendingFields: {employeeList: null},
             },
         },
     ];
@@ -94,6 +96,13 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {employeeList: null},
+            },
         },
     ];
 
@@ -122,7 +131,11 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList: updatedEmployees},
+            value: {
+                employeeList: updatedEmployees,
+
+                pendingFields: {employeeList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
         },
     ];
 
@@ -135,7 +148,10 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {employeeList: previousEmployeeList},
+            value: {
+                employeeList: previousEmployeeList,
+                pendingFields: {employeeList: null},
+            },
         },
     ];
 
@@ -144,6 +160,13 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {employeeList: null},
+            },
         },
     ];
 
@@ -179,6 +202,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: hasMoreThanOneWorkflow ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+                pendingFields: {employeeList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -197,6 +221,13 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {employeeList: null},
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -204,6 +235,13 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {employeeList: null},
+            },
         },
     ];
 
