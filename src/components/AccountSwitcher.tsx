@@ -16,6 +16,7 @@ import Avatar from './Avatar';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
+import type {MenuItemProps} from './MenuItem';
 import Popover from './Popover';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
@@ -37,11 +38,10 @@ function AccountSwitcher() {
     const shouldShowDelegates = delegates.length > 0 && canUseNewDotCopilot;
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const delegateMenuItems = delegates.map(({email, role}) => {
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
-            key: email,
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
             badgeText: Str.recapitalize(role),
@@ -54,9 +54,8 @@ function AccountSwitcher() {
         };
     });
 
-    const delegateMenuItemsWithCurrentUser = [
+    const delegateMenuItemsWithCurrentUser: MenuItemProps[] = [
         {
-            key: currentUserPersonalDetails?.login,
             title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
             description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
             onPress: () => {},
