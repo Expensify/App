@@ -1,19 +1,15 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import type {PublicScreensParamList} from '@navigation/types';
-import ConnectionCompletePage from '@pages/ConnectionCompletePage';
+import type {HybridAppPublicScreensParamList} from '@navigation/types';
+import HybridAppError from '@pages/HybridAppErrorPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
-import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
-import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
-import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
-import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
-const RootStack = createStackNavigator<PublicScreensParamList>();
+const RootStack = createStackNavigator<HybridAppPublicScreensParamList>();
 
 function HybridAppPublicScreens() {
     return (
@@ -35,29 +31,9 @@ function HybridAppPublicScreens() {
                 component={ValidateLoginPage}
             />
             <RootStack.Screen
-                name={SCREENS.CONNECTION_COMPLETE}
+                name={SCREENS.HYBRID_APP_ERROR}
                 options={defaultScreenOptions}
-                component={ConnectionCompletePage}
-            />
-            <RootStack.Screen
-                name={SCREENS.UNLINK_LOGIN}
-                options={defaultScreenOptions}
-                component={UnlinkLoginPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_APPLE_DESKTOP}
-                options={defaultScreenOptions}
-                component={AppleSignInDesktopPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP}
-                options={defaultScreenOptions}
-                component={GoogleSignInDesktopPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.SAML_SIGN_IN}
-                options={defaultScreenOptions}
-                component={SAMLSignInPage}
+                component={HybridAppError}
             />
         </RootStack.Navigator>
     );

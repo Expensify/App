@@ -16,6 +16,10 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
     return `${url}${backToParam}` as const;
 }
 
+const HYBRID_APP_SCREENS_ROUTES = {
+    HYBRID_APP_ERROR: 'hybrid-app-error',
+} as const;
+
 const PUBLIC_SCREENS_ROUTES = {
     // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
     ROOT: '',
@@ -29,6 +33,7 @@ const PUBLIC_SCREENS_ROUTES = {
 } as const;
 
 const ROUTES = {
+    ...HYBRID_APP_SCREENS_ROUTES,
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     HOME: 'home',

@@ -12,8 +12,13 @@ const PROTECTED_SCREENS = {
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;
 
+const HYBRID_APP_SCREENS = {
+    HYBRID_APP_ERROR: 'HybridAppError',
+} as const;
+
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ...HYBRID_APP_SCREENS,
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',

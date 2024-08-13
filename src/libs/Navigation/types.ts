@@ -1246,6 +1246,10 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
+type HybridAppPublicScreensParamList = SharedScreensParamList & {
+    [SCREENS.HYBRID_APP_ERROR]: undefined;
+};
+
 type AuthScreensParamList = CentralPaneScreensParamList &
     SharedScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
@@ -1303,7 +1307,7 @@ type RestrictedActionParamList = {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & HybridAppPublicScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -1335,6 +1339,7 @@ export type {
     FlagCommentNavigatorParamList,
     FullScreenName,
     FullScreenNavigatorParamList,
+    HybridAppPublicScreensParamList,
     LeftModalNavigatorParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
