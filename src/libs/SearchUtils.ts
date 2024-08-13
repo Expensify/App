@@ -233,7 +233,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 }
 
 function getListItem(status: SearchStatus): ListItemType<typeof status> {
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem; 
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
 }
 
 function getSections(status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
