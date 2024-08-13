@@ -806,6 +806,13 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
 }
 
 /**
+ * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
+ */
+function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
+}
+
+/**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
@@ -1114,6 +1121,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
+    isPayAtEndExpense,
 };
 
 export type {TransactionChanges};

@@ -2,6 +2,7 @@ import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
@@ -37,6 +38,7 @@ function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor 
             style={[styles.tabSelectorButton]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
+            role={CONST.ROLE.BUTTON}
         >
             {({hovered}) => (
                 <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isActive, backgroundColor)]}>

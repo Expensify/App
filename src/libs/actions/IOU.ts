@@ -522,7 +522,7 @@ function buildOnyxDataForMoneyRequest(
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
     shouldCreateNewMoneyRequestReport: boolean,
     policy?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
     isOneOnOneSplit = false,
@@ -928,7 +928,7 @@ function buildOnyxDataForInvoice(
     transactionThreadReport: OptimisticChatReport,
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     companyName?: string,
     companyWebsite?: string,
@@ -1291,7 +1291,7 @@ function buildOnyxDataForTrackExpense(
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
     shouldCreateNewMoneyRequestReport: boolean,
     policy?: OnyxInputValue<OnyxTypes.Policy>,
-    policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>,
     existingTransactionThreadReportID?: string,
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>,
@@ -1850,7 +1850,7 @@ function getSendInvoiceInformation(
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receipt?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     companyName?: string,
     companyWebsite?: string,
@@ -2002,7 +2002,7 @@ function getMoneyRequestInformation(
     taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists> | undefined,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
@@ -2211,7 +2211,7 @@ function getTrackExpenseInformation(
     taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists> | undefined,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeEmail = currentUserEmail,
     payeeAccountID = userAccountID,
@@ -2454,7 +2454,7 @@ function getUpdateMoneyRequestParams(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
 ): UpdateMoneyRequestData {
@@ -2939,7 +2939,7 @@ function updateMoneyRequestDate(
     transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -2964,7 +2964,7 @@ function updateMoneyRequestBillable(
     transactionThreadReportID: string,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -2980,7 +2980,7 @@ function updateMoneyRequestMerchant(
     transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -3005,7 +3005,7 @@ function updateMoneyRequestTag(
     transactionThreadReportID: string,
     tag: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -3021,7 +3021,7 @@ function updateMoneyRequestTaxAmount(
     optimisticReportActionID: string,
     taxAmount: number,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges = {
@@ -3037,7 +3037,7 @@ type UpdateMoneyRequestTaxRateParams = {
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
@@ -3057,7 +3057,7 @@ type UpdateMoneyRequestDistanceParams = {
     waypoints: WaypointCollection;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
@@ -3094,7 +3094,7 @@ function updateMoneyRequestCategory(
     transactionThreadReportID: string,
     category: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -3110,7 +3110,7 @@ function updateMoneyRequestDescription(
     transactionThreadReportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -3135,7 +3135,7 @@ function updateMoneyRequestDistanceRate(
     transactionThreadReportID: string,
     rateID: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
@@ -3160,7 +3160,7 @@ function updateDistanceRequest(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.Policy,
-    policyTagList: OnyxTypes.PolicyTagList,
+    policyTagList: OnyxTypes.PolicyTagLists,
     policyCategories: OnyxTypes.PolicyCategories,
 ) {
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, false);
@@ -3462,7 +3462,7 @@ function requestMoney(
     taxAmount = 0,
     billable?: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
     action?: IOUAction,
@@ -3594,7 +3594,7 @@ function sendInvoice(
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receiptFile?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     companyName?: string,
     companyWebsite?: string,
@@ -3648,7 +3648,7 @@ function trackExpense(
     taxAmount = 0,
     billable?: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
     validWaypoints?: WaypointCollection,
@@ -5021,7 +5021,7 @@ function createDistanceRequest(
     billable: boolean | undefined,
     validWaypoints: WaypointCollection,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     customUnitRateID = '',
     currentUserLogin = '',
@@ -5155,7 +5155,7 @@ function editRegularMoneyRequest(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
+    policyTags: OnyxTypes.PolicyTagLists,
     policyCategories: OnyxTypes.PolicyCategories,
 ) {
     const allReports = ReportConnection.getAllReports();
@@ -5419,7 +5419,7 @@ function editMoneyRequest(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
+    policyTags: OnyxTypes.PolicyTagLists,
     policyCategories: OnyxTypes.PolicyCategories,
 ) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
@@ -5436,7 +5436,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     amount: number;
     taxAmount: number;
     policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
 };
@@ -6799,6 +6799,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    transactions?: OnyxTypes.Transaction[],
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -6837,8 +6838,18 @@ function canIOUBePaid(
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const shouldBeApproved = canApproveIOU(iouReport, chatReport, policy);
 
+    const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
+
     return (
-        isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !isChatReportArchived && !isAutoReimbursable && !shouldBeApproved
+        isPayer &&
+        !isOpenExpenseReport &&
+        !iouSettled &&
+        !iouReport?.isWaitingOnBankAccount &&
+        reimbursableSpend !== 0 &&
+        !isChatReportArchived &&
+        !isAutoReimbursable &&
+        !shouldBeApproved &&
+        !isPayAtEndExpenseReport
     );
 }
 
