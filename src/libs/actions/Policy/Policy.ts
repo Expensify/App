@@ -1038,6 +1038,9 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    // only add pending action for currency if it's different from the current currency
+    const currencyPendingAction = currency !== policy?.outputCurrency ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
+
     const currentRates = distanceUnit?.rates ?? {};
     const optimisticRates: Record<string, Rate> = {};
     const finallyRates: Record<string, Rate> = {};
@@ -1074,6 +1077,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
                 pendingFields: {
                     ...policy.pendingFields,
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    outputCurrency: currencyPendingAction,
                 },
 
                 // Clear errorFields in case the user didn't dismiss the general settings error
@@ -1280,12 +1284,29 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 address: newAddress,
+                pendingFields: {
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                address: newAddress,
+                pendingFields: {
+                    address: null,
+                },
             },
         },
     ];
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
         optimisticData,
+        finallyData,
     });
 }
 
