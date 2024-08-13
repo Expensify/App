@@ -374,6 +374,8 @@ const SCREENS = {
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         INVOICES_TRANSFER_BALANCE: 'Workspace_Invoices_Transfer_Balance',
+        INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
+        INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',

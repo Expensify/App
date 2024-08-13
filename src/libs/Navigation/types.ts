@@ -668,6 +668,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICES_TRANSFER_BALANCE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };
