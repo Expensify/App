@@ -327,7 +327,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: newLimit,
+                        unapprovedExpenseLimit: newLimit,
                     },
                     isLoading: true,
                     errors: null,
@@ -355,7 +355,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: oldLimit,
+                        unapprovedExpenseLimit: oldLimit,
                     },
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),

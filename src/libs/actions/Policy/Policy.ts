@@ -2037,15 +2037,45 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
-function openPolicyExpensifyCardsPage(policyID: string) {
+function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
         authToken,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
 function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
@@ -2655,7 +2685,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
+function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2698,7 +2728,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }
@@ -2919,10 +2949,10 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes,
+                            pendingFields: {
+                                taxEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
                         },
-                    },
-                    pendingFields: {
-                        customUnits: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -2932,8 +2962,12 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        customUnits: null,
+                    customUnits: {
+                        [customUnitID]: {
+                            pendingFields: {
+                                taxEnabled: null,
+                            },
+                        },
                     },
                 },
             },
@@ -2946,6 +2980,9 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
+                            errorFields: {
+                                taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
