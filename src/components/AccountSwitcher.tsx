@@ -133,6 +133,7 @@ function AccountSwitcher() {
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             <MenuItem {...item} />
                         ))}
+                        {/* TODO error handling on API error <Text style={[styles.textLabelError, styles.ph5, styles.pt4]}>Oops something went wrong. Please try again</Text> */}
                     </View>
                 </Popover>
             )}
