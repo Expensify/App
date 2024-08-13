@@ -45,7 +45,6 @@ import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
 
-console.log('URL', new URL('./libs/worker/exampleWorker.ts', import.meta.url));
 const workerFactory = createWorkerFactory<typeof worker>(() => new Worker(new URL('./libs/worker/exampleWorker.ts', import.meta.url)));
 
 Onyx.registerLogger(({level, message}) => {
