@@ -271,3 +271,4 @@ export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyC
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as TransferInvoiceBalanceParams} from './TransferInvoiceBalanceParams';
+export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
