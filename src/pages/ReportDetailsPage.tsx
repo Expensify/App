@@ -721,7 +721,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 limit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
                             />
                         </OfflineWithFeedback>
                     )}
