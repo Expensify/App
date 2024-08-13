@@ -94,7 +94,7 @@ function AccountSwitcher() {
                         source={avatarUrl}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter]}>
+                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
