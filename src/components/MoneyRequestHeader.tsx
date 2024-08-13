@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,17 +80,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')};
+            return {title: translate('violations.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -185,8 +185,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 {statusBarProps && (
                     <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                         <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
+                            title={statusBarProps.title}
                             description={statusBarProps.description}
+                            danger={statusBarProps.danger}
                         />
                     </View>
                 )}

@@ -4711,7 +4711,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerStatusBarContainer: {
-            minHeight: variables.componentSizeSmall,
+            minHeight: variables.componentSizeNormal,
         },
 
         walletIllustration: {

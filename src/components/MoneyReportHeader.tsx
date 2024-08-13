@@ -18,8 +18,8 @@ import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -30,8 +30,8 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
@@ -211,13 +211,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             }
         }
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
+            return {title: translate('violations.hold'), description: translate('iou.expensesOnHold'), danger: true};
         }
         if (allHavePendingRTERViolation) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (hasScanningReceipt) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -378,8 +378,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
                     {statusBarProps && (
                         <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
+                            title={statusBarProps.title}
                             description={statusBarProps.description}
+                            danger={statusBarProps.danger}
                         />
                     )}
                 </View>
