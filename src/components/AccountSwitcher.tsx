@@ -126,7 +126,7 @@ function AccountSwitcher() {
                     isVisible={shouldShowDelegateMenu}
                     onClose={() => setShouldShowDelegateMenu(false)}
                     anchorRef={buttonRef}
-                    anchorPosition={{top: 80, left: 12}}
+                    anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
