@@ -2,8 +2,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {InteractionManager} from 'react-native';
+import {InteractionManage, View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
