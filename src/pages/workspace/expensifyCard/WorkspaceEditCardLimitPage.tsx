@@ -56,7 +56,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const updateCardLimit = (newLimit: string) => {
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), Number(newLimit) * 100, card.nameValuePairs?.limit);
+        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), Number(newLimit) * 100, card?.nameValuePairs?.unapprovedExpenseLimit);
 
         Navigation.goBack();
     };

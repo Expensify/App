@@ -24,7 +24,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const fetchExpensifyCards = useCallback(() => {
         Policy.openPolicyExpensifyCardsPage(policyID, workspaceAccountID);

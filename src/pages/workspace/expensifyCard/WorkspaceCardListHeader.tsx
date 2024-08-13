@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +21,7 @@ function WorkspaceCardListHeader() {
     const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
 
     const policyID = route.params.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
