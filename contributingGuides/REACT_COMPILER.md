@@ -112,6 +112,35 @@ return (
 )
 ```
 
+### `Unexpected terminal kind optional for ternary test block`
+
+The problem happens when you have a ternary operator and you are using optional chaining `?.` operator:
+
+```tsx
+<OfflineWithFeedback
+  description={menuItem.description}
+  // ❌ such code triggers the error
+  brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings, qboConfig?.errorFields) ? CONST.ERROR : undefined}
+>
+</OfflineWithFeedback>
+```
+
+In this case, `qboConfig?.errorFields` is causing the error, and the solution is to put it outside the ternary test block:
+
+```tsx
+// 👇 move optional field outside of a ternary block
+const errorFields = qboConfig?.errorFields;
+
+...
+
+<OfflineWithFeedback
+    description={menuItem.description}
+    // ✅ this code can be compiled successfully now
+    brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.ERROR : undefined}
+>
+</OfflineWithFeedback>
+```
+
 ## What if my type of error is not listed here?
 
 This list is actively maintained. If you discover a new error that is not listed and find a way to fix it, please update this documentation and create a PR.
