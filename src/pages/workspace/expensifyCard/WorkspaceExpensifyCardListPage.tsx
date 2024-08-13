@@ -107,6 +107,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
         [personalDetails, policyCurrency, policyID, styles],
     );
 
+    const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} />, [policyID]);
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -129,7 +131,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 <FlatList
                     data={sortedCards}
                     renderItem={renderItem}
-                    ListHeaderComponent={WorkspaceCardListHeader}
+                    ListHeaderComponent={renderListHeader}
                 />
             )}
         </ScreenWrapper>

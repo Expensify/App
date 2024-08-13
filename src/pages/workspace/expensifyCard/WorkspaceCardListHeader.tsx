@@ -1,5 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,19 +6,20 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
-function WorkspaceCardListHeader() {
+type WorkspaceCardListHeaderProps = {
+    /** ID of the current policy */
+    policyID: string;
+};
+
+function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
 
-    const policyID = route.params.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
