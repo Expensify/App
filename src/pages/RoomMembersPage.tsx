@@ -356,7 +356,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 />
                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                     <SelectionListWithModal
-                        canSelectMultiple
+                        canSelectMultiple={canSelectMultiple}
                         headerContent={!shouldShowTextInput ? headerContent : undefined}
                         sections={[{data, isDisabled: false}]}
                         shouldShowTextInput={shouldShowTextInput}
