@@ -111,6 +111,7 @@ import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -436,13 +437,19 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
-/** Clears the highlight of a report item after action from the current user */
+/** Clears the highlight of a report action if it’s from the current user */
 function clearHighlightIfCurrentUserAction(accountID?: number) {
-    const isCurrentUserAction = accountID === currentUserAccountID;
-    const reportActionID = Navigation.getTopmostReportActionId() ?? '-1';
-    if (!isCurrentUserAction || !reportActionID || reportActionID === '-1') {
+    if(!navigationRef){
         return;
     }
+    const isCurrentUserAction = accountID === currentUserAccountID;
+    const state = navigationRef.getState();
+    const reportActionID = getTopmostReportActionID(state);
+
+    if (!isCurrentUserAction || !reportActionID) {
+        return;
+    }
+
     Navigation.setParams({reportActionID: ''});
 }
 
