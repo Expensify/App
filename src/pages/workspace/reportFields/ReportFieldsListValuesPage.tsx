@@ -92,7 +92,7 @@ function ReportFieldsListValuesPage({
                 index,
                 text: value,
                 keyForList: value,
-                isSelected: selectedValues[value],
+                isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues[index] ?? true,
                 pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
                 rightElement: (
@@ -104,7 +104,7 @@ function ReportFieldsListValuesPage({
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
+    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, canSelectMultiple, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);

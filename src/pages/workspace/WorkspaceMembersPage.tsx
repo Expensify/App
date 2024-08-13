@@ -331,7 +331,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 }
             }
 
-            const isSelected = selectedEmployees.includes(accountID);
+            const isSelected = selectedEmployees.includes(accountID) && canSelectMultiple;
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
@@ -384,6 +384,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         session?.accountID,
         translate,
         styles.cursorDefault,
+        canSelectMultiple,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
