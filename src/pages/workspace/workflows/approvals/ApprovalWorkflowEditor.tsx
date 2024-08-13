@@ -83,16 +83,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const editMembers = useCallback(() => {
-        const backTo = approvalWorkflow.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
+        const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
-    }, [approvalWorkflow.flow, policyID]);
+    }, [approvalWorkflow.action, policyID]);
 
     const editApprover = useCallback(
         (approverIndex: number) => {
-            const backTo = approvalWorkflow.flow === CONST.APPROVAL_WORKFLOW.FLOW.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
+            const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
         },
-        [approvalWorkflow.flow, policyID],
+        [approvalWorkflow.action, policyID],
     );
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
@@ -110,7 +110,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             ref={ref}
         >
             <View style={[styles.mh5]}>
-                {approvalWorkflow.flow === 'create' && <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>}
+                {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                    <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
+                )}
 
                 <MenuItemWithTopDescription
                     title={members}
