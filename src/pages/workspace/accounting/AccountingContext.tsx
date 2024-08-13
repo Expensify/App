@@ -59,8 +59,11 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
             const accountingIntegrationData = getAccountingIntegrationData(newActiveIntegration.name, policyID, translate);
-            if (accountingIntegrationData?.workspaceUpgradeIntegrationAlias && !isControlPolicy(policy)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, accountingIntegrationData?.workspaceUpgradeIntegrationAlias));
+            const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
+            if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
+                );
                 return;
             }
             setActiveIntegration({
@@ -94,6 +97,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     );
 
     const renderActiveIntegration = () => {
+        console.log('rerender');
+        console.log('activeIntegration', activeIntegration);
         if (!activeIntegration) {
             return null;
         }

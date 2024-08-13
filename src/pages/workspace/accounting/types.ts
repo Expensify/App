@@ -18,6 +18,13 @@ type PolicyAccountingPageProps = WithPolicyConnectionsProps &
         policy: Policy;
     };
 
+type WorkspaceUpgradeNavigationDetails = {
+    /** Integration alias for workspace upgrade navigation. If passed, and the user doesn't have control policy, they will be redirected to the upgrade page */
+    integrationAlias: string;
+    /** Route to redirect to after upgrading the workspace */
+    backToAfterWorkspaceUpgradeRoute: string;
+};
+
 type AccountingIntegration = {
     title: string;
     icon: IconAsset;
@@ -31,9 +38,7 @@ type AccountingIntegration = {
     onCardReconciliationPagePress: () => void;
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
-
-    /** Integration alias for workspace upgrade navigation. If passed, and the user doesn't have control policy, they will be redirected to the upgrade page */
-    workspaceUpgradeIntegrationAlias?: string;
+    workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
 };
 
 export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};
