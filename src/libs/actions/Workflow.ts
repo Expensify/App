@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 Onyx.connect({
@@ -325,7 +326,9 @@ function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
 
-function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): Record<string, TranslationPaths> {
+type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {approvers: Approver[]};
+
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
     approvalWorkflow.approvers.forEach((approver, approverIndex) => {
@@ -347,7 +350,9 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): Recor
     }
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {errors});
-    return errors;
+
+    // Return false if there are errors
+    return isEmptyObject(errors);
 }
 
 export {
