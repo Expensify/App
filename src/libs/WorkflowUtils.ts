@@ -173,10 +173,6 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     }
 
     approvalWorkflow.approvers.forEach((approver, index) => {
-        if (updatedEmployeeList[approver.email]) {
-            return;
-        }
-
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             ...employeeList[approver.email],
