@@ -341,16 +341,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
+                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
+            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },

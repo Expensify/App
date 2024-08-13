@@ -359,7 +359,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
