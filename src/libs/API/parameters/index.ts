@@ -271,3 +271,8 @@ export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyC
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
+export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
+export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
+export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
+export type {default as SetPolicyBillableMode} from './SetPolicyBillableMode';
+export type {default as SetPolicyEReceiptsEnabled} from './SetPolicyEReceiptsEnabled';
