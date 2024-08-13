@@ -53,6 +53,8 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
                     setSelectedType(selected.value);
                     setIsError(false);
                 }}
+                shouldSingleExecuteRowSelect
+                shouldUpdateFocusedIndex
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={onConfirm}
