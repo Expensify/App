@@ -3,6 +3,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,31 +17,34 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
+import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
-type WorkspaceExpensifyCardListPageProps = {route: RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>};
+type WorkspaceExpensifyCardListPageProps = {
+    /** Route from navigation */
+    route: RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageProps) {
+    /** List of Expensify cards */
+    cardsList: OnyxEntry<WorkspaceCardsList>;
+};
+
+function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 

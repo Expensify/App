@@ -25,6 +25,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const fetchExpensifyCards = useCallback(() => {
         Policy.openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
@@ -35,7 +36,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     useFocusEffect(fetchExpensifyCards);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
+    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && Object.keys(cardSettings).length === 1));
 
     return (
         <AccessOrNotFoundWrapper
@@ -50,7 +51,12 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                     color={theme.spinner}
                 />
             )}
-            {!!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardListPage route={route} />}
+            {!!paymentBankAccountID && !isLoading && (
+                <WorkspaceExpensifyCardListPage
+                    cardsList={cardsList}
+                    route={route}
+                />
+            )}
             {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
         </AccessOrNotFoundWrapper>
     );
