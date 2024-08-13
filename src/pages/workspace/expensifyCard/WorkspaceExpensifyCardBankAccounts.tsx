@@ -37,7 +37,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
-    const handleSelectBankAccount = (value: number) => {
+    const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
         const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
         Card.updateSettlementAccount(workspaceAccountID, domainName, value);
