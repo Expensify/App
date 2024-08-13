@@ -54,7 +54,8 @@ type HeaderViewProps = {
 function HeaderView({report, parentReportAction, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -136,163 +137,161 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
-                    {isLoading ? (
-                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
-                    ) : (
-                        <>
-                            {shouldUseNarrowLayout && (
-                                <PressableWithoutFeedback
-                                    onPress={onNavigationMenuButtonClicked}
-                                    style={styles.LHNToggle}
-                                    accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
-                                    accessibilityLabel={translate('common.back')}
-                                    role={CONST.ROLE.BUTTON}
+                {isLoading ? (
+                    <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
+                ) : (
+                    <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
+                        {shouldUseNarrowLayout && (
+                            <PressableWithoutFeedback
+                                onPress={onNavigationMenuButtonClicked}
+                                style={styles.LHNToggle}
+                                accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
+                                accessibilityLabel={translate('common.back')}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                <Tooltip
+                                    text={translate('common.back')}
+                                    shiftVertical={4}
                                 >
-                                    <Tooltip
-                                        text={translate('common.back')}
-                                        shiftVertical={4}
-                                    >
-                                        <View>
-                                            <Icon
-                                                src={Expensicons.BackArrow}
-                                                fill={theme.icon}
-                                            />
-                                        </View>
-                                    </Tooltip>
-                                </PressableWithoutFeedback>
-                            )}
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <PressableWithoutFeedback
-                                    onPress={() => ReportUtils.navigateToDetailsPage(report)}
-                                    style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                                    disabled={shouldDisableDetailPage}
-                                    accessibilityLabel={title}
-                                    role={CONST.ROLE.BUTTON}
-                                >
-                                    {shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={icons[0]}
-                                            secondaryAvatar={icons[1]}
-                                            size={defaultSubscriptSize}
+                                    <View>
+                                        <Icon
+                                            src={Expensicons.BackArrow}
+                                            fill={theme.icon}
                                         />
-                                    ) : (
-                                        <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
-                                            <MultipleAvatars
-                                                icons={icons}
-                                                shouldShowTooltip={!isChatRoom || isChatThread}
-                                            />
-                                        </OfflineWithFeedback>
+                                    </View>
+                                </Tooltip>
+                            </PressableWithoutFeedback>
+                        )}
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <PressableWithoutFeedback
+                                onPress={() => ReportUtils.navigateToDetailsPage(report)}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                                disabled={shouldDisableDetailPage}
+                                accessibilityLabel={title}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                {shouldShowSubscript ? (
+                                    <SubscriptAvatar
+                                        mainAvatar={icons[0]}
+                                        secondaryAvatar={icons[1]}
+                                        size={defaultSubscriptSize}
+                                    />
+                                ) : (
+                                    <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
+                                        <MultipleAvatars
+                                            icons={icons}
+                                            shouldShowTooltip={!isChatRoom || isChatThread}
+                                        />
+                                    </OfflineWithFeedback>
+                                )}
+                                <View
+                                    fsClass="fs-unmask"
+                                    style={[styles.flex1, styles.flexColumn]}
+                                >
+                                    <CaretWrapper>
+                                        <DisplayNames
+                                            fullTitle={title}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                            textStyles={[styles.headerText, styles.pre]}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
+                                            renderAdditionalText={renderAdditionalText}
+                                        />
+                                    </CaretWrapper>
+                                    {!isEmptyObject(parentNavigationSubtitleData) && (
+                                        <ParentNavigationSubtitle
+                                            parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                            parentReportID={report.parentReportID}
+                                            parentReportActionID={report.parentReportActionID}
+                                            pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                        />
                                     )}
-                                    <View
-                                        fsClass="fs-unmask"
-                                        style={[styles.flex1, styles.flexColumn]}
-                                    >
-                                        <CaretWrapper>
-                                            <DisplayNames
-                                                fullTitle={title}
-                                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                                tooltipEnabled
-                                                numberOfLines={1}
-                                                textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
-                                                renderAdditionalText={renderAdditionalText}
-                                            />
-                                        </CaretWrapper>
-                                        {!isEmptyObject(parentNavigationSubtitleData) && (
-                                            <ParentNavigationSubtitle
-                                                parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                                parentReportID={report.parentReportID}
-                                                parentReportActionID={report.parentReportActionID}
-                                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
-                                            />
-                                        )}
-                                        {shouldShowSubtitle() && (
+                                    {shouldShowSubtitle() && (
+                                        <Text
+                                            style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                            numberOfLines={1}
+                                        >
+                                            {subtitle}
+                                        </Text>
+                                    )}
+                                    {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
+                                        <PressableWithoutFeedback
+                                            onPress={() => {
+                                                if (ReportUtils.canEditReportDescription(report, policy)) {
+                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID));
+                                                    return;
+                                                }
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                            }}
+                                            style={[styles.alignSelfStart, styles.mw100]}
+                                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                                        >
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
                                             >
-                                                {subtitle}
+                                                {reportDescription}
                                             </Text>
-                                        )}
-                                        {isChatRoom && !!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    if (ReportUtils.canEditReportDescription(report, policy)) {
-                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID));
-                                                        return;
-                                                    }
-                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
-                                                }}
-                                                style={[styles.alignSelfStart, styles.mw100]}
-                                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                                            >
-                                                <Text
-                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {reportDescription}
-                                                </Text>
-                                            </PressableWithoutFeedback>
-                                        )}
-                                        {isPolicyExpenseChat && !!policyDescription && isEmptyObject(parentNavigationSubtitleData) && (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
-                                                        return;
-                                                    }
-                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
-                                                }}
-                                                style={[styles.alignSelfStart, styles.mw100]}
-                                                accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
-                                            >
-                                                <Text
-                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {policyDescription}
-                                                </Text>
-                                            </PressableWithoutFeedback>
-                                        )}
-                                    </View>
-                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.danger}
-                                            />
-                                        </View>
+                                        </PressableWithoutFeedback>
                                     )}
-                                </PressableWithoutFeedback>
-                                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
-                                        <Badge
-                                            success
-                                            text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-                                        />
+                                    {isPolicyExpenseChat && !!policyDescription && isEmptyObject(parentNavigationSubtitleData) && (
+                                        <PressableWithoutFeedback
+                                            onPress={() => {
+                                                if (ReportUtils.canEditPolicyDescription(policy)) {
+                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
+                                                    return;
+                                                }
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+                                            }}
+                                            style={[styles.alignSelfStart, styles.mw100]}
+                                            accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                                        >
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {policyDescription}
+                                            </Text>
+                                        </PressableWithoutFeedback>
                                     )}
-                                    {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
-                                    {canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={theme.danger}
+                                        />
+                                    </View>
+                                )}
+                            </PressableWithoutFeedback>
+                            <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                                {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
+                                    <Badge
+                                        success
+                                        text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                    />
+                                )}
+                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
-                            <ConfirmModal
-                                isVisible={isDeleteTaskConfirmModalVisible}
-                                onConfirm={() => {
-                                    setIsDeleteTaskConfirmModalVisible(false);
-                                    Task.deleteTask(report);
-                                }}
-                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
-                                title={translate('task.deleteTask')}
-                                prompt={translate('task.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                                shouldEnableNewFocusManagement
-                            />
-                        </>
-                    )}
-                </View>
+                        </View>
+                        <ConfirmModal
+                            isVisible={isDeleteTaskConfirmModalVisible}
+                            onConfirm={() => {
+                                setIsDeleteTaskConfirmModalVisible(false);
+                                Task.deleteTask(report);
+                            }}
+                            onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
+                            title={translate('task.deleteTask')}
+                            prompt={translate('task.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                            shouldEnableNewFocusManagement
+                        />
+                    </View>
+                )}
             </View>
             {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
