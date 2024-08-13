@@ -8,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {connect} from '@libs/actions/Delegate';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,7 +46,9 @@ function AccountSwitcher() {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
             badgeText: Str.recapitalize(role),
-            onPress: () => {},
+            onPress: () => {
+                connect(email);
+            },
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -58,7 +61,6 @@ function AccountSwitcher() {
         {
             title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
             description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
-            onPress: () => {},
             iconRight: Expensicons.Checkmark,
             shouldShowRightIcon: true,
             success: true,

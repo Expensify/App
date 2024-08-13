@@ -10,6 +10,11 @@ function connect(email: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {})
         .then((response) => {
+            if (!response?.restrictedToken || !response?.encryptedAuthToken) {
+                // TODO: Show an error message to the user
+                console.error('Error during connect: No authToken returned');
+                return;
+            }
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear())
                 .then(() => {
@@ -21,6 +26,7 @@ function connect(email: string) {
                 });
         })
         .catch((error) => {
+            // TODO: Show an error message to the user
             console.error('Error during connect:', error);
         });
 }
