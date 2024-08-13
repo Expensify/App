@@ -361,11 +361,11 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
+        <View style={[styles.ph5, styles.pb3]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
-                <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
                     <AccountSwitcher />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
