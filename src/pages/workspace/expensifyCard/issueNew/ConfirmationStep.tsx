@@ -42,7 +42,7 @@ function ConfirmationStep({policy}: ConfirmationStepProps) {
 
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
-    const data = issueNewCard?.data ?? defaultData;
+    const data = issueNewCard?.data;
     const policyID = policy?.id ?? '-1';
 
     const submit = () => {

@@ -394,7 +394,13 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
 }
 
-function issueExpensifyCard(policyID: string, feedCountry: string, {assigneeEmail, limit, limitType, cardTitle, cardType}: IssueNewCardData) {
+function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+    if (!data) {
+        return;
+    }
+
+    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+
     const parameters = {
         policyID,
         assigneeEmail,
