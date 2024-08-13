@@ -351,10 +351,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         return length;
     }, [areOptionsInitialized, sections]);
 
-    const shouldShowListEmptyContent = useMemo(
-        () => optionLength === 0 && !searchTerm && !showLoadingPlaceholder && header !== translate('common.noResultsFound'),
-        [optionLength, searchTerm, showLoadingPlaceholder, header, translate],
-    );
+    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
