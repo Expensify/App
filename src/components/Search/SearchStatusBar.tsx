@@ -46,10 +46,10 @@ const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: Tr
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.APPROVED),
     },
     {
-        key: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
+        key: CONST.SEARCH.STATUS.EXPENSE.PAID,
         icon: Expensicons.MoneyBag,
         text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.FINISHED),
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.PAID),
     },
 ];
 

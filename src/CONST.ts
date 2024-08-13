@@ -5271,11 +5271,10 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
-                SHARED: 'shared',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
-                FINISHED: 'finished',
+                PAID: 'paid',
             },
             INVOICE: {
                 ALL: 'all',
