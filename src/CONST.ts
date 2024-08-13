@@ -13,6 +13,7 @@ import type {Unit} from './types/onyx/Policy';
 type RateAndUnit = {
     unit: Unit;
     rate: number;
+    currency: string;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
@@ -74,6 +75,12 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    HEIC_SIGNATURES: [
+        '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
+        '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
+        '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
+        '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
+    ],
     RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
@@ -102,6 +109,7 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
+    MAX_IMAGE_CANVAS_AREA: 16777216,
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
@@ -142,6 +150,8 @@ const CONST = {
     AVATAR_MAX_HEIGHT_PX: 4096,
 
     LOGO_MAX_SCALE: 1.5,
+
+    MAX_IMAGE_DIMENSION: 2400,
 
     BREADCRUMB_TYPE: {
         ROOT: 'root',
@@ -364,7 +374,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
@@ -372,7 +381,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -837,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
@@ -962,6 +971,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
+        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
+        SWITCH_REPORT_THREAD: 'switch_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -975,6 +986,7 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_FILTER_OPTIONS: 'search_filter_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1120,6 +1132,11 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    // More info https://github.com/Expensify/App/issues/8007
+    EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
+
     VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
@@ -1191,9 +1208,8 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    // This is a placeholder for attachment which is uploading
-    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -1410,6 +1426,7 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
+        DIMENSION_PREFIX: 'dimension_',
     },
 
     SAGE_INTACCT: {
@@ -2508,6 +2525,7 @@ const CONST = {
         CATEGORY: 'category',
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
+        DISTANCE_RATE: 'distanceRate',
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
@@ -5225,6 +5243,9 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
+            INVOICE: 'invoice',
+            TRIP: 'trip',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5248,13 +5269,24 @@ const CONST = {
             DESC: 'desc',
         },
         STATUS: {
-            ALL: 'all',
-            SHARED: 'shared',
-            DRAFTS: 'drafts',
-            FINISHED: 'finished',
-        },
-        TYPE: {
-            EXPENSE: 'expense',
+            EXPENSE: {
+                ALL: 'all',
+                SHARED: 'shared',
+                DRAFTS: 'drafts',
+                FINISHED: 'finished',
+            },
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
+            TRIP: {
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {
@@ -5393,6 +5425,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
+            },
+            approvals: {
+                id: 'approvals' as const,
+                alias: 'approvals' as const,
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
                 id: 'glCodes' as const,

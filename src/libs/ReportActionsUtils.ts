@@ -126,10 +126,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    if (Array.isArray(reportAction?.message)) {
-        return reportAction?.message?.[0];
-    }
-    return reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message[0] : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -141,9 +138,6 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
 }
 
 function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    if (isEmptyObject(reportAction)) {
-        return false;
-    }
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -189,7 +183,16 @@ function isActionOfType<T extends ReportActionName[]>(
 ): action is {
     [K in keyof T]: ReportAction<T[K]>;
 }[number] {
-    return actionNames.includes(action?.actionName as T[number]);
+    const actionName = action?.actionName as T[number];
+
+    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
+    for (const i of actionNames) {
+        if (i === actionName) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -386,14 +389,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
- * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
- * Separated it from getCombinedReportActions, so it can be reused
- */
-function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
-    return reportActions.filter((action) => !isSentMoneyReportAction(action));
-}
-
-/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -421,7 +416,7 @@ function getCombinedReportActions(
 
     if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
         filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-    } else {
+    } else if (transactionThreadCreatedAction) {
         filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     }
 
@@ -1289,6 +1284,15 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
+    const html = getUpdateRoomDescriptionMessage(reportAction);
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -1302,7 +1306,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        const message = `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${getOriginalMessage(action)?.description}`;
+        const message = getUpdateRoomDescriptionMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -1597,7 +1601,6 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
-    getFilteredForOneTransactionView,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
@@ -1607,6 +1610,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
+    getUpdateRoomDescriptionFragment,
     getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,

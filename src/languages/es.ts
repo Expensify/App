@@ -360,6 +360,9 @@ export default {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        filterLogs: 'Registros de filtrado',
+        network: 'La red',
+        reportID: 'ID del informe',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -507,6 +510,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        tooltip: {
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -590,6 +597,7 @@ export default {
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
     writeCapabilityPage: {
         label: 'Quién puede postear',
@@ -611,7 +619,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
-        cardsAndDomains: 'Tarjetas y Dominios',
+        domains: 'Dominios',
     },
     tabSelector: {
         chat: 'Chat',
@@ -708,6 +716,13 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        companyInfo: 'Información de la empresa',
+        companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
+        yourCompanyName: 'Nombre de su empresa',
+        yourCompanyWebsite: 'Sitio web de su empresa',
+        yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
+        invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
+        publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
@@ -718,6 +733,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
+        business: 'Empresa',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
@@ -845,6 +861,10 @@ export default {
             `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
         reimbursable: 'reembolsable',
         nonReimbursable: 'no reembolsable',
+        bookingPending: 'Esta reserva está pendiente',
+        bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
+        bookingArchived: 'Esta reserva está archivada',
+        bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1016,6 +1036,7 @@ export default {
             destroy: 'Destruir',
             maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
             exportOnyxState: 'Exportar estado Onyx',
+            testCrash: 'Prueba de fallo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1180,6 +1201,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Saldo',
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -1198,11 +1220,12 @@ export default {
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
-        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify',
+        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
+        walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
         enableWallet: 'Habilitar billetera',
         bankAccounts: 'Cuentas bancarias',
-        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
+        addBankAccountToSendAndReceive: 'Agregar una cuenta bancaria te permite recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
@@ -1258,6 +1281,7 @@ export default {
         submissionFrequencyDateOfMonth: 'Fecha del mes',
         addApprovalsTitle: 'Requerir aprobaciones',
         addApprovalButton: 'Añadir flujo de aprobación',
+        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico',
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
@@ -1281,6 +1305,18 @@ export default {
                 two: '.º',
                 few: '.º',
                 other: '.º',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'Primero',
+                '2': 'Segundo',
+                '3': 'Tercero',
+                '4': 'Cuarto',
+                '5': 'Quinto',
+                '6': 'Sexto',
+                '7': 'Séptimo',
+                '8': 'Octavo',
+                '9': 'Noveno',
+                '10': 'Décimo',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
@@ -1297,9 +1333,11 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
+        header: 'Cuando los siguientes miembros presenten gastos:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        header: 'Enviar a este miembro para su aprobación:',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -1498,7 +1536,7 @@ export default {
         welcome: '¡Bienvenido!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
-            description: 'Recibir pagos es tan fácil como mandar un mensaje',
+            description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
             secondaryDescription: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
         },
         welcomeVideo: {
@@ -2063,6 +2101,7 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
     },
     workspace: {
         common: {
@@ -2073,6 +2112,7 @@ export default {
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            everyone: 'Todos',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             reimburse: 'Reembolsos',
@@ -2130,6 +2170,7 @@ export default {
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
+            topLevel: 'Nivel superior',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2255,6 +2296,7 @@ export default {
                 'Elige si quieres volver a facturar a los clientes en Expensify. Tus contactos de clientes de Xero se pueden etiquetar como gastos, y se exportarán a Xero como una factura de venta.',
             taxesDescription: 'Elige cómo gestionar los impuestos de Xero en Expensify.',
             notImported: 'No importado',
+            notConfigured: 'No configurado',
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
                 tag: 'Etiquetas',
@@ -2810,6 +2852,10 @@ export default {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
             },
+            earnSection: {
+                title: 'Gane',
+                subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
+            },
             organizeSection: {
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
@@ -2842,6 +2888,10 @@ export default {
             workflows: {
                 title: 'Flujos de trabajo',
                 subtitle: 'Configura cómo se aprueba y paga los gastos.',
+            },
+            invoices: {
+                title: 'Facturas',
+                subtitle: 'Enviar y recibir facturas.',
             },
             categories: {
                 title: 'Categorías',
@@ -3485,6 +3535,11 @@ export default {
                 description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
                 onlyAvailableOnPlan: 'Nuestra integración Sage Intacct sólo está disponible en el plan Control, a partir de ',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
+                title: 'Aprobaciones anticipadas',
+                description: `Si quieres añadir más niveles de aprobación, o simplemente asegurarte de que los gastos más importantes reciben otro vistazo, no hay problema. Las aprobaciones avanzadas ayudan a realizar las comprobaciones adecuadas a cada nivel para mantener los gastos de tu equipo bajo control.`,
+                onlyAvailableOnPlan: 'Las aprobaciones avanzadas sólo están disponibles en el plan Control, con precios desde ',
+            },
             glCodes: {
                 title: 'Códigos de libro mayor',
                 description: `Añada códigos de libro mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
@@ -3572,7 +3627,7 @@ export default {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala de ${oldName} a ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -3601,7 +3656,7 @@ export default {
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor, introduce un título',
-        pleaseEnterTaskDestination: 'Por favor, selecciona con quién deseas compartir.',
+        pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },
     task: {
         task: 'Tarea',
@@ -3651,6 +3706,11 @@ export default {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
+            emptyTripResults: {
+                title: 'No tienes viajes',
+                subtitle: 'Reserva tu primer viaje a continuación.',
+                buttonText: 'Reserva un viaje',
+            },
         },
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
@@ -3667,7 +3727,11 @@ export default {
                 after: (date?: string) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
+            keyword: 'Palabra clave',
+            hasKeywords: 'Tiene palabras clave',
+            currency: 'Divisa',
         },
+        expenseType: 'Tipo de gasto',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -4737,6 +4801,8 @@ export default {
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
+            taxExempt: 'Solicitar estado de exención de impuestos',
+            taxExemptEnabled: 'Exento de impuestos',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
             headsUp:

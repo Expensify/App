@@ -370,6 +370,9 @@ export default {
         value: 'Value',
         downloadFailedTitle: 'Download failed',
         downloadFailedDescription: "Your download couldn't be completed. Please try again later.",
+        filterLogs: 'Filter Logs',
+        network: 'Network',
+        reportID: 'Report ID',
     },
     location: {
         useCurrent: 'Use current location',
@@ -516,6 +519,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -597,6 +604,7 @@ export default {
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
     },
     writeCapabilityPage: {
         label: 'Who can post',
@@ -618,7 +626,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Subscription',
-        cardsAndDomains: 'Cards & Domains',
+        domains: 'Domains',
     },
     tabSelector: {
         chat: 'Chat',
@@ -713,6 +721,13 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
         transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
+        companyInfo: 'Company info',
+        companyInfoDescription: 'We need a few more details before you can send your first invoice.',
+        yourCompanyName: 'Your company name',
+        yourCompanyWebsite: 'Your company website',
+        yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
+        invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
+        publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
@@ -722,6 +737,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -839,6 +855,10 @@ export default {
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
+        bookingPending: 'This booking is pending',
+        bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
+        bookingArchived: 'This booking is archived',
+        bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1009,6 +1029,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            testCrash: 'Test crash',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1171,6 +1192,7 @@ export default {
         },
     },
     walletPage: {
+        balance: 'Balance',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -1189,11 +1211,12 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends',
         enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
+        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
-        addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
+        addBankAccountToSendAndReceive: 'Adding a bank account allows you to get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -1249,6 +1272,7 @@ export default {
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
+        addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
@@ -1272,6 +1296,18 @@ export default {
                 two: 'nd',
                 few: 'rd',
                 other: 'th',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'First',
+                '2': 'Second',
+                '3': 'Third',
+                '4': 'Fourth',
+                '5': 'Fifth',
+                '6': 'Sixth',
+                '7': 'Seventh',
+                '8': 'Eighth',
+                '9': 'Ninth',
+                '10': 'Tenth',
+                /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
     },
@@ -1288,9 +1324,11 @@ export default {
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
+        header: 'When the following members submit expenses:',
     },
-    workflowsApprovalPage: {
+    workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -1486,7 +1524,7 @@ export default {
         welcome: 'Welcome!',
         explanationModal: {
             title: 'Welcome to Expensify',
-            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
             secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
         },
         welcomeVideo: {
@@ -2028,6 +2066,7 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        errorMessage: 'Something went wrong. Please try again later.',
     },
     workspace: {
         common: {
@@ -2038,6 +2077,7 @@ export default {
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            everyone: 'Everyone',
             delete: 'Delete workspace',
             settings: 'Settings',
             reimburse: 'Reimbursements',
@@ -2082,6 +2122,7 @@ export default {
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
+            topLevel: 'Top level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
             shareNote: {
                 header: 'Easily share your workspace with other members.',
@@ -2213,6 +2254,7 @@ export default {
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
+            notConfigured: 'Not configured',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
                 tag: 'Tags',
@@ -2336,7 +2378,7 @@ export default {
                 label: 'Journal entries posting preference',
                 values: {
                     [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each individual expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each expense',
                 },
             },
             invoiceItem: {
@@ -2374,28 +2416,28 @@ export default {
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Expense reports',
-                        reimbursableDescription: 'Reimbursable expenses will export as expense reports to NetSuite.',
-                        nonReimbursableDescription: 'Non-reimbursable expenses will export as expense reports to NetSuite.',
+                        reimbursableDescription: 'Out-of-pocket expenses will export as expense reports to NetSuite.',
+                        nonReimbursableDescription: 'Company card expenses will export as expense reports to NetSuite.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Vendor bills',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
-                        label: 'Journal Entries',
+                        label: 'Journal entries',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
                             '\n' +
                             'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
                     },
@@ -2419,9 +2461,9 @@ export default {
                 enableCategories: 'Enable newly imported categories',
                 customFormID: 'Custom form ID',
                 customFormIDDescription:
-                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you have the option to designate a specific transaction form to be used.',
-                customFormIDReimbursable: 'Reimbursable expense',
-                customFormIDNonReimbursable: 'Non-reimbursable expense',
+                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you can designate a specific transaction form to be used.',
+                customFormIDReimbursable: 'Out-of-pocket expense',
+                customFormIDNonReimbursable: 'Company card expense',
                 exportReportsTo: {
                     label: 'Expense report approval level',
                     description: 'Once an expense report is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
@@ -2455,13 +2497,13 @@ export default {
                 },
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
+            noAccountsFoundDescription: 'Please add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
-            noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
+            noVendorsFoundDescription: 'Please add vendors in NetSuite and sync the connection again.',
             noItemsFound: 'No invoice items found',
-            noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
+            noItemsFoundDescription: 'Please add invoice items in NetSuite and sync the connection again.',
             noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+            noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again.',
             tokenInput: {
                 title: 'NetSuite setup',
                 formSteps: {
@@ -2496,7 +2538,7 @@ export default {
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'Your NetSuite expense categories will import into Expensify as categories.',
-                crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
+                crossSubsidiaryCustomers: 'Cross-subsidiary customers/projects',
                 importFields: {
                     departments: {
                         title: 'Departments',
@@ -2758,6 +2800,10 @@ export default {
                 title: 'Spend',
                 subtitle: 'Enable optional functionality that helps you scale your team.',
             },
+            earnSection: {
+                title: 'Earn',
+                subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
+            },
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
@@ -2790,6 +2836,10 @@ export default {
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',
+            },
+            invoices: {
+                title: 'Invoices',
+                subtitle: 'Send and receive invoices.',
             },
             categories: {
                 title: 'Categories',
@@ -3209,9 +3259,12 @@ export default {
                             return 'Marking NetSuite bills and invoices as paid';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
+                        case 'intacctImportDimensions':
+                            return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
                         default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
@@ -3429,6 +3482,11 @@ export default {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
                 onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
+                title: 'Advanced Approvals',
+                description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
+                onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
+            },
             glCodes: {
                 title: 'GL codes',
                 description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
@@ -3515,7 +3573,7 @@ export default {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room from ${oldName} to ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -3544,7 +3602,7 @@ export default {
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        pleaseEnterTaskDestination: 'Please select with whom you want to share.',
+        pleaseEnterTaskDestination: 'Please select where you want to share this task.',
     },
     task: {
         task: 'Task',
@@ -3594,6 +3652,11 @@ export default {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyTripResults: {
+                title: 'No trips to display',
+                subtitle: 'Get started by booking your first trip below.',
+                buttonText: 'Book a trip',
+            },
         },
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -3610,7 +3673,11 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            keyword: 'Keyword',
+            hasKeywords: 'Has keywords',
+            currency: 'Currency',
         },
+        expenseType: 'Expense type',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -3721,7 +3788,7 @@ export default {
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
-                    reimburseableLink: 'View out of pocket expenses.',
+                    reimburseableLink: 'View out-of-pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
@@ -4214,6 +4281,8 @@ export default {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            taxExempt: 'Request tax exempt status',
+            taxExemptEnabled: 'Tax exempt',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
             headsUp:

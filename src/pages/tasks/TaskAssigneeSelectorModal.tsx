@@ -249,7 +249,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}

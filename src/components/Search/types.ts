@@ -24,13 +24,15 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
-type SearchStatus = ValueOf<typeof CONST.SEARCH.STATUS>;
+type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type SearchStatus = ExpenseSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
-    selectedTransactionIDs: string[];
+    selectedTransactions: SelectedTransactions;
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactionIDs: (selectedTransactionIds: string[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
+    clearSelectedTransactions: (hash?: number) => void;
 };
 
 type ASTNode = {
@@ -47,7 +49,7 @@ type QueryFilter = {
 type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
 
 type QueryFilters = {
-    [K in AdvancedFiltersKeys]?: QueryFilter | QueryFilter[];
+    [K in AdvancedFiltersKeys]?: QueryFilter[];
 };
 
 type SearchQueryString = string;

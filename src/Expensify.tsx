@@ -31,6 +31,7 @@ import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
 import Performance from './libs/Performance';
+import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
@@ -238,6 +239,13 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+        setCrashlyticsUserId(session?.accountID ?? -1);
+    }, [isAuthenticated, session?.accountID]);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -292,6 +300,7 @@ function Expensify({
                         authenticated={isAuthenticated}
                         lastVisitedPath={lastVisitedPath as Route}
                         initialUrl={initialUrl}
+                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}

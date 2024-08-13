@@ -25,7 +25,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type WorkspaceEditTagsPageOnyxProps = {
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type WorkspaceEditTagsPageProps = WorkspaceEditTagsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;

@@ -210,7 +210,11 @@ function getDistanceMerchant(
  * @returns The rate and unit in RateAndUnit object.
  */
 function getRateForP2P(currency: string): RateAndUnit {
-    return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
+    const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
+    return {
+        ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
+        currency: currencyWithExistingRate,
+    };
 }
 
 /**

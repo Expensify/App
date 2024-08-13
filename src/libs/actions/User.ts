@@ -36,7 +36,7 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -68,6 +68,13 @@ Onyx.connect({
 
         myPersonalDetails = value[currentUserAccountID] ?? undefined;
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 /**
@@ -365,7 +372,7 @@ function validateLogin(accountID: number, validateCode: string) {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(contactMethod: string, validateCode: string) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -420,6 +427,70 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             },
         },
     ];
+    // If the primary login isn't validated yet, set the secondary login as the primary login
+    if (!loginList?.[currentEmail].validatedDate) {
+        successData.push(
+            ...[
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {
+                        primaryLogin: contactMethod,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.SESSION,
+                    value: {
+                        email: contactMethod,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            login: contactMethod,
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
+                        },
+                    },
+                },
+            ],
+        );
+
+        Object.values(allPolicies ?? {}).forEach((policy) => {
+            if (!policy) {
+                return;
+            }
+
+            let optimisticPolicyDataValue;
+
+            if (policy.employeeList) {
+                const currentEmployee = policy.employeeList[currentEmail];
+                optimisticPolicyDataValue = {
+                    employeeList: {
+                        [currentEmail]: null,
+                        [contactMethod]: currentEmployee,
+                    },
+                };
+            }
+
+            if (policy.ownerAccountID === currentUserAccountID) {
+                optimisticPolicyDataValue = {
+                    ...optimisticPolicyDataValue,
+                    owner: contactMethod,
+                };
+            }
+
+            if (optimisticPolicyDataValue) {
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: optimisticPolicyDataValue,
+                });
+            }
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -765,7 +836,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -858,7 +929,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
         },
     ];
 
-    Object.values(policies ?? {}).forEach((policy) => {
+    Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
         }
@@ -1033,6 +1104,10 @@ function dismissTrackTrainingModal() {
     });
 }
 
+function dismissWorkspaceTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1042,6 +1117,7 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissWorkspaceTooltip,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

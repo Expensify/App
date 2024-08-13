@@ -161,6 +161,7 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_TAX_AMOUNT: 'UpdateMoneyRequestTaxAmount',
     UPDATE_MONEY_REQUEST_TAX_RATE: 'UpdateMoneyRequestTaxRate',
     UPDATE_MONEY_REQUEST_DISTANCE: 'UpdateMoneyRequestDistance',
+    UPDATE_MONEY_REQUEST_DISTANCE_RATE: 'UpdateMoneyRequestDistanceRate',
     UPDATE_MONEY_REQUEST_CATEGORY: 'UpdateMoneyRequestCategory',
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
@@ -196,6 +197,7 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
     ENABLE_POLICY_REPORT_FIELDS: 'EnablePolicyReportFields',
     ENABLE_POLICY_EXPENSIFY_CARDS: 'EnablePolicyExpensifyCards',
+    ENABLE_POLICY_INVOICING: 'EnablePolicyInvoicing',
     SET_POLICY_TAXES_CURRENCY_DEFAULT: 'SetPolicyCurrencyDefaultTax',
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
     SET_POLICY_CUSTOM_TAX_NAME: 'SetPolicyCustomTaxName',
@@ -318,10 +320,12 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
+    REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
     REMOVE_WORKSPACE_APPROVAL: 'RemoveWorkspaceApproval',
+    CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY: 'ConfigureExpensifyCardsForPolicy',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -474,6 +478,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST]: Parameters.HoldMoneyRequestParams;
@@ -514,6 +519,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS]: Parameters.EnablePolicyReportFieldsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS]: Parameters.EnablePolicyExpensifyCardsParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_INVOICING]: Parameters.EnablePolicyInvoicingParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
@@ -563,6 +569,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
+    [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -650,6 +657,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL]: Parameters.UpdateWorkspaceApprovalParams;
     [WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL]: Parameters.RemoveWorkspaceApprovalParams;
+    [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
 };
 
 const READ_COMMANDS = {

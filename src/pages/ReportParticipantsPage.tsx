@@ -75,7 +75,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             }
 
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID);
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
@@ -107,7 +107,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -270,6 +270,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
@@ -364,7 +365,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
-                        shouldDebounceRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator
