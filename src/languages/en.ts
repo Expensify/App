@@ -7,6 +7,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -1310,6 +1311,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
@@ -1317,7 +1322,10 @@ export default {
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {
-        title: 'Add approval workflow',
+        title: 'Confirm',
+        header: 'Add more approvers and confirm.',
+        additionalApprover: 'Additional approver',
+        submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
