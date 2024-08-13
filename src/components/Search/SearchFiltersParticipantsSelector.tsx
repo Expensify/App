@@ -126,7 +126,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         });
 
         return newSections;
-    }, [areOptionsInitialized, chatOptions, cleanSearchTerm, selectedOptions, personalDetails, translate]);
+    }, [areOptionsInitialized, chatOptions, cleanSearchTerm, selectedOptions, personalDetails]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
