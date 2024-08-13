@@ -83,6 +83,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
 
+    /** Additional hover styles */
+    hoverStyles?: StyleProp<ViewStyle>;
+
     /** Whether we should use the success theme color */
     success?: boolean;
 
@@ -196,6 +199,7 @@ function Button(
         textStyles = [],
 
         shouldUseDefaultHover = true,
+        hoverStyles = undefined,
         success = false,
         danger = false,
 
@@ -358,6 +362,7 @@ function Button(
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
                     success && !isDisabled ? styles.buttonSuccessHovered : undefined,
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                    hoverStyles,
                 ]}
                 id={id}
                 accessibilityLabel={accessibilityLabel}

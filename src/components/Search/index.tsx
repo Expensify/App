@@ -211,7 +211,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         return null;
     }
 
-    const ListItem = SearchUtils.getListItem(type, status);
+    const ListItem = SearchUtils.getListItem(status);
     const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));

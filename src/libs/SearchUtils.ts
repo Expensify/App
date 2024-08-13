@@ -549,7 +549,7 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
-function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): string {
+function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
 }
 

@@ -84,4 +84,7 @@ export type {
     QueryFilter,
     QueryFilters,
     AdvancedFiltersKeys,
+    ExpenseSearchStatus,
+    InvoiceSearchStatus,
+    TripSearchStatus,
 };

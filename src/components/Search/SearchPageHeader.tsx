@@ -100,11 +100,22 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-const headerContent: {[key in SearchDataTypes]: {icon: IconAsset; titleText: TranslationPaths}} = {
-    expense: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
-    invoice: {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'},
-    trip: {icon: Illustrations.Luggage, titleText: 'travel.trips'},
+type HeaderContent = {
+    icon: IconAsset;
+    titleText: TranslationPaths;
 };
+
+function getHeaderContent(type: SearchDataTypes): HeaderContent {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        default:
+            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
+    }
+}
 
 function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
@@ -131,9 +142,9 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         [data, selectedTransactions],
     );
     const {status, type} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[type]?.titleText);
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[type]?.icon;
+    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
 
     const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
