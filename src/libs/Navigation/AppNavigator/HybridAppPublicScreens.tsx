@@ -1,10 +1,9 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {HybridAppPublicScreensParamList} from '@navigation/types';
-import HybridAppError from '@pages/HybridAppErrorPage';
-import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
-import SignInPage from '@pages/signin/SignInPage';
-import ValidateLoginPage from '@pages/ValidateLoginPage';
+import HybridAppError from '@pages/HybridApp/HybridAppErrorPage';
+import HybridAppLoading from '@pages/HybridApp/HybridAppLoading';
+import HybridAppTransition from '@pages/HybridApp/HybridAppTransition';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -18,17 +17,12 @@ function HybridAppPublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={SignInPage}
+                component={HybridAppLoading}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
                 options={defaultScreenOptions}
-                component={LogInWithShortLivedAuthTokenPage}
-            />
-            <RootStack.Screen
-                name={SCREENS.VALIDATE_LOGIN}
-                options={defaultScreenOptions}
-                component={ValidateLoginPage}
+                component={HybridAppTransition}
             />
             <RootStack.Screen
                 name={SCREENS.HYBRID_APP_ERROR}

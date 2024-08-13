@@ -1246,7 +1246,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
-type HybridAppPublicScreensParamList = SharedScreensParamList & {
+type HybridAppPublicScreensParamList = Omit<SharedScreensParamList, typeof SCREENS.VALIDATE_LOGIN> & {
     [SCREENS.HYBRID_APP_ERROR]: undefined;
 };
 
