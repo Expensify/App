@@ -632,6 +632,9 @@ const CONST = {
         INBOX: 'inbox',
     },
 
+    EXPENSIFY_POLICY_DOMAIN: 'expensify_policy',
+    EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
+
     SIGN_IN_FORM_WIDTH: 300,
 
     REQUEST_CODE_DELAY: 30,

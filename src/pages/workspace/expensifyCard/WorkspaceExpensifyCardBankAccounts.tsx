@@ -40,8 +40,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const handleSelectBankAccount = (value?: number) => {
         Card.configureExpensifyCardsForPolicy(policyID, value);
         const handleSelectBankAccount = (value: number) => {
-            // TODO: policy domainName
-            Card.updateSettlementAccount(workspaceAccountID, '', value);
+            const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
+            Card.updateSettlementAccount(workspaceAccountID, domainName, value);
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
         };
 
@@ -55,7 +55,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return eligibleBankAccounts.map((bankAccount) => {
                 const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
                 const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID;
+                const bankAccountID = bankAccount.accountData?.bankAccountID;
 
                 const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 

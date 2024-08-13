@@ -969,6 +969,14 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
+function getDomainNameForPolicy(policyID?: string): string {
+    if (!policyID) {
+        return '';
+    }
+
+    return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1074,6 +1082,7 @@ export {
     getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
+    getDomainNameForPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};
