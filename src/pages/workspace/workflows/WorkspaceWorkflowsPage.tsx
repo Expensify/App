@@ -26,7 +26,7 @@ import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, EMPTY_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             return;
         }
         Workflow.setApprovalWorkflow({
-            ...EMPTY_APPROVAL_WORKFLOW,
+            ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
         });
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));

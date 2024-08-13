@@ -95,9 +95,9 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     approvers: Array<Approver | undefined>;
 
     /**
-     * The current state of the workflow, used to navigate between different screens
+     * The current action of the workflow, used to navigate between different screens
      */
-    flow: ValueOf<typeof CONST.APPROVAL_WORKFLOW.FLOW>;
+    action: ValueOf<typeof CONST.APPROVAL_WORKFLOW.ACTION>;
 
     /**
      * Whether we are waiting for the API action to complete

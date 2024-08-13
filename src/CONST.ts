@@ -5456,11 +5456,11 @@ const CONST = {
     },
 
     APPROVAL_WORKFLOW: {
-        FLOW: {
+        ACTION: {
             CREATE: 'create',
             EDIT: 'edit',
         },
-        MODE: {
+        TYPE: {
             CREATE: 'create',
             UPDATE: 'update',
             REMOVE: 'remove',
