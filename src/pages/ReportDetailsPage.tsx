@@ -127,7 +127,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
-    const [shouldTruncateTitle, setShouldTruncateTitle] = useState(true);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -717,7 +716,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 interactive
                                 title={report.description}
                                 shouldRenderAsHTML
-                                shouldTruncateTitle={shouldTruncateTitle}
+                                shouldTruncateTitle
                                 limit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
