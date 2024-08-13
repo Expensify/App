@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
@@ -26,18 +27,27 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const iconSrc = feature.icon in Illustrations ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const isIllustration = feature.icon in Illustrations;
+    const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
     return (
         <View style={styles.p5}>
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        source={iconSrc}
-                        iconAdditionalStyles={iconAdditionalStyles}
-                    />
+                    {!isIllustration ? (
+                        <Avatar
+                            source={iconSrc}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    ) : (
+                        <Icon
+                            src={iconSrc}
+                            width={48}
+                            height={48}
+                            additionalStyles={iconAdditionalStyles}
+                        />
+                    )}
                     <Badge
                         icon={Expensicon.Unlock}
                         text={translate('workspace.upgrade.upgradeToUnlock')}
