@@ -69,9 +69,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.xero?.config?.importTaxRates ||
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
-    // @ts-expect-error a new props will be added during feed api implementation
-    const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}${CONST.EXPENSIFY_CARD.BANK}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
