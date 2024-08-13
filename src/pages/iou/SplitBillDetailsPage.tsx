@@ -107,7 +107,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                     {isScanning && (
                         <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                             <MoneyRequestHeaderStatusBar
-                                icon={
+                                title={
                                     <Icon
                                         src={Expensicons.ReceiptScan}
                                         height={variables.iconSizeSmall}
