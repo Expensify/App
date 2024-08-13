@@ -137,6 +137,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
+        setSearchValue('');
     };
 
     /**
