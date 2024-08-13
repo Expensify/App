@@ -4,7 +4,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -14,7 +13,7 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
+    const {currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
@@ -24,9 +23,9 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            currentVideoPlayerRef.current?.setStatusAsync?.({rate: speed});
+            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
-        [currentVideoPlayerRef],
+        [videoPopoverMenuPlayerRef],
     );
 
     const downloadAttachment = useCallback(() => {
@@ -37,8 +36,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
-        fileDownload(sourceURI);
+        fileDownload(source.uri);
     }, [videoPopoverMenuPlayerRef]);
 
     const menuItems = useMemo(() => {
@@ -64,12 +62,16 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
                     updatePlaybackSpeed(speed);
                 },
                 shouldPutLeftPaddingWhenNoIcon: true,
+                isSelected: currentPlaybackSpeed === speed,
             })),
         });
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed}), [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed]);
+    const contextValue = useMemo(
+        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
+        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed],
+    );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

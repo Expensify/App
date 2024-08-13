@@ -11,13 +11,13 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,9 +38,9 @@ type WorkspaceReimburseViewProps = WorkspaceReimburseViewOnyxProps & {
 function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimburseViewProps) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? ''}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? '-1'}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+    const distanceCustomUnit = PolicyUtils.getCustomUnit(policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
@@ -61,7 +61,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(policy?.id ?? '');
+        Policy.openWorkspaceReimburseView(policy?.id ?? '-1');
     }, [policy?.id]);
 
     useEffect(() => {
@@ -76,7 +76,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     }, [policy?.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
@@ -122,8 +122,8 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
                             description={translate('workspace.reimburse.trackDistanceRate')}
                             shouldShowRightIcon
                             onPress={() => {
-                                Policy.setPolicyIDForReimburseView(policy?.id ?? '');
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? ''));
+                                Policy.setPolicyIDForReimburseView(policy?.id ?? '-1');
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? '-1'));
                             }}
                             wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                             brickRoadIndicator={(distanceCustomUnit?.errors ?? distanceCustomRate?.errors) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}

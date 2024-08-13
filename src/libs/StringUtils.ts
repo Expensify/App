@@ -64,6 +64,15 @@ function removeInvisibleCharacters(value: string): string {
 }
 
 /**
+ * Remove accents/diacritics
+ * @param text - The input string
+ * @returns The string with all accents/diacritics removed
+ */
+function normalizeAccents(text: string) {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -89,4 +98,20 @@ function getAcronym(string: string): string {
     return acronym;
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym};
+/**
+ * Replace all line breaks with white spaces
+ */
+function lineBreaksToSpaces(text = '') {
+    return text.replace(CONST.REGEX.LINE_BREAK, ' ');
+}
+
+/**
+ * Get the first line of the string
+ */
+function getFirstLine(text = '') {
+    // Split the input string by newline characters and return the first element of the resulting array
+    const lines = text.split('\n');
+    return lines[0];
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, getAcronym, lineBreaksToSpaces, getFirstLine};

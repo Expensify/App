@@ -13,9 +13,9 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -113,7 +113,7 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -142,9 +142,9 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[isNarrow && styles.mr5]}>
+        <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
             {isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, !isNarrow && styles.pr4, isNarrow && styles.workspaceListBadge]}>
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
@@ -154,17 +154,14 @@ function WorkspacesListRow({
                 </View>
             )}
             {!isJoinRequestPending && (
-                <>
-                    <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        style={[!isSmallScreenWidth && styles.workspaceThreeDotMenu]}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
                             onIconPress={() => {
-                                if (isSmallScreenWidth) {
+                                if (shouldUseNarrowLayout) {
                                     return;
                                 }
                                 threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -181,13 +178,13 @@ function WorkspacesListRow({
                             disabled={shouldDisableThreeDotsMenu}
                         />
                     </View>
-                </>
+                </View>
             )}
         </View>
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.pv5, styles.pl5]}>
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
@@ -196,7 +193,7 @@ function WorkspacesListRow({
                             size={CONST.AVATAR_SIZE.DEFAULT}
                             source={workspaceIcon}
                             fallbackIcon={fallbackWorkspaceIcon}
-                            accountID={policyID}
+                            avatarID={policyID}
                             name={title}
                             type={CONST.ICON_TYPE_WORKSPACE}
                         />
@@ -207,13 +204,15 @@ function WorkspacesListRow({
                             {title}
                         </Text>
                     </View>
-                    {isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+                    {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
                         <>
                             <Avatar
                                 source={ownerDetails.avatar}
+                                avatarID={ownerDetails.accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.SMALL}
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
@@ -234,7 +233,7 @@ function WorkspacesListRow({
                         </>
                     )}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={variables.workspaceTypeIconWidth}
@@ -258,7 +257,7 @@ function WorkspacesListRow({
                 </View>
             </View>
 
-            {!isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+            {!shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
         </View>
     );
 }

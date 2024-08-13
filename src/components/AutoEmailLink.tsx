@@ -1,4 +1,4 @@
-import {CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +20,8 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
     const styles = useThemeStyles();
     return (
         <Text style={style}>
-            {text.split(CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
-                if (CONST.REG_EXP.EMAIL.test(str)) {
+            {text.split(COMMON_CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
+                if (COMMON_CONST.REG_EXP.EMAIL.test(str)) {
                     return (
                         <TextLink
                             // eslint-disable-next-line react/no-array-index-key

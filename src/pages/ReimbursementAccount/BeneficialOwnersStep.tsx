@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -47,7 +47,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -68,17 +68,14 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     const submit = () => {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
-            beneficialOwnerFields.reduce(
-                (acc, fieldName) => ({
-                    ...acc,
-                    [fieldName]: reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined,
-                }),
-                {},
-            ),
+            beneficialOwnerFields.reduce((acc, fieldName) => {
+                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                return acc;
+            }, {} as Record<string, string | undefined>),
         );
 
         BankAccounts.updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),

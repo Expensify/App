@@ -53,7 +53,8 @@ const test = (config: NativeConfig) => {
                             E2EClient.submitTestResults({
                                 branch: Config.E2E_BRANCH,
                                 name: 'Composer typing rerender count',
-                                renderCount: rerenderCount,
+                                metric: rerenderCount,
+                                unit: 'renders',
                             }).then(E2EClient.submitTestDone);
                         }, 3000);
                     })

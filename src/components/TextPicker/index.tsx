@@ -1,17 +1,14 @@
 import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
 function TextPicker({value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: TextPickerProps, forwardedRef: ForwardedRef<View>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -29,24 +26,20 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
-
     return (
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={value ?? placeholder ?? ''}
-                descriptionTextStyle={descStyle}
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
                 rightLabel={rightLabel}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
             />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
             <TextSelectorModal
                 value={value}
                 isVisible={isPickerVisible}

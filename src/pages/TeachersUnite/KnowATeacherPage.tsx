@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -59,24 +59,24 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
             const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             }
             if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (!values.partnerUserID) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterPhoneEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
             if (values.partnerUserID && props.loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
             if (values.partnerUserID && !(validateIfNumber || Str.isValidEmail(values.partnerUserID))) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'contacts.genericFailureMessages.invalidContactMethod');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
             return errors;
         },
-        [props.loginList],
+        [props.loginList, translate],
     );
 
     return (

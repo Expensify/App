@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setForeignCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -14,6 +13,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {setForeignCurrencyDefault} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -29,15 +29,16 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const taxRates = policy?.taxRates;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault ?? '';
-    const defaultExternalID = taxRates?.defaultExternalID ?? '';
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault ?? '';
 
-    const selectedTaxRate =
-        foreignTaxDefault === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxRates?.taxes ?? {}, foreignTaxDefault);
+    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
+        setForeignCurrencyDefault(policyID, taxes.code ?? '');
+        Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
+    };
+
+    const dismiss = () => {
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -63,6 +64,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                                 policyID={policyID}
                                 insets={insets}
                                 onSubmit={submit}
+                                onDismiss={dismiss}
                             />
                         </View>
                     </>

@@ -1,28 +1,34 @@
-import {PortalHost} from '@gorhom/portal';
-import type {SyntheticEvent} from 'react';
+import {useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
@@ -32,6 +38,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -48,9 +55,14 @@ import SendButton from './SendButton';
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: (text: string, shouldAddTrailSpace: boolean) => void;
-    prepareCommentAndResetComposer: () => string;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    getCurrentText: () => string;
     isFocused: () => boolean;
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clear: () => void;
 };
 
 type SuggestionsRef = {
@@ -60,6 +72,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    getIsSuggestionsMenuVisible: () => boolean;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -72,9 +85,9 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
-        onSubmit: (newComment: string | undefined) => void;
+        onSubmit: (newComment: string) => void;
 
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
@@ -90,33 +103,40 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** A method to call when the input is blur */
         onComposerBlur?: () => void;
+
+        /** Should the input be disabled  */
+        disabled?: boolean;
+
+        /** Should show educational tooltip */
+        shouldShowEducationalTooltip?: boolean;
     };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
-    currentUserPersonalDetails = {},
-    disabled,
+    currentUserPersonalDetails,
+    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
     report,
     reportID,
-    listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     lastReportAction,
+    shouldShowEducationalTooltip,
     onComposerFocus,
     onComposerBlur,
 }: ReportActionComposeProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const navigation = useNavigation();
 
     /**
      * Updates the Highlight state of the composer
@@ -126,6 +146,7 @@ function ReportActionCompose({
         return shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
+    const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -147,10 +168,6 @@ function ReportActionCompose({
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
-    /**
-     * Updates the should clear state of the composer
-     */
-    const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(/^(\s)*$/);
@@ -169,11 +186,13 @@ function ReportActionCompose({
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef>(null);
-
+    const composerRef = useRef<ComposerRef>();
     const reportParticipantIDs = useMemo(
-        () => report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
-        [currentUserPersonalDetails.accountID, report],
+        () =>
+            Object.keys(report?.participants ?? {})
+                .map(Number)
+                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
+        [currentUserPersonalDetails.accountID, report?.participants],
     );
 
     const shouldShowReportRecipientLocalTime = useMemo(
@@ -181,14 +200,14 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report?.participantAccountIDs}), [report?.participantAccountIDs]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -209,7 +228,7 @@ function ReportActionCompose({
         if (composerRef.current === null) {
             return;
         }
-        composerRef.current.focus(true);
+        composerRef.current?.focus(true);
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
@@ -231,7 +250,7 @@ function ReportActionCompose({
             containerRef.current.measureInWindow(callback);
         },
         // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isComposerFullSize],
     );
 
@@ -253,15 +272,16 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const addAttachment = useCallback(
-        (file: FileObject) => {
-            playSound(SOUNDS.DONE);
-            const newComment = composerRef?.current?.prepareCommentAndResetComposer();
-            Report.addAttachment(reportID, file, newComment);
-            setTextInputShouldClear(false);
-        },
-        [reportID],
-    );
+    const attachmentFileRef = useRef<FileObject | null>(null);
+    const addAttachment = useCallback((file: FileObject) => {
+        attachmentFileRef.current = file;
+        const clear = composerRef.current?.clear;
+        if (!clear) {
+            throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
+
+        runOnUI(clear)();
+    }, []);
 
     /**
      * Event handler to update the state after the attachment preview is closed.
@@ -276,18 +296,19 @@ function ReportActionCompose({
      * Add a new comment to this chat
      */
     const submitForm = useCallback(
-        (event?: SyntheticEvent) => {
-            event?.preventDefault();
-
-            const newComment = composerRef.current?.prepareCommentAndResetComposer();
-            if (!newComment) {
-                return;
-            }
-
+        (newComment: string) => {
             playSound(SOUNDS.DONE);
-            onSubmit(newComment);
+
+            const newCommentTrimmed = newComment.trim();
+
+            if (attachmentFileRef.current) {
+                Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
+                attachmentFileRef.current = null;
+            } else {
+                onSubmit(newCommentTrimmed);
+            }
         },
-        [onSubmit],
+        [onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -315,26 +336,24 @@ function ReportActionCompose({
         onComposerFocus?.();
     }, [onComposerFocus]);
 
-    // resets the composer to normal size when
-    // the send button is pressed.
-    const resetFullComposerSize = useCallback(() => {
-        if (isComposerFullSize) {
-            Report.setIsComposerFullSize(reportID, false);
-        }
-        setIsFullComposerAvailable(false);
-    }, [isComposerFullSize, reportID]);
-
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '')) {
+            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            setShouldHideEducationalTooltip(true);
+        });
+        return unsubscribe;
+    }, [navigation]);
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
@@ -346,19 +365,26 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
+    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
+    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
+    const composerRefShared = useSharedValue<{
+        clear: (() => void) | undefined;
+    }>({clear: undefined});
     const handleSendMessage = useCallback(() => {
         'worklet';
+
+        const clearComposer = composerRefShared.value.clear;
+        if (!clearComposer) {
+            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
 
         if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
-        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
-        runOnJS(resetFullComposerSize)();
-        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
-        runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+        // This will cause onCleared to be triggered where we actually send the message
+        clearComposer();
+    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -367,130 +393,179 @@ function ReportActionCompose({
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [styles]);
 
+    const renderWorkspaceChatTooltip = useCallback(
+        () => (
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
+                <Icon
+                    src={Expensicons.Lightbulb}
+                    fill={theme.tooltipHighlightText}
+                    medium
+                />
+                <Text>
+                    <Text style={styles.quickActionTooltipTitle}>{translate('reportActionCompose.tooltip.title')}</Text>
+                    <Text style={styles.quickActionTooltipSubtitle}>{translate('reportActionCompose.tooltip.subtitle')}</Text>
+                </Text>
+            </View>
+        ),
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.gap1,
+            styles.quickActionTooltipTitle,
+            styles.quickActionTooltipSubtitle,
+            theme.tooltipHighlightText,
+            translate,
+        ],
+    );
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <PortalHost name="suggestions" />
                 <OfflineWithFeedback
+                    shouldDisableOpacity
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
-                    <View
-                        ref={containerRef}
-                        style={[
-                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.chatItemComposeBox,
-                            isComposerFullSize && styles.chatItemFullComposeBox,
-                            hasExceededMaxCommentLength && styles.borderColorDanger,
-                        ]}
+                    <EducationalTooltip
+                        shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
+                        renderTooltipContent={renderWorkspaceChatTooltip}
+                        shouldUseOverlay
+                        onPressOverlay={() => User.dismissWorkspaceTooltip()}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                        wrapperStyle={styles.reportActionComposeTooltipWrapper}
+                        shiftHorizontal={variables.composerTooltipShiftHorizontal}
+                        shiftVertical={variables.composerTooltipShiftVertical}
                     >
-                        <AttachmentModal
-                            headerTitle={translate('reportActionCompose.sendAttachment')}
-                            onConfirm={addAttachment}
-                            onModalShow={() => setIsAttachmentPreviewActive(true)}
-                            onModalHide={onAttachmentPreviewClose}
+                        <View
+                            ref={containerRef}
+                            style={[
+                                shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                                styles.flexRow,
+                                styles.chatItemComposeBox,
+                                isComposerFullSize && styles.chatItemFullComposeBox,
+                                hasExceededMaxCommentLength && styles.borderColorDanger,
+                            ]}
                         >
-                            {({displayFileInModal}) => (
-                                <>
-                                    <AttachmentPickerWithMenuItems
-                                        displayFileInModal={displayFileInModal}
-                                        reportID={reportID}
-                                        report={report}
-                                        reportParticipantIDs={reportParticipantIDs}
-                                        isFullComposerAvailable={isFullComposerAvailable}
-                                        isComposerFullSize={isComposerFullSize}
-                                        isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={!!disabled}
-                                        setMenuVisibility={setMenuVisibility}
-                                        isMenuVisible={isMenuVisible}
-                                        onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                        onCanceledAttachmentPicker={() => {
-                                            isNextModalWillOpenRef.current = false;
-                                            restoreKeyboardState();
-                                        }}
-                                        onMenuClosed={restoreKeyboardState}
-                                        onAddActionPressed={onAddActionPressed}
-                                        onItemSelected={onItemSelected}
-                                        actionButtonRef={actionButtonRef}
-                                    />
-                                    <ComposerWithSuggestions
-                                        ref={composerRef}
-                                        animatedRef={animatedRef}
-                                        suggestionsRef={suggestionsRef}
-                                        isNextModalWillOpenRef={isNextModalWillOpenRef}
-                                        isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
-                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                        reportID={reportID}
-                                        policyID={report?.policyID ?? ''}
-                                        includeChronos={ReportUtils.chatIncludesChronos(report)}
-                                        isGroupPolicyReport={isGroupPolicyReport}
-                                        lastReportAction={lastReportAction}
-                                        isMenuVisible={isMenuVisible}
-                                        inputPlaceholder={inputPlaceholder}
-                                        isComposerFullSize={isComposerFullSize}
-                                        displayFileInModal={displayFileInModal}
-                                        textInputShouldClear={textInputShouldClear}
-                                        setTextInputShouldClear={setTextInputShouldClear}
-                                        isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={!!disabled}
-                                        isFullComposerAvailable={isFullComposerAvailable}
-                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        setIsCommentEmpty={setIsCommentEmpty}
-                                        handleSendMessage={handleSendMessage}
-                                        shouldShowComposeInput={shouldShowComposeInput}
-                                        onFocus={onFocus}
-                                        onBlur={onBlur}
-                                        measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
-                                        onValueChange={(value) => {
-                                            if (value.length === 0 && isComposerFullSize) {
-                                                Report.setIsComposerFullSize(reportID, false);
-                                            }
-                                            validateCommentMaxLength(value, {reportID});
-                                        }}
-                                    />
-                                    <ReportDropUI
-                                        onDrop={(event: DragEvent) => {
-                                            if (isAttachmentPreviewActive) {
-                                                return;
-                                            }
-                                            const data = event.dataTransfer?.items[0];
-                                            displayFileInModal(data as unknown as FileObject);
-                                        }}
-                                    />
-                                </>
+                            <AttachmentModal
+                                headerTitle={translate('reportActionCompose.sendAttachment')}
+                                onConfirm={addAttachment}
+                                onModalShow={() => setIsAttachmentPreviewActive(true)}
+                                onModalHide={onAttachmentPreviewClose}
+                            >
+                                {({displayFileInModal}) => (
+                                    <>
+                                        <AttachmentPickerWithMenuItems
+                                            displayFileInModal={displayFileInModal}
+                                            reportID={reportID}
+                                            report={report}
+                                            reportParticipantIDs={reportParticipantIDs}
+                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            isComposerFullSize={isComposerFullSize}
+                                            isBlockedFromConcierge={isBlockedFromConcierge}
+                                            disabled={!!disabled}
+                                            setMenuVisibility={setMenuVisibility}
+                                            isMenuVisible={isMenuVisible}
+                                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                            onCanceledAttachmentPicker={() => {
+                                                isNextModalWillOpenRef.current = false;
+                                                restoreKeyboardState();
+                                            }}
+                                            onMenuClosed={restoreKeyboardState}
+                                            onAddActionPressed={onAddActionPressed}
+                                            onItemSelected={onItemSelected}
+                                            actionButtonRef={actionButtonRef}
+                                        />
+                                        <ComposerWithSuggestions
+                                            ref={(ref) => {
+                                                composerRef.current = ref ?? undefined;
+                                                // eslint-disable-next-line react-compiler/react-compiler
+                                                composerRefShared.value = {
+                                                    clear: ref?.clear,
+                                                };
+                                            }}
+                                            suggestionsRef={suggestionsRef}
+                                            isNextModalWillOpenRef={isNextModalWillOpenRef}
+                                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                            reportID={reportID}
+                                            policyID={report?.policyID ?? '-1'}
+                                            includeChronos={ReportUtils.chatIncludesChronos(report)}
+                                            isGroupPolicyReport={isGroupPolicyReport}
+                                            lastReportAction={lastReportAction}
+                                            isMenuVisible={isMenuVisible}
+                                            inputPlaceholder={inputPlaceholder}
+                                            isComposerFullSize={isComposerFullSize}
+                                            displayFileInModal={displayFileInModal}
+                                            onCleared={submitForm}
+                                            isBlockedFromConcierge={isBlockedFromConcierge}
+                                            disabled={!!disabled}
+                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                            setIsCommentEmpty={setIsCommentEmpty}
+                                            handleSendMessage={handleSendMessage}
+                                            shouldShowComposeInput={shouldShowComposeInput}
+                                            onFocus={onFocus}
+                                            onBlur={onBlur}
+                                            measureParentContainer={measureContainer}
+                                            onValueChange={(value) => {
+                                                if (value.length === 0 && isComposerFullSize) {
+                                                    Report.setIsComposerFullSize(reportID, false);
+                                                }
+                                                validateCommentMaxLength(value, {reportID});
+                                            }}
+                                        />
+                                        <ReportDropUI
+                                            onDrop={(event: DragEvent) => {
+                                                if (isAttachmentPreviewActive) {
+                                                    return;
+                                                }
+                                                const data = event.dataTransfer?.items[0];
+                                                displayFileInModal(data as unknown as FileObject);
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </AttachmentModal>
+                            {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                                <EmojiPickerButton
+                                    isDisabled={isBlockedFromConcierge || disabled}
+                                    onModalHide={(isNavigating) => {
+                                        if (isNavigating) {
+                                            return;
+                                        }
+                                        focus();
+                                    }}
+                                    onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
+                                    emojiPickerID={report?.reportID}
+                                    shiftVertical={emojiShiftVertical}
+                                />
                             )}
-                        </AttachmentModal>
-                        {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                            <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={focus}
-                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton (https://github.com/Expensify/App/issues/25155) is migrated to TypeScript.
-                                onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
-                                emojiPickerID={report?.reportID}
-                                shiftVertical={emojiShiftVertical}
+                            <SendButton
+                                isDisabled={isSendDisabled}
+                                handleSendMessage={handleSendMessage}
                             />
-                        )}
-                        <SendButton
-                            isDisabled={isSendDisabled}
-                            handleSendMessage={handleSendMessage}
-                        />
-                    </View>
+                        </View>
+                    </EducationalTooltip>
                     <View
                         style={[
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>

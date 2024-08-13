@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import {AttachmentContext} from '@components/AttachmentContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -50,7 +51,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           control and thus require no authToken to verify access.
     //
     const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const isAttachmentOrReceipt = Boolean(attachmentSourceAttribute);
+    const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
@@ -77,20 +78,32 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
-                <PressableWithoutFocus
-                    style={[styles.noOutline]}
-                    onPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', source);
-                        Navigation.navigate(route);
-                    }}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                    shouldUseHapticsOnLongPress
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                >
-                    {thumbnailImageComponent}
-                </PressableWithoutFocus>
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
+                <AttachmentContext.Consumer>
+                    {({reportID, accountID, type}) => (
+                        <PressableWithoutFocus
+                            style={[styles.noOutline]}
+                            onPress={() => {
+                                if (!source || !type) {
+                                    return;
+                                }
+
+                                if (reportID) {
+                                    const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
+                                    Navigation.navigate(route);
+                                }
+                            }}
+                            onLongPress={(event) =>
+                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
+                            }
+                            shouldUseHapticsOnLongPress
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        >
+                            {thumbnailImageComponent}
+                        </PressableWithoutFocus>
+                    )}
+                </AttachmentContext.Consumer>
             )}
         </ShowContextMenuContext.Consumer>
     );

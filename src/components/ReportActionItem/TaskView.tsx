@@ -22,6 +22,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -96,6 +97,10 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
+                                                // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                                                    return;
+                                                }
                                                 if (isCompleted) {
                                                     Task.reopenTask(report);
                                                 } else {
@@ -135,7 +140,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                 </Hoverable>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                     <MenuItemWithTopDescription
-                        shouldParseTitle
+                        shouldRenderAsHTML
                         description={translate('task.description')}
                         title={report.description ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
@@ -152,7 +157,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}

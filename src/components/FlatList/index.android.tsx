@@ -22,7 +22,7 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
         }
     }, [scrollPosition?.offset, ref]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const onMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => setScrollPosition({offset: event.nativeEvent.contentOffset.y}), []);
 
     useFocusEffect(

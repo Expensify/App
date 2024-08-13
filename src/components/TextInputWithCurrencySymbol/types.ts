@@ -32,6 +32,16 @@ type TextInputWithCurrencySymbolProps = {
      */
     onBlur?: ((e: NativeSyntheticEvent<TextInputFocusEventData>) => void) | undefined;
 
+    /**
+     * Callback that is called when the text input is pressed down
+     */
+    onMouseDown?: ((e: React.MouseEvent) => void) | undefined;
+
+    /**
+     * Callback that is called when the text input is pressed up
+     */
+    onMouseUp?: ((e: React.MouseEvent) => void) | undefined;
+
     /** Whether the currency symbol is pressable */
     isCurrencyPressable: boolean;
 
@@ -62,7 +72,11 @@ type TextInputWithCurrencySymbolProps = {
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Max length for the amount input */
     maxLength?: number;
-} & Pick<BaseTextInputProps, 'autoFocus'>;
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState?: boolean;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'contentWidth'>;
 
 export default TextInputWithCurrencySymbolProps;

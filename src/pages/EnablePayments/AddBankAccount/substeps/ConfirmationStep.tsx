@@ -16,17 +16,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {PlaidData, UserWallet} from '@src/types/onyx';
+import type {PersonalBankAccount} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** The draft values of the bank account being setup */
     personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
 
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
+    /** The user's bank account */
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
 };
 
 type ConfirmationStepProps = ConfirmationOnyxProps & SubStepProps;
@@ -34,13 +31,13 @@ type ConfirmationStepProps = ConfirmationOnyxProps & SubStepProps;
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.BANK_ACCOUNT;
 
-function ConfirmationStep({personalBankAccountDraft, plaidData, onNext, onMove, userWallet}: ConfirmationStepProps) {
+function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext, onMove}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const isLoading = plaidData?.isLoading ?? false;
-    const error = ErrorUtils.getLatestErrorMessage(userWallet ?? {});
+    const isLoading = personalBankAccount?.isLoading ?? false;
+    const error = ErrorUtils.getLatestErrorMessage(personalBankAccount ?? {});
 
     const handleModifyAccountNumbers = () => {
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
@@ -84,11 +81,12 @@ function ConfirmationStep({personalBankAccountDraft, plaidData, onNext, onMove, 
 ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default withOnyx<ConfirmationStepProps, ConfirmationOnyxProps>({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
     personalBankAccountDraft: {
         key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
+    },
+    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

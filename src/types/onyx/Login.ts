@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of user login data */
 type Login = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Phone/Email associated with user */
@@ -20,6 +21,7 @@ type Login = OnyxCommon.OnyxValueWithOfflineFeedback<
     'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin'
 >;
 
+/** Record of user login data, indexed by partnerUserID */
 type LoginList = Record<string, Login>;
 
 export default Login;

@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 
@@ -19,7 +18,7 @@ function WorkspacesSectionHeader() {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+        <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mv2]}>
             <View>
                 <Text
                     style={styles.label}
@@ -33,7 +32,6 @@ function WorkspacesSectionHeader() {
                     accessible={false}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
-                        Navigation.goBack();
                         interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
                     }}
                 >

@@ -1,7 +1,7 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
@@ -10,8 +10,6 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -28,6 +27,8 @@ import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
+import DefaultAttachmentView from './DefaultAttachmentView';
+import HighResolutionInfo from './HighResolutionInfo';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -64,13 +65,22 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Denotes whether it is an icon (ex: SVG) */
         maybeIcon?: boolean;
 
+        /** Fallback source to use in case of error */
         fallbackSource?: AttachmentSource;
 
+        /* Whether it is hovered or not */
         isHovered?: boolean;
+
+        /** Whether the attachment is used as a chat attachment */
+        isUsedAsChatAttachment?: boolean;
+
+        /* Flag indicating whether the attachment has been uploaded. */
+        isUploaded?: boolean;
     };
 
 function AttachmentView({
     source,
+    previewSource,
     file,
     isAuthTokenRequired,
     onPress,
@@ -88,6 +98,8 @@ function AttachmentView({
     reportActionID,
     isHovered,
     duration,
+    isUsedAsChatAttachment,
+    isUploaded = true,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -95,6 +107,8 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
+    const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
     useEffect(() => {
@@ -107,6 +121,12 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
+
+    useEffect(() => {
+        FileUtils.getFileResolution(file).then((resolution) => {
+            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        });
+    }, [file]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -145,7 +165,9 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename')))) {
+    const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
+    const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
+    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
@@ -156,6 +178,10 @@ function AttachmentView({
             if (!loadComplete) {
                 setLoadComplete(true);
             }
+        };
+
+        const onPDFLoadError = () => {
+            setHasPDFFailedToLoad(true);
         };
 
         // We need the following View component on android native
@@ -170,8 +196,9 @@ function AttachmentView({
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
-                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedAsChatAttachment={isUsedAsChatAttachment}
+                    onLoadError={onPDFLoadError}
                 />
             </View>
         );
@@ -184,35 +211,61 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    if (isImage || (file?.name && Str.isImage(file.name))) {
-        if (imageError) {
-            // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
-            if (typeof fallbackSource === 'number' || typeof fallbackSource === 'function') {
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    const isFileNameImage = file?.name && Str.isImage(file.name);
+    const isFileImage = isSourceImage || isFileNameImage;
+
+    if (isFileImage) {
+        if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
+            return (
+                <Icon
+                    src={fallbackSource}
+                    height={variables.defaultAvatarPreviewSize}
+                    width={variables.defaultAvatarPreviewSize}
+                    additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                    fill={theme.border}
+                />
+            );
+        }
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+
+        if (isHighResolution) {
+            if (!isUploaded) {
                 return (
-                    <Icon
-                        src={fallbackSource}
-                        height={variables.defaultAvatarPreviewSize}
-                        width={variables.defaultAvatarPreviewSize}
-                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-                        fill={theme.border}
-                    />
+                    <>
+                        <View style={styles.imageModalImageCenterContainer}>
+                            <DefaultAttachmentView
+                                icon={Expensicons.Gallery}
+                                fileName={file?.name}
+                                shouldShowDownloadIcon={shouldShowDownloadIcon}
+                                shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                                containerStyles={containerStyles}
+                            />
+                        </View>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </>
                 );
             }
+            imageSource = previewSource?.toString() ?? imageSource;
         }
 
         return (
-            <AttachmentViewImage
-                url={imageError && fallbackSource ? (fallbackSource as string) : (source as string)}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                loadComplete={loadComplete}
-                isImage={isImage}
-                onPress={onPress}
-                onError={() => {
-                    setImageError(true);
-                }}
-            />
+            <>
+                <View style={styles.imageModalImageCenterContainer}>
+                    <AttachmentViewImage
+                        url={imageSource}
+                        file={file}
+                        isAuthTokenRequired={isAuthTokenRequired}
+                        loadComplete={loadComplete}
+                        isImage={isFileImage}
+                        onPress={onPress}
+                        onError={() => {
+                            setImageError(true);
+                        }}
+                    />
+                </View>
+                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+            </>
         );
     }
 
@@ -228,36 +281,12 @@ function AttachmentView({
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, containerStyles]}>
-            <View style={styles.mr2}>
-                <Icon
-                    fill={theme.icon}
-                    src={Expensicons.Paperclip}
-                />
-            </View>
-
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
-            {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
-                <Tooltip text={translate('common.download')}>
-                    <View style={styles.ml2}>
-                        <Icon
-                            fill={theme.icon}
-                            src={Expensicons.Download}
-                        />
-                    </View>
-                </Tooltip>
-            )}
-            {shouldShowLoadingSpinnerIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={translate('common.downloading')}>
-                        <ActivityIndicator
-                            size="small"
-                            color={theme.textSupporting}
-                        />
-                    </Tooltip>
-                </View>
-            )}
-        </View>
+        <DefaultAttachmentView
+            fileName={file?.name}
+            shouldShowDownloadIcon={shouldShowDownloadIcon}
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            containerStyles={containerStyles}
+        />
     );
 }
 

@@ -1,13 +1,72 @@
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
-import * as VERSION_UPDATER from './versionUpdater';
+import * as VersionUpdater from './versionUpdater';
+import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
     commit: string;
     subject: string;
     authorName: string;
 };
+
+/**
+ * Check if a tag exists locally or in the remote.
+ */
+function tagExists(tag: string) {
+    try {
+        // Check if the tag exists locally
+        execSync(`git show-ref --tags ${tag}`, {stdio: 'ignore'});
+        return true; // Tag exists locally
+    } catch (error) {
+        // Tag does not exist locally, check in remote
+        let shouldRetry = true;
+        let needsRepack = false;
+        let doesTagExist = false;
+        while (shouldRetry) {
+            try {
+                if (needsRepack) {
+                    // We have seen some scenarios where this fixes the git fetch.
+                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                    execSync('git repack -d', {stdio: 'inherit'});
+                }
+                execSync(`git ls-remote --exit-code --tags origin ${tag}`, {stdio: 'ignore'});
+                doesTagExist = true;
+                shouldRetry = false;
+            } catch (e) {
+                if (!needsRepack) {
+                    console.log('Attempting to repack and retry...');
+                    needsRepack = true;
+                } else {
+                    console.error("Repack didn't help, giving up...");
+                    shouldRetry = false;
+                }
+            }
+        }
+        return doesTagExist;
+    }
+}
+
+/**
+ * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
+ * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
+ *
+ * @param tag the current tag
+ * @param level the Semver level to step backward by
+ */
+function getPreviousExistingTag(tag: string, level: SemverLevel) {
+    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let tagExistsForPreviousVersion = false;
+    while (!tagExistsForPreviousVersion) {
+        if (tagExists(previousVersion)) {
+            tagExistsForPreviousVersion = true;
+            break;
+        }
+        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
+        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+    }
+    return previousVersion;
+}
 
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
@@ -53,8 +112,8 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
@@ -66,11 +125,11 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
         console.log(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
+        spawnedProcess.stdout.on('data', (chunk: Buffer) => {
             console.log(chunk.toString());
             stdout += chunk.toString();
         });
-        spawnedProcess.stderr.on('data', (chunk) => {
+        spawnedProcess.stderr.on('data', (chunk: Buffer) => {
             console.error(chunk.toString());
             stderr += chunk.toString();
         });
@@ -138,6 +197,7 @@ async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
 }
 
 export default {
+    getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsMergedBetween,
 };

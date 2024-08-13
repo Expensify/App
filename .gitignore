@@ -37,6 +37,11 @@ local.properties
 android/app/src/main/java/com/expensify/chat/generated/
 .cxx/
 
+# VIM
+*.swp
+*.swo
+*~
+
 # Vscode
 .vscode
 
@@ -105,10 +110,6 @@ tsconfig.tsbuildinfo
 # Mock-github
 /repo/
 
-# Workflow test logs
-/workflow_tests/logs/
-/workflow_tests/repo/
-
 # Yalc
 .yalc
 yalc.lock
@@ -125,3 +126,6 @@ config/webpack/*.pem
 .expo
 dist/
 web-build/
+
+# Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
+.sourcemaps/

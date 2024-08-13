@@ -1,14 +1,14 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = {
     /** Error message to display above button */
-    message?: MaybePhraseKey;
+    message?: string;
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
@@ -54,6 +54,9 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
 };
 
 function FormAlertWithSubmitButton({
@@ -73,13 +76,15 @@ function FormAlertWithSubmitButton({
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
+    enterKeyEventListenerPriority = 0,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.justifyContentEnd, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}
@@ -102,6 +107,7 @@ function FormAlertWithSubmitButton({
                         <Button
                             success
                             pressOnEnter={!disablePressOnEnter}
+                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
                             onPress={onSubmit}

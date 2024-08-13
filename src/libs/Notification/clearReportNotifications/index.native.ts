@@ -1,16 +1,16 @@
 import type {PushPayload} from '@ua/react-native-airship';
 import Airship from '@ua/react-native-airship';
 import Log from '@libs/Log';
-import type {NotificationData} from '@libs/Notification/PushNotification/NotificationType';
+import type {PushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import CONST from '@src/CONST';
 import type ClearReportNotifications from './types';
 
 const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     let payload = pushPayload.extras.payload;
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
-    const data = payload as NotificationData;
+    const data = payload as PushNotificationData;
     return {
         notificationID: pushPayload.notificationId,
         reportID: String(data.reportID),
@@ -34,7 +34,7 @@ const clearReportNotifications: ClearReportNotifications = (reportID: string) =>
             Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
             reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
         });
 };

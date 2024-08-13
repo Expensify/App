@@ -34,6 +34,7 @@ const test = () => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug(`[E2E] Sidebar loaded, navigating to chat finder route…`);
+                Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
                 Navigation.navigate(ROUTES.CHAT_FINDER);
                 return;
             }
@@ -44,7 +45,8 @@ const test = () => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Open Chat Finder Page TTI',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         openSearchPageResolve();
@@ -59,7 +61,8 @@ const test = () => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Load Search Options',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 })
                     .then(() => {
                         loadSearchOptionsResolve();
