@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -51,9 +52,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     }, [approvalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
-        // Workflow.removeApprovalWorkflow(route.params.policyID);
+        if (!approvalWorkflow) {
+            return;
+        }
+
+        Workflow.removeApprovalWorkflow(route.params.policyID, {...approvalWorkflow, approvers: approvalWorkflow.approvers as Approver[]});
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-    }, [route.params.policyID]);
+    }, [approvalWorkflow, route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -97,11 +102,11 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                     />
                 </FullPageNotFoundView>
                 <ConfirmModal
-                    title={translate('workspace.taxes.actions.delete')}
+                    title={translate('workflowsEditApprovalsPage.deleteTitle')}
                     isVisible={isDeleteModalVisible}
                     onConfirm={removeApprovalWorkflow}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.taxes.deleteTaxConfirmation')}
+                    prompt={translate('workflowsEditApprovalsPage.deletePrompt')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
