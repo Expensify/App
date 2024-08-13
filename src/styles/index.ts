@@ -1711,6 +1711,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
 
+        createAccountSwitcherPosition: () =>
+            ({
+                horizontal: 12,
+                vertical: 285,
+            } satisfies AnchorPosition),
+
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
