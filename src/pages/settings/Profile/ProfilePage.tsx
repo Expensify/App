@@ -172,7 +172,7 @@ function ProfilePage({
                                     originalFileName={currentUserPersonalDetails.originalFileName}
                                     headerTitle={translate('profilePage.profileAvatar')}
                                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                    editIconStyle={styles.smallEditIconAccount}
+                                    editIconStyle={styles.profilePageAvatar}
                                 />
                             </View>
                             {publicOptions.map((detail, index) => (
