@@ -3319,6 +3319,10 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            invoicingDetails: 'Invoicing details',
+            invoicingDetailsDescription: 'This info will appear on your invoices.',
+            companyName: 'Company name',
+            companyWebsite: 'Company website',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Business',

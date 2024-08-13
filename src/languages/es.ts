@@ -3370,6 +3370,10 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviar desde',
+            invoicingDetails: 'Detalles de facturación',
+            invoicingDetailsDescription: 'Esta información aparecerá en tus facturas.',
+            companyName: 'Nombre de la empresa',
+            companyWebsite: 'Sitio web de la empresa',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Empresas',
