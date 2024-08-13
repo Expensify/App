@@ -17,18 +17,18 @@ const isMobile = Browser.isMobile();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullScreenRef, lockedResponsiveLayoutResultRef, lockResponsiveLayoutResult, unlockResponsiveLayoutResult} = useContext(FullScreenContext) ?? {
+    const {isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
         isFullScreenRef: useRef(false),
-        lockedResponsiveLayoutResultRef: useRef<ResponsiveLayoutProperties | null>(null),
-        lockResponsiveLayoutResult: () => {},
-        unlockResponsiveLayoutResult: () => {},
+        lockedWindowDimensionsRef: useRef<ResponsiveLayoutProperties | null>(null),
+        lockWindowDimensions: () => {},
+        unlockWindowDimensions: () => {},
     };
 
     const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileWebKit();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
-    // These are the same as the ones in useResponsiveLayout, but we need to redefine them here toto avoid cyclic dependency.
+    // These are the same as the ones in useResponsiveLayout, but we need to redefine them here to avoid cyclic dependency.
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
@@ -38,6 +38,15 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
     const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
     const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+
+    const responsiveLayoutResults = {
+        isSmallScreenWidth,
+        isExtraSmallScreenHeight,
+        isExtraSmallScreenWidth,
+        isMediumScreenWidth,
+        isLargeScreenWidth,
+        isSmallScreen,
+    };
 
     const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
@@ -95,46 +104,37 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const windowDimensions = {
         windowWidth,
         windowHeight: isCachedViewportHeight ? cachedViewportHeight : windowHeight,
+        responsiveLayoutResults,
     };
 
-    const ResponsiveLayoutProperties = {
-        ...windowDimensions,
-        isSmallScreenWidth,
-        isExtraSmallScreenHeight,
-        isExtraSmallScreenWidth,
-        isMediumScreenWidth,
-        isLargeScreenWidth,
-        isSmallScreen,
-    };
-
-    if (!lockedResponsiveLayoutResultRef.current && !isFullScreenRef.current) {
+    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
         return windowDimensions;
     }
 
     const didScreenChangeOrientation =
         isMobile &&
-        lockedResponsiveLayoutResultRef.current &&
-        isExtraSmallScreenWidth === lockedResponsiveLayoutResultRef.current.isExtraSmallScreenWidth &&
-        isSmallScreenWidth === lockedResponsiveLayoutResultRef.current.isSmallScreen &&
-        isMediumScreenWidth === lockedResponsiveLayoutResultRef.current.isMediumScreenWidth &&
-        isLargeScreenWidth === lockedResponsiveLayoutResultRef.current.isLargeScreenWidth &&
-        lockedResponsiveLayoutResultRef.current.windowWidth !== windowWidth &&
-        lockedResponsiveLayoutResultRef.current.windowHeight !== windowHeight;
+        lockedWindowDimensionsRef.current &&
+        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isExtraSmallScreenHeight &&
+        isSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isSmallScreen &&
+        isMediumScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isMediumScreenWidth &&
+        isLargeScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isLargeScreenWidth &&
+        lockedWindowDimensionsRef.current.windowWidth !== windowWidth &&
+        lockedWindowDimensionsRef.current.windowHeight !== windowHeight;
 
     // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
-    if (!lockedResponsiveLayoutResultRef.current || didScreenChangeOrientation) {
-        lockResponsiveLayoutResult(ResponsiveLayoutProperties);
+    if (!lockedWindowDimensionsRef.current || didScreenChangeOrientation) {
+        lockWindowDimensions(windowDimensions);
         return windowDimensions;
     }
 
-    const didScreenReturnToOriginalSize = lockedResponsiveLayoutResultRef.current.windowWidth === windowWidth && lockedResponsiveLayoutResultRef.current.windowHeight === windowHeight;
+    const didScreenReturnToOriginalSize = lockedWindowDimensionsRef.current.windowWidth === windowWidth && lockedWindowDimensionsRef.current.windowHeight === windowHeight;
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedResponsiveLayoutResultRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
-        const lastlockedResponsiveLayoutResult = {...lockedResponsiveLayoutResultRef.current};
-        unlockResponsiveLayoutResult();
-        return {windowWidth: lastlockedResponsiveLayoutResult.windowWidth, windowHeight: lastlockedResponsiveLayoutResult.windowHeight};
+    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
+        const lastlockedWindowDimensions = {...lockedWindowDimensionsRef.current};
+        unlockWindowDimensions();
+        return {windowWidth: lastlockedWindowDimensions.windowWidth, windowHeight: lastlockedWindowDimensions.windowHeight};
     }
 
-    return {windowWidth: lockedResponsiveLayoutResultRef.current.windowWidth, windowHeight: lockedResponsiveLayoutResultRef.current.windowHeight};
+    return {windowWidth: lockedWindowDimensionsRef.current.windowWidth, windowHeight: lockedWindowDimensionsRef.current.windowHeight};
 }

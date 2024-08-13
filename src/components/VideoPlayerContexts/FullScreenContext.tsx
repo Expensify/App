@@ -6,24 +6,23 @@ import type {FullScreenContext} from './types';
 
 const Context = React.createContext<FullScreenContext | null>(null);
 
-type ResponsiveLayoutProperties = WindowDimensions & Partial<ResponsiveLayoutResult>;
+type ResponsiveLayoutProperties = WindowDimensions & {
+    responsiveLayoutResults: Partial<ResponsiveLayoutResult>;
+};
 
 function FullScreenContextProvider({children}: ChildrenProps) {
     const isFullScreenRef = useRef(false);
-    const lockedResponsiveLayoutResultRef = useRef<ResponsiveLayoutProperties | null>(null);
+    const lockedWindowDimensionsRef = useRef<ResponsiveLayoutProperties | null>(null);
 
-    const lockResponsiveLayoutResult = useCallback((newResponsiveLayoutResult: ResponsiveLayoutProperties) => {
-        lockedResponsiveLayoutResultRef.current = newResponsiveLayoutResult;
+    const lockWindowDimensions = useCallback((newResponsiveLayoutProperties: ResponsiveLayoutProperties) => {
+        lockedWindowDimensionsRef.current = newResponsiveLayoutProperties;
     }, []);
 
-    const unlockResponsiveLayoutResult = useCallback(() => {
-        lockedResponsiveLayoutResultRef.current = null;
+    const unlockWindowDimensions = useCallback(() => {
+        lockedWindowDimensionsRef.current = null;
     }, []);
 
-    const contextValue = useMemo(
-        () => ({isFullScreenRef, lockedResponsiveLayoutResultRef, lockResponsiveLayoutResult, unlockResponsiveLayoutResult}),
-        [lockResponsiveLayoutResult, unlockResponsiveLayoutResult],
-    );
+    const contextValue = useMemo(() => ({isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}), [lockWindowDimensions, unlockWindowDimensions]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

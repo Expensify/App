@@ -26,7 +26,7 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -67,7 +67,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(isMediumOrLargerScreenWidth)}
+                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                             <Stack.Screen

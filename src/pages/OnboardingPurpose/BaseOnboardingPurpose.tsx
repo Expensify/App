@@ -41,7 +41,7 @@ const menuIcons = {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -58,7 +58,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
-    const paddingHorizontal = isMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
+    const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const selectedCheckboxIcon = useMemo(
         () => (
@@ -127,16 +127,16 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
-                    <View style={isMediumOrLargerScreenWidth && styles.mh3}>
+                    <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
                             progressBarPercentage={25}
                         />
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
-                            <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                                 <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList

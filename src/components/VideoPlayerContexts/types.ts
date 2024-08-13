@@ -37,9 +37,9 @@ type VideoPopoverMenuContext = {
 
 type FullScreenContext = {
     isFullScreenRef: MutableRefObject<boolean>;
-    lockedResponsiveLayoutResultRef: MutableRefObject<ResponsiveLayoutProperties | null>;
-    lockResponsiveLayoutResult: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
-    unlockResponsiveLayoutResult: () => void;
+    lockedWindowDimensionsRef: MutableRefObject<ResponsiveLayoutProperties | null>;
+    lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
+    unlockWindowDimensions: () => void;
 };
 
 type StatusCallback = (isPlaying: boolean) => void;

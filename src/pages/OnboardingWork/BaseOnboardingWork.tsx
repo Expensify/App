@@ -30,7 +30,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const completeEngagement = useCallback(
@@ -83,7 +83,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
                     footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
@@ -95,7 +95,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     shouldValidateOnChange
                     shouldTrimValues={false}
                 >
-                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
                     </View>
                     <View style={styles.mb4}>

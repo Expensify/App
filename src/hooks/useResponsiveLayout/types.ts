@@ -7,6 +7,6 @@ type ResponsiveLayoutResult = {
     isLargeScreenWidth: boolean;
     isExtraSmallScreenWidth: boolean;
     isSmallScreen: boolean;
-    isMediumOrLargerScreenWidth: boolean;
+    onboardingIsMediumOrLargerScreenWidth: boolean;
 };
 export default ResponsiveLayoutResult;

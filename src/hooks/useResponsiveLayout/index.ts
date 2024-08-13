@@ -31,7 +31,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
-    const isMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
+    const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
 
@@ -74,7 +74,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isExtraSmallScreenHeight,
         isExtraSmallScreenWidth,
         isMediumScreenWidth,
-        isMediumOrLargerScreenWidth,
+        onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
     };

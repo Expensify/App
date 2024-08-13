@@ -39,7 +39,7 @@ function BaseOnboardingPersonalDetails({
 }: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
@@ -142,7 +142,7 @@ function BaseOnboardingPersonalDetails({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     footerContent={shouldUseNarrowLayout && PersonalDetailsFooterInstance}
                     validate={validate}
@@ -154,7 +154,7 @@ function BaseOnboardingPersonalDetails({
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
-                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>

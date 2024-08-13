@@ -201,14 +201,14 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout, isMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumOrLargerScreenWidth), [screenOptions, isMediumOrLargerScreenWidth]);
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, isMediumOrLargerScreenWidth),
-        [StyleUtils, shouldUseNarrowLayout, isMediumOrLargerScreenWidth, styles],
+        () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
+        [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
 
     let initialReportID: string | undefined;
