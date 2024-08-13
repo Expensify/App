@@ -42,7 +42,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
 
     const updateApprovalWorkflow = useCallback(() => {
-        if (!approvalWorkflow) {
+        if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
 
@@ -50,9 +50,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow);
+        const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
+        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove);
         Navigation.goBack();
-    }, [approvalWorkflow, route.params.policyID]);
+    }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
         if (!initialApprovalWorkflow) {

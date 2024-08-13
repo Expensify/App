@@ -111,7 +111,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow) {
+function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!authToken || !policy) {
@@ -119,7 +119,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE, membersToRemove});
 
     const optimisticData: OnyxUpdate[] = [
         {
