@@ -1,19 +1,22 @@
+import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import PopoverMenu from './PopoverMenu';
-import type {PopoverMenuItem} from './PopoverMenu';
+import MenuItem from './MenuItem';
+import Popover from './Popover';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -32,19 +35,52 @@ function AccountSwitcher() {
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const shouldShowDelegates = delegates.length > 0 && canUseNewDotCopilot;
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const delegateMenuItems: PopoverMenuItem[] = delegates.map(({email, role}) => ({
-        text: `${email} (${role})`,
-        onPress: () => {},
-    }));
+    const delegateMenuItems = delegates.map(({email, role}) => {
+        const personalDetail = getPersonalDetailByEmail(email);
+
+        return {
+            key: email,
+            title: personalDetail?.displayName ?? email,
+            description: personalDetail?.displayName ? email : '',
+            badgeText: Str.recapitalize(role),
+            onPress: () => {},
+            avatarID: personalDetail?.accountID ?? -1,
+            icon: personalDetail?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+            numberOfLinesDescription: 1,
+        };
+    });
+
+    const delegateMenuItemsWithCurrentUser = [
+        {
+            key: currentUserPersonalDetails?.login,
+            title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
+            description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
+            onPress: () => {},
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: true,
+            success: true,
+            avatarID: currentUserPersonalDetails?.accountID ?? -1,
+            icon: avatarUrl,
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+            numberOfLinesDescription: 1,
+            wrapperStyle: [styles.buttonDefaultBG],
+            focused: true,
+        },
+        ...delegateMenuItems,
+    ];
 
     useEffect(() => {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.ACCOUNT, {
             delegatedAccess: {
                 delegates: [
-                    {email: 'delegate1@expensify.com', role: 'all'},
-                    {email: 'delegate2@expensify.com', role: 'submitter'},
+                    {email: 'rushatgabhane@gmail.com', role: 'all'},
+                    {email: 'expensifyopensource+10041232131212321@protonmail.com', role: 'submitter'},
                 ],
             },
         });
@@ -97,15 +133,22 @@ function AccountSwitcher() {
                     </View>
                 </View>
             </PressableWithFeedback>
-            <PopoverMenu
-                headerText="Switch accounts:"
-                isVisible={shouldShowDelegateMenu}
-                onClose={() => setShouldShowDelegateMenu(false)}
-                onItemSelected={() => {}}
-                menuItems={delegateMenuItems}
-                anchorRef={buttonRef}
-                anchorPosition={styles.createAccountSwitcherPosition()}
-            />
+            {shouldShowDelegates && (
+                <Popover
+                    isVisible={shouldShowDelegateMenu}
+                    onClose={() => setShouldShowDelegateMenu(false)}
+                    anchorRef={buttonRef}
+                    anchorPosition={{top: 80, left: 12}}
+                >
+                    <View style={styles.pb4}>
+                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
+                        {delegateMenuItemsWithCurrentUser.map((item) => (
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            <MenuItem {...item} />
+                        ))}
+                    </View>
+                </Popover>
+            )}
         </>
     );
 }
