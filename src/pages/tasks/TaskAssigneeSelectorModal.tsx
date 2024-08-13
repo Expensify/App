@@ -205,7 +205,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                 InteractionManager.runAfterInteractions(() => {
                     TaskActions.setAssigneeValue(
                         option?.login ?? '',
-                        option.accountID,
+                        option.accountID ?? -1,
                         task?.shareDestination ?? '',
                         undefined, // passing null as report is null in this condition
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
