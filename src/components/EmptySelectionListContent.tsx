@@ -47,6 +47,7 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
                 title={translate(`emptyList.${contentType}.title`)}
                 shouldShowLink={false}
                 CustomSubtitle={EmptySubtitle}
+                containerStyle={styles.mb8}
             />
         </View>
     );
