@@ -74,18 +74,6 @@ function AccountSwitcher() {
         ...delegateMenuItems,
     ];
 
-    useEffect(() => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.ACCOUNT, {
-            delegatedAccess: {
-                delegates: [
-                    {email: 'rushatgabhane@gmail.com', role: 'all'},
-                    {email: 'expensifyopensource+10041232131212321@protonmail.com', role: 'submitter'},
-                ],
-            },
-        });
-    }, []);
-
     return (
         <>
             <PressableWithFeedback
