@@ -271,3 +271,4 @@ export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, Remov
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitleParams';
+export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApprovalParams';
