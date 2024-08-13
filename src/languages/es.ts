@@ -4891,5 +4891,10 @@ export default {
     },
     delegate: {
         switchAccount: 'Cambiar cuentas:',
+        copilotDelegatedAccess: 'Copilot: Acceso delegado',
+        copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
+        addCopilot: 'Agregar Copiloto',
+        membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
+        youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
     },
 } satisfies EnglishTranslation;
