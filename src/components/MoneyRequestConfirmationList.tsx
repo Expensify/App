@@ -276,7 +276,6 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
     }, [customUnitRateID, policy, previousCustomUnitRateID, previousTransactionCurrency, previousTransactionModifiedCurrency, shouldShowTax, transaction, transactionID]);
 
-    // A flag for showing the billable field
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
     const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
