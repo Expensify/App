@@ -6,7 +6,6 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type CurrentUserPersonalDetailsSkeletonViewProps = {
@@ -23,6 +22,7 @@ function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSiz
     const StyleUtils = useStyleUtils();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
+    const x = 30;
 
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
@@ -33,18 +33,18 @@ function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSiz
                 height={avatarPlaceholderSize + styles.pb5.paddingBottom}
             >
                 <Circle
-                    cx="30"
+                    cx={x}
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
                 <Rect
-                    x={30 + avatarPlaceholderRadius + styles.gap3.gap}
+                    x={x + avatarPlaceholderRadius + styles.gap3.gap}
                     y="11"
                     width="45%"
                     height="8"
                 />
                 <Rect
-                    x={30 + avatarPlaceholderRadius + styles.gap3.gap}
+                    x={x + avatarPlaceholderRadius + styles.gap3.gap}
                     y="31"
                     width="55%"
                     height="8"
