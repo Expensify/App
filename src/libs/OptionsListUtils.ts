@@ -389,10 +389,6 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
         const login = reversedDefaultValues[accountID] ?? '';
         const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
 
-        if (!userPersonalDetail.avatar) {
-            console.log('Using the fallback avatar 🤑', userPersonalDetail);
-        }
-
         return {
             id: accountID,
             source: userPersonalDetail.avatar ?? FallbackAvatar,
