@@ -315,7 +315,7 @@ function clearIssueNewCardFlow() {
     });
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, oldLimit?: number) {
+function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -328,6 +328,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    availableSpend: newAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: newLimit,
                     },
@@ -356,6 +357,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    availableSpend: oldAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: oldLimit,
                     },

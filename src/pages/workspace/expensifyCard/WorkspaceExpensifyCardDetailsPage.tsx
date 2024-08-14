@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -44,7 +45,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
-    // TODO: add an API call to load the card details data: https://github.com/Expensify/App/issues/47231
     const card = cardsList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
@@ -53,9 +53,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
-    useEffect(() => {
+    const fetchCardDetails = useCallback(() => {
         Card.openCardDetailsPage(Number(cardID));
     }, [cardID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
+
+    useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
@@ -116,6 +120,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 title={formattedAvailableSpendAmount}
                                 interactive={false}
                                 titleStyle={styles.newKansasLarge}
+                                containerStyle={isOffline ? styles.buttonOpacityDisabled : null}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.expensifyCard.cardLimit')}
