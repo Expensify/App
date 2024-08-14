@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -44,7 +43,7 @@ function AccountSwitcher() {
         return {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
-            badgeText: Str.recapitalize(role),
+            badgeText: translate('delegate.role', role),
             onPress: () => {
                 connect(email);
             },
