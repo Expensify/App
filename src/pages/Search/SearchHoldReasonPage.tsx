@@ -53,7 +53,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             if (areSelectedModifiedByOthers) {
                 const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
+                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModifiedSelected'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
             }
 
