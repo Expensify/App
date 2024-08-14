@@ -2363,6 +2363,7 @@ PODS:
     - GoogleSignIn (~> 7.0)
     - React-Core
   - RNLiveMarkdown (0.1.111):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2384,6 +2385,7 @@ PODS:
     - RNLiveMarkdown/common (= 0.1.111)
     - Yoga
   - RNLiveMarkdown/common (0.1.111):
+    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -3176,7 +3178,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: cf2707e6050a3548bde4f66bd752d721f91e8ab6
+  RNLiveMarkdown: 98ab399c0201ee42ba4a23a8e1d5645cf817f103
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3195,6 +3197,6 @@ SPEC CHECKSUMS:
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
   Yoga: 1e170d028257c3ceb6e652dd62b2698dbc108a4b
 
-PODFILE CHECKSUM: b6021c2b743b23dd3ccbe1b8abc98c8e10fea1c4
+PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
 
 COCOAPODS: 1.15.2

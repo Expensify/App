@@ -19,19 +19,3 @@ index f22a3c3..4884cea 100644
  
  def reactProperties = new Properties()
  file("$REACT_NATIVE_DIR/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
-diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-index d34259d..a7f3639 100644
---- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-+++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-@@ -141,6 +141,11 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props oldProps:(cons
-   [self viewDidUpdateProps];
- }
- 
-++ (BOOL)shouldBeRecycled
-+{
-+    return NO;
-+}
-+
- - (void)updateEventEmitter:(const react::EventEmitter::Shared &)eventEmitter
- {
-   [super updateEventEmitter:eventEmitter];
