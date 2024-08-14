@@ -17,10 +17,10 @@ type Delegate = {
 
 /** Model of delegated access data */
 type DelegatedAccess = {
-    /** The the users you can access as a delegate */
+    /** The users that can access your account as a delegate */
     delegates: Delegate[];
 
-    /** The users that can access your account as a delegate */
+    /** The the users you can access as a delegate */
     delegators: Delegate[];
 };
 
