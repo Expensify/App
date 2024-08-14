@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -33,9 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [isExitingPage, setIsExitingPage] = useState(false);
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
@@ -62,14 +60,6 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    useEffect(() => {
-        const unsubscribeBeforeRemove = navigation.addListener('beforeRemove', () => {
-            setIsExitingPage(true);
-        });
-
-        return unsubscribeBeforeRemove;
-    }, [navigation]);
-
     const reportTransactionID = TransactionUtils.getTransactionID(report?.reportID ?? '');
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || reviewDuplicates?.duplicates.includes(reportTransactionID);
 
@@ -78,7 +68,7 @@ function Confirmation() {
         isEmptyObject(report) ||
         !ReportUtils.isValidReport(report) ||
         ReportUtils.isReportNotFound(report) ||
-        (!isExitingPage && reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
+        (reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult)) {
         return <FullScreenLoadingIndicator />;
