@@ -5062,6 +5062,8 @@ function createDistanceRequest(
             report?.reportID ?? '',
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
+            taxCode,
+            taxAmount,
         );
         onyxData = splitOnyxData;
 
