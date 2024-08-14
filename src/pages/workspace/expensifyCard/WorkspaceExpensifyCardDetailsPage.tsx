@@ -55,7 +55,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     useEffect(() => {
         Card.openCardDetailsPage(Number(cardID));
-    }, []);
+    }, [cardID]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
