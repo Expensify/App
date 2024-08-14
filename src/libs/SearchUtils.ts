@@ -465,7 +465,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY) &&
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
