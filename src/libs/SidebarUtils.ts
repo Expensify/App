@@ -102,7 +102,7 @@ function getOrderedReportIDs(
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
@@ -111,7 +111,7 @@ function getOrderedReportIDs(
         let doesTransactionThreadReportHasViolations = false;
         if (oneTransactionThreadReportID) {
             const transactionReport = ReportUtils.getReport(oneTransactionThreadReportID);
-            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
+            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, transactionViolations);
         }
         const hasErrorsOtherThanFailedReceipt =
             doesTransactionThreadReportHasViolations ||
