@@ -312,8 +312,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.RULES,
         });
     }
