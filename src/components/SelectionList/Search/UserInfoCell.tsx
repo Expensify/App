@@ -15,9 +15,7 @@ type UserInfoCellProps = {
 function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
-    const avatarURL = participant?.avatarURL ?? participant?.avatar;
-    const isWorkspace = participant?.avatarURL !== undefined;
-    const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+    const avatarURL = participant?.avatar;
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -26,8 +24,8 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 source={avatarURL}
                 name={displayName}
-                type={iconType}
-                avatarID={isWorkspace ? participant?.id : participant?.accountID}
+                type={CONST.ICON_TYPE_AVATAR}
+                avatarID={participant?.accountID}
                 containerStyles={[styles.pr2]}
             />
             <Text

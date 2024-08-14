@@ -146,11 +146,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, transactionItem]) => {
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
