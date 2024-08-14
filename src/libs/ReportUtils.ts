@@ -2028,7 +2028,7 @@ function getDisplayNameForParticipant(
 
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false): number[] {
     const reportParticipants = report?.participants ?? {};
-    let participantsIds = Object.keys(reportParticipants).map(Number);
+    let participantsEntries = Object.entries(reportParticipants);
 
     // We should not show participants that have an optimistic entry with the same login in the personal details
     const nonOptimisticLoginMap: Record<string, boolean | undefined> = {};
@@ -2048,6 +2048,8 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
         }
         return true;
     });
+
+    let participantsIds = participantsEntries.map(([accountID]) => Number(accountID));
 
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
