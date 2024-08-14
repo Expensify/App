@@ -2932,7 +2932,7 @@ const EMPTY_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxE
     maxExpenseAge: CONST.EMPTY_MAX_EXPENSE_AGE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean) {
+function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect = false) {
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2983,7 +2983,7 @@ function enablePolicyRules(policyID: string, enabled: boolean) {
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
     API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }
