@@ -55,6 +55,10 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 
     // We need to ensure that the BootSplash is always hidden after a certain period.
     useEffect(() => {
+        if (!NativeModules.HybridAppModule) {
+            return;
+        }
+
         maxTimeoutRef.current = setTimeout(() => {
             Log.info('[HybridApp] Forcing transition due to unknown problem', true);
             setStartedTransition(true);
@@ -70,6 +74,11 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
             return;
         }
 
+        if (!NativeModules.HybridAppModule) {
+            Log.hmmm(`[HybridApp] Onboarding status has changed, but the HybridAppModule is not defined`);
+            return;
+        }
+
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true, {completedHybridAppOnboarding});
         NativeModules.HybridAppModule.completeOnboarding(completedHybridAppOnboarding);
     }, [completedHybridAppOnboarding]);
@@ -79,6 +88,9 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     // we need to artificially display the bootsplash since the app is booted only once.
     // Therefore, isSplashHidden needs to be updated at the appropriate time.
     useEffect(() => {
+        if (!NativeModules.HybridAppModule) {
+            return;
+        }
         const HybridAppEvents = new NativeEventEmitter(NativeModules.HybridAppModule as unknown as NativeModule);
         const listener = HybridAppEvents.addListener(CONST.EVENTS.ON_RETURN_TO_OLD_DOT, () => {
             Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
@@ -96,7 +108,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     // Save `exitTo` when we reach /transition route.
     // `exitTo` should always exist during OldDot -> NewDot transitions.
     useEffect(() => {
-        if (!exitToParam || exitTo) {
+        if (!NativeModules.HybridAppModule || !exitToParam || exitTo) {
             return;
         }
 
@@ -160,3 +172,5 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 }
 
 HybridAppMiddleware.displayName = 'HybridAppMiddleware';
+
+export default HybridAppMiddleware;
