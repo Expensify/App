@@ -1,15 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
@@ -55,42 +55,29 @@ const OPTIONS: Choice[] = [
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft, draftResults] = useOnyx(`${formID}Draft`);
-    const isLoadingDraft = isLoadingOnyxValue(draftResults);
-
-    const [reason, setReason] = useState<FeedbackSurveyOptionID | undefined>(draft?.reason);
-    const [note, setNote] = useState(draft?.note);
+    const [draft] = useOnyx(`${formID}Draft`);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
-    useEffect(() => {
-        if (isLoadingDraft) {
-            return;
-        }
-        setNote(draft?.note);
-        setReason(draft?.reason);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isLoadingDraft]);
-
-    const handleOptionSelect = (option: FeedbackSurveyOptionID) => {
+    const handleOptionSelect = () => {
         setShouldShowReasonError(false);
-        setReason(option);
     };
 
     const handleSubmit = () => {
-        if (!reason || (isNoteRequired && !note?.trim())) {
+        if (!draft?.reason || (isNoteRequired && !draft?.note.trim())) {
             setShouldShowReasonError(true);
             return;
         }
 
-        onSubmit(reason, note?.trim());
+        onSubmit(draft?.reason, draft?.note.trim());
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
     };
 
-    const handleSetNote = (text: string) => {
-        setNote(text);
-
-        if (isNoteRequired && shouldShowReasonError) {
-            setShouldShowReasonError(false);
+    const handleSetNote = () => {
+        if (!isNoteRequired || !shouldShowReasonError) {
+            return;
         }
+
+        setShouldShowReasonError(false);
     };
 
     return (
@@ -110,11 +97,10 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     inputID={INPUT_IDS.REASON}
                     items={OPTIONS}
                     radioButtonStyle={[styles.mb7, optionRowStyles]}
-                    value={reason as string}
-                    onPress={handleOptionSelect as (value: string) => void}
+                    onPress={handleOptionSelect}
                     shouldSaveDraft
                 />
-                {!!reason && (
+                {!!draft?.reason && (
                     <>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
@@ -125,7 +111,6 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             role={CONST.ROLE.PRESENTATION}
                             onChangeText={handleSetNote}
                             shouldSaveDraft
-                            value={note}
                         />
                     </>
                 )}
