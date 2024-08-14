@@ -39,9 +39,6 @@ type Card = {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** Card spending limit */
-        limit?: number;
-
         /** User-defined nickname for the card */
         cardTitle?: string;
 

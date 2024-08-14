@@ -120,7 +120,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportEntity}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                         footerContent={
                             <Footer

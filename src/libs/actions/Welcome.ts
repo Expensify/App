@@ -15,6 +15,7 @@ type OnboardingData = Onboarding | [] | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
+let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -31,8 +32,8 @@ let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: (value?: OnboardingData) => void;
-let isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
+let resolveOnboardingFlowStatus: () => void;
+let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
@@ -46,7 +47,7 @@ function onServerDataReady(): Promise<void> {
 }
 
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
-    isOnboardingFlowStatusKnownPromise.then((onboarding) => {
+    isOnboardingFlowStatusKnownPromise.then(() => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             return;
         }
@@ -124,6 +125,17 @@ function checkTryNewDotDataReady() {
     resolveTryNewDotStatus?.();
 }
 
+/**
+ * Check if the onboarding data is loaded
+ */
+function checkOnboardingDataReady() {
+    if (onboarding === undefined) {
+        return;
+    }
+
+    resolveOnboardingFlowStatus();
+}
+
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
@@ -171,11 +183,8 @@ function completeHybridAppOnboarding() {
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        resolveOnboardingFlowStatus(value);
+        onboarding = value;
+        checkOnboardingDataReady();
     },
 });
 
@@ -200,7 +209,7 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
+    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
     isLoadingReportData = true;

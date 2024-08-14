@@ -11514,21 +11514,25 @@ async function run() {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             workflow_id: 'platformDeploy.yml',
             status: 'completed',
-            event: isProductionDeploy ? 'release' : 'push',
         })).data.workflow_runs
             // Note: we filter out cancelled runs instead of looking only for success runs
             // because if a build fails on even one platform, then it will have the status 'failure'
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
-        // Find the most recent deploy workflow for which at least one of the build jobs finished successfully.
+        // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
         let lastSuccessfulDeploy = completedDeploys.shift();
-        while (lastSuccessfulDeploy &&
-            !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
+        while (lastSuccessfulDeploy?.head_branch &&
+            ((await GithubUtils_1.default.octokit.repos.getReleaseByTag({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                run_id: lastSuccessfulDeploy.id,
-                filter: 'latest',
-            })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
+                tag: lastSuccessfulDeploy.head_branch,
+            })).data.prerelease === isProductionDeploy ||
+                !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    run_id: lastSuccessfulDeploy.id,
+                    filter: 'latest',
+                })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success'))) {
             console.log(`Deploy was not a success: ${lastSuccessfulDeploy.html_url}, looking at the next one`);
             lastSuccessfulDeploy = completedDeploys.shift();
         }
@@ -11636,6 +11640,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
