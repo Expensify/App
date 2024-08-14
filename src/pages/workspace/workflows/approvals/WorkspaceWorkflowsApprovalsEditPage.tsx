@@ -39,7 +39,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const formRef = useRef<ScrollView>(null);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !approvalWorkflow;
 
     const updateApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -80,8 +80,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const currentApprovalWorkflow = workflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail);
 
         if (!currentApprovalWorkflow) {
-            Workflow.clearApprovalWorkflow();
-            return Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            return Workflow.clearApprovalWorkflow();
         }
 
         Workflow.setApprovalWorkflow({
@@ -110,10 +109,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsEditApprovalsPage.title')}
-                        onBackButtonPress={() => {
-                            Workflow.clearApprovalWorkflow();
-                            Navigation.goBack();
-                        }}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     {approvalWorkflow && (
                         <>
