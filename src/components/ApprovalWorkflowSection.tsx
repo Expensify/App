@@ -18,17 +18,17 @@ type ApprovalWorkflowSectionProps = {
     approvalWorkflow: ApprovalWorkflow;
 
     /** ID of the policy */
-    policyId?: string;
+    policyID: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, policyId}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, policyID}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const openApprovalsEdit = useCallback(
-        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyId ?? '', approvalWorkflow.approvers[0].email)),
-        [approvalWorkflow.approvers, policyId],
+        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, approvalWorkflow.approvers[0].email)),
+        [approvalWorkflow.approvers, policyID],
     );
     const approverTitle = useCallback(
         (index: number) =>

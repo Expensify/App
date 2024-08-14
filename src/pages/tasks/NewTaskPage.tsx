@@ -187,9 +187,9 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 titleWithTooltips={assigneeTooltipDetails}
                             />
                             <MenuItem
-                                label={shareDestination?.displayName ? translate('newTaskPage.shareSomewhere') : ''}
+                                label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
-                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('newTaskPage.shareSomewhere')}
+                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
                                 icon={shareDestination?.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
