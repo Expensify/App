@@ -538,7 +538,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
-        if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
+        if (
+            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
+            flattenedSections.allOptions.length === 0 ||
+            shouldUpdateFocusedIndex
+        ) {
             return;
         }
         // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
@@ -559,6 +563,7 @@ function BaseSelectionList<TItem extends ListItem>(
         updateAndScrollToFocusedIndex,
         prevSelectedOptionsLength,
         prevAllOptionsLength,
+        shouldUpdateFocusedIndex,
     ]);
 
     useEffect(
