@@ -50,6 +50,8 @@ export type {WorkspaceTaxNameForm} from './WorkspaceTaxNameForm';
 export type {WorkspaceTaxValueForm} from './WorkspaceTaxValueForm';
 export type {WorkspaceTaxCustomName} from './WorkspaceTaxCustomName';
 export type {WorkspaceTaxCodeForm} from './WorkspaceTaxCodeForm';
+export type {WorkspaceInvoicesCompanyNameForm} from './WorkspaceInvoicesCompanyNameForm';
+export type {WorkspaceInvoicesCompanyWebsiteForm} from './WorkspaceInvoicesCompanyWebsiteForm';
 export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
 export type {PolicyDistanceRateTaxReclaimableOnEditForm} from './PolicyDistanceRateTaxReclaimableOnEditForm';
 export type {PolicyDistanceRateEditForm} from './PolicyDistanceRateEditForm';

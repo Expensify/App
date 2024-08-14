@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -10,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +29,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const policyID = route.params.policyID ?? '-1';
     const currentTaxCode = route.params.taxID;
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const setTaxCode = useCallback(

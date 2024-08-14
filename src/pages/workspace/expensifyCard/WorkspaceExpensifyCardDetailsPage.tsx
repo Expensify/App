@@ -20,6 +20,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -28,23 +29,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-// TODO: remove when Onyx data is available
-const mockedCard = {
-    accountID: 885646,
-    availableSpend: 1000,
-    nameValuePairs: {
-        cardTitle: 'Test 1',
-        isVirtual: true,
-        limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-    },
-    lastFourPAN: '1234',
-};
-
 type WorkspaceExpensifyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS>;
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -52,15 +41,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const theme = useTheme();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
-    const card = cardsList?.[cardID] ?? mockedCard;
-    const cardholder = personalDetails?.[card.accountID ?? -1];
-    const isVirtual = !!card.nameValuePairs?.isVirtual;
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card.availableSpend);
-    const formattedLimit = CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit);
+    // TODO: add an API call to load the card details data: https://github.com/Expensify/App/issues/47231
+    const card = cardsList?.[cardID];
+    const cardholder = personalDetails?.[card?.accountID ?? -1];
+    const isVirtual = !!card?.nameValuePairs?.isVirtual;
+    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card?.availableSpend);
+    const formattedLimit = CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card.nameValuePairs?.limitType);
+    const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
@@ -112,7 +102,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             />
                             <MenuItemWithTopDescription
                                 description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
-                                title={CardUtils.maskCard(card.lastFourPAN)}
+                                title={CardUtils.maskCard(card?.lastFourPAN)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -136,7 +126,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.card.issueNewCard.cardName')}
-                                title={card.nameValuePairs?.cardTitle}
+                                title={card?.nameValuePairs?.cardTitle}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
                             />
