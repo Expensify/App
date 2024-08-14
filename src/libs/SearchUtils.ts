@@ -510,7 +510,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
 
-    return filtersString.filter(Boolean).join('');
+    return filtersString.filter(Boolean).join(' ');
 }
 
 function getFilters(queryJSON: SearchQueryJSON) {
