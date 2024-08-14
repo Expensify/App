@@ -13,7 +13,6 @@ const personalDetailsByEmail: PersonalDetailsList = {};
 function buildPolicyEmployee(accountID: number, policyEmployee: Partial<PolicyEmployee> = {}): PolicyEmployee {
     return {
         email: `${accountID}@example.com`,
-        role: 'user',
         ...policyEmployee,
     };
 }
@@ -385,16 +384,12 @@ describe('WorkflowUtils', () => {
                 approvers: [buildApprover(1)],
                 isDefault: true,
             };
-            const employeeList: PolicyEmployeeList = {
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
-            };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type: 'create'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: 'previous@example.com', submitsTo: '1@example.com', role: 'admin'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com'}),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com'}),
             });
         });
 
@@ -404,24 +399,16 @@ describe('WorkflowUtils', () => {
                 approvers: [buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '2@example.com'}), buildApprover(3)],
                 isDefault: false,
             };
-            const employeeList: PolicyEmployeeList = {
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-            };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type: 'create'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', submitsTo: 'previous@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', submitsTo: 'previous@example.com'}),
-                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: '1@example.com'}),
-                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: '1@example.com'}),
-                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: '1@example.com'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com'}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com'}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com'}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com'}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com'}),
             });
         });
 
@@ -431,24 +418,16 @@ describe('WorkflowUtils', () => {
                 approvers: [buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '2@example.com'}), buildApprover(3)],
                 isDefault: false,
             };
-            const employeeList: PolicyEmployeeList = {
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: 'previous@example.com'}),
-            };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type: 'remove'});
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: 'previous@example.com', role: 'admin'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', submitsTo: 'previous@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', submitsTo: 'previous@example.com'}),
-                '4@example.com': buildPolicyEmployee(4, {forwardsTo: 'previous@example.com', submitsTo: ''}),
-                '5@example.com': buildPolicyEmployee(5, {forwardsTo: 'previous@example.com', submitsTo: ''}),
-                '6@example.com': buildPolicyEmployee(6, {forwardsTo: 'previous@example.com', submitsTo: ''}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: ''}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: ''}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: ''}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: ''}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: ''}),
             });
         });
     });

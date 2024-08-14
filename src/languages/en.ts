@@ -1329,6 +1329,8 @@ export default {
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
+        deleteTitle: 'Delete approval workflow',
+        deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
