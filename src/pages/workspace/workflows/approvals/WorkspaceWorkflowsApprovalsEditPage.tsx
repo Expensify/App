@@ -128,6 +128,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 isLoading={approvalWorkflow?.isLoading}
                                 buttonText={translate('common.save')}
                                 containerStyles={[styles.mb5, styles.mh5]}
+                                enabledWhenOffline
                             />
                         </>
                     )}
