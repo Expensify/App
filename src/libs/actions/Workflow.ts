@@ -170,7 +170,13 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const parameters: UpdateWorkspaceApprovalParams = {policyID, authToken, employees: JSON.stringify(Object.values(updatedEmployees))};
+    // const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
+    const parameters: UpdateWorkspaceApprovalParams = {
+        policyID,
+        authToken,
+        employees: JSON.stringify(Object.values(updatedEmployees)),
+        // defaultApprover: newDefaultApprover,
+    };
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
@@ -341,7 +347,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         }
     });
 
-    if (!approvalWorkflow.members.length) {
+    if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
         errors.members = 'common.error.fieldRequired';
     }
 
