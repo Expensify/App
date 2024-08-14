@@ -1398,7 +1398,9 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
-        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || (report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR) && report?.type === 'expense');
+        return (
+            report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || (report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR) && report?.type === CONST.REPORT.TYPE.EXPENSE)
+        );
     }
 
     return true;
