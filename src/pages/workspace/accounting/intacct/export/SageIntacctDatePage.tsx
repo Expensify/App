@@ -48,7 +48,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== exportConfig?.exportDate) {
-                updateSageIntacctExportDate(policyID, row.value);
+                updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
