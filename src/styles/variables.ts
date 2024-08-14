@@ -214,6 +214,7 @@ export default {
     fontSizeOnlyEmojisHeight: 35,
     emojiSize: 20,
     emojiLineHeight: 28,
+    fontSizeUsernameEmoji: 25,
     fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
