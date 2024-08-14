@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {connect} from '@libs/actions/Delegate';
+import {clearDelegatorErrors, connect} from '@libs/actions/Delegate';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -44,7 +44,7 @@ function AccountSwitcher() {
             description: personalDetail?.displayName ? email : '',
             badgeText: translate('delegate.role', role),
             onPress: () => {
-                connect(email, role);
+                connect(email);
             },
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
@@ -125,7 +125,10 @@ function AccountSwitcher() {
             {shouldShowDelegators && (
                 <Popover
                     isVisible={shouldShowDelegatorMenu}
-                    onClose={() => setShouldShowDelegatorMenu(false)}
+                    onClose={() => {
+                        setShouldShowDelegatorMenu(false);
+                        clearDelegatorErrors();
+                    }}
                     anchorRef={buttonRef}
                     anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
