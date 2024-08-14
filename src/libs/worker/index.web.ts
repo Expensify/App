@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 function expose<Args extends any[], Return>(callback: (...args: Args) => Return) {
     // eslint-disable-next-line no-restricted-globals
     self.onmessage = (event: MessageEvent<Args>) => {
-        console.log('hello from web worker', event);
         const args = event.data;
 
         try {
@@ -70,15 +69,22 @@ function useWorkerMemo<TArgs extends any[], TResult>(workerFactory: WorkerFuncti
     }, [workerFactory]);
 
     // Send the worker the input arguments
-    useEffect(() => {
-        const worker = workerRef.current;
-        if (!worker) {
-            return;
-        }
+    useEffect(
+        function myLovelyEffect() {
+            const worker = workerRef.current;
+            if (!worker) {
+                return;
+            }
 
-        console.log('sending message to worker', inputArs);
-        worker.postMessage(inputArs);
-    }, [inputArs]);
+            try {
+                console.log('sending message to worker', inputArs);
+                worker.postMessage(inputArs);
+            } catch (error) {
+                setValue({state: 'error', error});
+            }
+        },
+        [inputArs],
+    );
 
     return value;
 }
