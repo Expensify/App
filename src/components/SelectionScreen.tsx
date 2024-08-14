@@ -90,9 +90,6 @@ type SelectionScreenProps<T = string> = {
 
     /** Used for dynamic header title translation with parameters */
     headerTitleAlreadyTranslated?: string;
-
-    /** Whether to disable opacity of the children components */
-    shouldDisableOpacity?: boolean;
 };
 
 function SelectionScreen<T = string>({
@@ -117,7 +114,6 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    shouldDisableOpacity,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -145,7 +141,7 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={shouldDisableOpacity}
+                    shouldDisableOpacity={!sections.length}
                 >
                     <SelectionList
                         onSelectRow={onSelectRow}
