@@ -128,6 +128,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT)}
             listEmptyContent={listEmptyContent}
             shouldSingleExecuteRowSelect
+            shouldDisableOpacity={!data.length}
         />
     );
 }

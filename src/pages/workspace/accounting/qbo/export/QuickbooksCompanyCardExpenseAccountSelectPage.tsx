@@ -84,7 +84,6 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
         ),
         [translate, styles.pb10],
     );
-
     return (
         <SelectionScreen
             policyID={policyID}
@@ -109,6 +108,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             errorRowStyles={[styles.ph5, styles.pv3]}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT], qboConfig?.pendingFields)}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT)}
+            shouldDisableOpacity={!data.length}
         />
     );
 }
