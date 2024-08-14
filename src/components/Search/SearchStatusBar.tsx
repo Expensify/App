@@ -140,22 +140,19 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                 const isActive = status === item.key;
 
                 return (
-                    <Hoverable key={item.key}>
-                        {(isHovered) => (
-                            <View>
-                                <Button
-                                    text={translate(item.text)}
-                                    onPress={onPress}
-                                    icon={item.icon}
-                                    iconFill={isActive || isHovered ? theme.success : undefined}
-                                    innerStyles={!isActive && styles.bgTransparent}
-                                    hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                                    textStyles={!isActive && !isHovered && StyleUtils.getTextColorStyle(theme.textSupporting)}
-                                    medium
-                                />
-                            </View>
-                        )}
-                    </Hoverable>
+                    <Button
+                        key={item.key}
+                        text={translate(item.text)}
+                        onPress={onPress}
+                        icon={item.icon}
+                        iconFill={isActive ? theme.success : undefined}
+                        iconHoverFill={theme.success}
+                        innerStyles={!isActive && styles.bgTransparent}
+                        hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                        textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                        textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                        medium
+                    />
                 );
             })}
         </ScrollView>
