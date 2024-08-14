@@ -7,7 +7,7 @@ description: More to Come Soon
 
 If an error occurs during an automatic export to Xero:
 
-- You’ll receive an email detailing the error. 
+- You'll receive an email detailing the error. 
 - The error will appear in the related Workspace Chat, indicated by a red dot next to the report. 
 - For auto-sync errors, a message will be posted in the related #admins room. The message contains a link to the workspace's accounting settings where an explanation for the error appears next to the connection.
 
