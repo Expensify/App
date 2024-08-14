@@ -186,7 +186,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const payerName = payerPersonalDetails?.name || payerPersonalDetails?.displayName || payerPersonalDetails?.login || translateLocal('common.hidden');
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem?.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === 'view') {
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
         return translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
