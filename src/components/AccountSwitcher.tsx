@@ -9,15 +9,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connect} from '@libs/actions/Delegate';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
+import MenuItemList from './MenuItemList';
 import Popover from './Popover';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
@@ -30,17 +30,16 @@ function AccountSwitcher() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [shouldShowDelegateMenu, setShouldShowDelegateMenu] = useState(false);
-
-    const buttonRef = useRef<HTMLDivElement>(null);
-
-    const delegates = account?.delegatedAccess?.delegates ?? [];
-    const shouldShowDelegates = delegates.length > 0 && canUseNewDotCopilot;
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const buttonRef = useRef<HTMLDivElement>(null);
+    const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const shouldShowDelegators = delegators.length > 0 && canUseNewDotCopilot;
+
+    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
 
         return {
             title: personalDetail?.displayName ?? email,
@@ -57,7 +56,7 @@ function AccountSwitcher() {
         };
     });
 
-    const delegateMenuItemsWithCurrentUser: MenuItemProps[] = [
+    const delegatorMenuItemsWithCurrentUser: MenuItemProps[] = [
         {
             title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
             description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
@@ -72,7 +71,7 @@ function AccountSwitcher() {
             wrapperStyle: [styles.buttonDefaultBG],
             focused: true,
         },
-        ...delegateMenuItems,
+        ...delegatorMenuItems,
     ];
 
     return (
@@ -81,7 +80,7 @@ function AccountSwitcher() {
                 accessible
                 accessibilityLabel={translate('common.profile')}
                 onPress={() => {
-                    setShouldShowDelegateMenu(!shouldShowDelegateMenu);
+                    setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
                 }}
                 ref={buttonRef}
                 wrapperStyle={[styles.flexGrow1, styles.accountSwitcherWrapper, styles.justifyContentCenter]}
@@ -102,7 +101,7 @@ function AccountSwitcher() {
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
-                            {shouldShowDelegates && (
+                            {shouldShowDelegators && (
                                 <View style={styles.justifyContentCenter}>
                                     <Icon
                                         fill={theme.icon}
@@ -122,19 +121,19 @@ function AccountSwitcher() {
                     </View>
                 </View>
             </PressableWithFeedback>
-            {shouldShowDelegates && (
+            {shouldShowDelegators && (
                 <Popover
-                    isVisible={shouldShowDelegateMenu}
-                    onClose={() => setShouldShowDelegateMenu(false)}
+                    isVisible={shouldShowDelegatorMenu}
+                    onClose={() => setShouldShowDelegatorMenu(false)}
                     anchorRef={buttonRef}
                     anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
-                        {delegateMenuItemsWithCurrentUser.map((item) => (
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            <MenuItem {...item} />
-                        ))}
+                        <MenuItemList
+                            menuItems={delegatorMenuItemsWithCurrentUser}
+                            shouldUseSingleExecution
+                        />
                         {/* TODO error handling on API error <Text style={[styles.textLabelError, styles.ph5, styles.pt4]}>Oops something went wrong. Please try again</Text> */}
                     </View>
                 </Popover>
