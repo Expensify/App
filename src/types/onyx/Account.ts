@@ -6,13 +6,16 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** The role of the delegate */
+type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
+
 /** Model of delegate */
 type Delegate = {
     /** The email of the delegate */
     email: string;
 
     /** The role of the delegate */
-    role: 'submitter' | 'all';
+    role: DelegateRole;
 };
 
 /** Model of delegated access data */
@@ -115,4 +118,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DelegateRole};

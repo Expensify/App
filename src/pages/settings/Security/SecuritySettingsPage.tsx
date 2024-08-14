@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -70,7 +69,7 @@ function SecuritySettingsPage() {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
             // TODO: replace with Full or Limited
-            badgeText: Str.recapitalize(role),
+            badgeText: translate('delegate.role', role),
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -87,7 +86,7 @@ function SecuritySettingsPage() {
         return {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
-            badgeText: Str.recapitalize(role),
+            badgeText: translate('delegate.role', role),
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
