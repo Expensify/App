@@ -88,7 +88,6 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                         const promise = ExitSurvey.switchToOldDot();
                         if (NativeModules.HybridAppModule) {
                             promise.then(() => {
-                                signOut();
                                 Navigation.resetToHome();
                                 NativeModules.HybridAppModule.closeReactNativeApp(false);
                             });

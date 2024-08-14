@@ -246,7 +246,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             Onyx.multiSet(onyxSetParams);
         });
 
-        // In the HybridApp, we want the Old Dot to handle the sign out process
+        // In the HybridApp, we want the Old Dot to close New Dot after signing out
         if (NativeModules.HybridAppModule && killHybridApp) {
             NativeModules.HybridAppModule.closeReactNativeApp(true);
         }
