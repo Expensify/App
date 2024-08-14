@@ -17,6 +17,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -818,6 +819,26 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefin
 }
 
 /**
+ * Whether expense requests connected with given transaction IDs are unsubmitted by the owners
+ */
+function areRequestsInTransactionsUnsubmitted(transactionIDs: string[]): boolean {
+    const allReports = ReportConnection.getAllReports();
+
+    const reports = transactionIDs.flatMap((transactionID) => {
+        const selectedTransaction = getTransaction(transactionID);
+        const selectedReport = ReportUtils.getReport(selectedTransaction?.reportID ?? '-1');
+
+        return Object.values(allReports ?? {}).filter((report) => report?.parentReportID === selectedReport?.reportID ?? '-1');
+    });
+
+    return reports.some((report) => {
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+
+        return ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && ReportUtils.isReportInGroupPolicy(report);
+    });
+}
+
+/**
  * Gets the tax code based on the type of transaction and selected currency.
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
@@ -1111,6 +1132,7 @@ export {
     hasViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
+    areRequestsInTransactionsUnsubmitted,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,

@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import * as FormActions from '@userActions/FormActions';
@@ -31,10 +32,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
 
-    const areSelectedRequestsUnsubmitted = SearchActions.areSelectedRequestsUnsubmitted(selectedTransactionIDs);
+    const areRequestsInTransactionsUnsubmitted = TransactionUtils.areRequestsInTransactionsUnsubmitted(selectedTransactionIDs);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (areSelectedRequestsUnsubmitted) {
+        if (areRequestsInTransactionsUnsubmitted) {
             return;
         }
 
@@ -51,7 +52,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 errors.comment = translate('common.error.fieldRequired');
             }
 
-            if (areSelectedRequestsUnsubmitted) {
+            if (areRequestsInTransactionsUnsubmitted) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModifiedSelected'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
@@ -59,7 +60,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             return errors;
         },
-        [translate, areSelectedRequestsUnsubmitted],
+        [translate, areRequestsInTransactionsUnsubmitted],
     );
 
     useEffect(() => {

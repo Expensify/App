@@ -88,23 +88,6 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function areSelectedRequestsUnsubmitted(selectedTransactionIDs: string[]) {
-    const allReports = ReportConnection.getAllReports();
-
-    const reports = selectedTransactionIDs.flatMap((transactionID) => {
-        const selectedTransaction = TransactionUtils.getTransaction(transactionID);
-        const selectedReport = ReportUtils.getReport(selectedTransaction?.reportID ?? '-1');
-
-        return Object.values(allReports ?? {}).filter((report) => report?.parentReportID === selectedReport?.reportID ?? '-1');
-    });
-
-    return reports.some((report) => {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-
-        return ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && ReportUtils.isReportInGroupPolicy(report);
-    });
-}
-
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
@@ -161,5 +144,4 @@ export {
     exportSearchItemsToCSV,
     updateAdvancedFilters,
     clearAdvancedFilters,
-    areSelectedRequestsUnsubmitted,
 };
