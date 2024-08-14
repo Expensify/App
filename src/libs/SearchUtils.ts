@@ -476,45 +476,41 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const filtersString = Object.entries(filterValues)
-        .map(([filterKey, filterValue]) => {
-            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
-                }
+    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
             }
+        }
 
-            if (
-                (filterKey === FILTER_KEYS.CATEGORY ||
-                    filterKey === FILTER_KEYS.CARD_ID ||
-                    filterKey === FILTER_KEYS.TAX_RATE ||
-                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                    filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY) &&
-                Array.isArray(filterValue) &&
-                filterValue.length > 0
-            ) {
-                const filterValueArray = filterValues[filterKey] ?? [];
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
-                }
+        if (
+            (filterKey === FILTER_KEYS.CATEGORY ||
+                filterKey === FILTER_KEYS.CARD_ID ||
+                filterKey === FILTER_KEYS.TAX_RATE ||
+                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                filterKey === FILTER_KEYS.TAG ||
+                filterKey === FILTER_KEYS.CURRENCY) &&
+            Array.isArray(filterValue) &&
+            filterValue.length > 0
+        ) {
+            const filterValueArray = filterValues[filterKey] ?? [];
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
             }
+        }
 
-            if (filterKey === FILTER_KEYS.GREATER_THAN || filterKey === FILTER_KEYS.LESS_THAN) {
-                return buildAmountFilterQuery(filterValues);
-            }
+        return undefined;
+    });
 
-            if (filterKey === FILTER_KEYS.DATE_AFTER || filterKey === FILTER_KEYS.DATE_BEFORE) {
-                return buildDateFilterQuery(filterValues);
-            }
+    const dateFilter = buildDateFilterQuery(filterValues);
+    filtersString.push(dateFilter);
 
-            return undefined;
-        })
-        .filter(Boolean)
-        .join(' ');
-    return filtersString;
+    const amountFilter = buildAmountFilterQuery(filterValues);
+    filtersString.push(amountFilter);
+
+    return filtersString.filter(Boolean).join('');
 }
 
 function getFilters(queryJSON: SearchQueryJSON) {

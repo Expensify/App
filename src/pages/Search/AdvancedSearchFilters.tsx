@@ -147,7 +147,7 @@ function AdvancedSearchFilters() {
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
-                description: 'iou.amount' as const,
+                description: 'common.total' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
             },
             {
