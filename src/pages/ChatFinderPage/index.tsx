@@ -79,7 +79,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         Report.searchInServer(debouncedSearchValueInServer.trim());
     }, [debouncedSearchValueInServer]);
 
-    // TODO: We also want to offload OptionsListUtils.getSearchOptions to another worker as thats quite intense as well
+    // TODO: We also want to offload OptionsListUtils.getSearchOptions to another worker as thats quite intense as
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return {
@@ -100,7 +100,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
     const newOptionsData = useWorkerMemo(
         workerFactory,
-        useMemo(() => [searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true}], [debouncedSearchValue, searchOptions]),
+        useMemo(() => [searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true}] as const, [debouncedSearchValue, searchOptions]),
     );
     const isSearchingForNewOptionsLocally = newOptionsData.state === 'loading';
     const newOptions = newOptionsData.state === 'data' ? newOptionsData.result : undefined;
