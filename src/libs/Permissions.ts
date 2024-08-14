@@ -7,16 +7,8 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
-}
-
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
@@ -36,14 +28,6 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseSageIntacctIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.INTACCT_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
-}
-
-function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
-}
-
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
@@ -60,16 +44,12 @@ function canUseLinkPreviews(): boolean {
 }
 
 export default {
-    canUseChronos,
     canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseViolations,
     canUseDupeDetection,
     canUseP2PDistanceRequests,
     canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
-    canUseSageIntacctIntegration,
-    canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
 };

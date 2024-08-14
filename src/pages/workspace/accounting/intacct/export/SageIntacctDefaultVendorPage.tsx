@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -9,16 +8,16 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors} from '@libs/PolicyUtils';
+import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -30,7 +29,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const {translate} = useLocalize();
 
     const policyID = route.params.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
@@ -65,7 +64,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== defaultVendor) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value);
+                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
@@ -107,7 +106,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            pendingAction={config?.pendingFields?.[settingName]}
+            pendingAction={settingsPendingAction([settingName], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config, settingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, settingName)}

@@ -1,13 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {SearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {normalizeQuery} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -17,17 +18,19 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SearchStatusMenuNarrow from './SearchStatusMenuNarrow';
 
 type SearchStatusMenuProps = {
-    status: SearchStatus;
+    queryJSON: SearchQueryJSON;
+    isCustomQuery: boolean;
 };
 
 type SearchStatusMenuItem = {
     title: string;
     status: SearchStatus;
     icon: IconAsset;
-    route: Route;
+    route?: Route;
 };
 
-function SearchStatusMenu({status}: SearchStatusMenuProps) {
+function SearchStatusMenu({queryJSON, isCustomQuery}: SearchStatusMenuProps) {
+    const {status} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
@@ -36,25 +39,25 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     const statusMenuItems: SearchStatusMenuItem[] = [
         {
             title: translate('common.expenses'),
-            status: CONST.SEARCH.STATUS.ALL,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             icon: Expensicons.Receipt,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
         },
         {
             title: translate('common.shared'),
-            status: CONST.SEARCH.STATUS.SHARED,
+            status: CONST.SEARCH.STATUS.EXPENSE.SHARED,
             icon: Expensicons.Send,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
         },
         {
             title: translate('common.drafts'),
-            status: CONST.SEARCH.STATUS.DRAFTS,
+            status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
             icon: Expensicons.Pencil,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
         },
         {
             title: translate('common.finished'),
-            status: CONST.SEARCH.STATUS.FINISHED,
+            status: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
             icon: Expensicons.CheckCircle,
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },
@@ -62,10 +65,13 @@ function SearchStatusMenu({status}: SearchStatusMenuProps) {
     const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (shouldUseNarrowLayout) {
+        const title = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : undefined;
+
         return (
             <SearchStatusMenuNarrow
                 statusMenuItems={statusMenuItems}
                 activeItemIndex={activeItemIndex}
+                title={title}
             />
         );
     }

@@ -3,11 +3,15 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
+import getBankIcon from '@components/Icon/BankIcons';
+import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -18,9 +22,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -28,6 +34,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,24 +55,32 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const policyApproverEmail = policy?.approver;
-    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
-    const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
     const canUseAdvancedApproval = Permissions.canUseWorkflowsAdvancedApproval(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
+    const approvalWorkflows = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
     const displayNameForAuthorizedPayer = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
     );
 
-    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
     const fetchData = useCallback(() => {
-        Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
-    }, [policy?.id, route.params.policyID]);
+        Policy.openPolicyWorkflowsPage(route.params.policyID);
+    }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -85,9 +100,26 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }, [fetchData]),
     );
 
+    // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
+    const addApprovalAction = useCallback(() => {
+        if (!PolicyUtils.isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+            );
+            return;
+        }
+
+        Workflow.setApprovalWorkflow({
+            ...INITIAL_APPROVAL_WORKFLOW,
+            availableMembers: approvalWorkflows.at(0)?.members ?? [],
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
+    }, [approvalWorkflows, policy, route.params.policyID]);
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         let bankDisplayName = bankName ?? addressName;
         if (accountNumber && bankDisplayName !== accountNumber) {
@@ -99,7 +131,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
         return [
             {
-                icon: Illustrations.ReceiptEnvelope,
                 title: translate('workflowsPage.delaySubmissionTitle'),
                 subtitle: translate('workflowsPage.delaySubmissionDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
@@ -110,71 +141,78 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     );
                 },
                 subMenuItems: (
-                    <MenuItem
-                        title={translate('workflowsPage.submissionFrequency')}
-                        titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={styles.textNormalThemeText}
-                        onPress={onPressAutoReportingFrequency}
-                        // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                        description={
+                    <MenuItemWithTopDescription
+                        title={
                             getAutoReportingFrequencyDisplayNames(preferredLocale)[
                                 (PolicyUtils.getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                             ]
                         }
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        onPress={onPressAutoReportingFrequency}
+                        // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
+                        description={translate('workflowsPage.submissionFrequency')}
                         shouldShowRightIcon
-                        wrapperStyle={containerStyle}
-                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                         brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 ),
                 isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                 pendingAction: policy?.pendingFields?.autoReporting,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
             },
             {
-                icon: Illustrations.Approval,
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
-                subMenuItems: (
+                subMenuItems: canUseAdvancedApproval ? (
                     <>
+                        {approvalWorkflows.map((workflow, index) => (
+                            <OfflineWithFeedback
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`workflow-${index}`}
+                                pendingAction={policy?.pendingFields?.employeeList}
+                            >
+                                <ApprovalWorkflowSection
+                                    approvalWorkflow={workflow}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
                         <MenuItem
-                            title={translate('workflowsPage.approver')}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
-                            description={policyApproverName ?? ''}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
-                            shouldShowRightIcon
-                            wrapperStyle={containerStyle}
-                            hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            title={translate('workflowsPage.addApprovalButton')}
+                            titleStyle={styles.textStrong}
+                            icon={Expensicons.Plus}
+                            iconHeight={20}
+                            iconWidth={20}
+                            iconFill={theme.success}
+                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                            onPress={addApprovalAction}
                         />
-                        {/* TODO: Functionality for this button will be added in a future PR (https://github.com/Expensify/App/issues/45954) */}
-                        {canUseAdvancedApproval && (
-                            <MenuItem
-                                title={translate('workflowsPage.addApprovalButton')}
-                                titleStyle={styles.textStrong}
-                                icon={Expensicons.Plus}
-                                iconHeight={20}
-                                iconWidth={20}
-                                iconFill={theme.success}
-                                style={[styles.ph2, styles.ml11, styles.widthAuto]}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
-                            />
-                        )}
                     </>
+                ) : (
+                    <MenuItemWithTopDescription
+                        title={policyApproverName ?? ''}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        description={translate('workflowsPage.approver')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID))}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                        brickRoadIndicator={hasApprovalError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
                 ),
-                isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
+                isActive:
+                    ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
-                icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
@@ -189,7 +227,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '-1', newReimbursementChoice, newReimburserEmail ?? '');
+                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
@@ -200,13 +238,15 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                         />
                     ) : (
                         <>
+                            {shouldShowBankAccount && (
+                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.mbn3, styles.pb1, styles.pt1]}>
+                                    <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
+                                </View>
+                            )}
                             <MenuItem
-                                titleStyle={shouldShowBankAccount ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
-                                descriptionTextStyle={styles.textNormalThemeText}
-                                title={shouldShowBankAccount ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
-                                description={bankDisplayName}
-                                disabled={isOffline || !isPolicyAdmin}
-                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.connectBankAccount')}
+                                titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
+                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                         setIsCurrencyModalOpen(true);
@@ -214,9 +254,16 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     }
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
+                                icon={shouldShowBankAccount ? bankIcon.icon : undefined}
+                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                iconStyles={bankIcon.iconStyles}
+                                disabled={isOffline || !isPolicyAdmin}
+                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 shouldShowRightIcon={!isOffline && isPolicyAdmin}
-                                wrapperStyle={containerStyle}
-                                hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                displayInDefaultIconColor
+                                brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                             {shouldShowBankAccount && (
                                 <OfflineWithFeedback
@@ -226,15 +273,14 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
                                 >
-                                    <MenuItem
-                                        titleStyle={styles.textLabelSupportingNormal}
-                                        descriptionTextStyle={styles.textNormalThemeText}
-                                        title={translate('workflowsPayerPage.title')}
-                                        description={displayNameForAuthorizedPayer}
+                                    <MenuItemWithTopDescription
+                                        title={displayNameForAuthorizedPayer ?? ''}
+                                        titleStyle={styles.textNormalThemeText}
+                                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                                        description={translate('workflowsPayerPage.payer')}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                         shouldShowRightIcon
-                                        wrapperStyle={[...containerStyle, styles.mt0]}
-                                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                         brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
                                 </OfflineWithFeedback>
@@ -245,19 +291,21 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [
         policy,
-        translate,
         styles,
-        onPressAutoReportingFrequency,
+        translate,
         preferredLocale,
-        containerStyle,
-        policyApproverName,
+        onPressAutoReportingFrequency,
         canUseAdvancedApproval,
-        theme,
+        approvalWorkflows,
+        theme.success,
+        theme.spinner,
+        addApprovalAction,
+        policyApproverName,
         isOffline,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
@@ -265,15 +313,16 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
-        <View
-            style={styles.mt7}
+        <Section
+            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
             key={`toggleSettingOptionItem-${index}`}
+            renderTitle={() => <View />}
         >
             <ToggleSettingOptionRow
-                icon={item.icon}
                 title={item.title}
-                titleStyle={styles.textStrong}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 subtitle={item.subtitle}
+                subtitleStyle={[styles.textLabelSupportingEmptyValue]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
@@ -282,7 +331,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 errors={item.errors}
                 onCloseError={item.onCloseError}
             />
-        </View>
+        </Section>
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -304,27 +353,18 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 shouldShowLoading={isLoading}
                 shouldUseScrollView
             >
-                <View style={[styles.mt3, styles.textStrong, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('workflowsPage.workflowTitle')}
-                        titleStyles={styles.textStrong}
-                        containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                    >
-                        <View>
-                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                            {optionItems.map(renderOptionItem)}
-                            <ConfirmModal
-                                title={translate('workspace.bankAccount.workspaceCurrency')}
-                                isVisible={isCurrencyModalOpen}
-                                onConfirm={confirmCurrencyChangeAndHideModal}
-                                onCancel={() => setIsCurrencyModalOpen(false)}
-                                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                                confirmText={translate('workspace.bankAccount.updateToUSD')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                            />
-                        </View>
-                    </Section>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {optionItems.map(renderOptionItem)}
+                    <ConfirmModal
+                        title={translate('workspace.bankAccount.workspaceCurrency')}
+                        isVisible={isCurrencyModalOpen}
+                        onConfirm={confirmCurrencyChangeAndHideModal}
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                    />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
