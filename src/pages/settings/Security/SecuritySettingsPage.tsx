@@ -139,8 +139,7 @@ function SecuritySettingsPage() {
                             <MenuItemList menuItems={delegateMenuItems} />
                             <MenuItem
                                 title={translate('delegate.addCopilot')}
-                                // TODO: replace with user plus icon
-                                icon={Expensicons.UserCheck}
+                                icon={Expensicons.UserPlus}
                                 iconFill={theme.iconSuccessFill}
                                 onPress={() => {}}
                                 shouldShowRightIcon
