@@ -431,6 +431,28 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
     return dateFilter;
 }
 
+/**
+ * @private
+ * returns Date filter query string part, which needs special logic
+ */
+function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const lessThan = filterValues[FILTER_KEYS.LESS_THAN];
+    const greaterThan = filterValues[FILTER_KEYS.GREATER_THAN];
+
+    let amountFilter = '';
+    if (lessThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}<${lessThan}`;
+    }
+    if (lessThan && greaterThan) {
+        amountFilter += ' ';
+    }
+    if (greaterThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}>${greaterThan}`;
+    }
+
+    return amountFilter;
+}
+
 function sanitizeString(str: string) {
     if (str.includes(' ') || str.includes(',')) {
         return `"${str}"`;
@@ -480,14 +502,19 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 }
             }
 
+            if (filterKey === FILTER_KEYS.GREATER_THAN || filterKey === FILTER_KEYS.LESS_THAN) {
+                return buildAmountFilterQuery(filterValues);
+            }
+
+            if (filterKey === FILTER_KEYS.DATE_AFTER || filterKey === FILTER_KEYS.DATE_BEFORE) {
+                return buildDateFilterQuery(filterValues);
+            }
+
             return undefined;
         })
         .filter(Boolean)
         .join(' ');
-
-    const dateFilter = buildDateFilterQuery(filterValues);
-
-    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
+    return filtersString;
 }
 
 function getFilters(queryJSON: SearchQueryJSON) {
