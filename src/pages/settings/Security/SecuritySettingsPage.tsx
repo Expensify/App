@@ -34,8 +34,8 @@ function SecuritySettingsPage() {
     const {canUseNewDotCopilot} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const delegators = account?.delegatedAccess?.delegators ?? [];
     const delegates = account?.delegatedAccess?.delegates ?? [];
+    const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
@@ -62,13 +62,12 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
-            // TODO: replace with Full or Limited
             badgeText: translate('delegate.role', role),
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
@@ -80,7 +79,7 @@ function SecuritySettingsPage() {
         };
     });
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
+    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
