@@ -512,27 +512,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
         },
     };
     const failureCustomUnit = {
-        customUnits: {
-            ...customUnits.reduce((units, customUnit) => {
-                // eslint-disable-next-line no-param-reassign
-                units[customUnit.customUnitID] = {
-                    rates: {
-                        ...Object.keys(customUnit.rates).reduce((rates, rateID) => {
-                            if (customUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
-                                // eslint-disable-next-line no-param-reassign
-                                rates[rateID] = {
-                                    attributes: {
-                                        taxRateExternalID: oldTaxCode,
-                                    },
-                                };
-                            }
-                            return rates;
-                        }, {} as Record<string, Rate>),
-                    },
-                };
-                return units;
-            }, {} as Record<string, Partial<CustomUnit>>),
-        },
+        customUnits: policy?.customUnits,
     };
     const onyxData: OnyxData = {
         optimisticData: [
