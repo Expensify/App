@@ -363,7 +363,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const headerContent = (
         <View style={[styles.ph5, styles.pb3]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
+                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
                     <AccountSwitcher />
