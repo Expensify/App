@@ -37,21 +37,23 @@ function AccountSwitcher() {
     const delegators = account?.delegatedAccess?.delegators ?? [];
     const shouldShowDelegators = delegators.length > 0 && canUseNewDotCopilot;
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-
         return {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
             badgeText: translate('delegate.role', role),
             onPress: () => {
-                connect(email);
+                connect(email, role);
             },
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
+            errorText: error ? translate(error) : '',
+            shouldShowRedDotIndicator: !!error,
+            errorTextStyle: styles.mt2,
         };
     });
 
@@ -133,7 +135,6 @@ function AccountSwitcher() {
                             menuItems={delegatorMenuItemsWithCurrentUser}
                             shouldUseSingleExecution
                         />
-                        {/* TODO error handling on API error <Text style={[styles.textLabelError, styles.ph5, styles.pt4]}>Oops something went wrong. Please try again</Text> */}
                     </View>
                 </Popover>
             )}
