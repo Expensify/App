@@ -3270,6 +3270,10 @@ export default {
                             return 'Marcando informes de Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importar proveedores';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importar listas personalizadas';
                         case 'intacctCheckConnection':
                             return 'Comprobando la conexión a Sage Intacct';
                         case 'intacctImportDimensions':
