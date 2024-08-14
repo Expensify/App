@@ -295,6 +295,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     options={headerButtonsOptions}
                     isSplitButton={false}
                     style={styles.ml2}
+                    shouldUseStyleUtilityForAnchorPosition
                 />
             )}
         </HeaderWrapper>

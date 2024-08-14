@@ -40,6 +40,7 @@ function ButtonWithDropdownMenu<IValueType>({
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
     useKeyboardShortcuts = false,
+    shouldUseStyleUtilityForAnchorPosition = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -170,7 +171,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     }}
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
-                    anchorPosition={popoverAnchorPosition}
+                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
