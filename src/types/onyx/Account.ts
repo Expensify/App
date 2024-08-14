@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -16,15 +17,18 @@ type Delegate = {
 
     /** The role of the delegate */
     role: DelegateRole;
+
+    /** Authentication failure errors */
+    error?: TranslationPaths;
 };
 
 /** Model of delegated access data */
 type DelegatedAccess = {
     /** The users that can access your account as a delegate */
-    delegates: Delegate[];
+    delegates?: Delegate[];
 
     /** The the users you can access as a delegate */
-    delegators: Delegate[];
+    delegators?: Delegate[];
 
     /** The email of original user when they are acting as a delegate for another account */
     delegate?: string;
@@ -118,4 +122,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess};
