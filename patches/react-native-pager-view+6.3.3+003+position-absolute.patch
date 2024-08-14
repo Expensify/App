@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-pager-view/src/utils.tsx b/node_modules/react-native-pager-view/src/utils.tsx
+index 0d7d265..6eba4ab 100644
+--- a/node_modules/react-native-pager-view/src/utils.tsx
++++ b/node_modules/react-native-pager-view/src/utils.tsx
+@@ -29,6 +29,7 @@ export const childrenWithOverriddenStyle = (
+           height: '100%',
+           width: '100%',
+           paddingHorizontal: pageMargin / 2,
++          position: 'absolute',
+         }}
+         collapsable={false}
+       >
