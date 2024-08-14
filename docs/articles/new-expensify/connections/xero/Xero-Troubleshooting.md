@@ -34,4 +34,4 @@ Open the report and make the required changes:
 - If the report is in the Open status, ensure that it is submitted.
 - If the report is in the Processing status, an admin or approver will need to approve it.
 
-Once complete, an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they’ll select Xero. 
+Once complete, an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they'll select Xero. 
