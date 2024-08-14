@@ -2926,10 +2926,10 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
-const DEFAULT_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
-    maxExpenseAmountNoReceipt: CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
-    maxExpenseAmount: CONST.DEFAULT_MAX_EXPENSE_AMOUNT,
-    maxExpenseAge: CONST.DEFAULT_MAX_EXPENSE_AGE,
+const EMPTY_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+    maxExpenseAmountNoReceipt: CONST.EMPTY_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+    maxExpenseAmount: CONST.EMPTY_MAX_EXPENSE_AMOUNT,
+    maxExpenseAge: CONST.EMPTY_MAX_EXPENSE_AGE,
 };
 
 function enablePolicyRules(policyID: string, enabled: boolean) {
@@ -2941,7 +2941,7 @@ function enablePolicyRules(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: enabled,
-                    ...(!enabled ? DEFAULT_MAX_EXPENSE_VALUES : {}),
+                    ...(!enabled ? EMPTY_MAX_EXPENSE_VALUES : {}),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
