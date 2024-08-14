@@ -30,8 +30,12 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
         return <AuthScreens />;
     }
 
-    const PublicScreens = require<ReactComponentModule>('./PublicScreens').default;
+    if (NativeModules.HybridAppModule) {
+        const HybridAppPublicScreens = require<ReactComponentModule>('./HybridAppPublicScreens').default;
+        return <HybridAppPublicScreens />;
+    }
 
+    const PublicScreens = require<ReactComponentModule>('./PublicScreens').default;
     return <PublicScreens />;
 }
 

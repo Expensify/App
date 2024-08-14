@@ -3,7 +3,7 @@ import React from 'react';
 import type {HybridAppPublicScreensParamList} from '@navigation/types';
 import HybridAppError from '@pages/HybridApp/HybridAppErrorPage';
 import HybridAppLoading from '@pages/HybridApp/HybridAppLoading';
-import HybridAppTransition from '@pages/HybridApp/HybridAppTransition';
+import HybridAppTransitionPage from '@pages/HybridApp/HybridAppTransitionPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -22,7 +22,7 @@ function HybridAppPublicScreens() {
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
                 options={defaultScreenOptions}
-                component={HybridAppTransition}
+                component={HybridAppTransitionPage}
             />
             <RootStack.Screen
                 name={SCREENS.HYBRID_APP_ERROR}

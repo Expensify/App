@@ -165,6 +165,10 @@ function signInWithSupportAuthToken(authToken: string) {
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
 }
 
+function signInOnHybridApp(authToken: string, email: string, accountID: number) {
+    Onyx.merge('session', {authToken, email, accountID});
+}
+
 /**
  * Clears the Onyx store and redirects user to the sign in page
  */
@@ -1051,6 +1055,7 @@ export {
     setSupportAuthToken,
     checkIfActionIsAllowed,
     signIn,
+    signInOnHybridApp,
     signInWithValidateCode,
     handleExitToNavigation,
     signInWithValidateCodeAndNavigate,
