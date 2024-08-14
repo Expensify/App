@@ -1,7 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
-import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
