@@ -18,7 +18,7 @@ Onyx.connect({
     },
 });
 
-function connect(email: string, role: DelegateRole) {
+function connect(email: string) {
     if (!delegatedAccess?.delegators) {
         return;
     }
@@ -29,7 +29,7 @@ function connect(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {email, role, error: undefined} : delegator)),
+                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, error: undefined} : delegator)),
                 },
             },
         },
@@ -41,7 +41,7 @@ function connect(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {email, role, error: undefined} : delegator)),
+                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, error: undefined} : delegator)),
                 },
             },
         },
@@ -53,7 +53,7 @@ function connect(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {email, role, error: 'delegate.genericError'} : delegator)),
+                    delegators: delegatedAccess.delegators.map((delegator) => (delegator.email === email ? {...delegator, error: 'delegate.genericError'} : delegator)),
                 },
             },
         },
@@ -83,5 +83,12 @@ function connect(email: string, role: DelegateRole) {
         });
 }
 
+function clearDelegatorErrors() {
+    if (!delegatedAccess?.delegators) {
+        return;
+    }
+    Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, error: undefined}))}});
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {connect};
+export {connect, clearDelegatorErrors};
