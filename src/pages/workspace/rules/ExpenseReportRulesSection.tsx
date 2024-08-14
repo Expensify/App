@@ -58,7 +58,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: true,
+            isActive: false,
             onToggle: (isEnabled: boolean) => {},
             subMenuItems: [
                 <MenuItem
@@ -82,7 +82,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subtitle: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {},
-            isActive: false,
+            isActive: true,
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}

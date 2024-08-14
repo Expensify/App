@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SetPolicyAutomaticApprovalLimitParams, SetPolicyDefaultReportTitleParams, SetPolicyPreventSelfApprovalParams} from '@libs/API/parameters';
+import type {SetPolicyAutomaticApprovalLimitParams, SetPolicyAutoReimbursementLimitParams, SetPolicyDefaultReportTitleParams, SetPolicyPreventSelfApprovalParams} from '@libs/API/parameters';
 import type SetPolicyAutomaticApprovalAuditRateParams from '@libs/API/parameters/SetPolicyAutomaticApprovalAuditRate';
 import type SetPolicyPreventMemberCreatedTitleParams from '@libs/API/parameters/SetPolicyPreventMemberCreatedTitleParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -253,4 +253,61 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string
     });
 }
 
-export {modifyPolicyDefaultReportTitle, setPolicyPreventMemberCreatedTitle, setPolicyPreventSelfApproval, setPolicyAutomaticApprovalLimit, setPolicyAutomaticApprovalAuditRate};
+/**
+ * Call the API to deactivate the card and request a new one
+ * @param limit - max amount for auto-payment for the reports in the given policy
+ * @param policyID - id of the policy to apply the limit to
+ */
+function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
+    console.log('LIMIT ', limit);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const parameters: SetPolicyAutoReimbursementLimitParams = {
+        autoReimbursement: {limit},
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+export {
+    modifyPolicyDefaultReportTitle,
+    setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
+    setPolicyAutomaticApprovalLimit,
+    setPolicyAutomaticApprovalAuditRate,
+    setPolicyAutoReimbursementLimit,
+};

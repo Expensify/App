@@ -3556,6 +3556,7 @@ export default {
                 autoPayApprovedReportsTitle: 'Auto-pay approved reports',
                 autoPayApprovedReportsSubtitle: 'Configure which expense reports are eligible for auto-pay.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
+                autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid. ',
             },
         },
     },
