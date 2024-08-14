@@ -84,16 +84,14 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
         }
 
-        if (!approvalWorkflow) {
-            Workflow.setApprovalWorkflow({
-                ...currentApprovalWorkflow,
-                availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
-                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-                isLoading: false,
-            });
-        }
+        Workflow.setApprovalWorkflow({
+            ...currentApprovalWorkflow,
+            availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            isLoading: false,
+        });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [approvalWorkflow, initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);
+    }, [initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
