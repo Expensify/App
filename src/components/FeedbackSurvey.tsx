@@ -63,12 +63,12 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
     };
 
     const handleSubmit = () => {
-        if (!draft?.reason || (isNoteRequired && !draft?.note.trim())) {
+        if (!draft?.reason || (isNoteRequired && !draft.note?.trim())) {
             setShouldShowReasonError(true);
             return;
         }
 
-        onSubmit(draft?.reason, draft?.note.trim());
+        onSubmit(draft.reason, draft.note?.trim());
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
     };
 
