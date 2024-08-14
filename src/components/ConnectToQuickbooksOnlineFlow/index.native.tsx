@@ -7,7 +7,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
-import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
+import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +52,7 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
                     <WebView
                         ref={webViewRef}
                         source={{
-                            uri: getQuickBooksOnlineSetupLink(policyID),
+                            uri: getQuickbooksOnlineSetupLink(policyID),
                             headers: {
                                 Cookie: `authToken=${authToken}`,
                             },
