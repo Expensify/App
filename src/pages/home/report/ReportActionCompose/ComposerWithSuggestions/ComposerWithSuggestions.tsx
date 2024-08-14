@@ -693,7 +693,7 @@ function ComposerWithSuggestions(
         [onCleared, updateComment],
     );
 
-    useEffect(()=>{
+    useEffect(() => {
         if (!showSoftInputOnFocus || !isFocusedWhileChangingInputMode.current) {
             return;
         }
@@ -702,7 +702,7 @@ function ComposerWithSuggestions(
         isFocusedWhileChangingInputMode.current = false;
         textInputRef.current?.focus();
     }, [showSoftInputOnFocus]);
-    
+
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
 
