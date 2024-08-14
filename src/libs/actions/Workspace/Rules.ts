@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SetPolicyAutomaticApprovalLimitParams, SetPolicyDefaultReportTitleParams, SetPolicyPreventSelfApprovalParams} from '@libs/API/parameters';
+import type SetPolicyAutomaticApprovalAuditRateParams from '@libs/API/parameters/SetPolicyAutomaticApprovalAuditRate';
 import type SetPolicyPreventMemberCreatedTitleParams from '@libs/API/parameters/SetPolicyPreventMemberCreatedTitleParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -203,4 +204,53 @@ function setPolicyAutomaticApprovalLimit(limit: number, policyID: string) {
     });
 }
 
-export {modifyPolicyDefaultReportTitle, setPolicyPreventMemberCreatedTitle, setPolicyPreventSelfApproval, setPolicyAutomaticApprovalLimit};
+/**
+ * Call the API to deactivate the card and request a new one
+ * @param auditRate - percentage of the reports to be qualified for a random audit
+ * @param policyID - id of the policy to apply the limit to
+ */
+function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const parameters: SetPolicyAutomaticApprovalAuditRateParams = {
+        auditRate,
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_AUDIT_RATE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+export {modifyPolicyDefaultReportTitle, setPolicyPreventMemberCreatedTitle, setPolicyPreventSelfApproval, setPolicyAutomaticApprovalLimit, setPolicyAutomaticApprovalAuditRate};

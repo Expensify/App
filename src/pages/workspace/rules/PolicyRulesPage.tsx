@@ -21,7 +21,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    console.log('POLICY RULES PAGE');
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}

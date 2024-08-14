@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -18,7 +17,7 @@ import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/RulesAutoApproveReportsUnderModalForm';
+import INPUT_IDS from '@src/types/form/RulesRandomReportAuditModalForm';
 
 type RulesRandomReportAuditPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
 
@@ -48,9 +47,9 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
-                    formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
+                    formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({maxExpenseAutoApprovalAmount}) => WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(parseInt(maxExpenseAutoApprovalAmount, 10), policyID)}
+                    onSubmit={({auditRatePercentage}) => WorkspaceRulesActions.setPolicyAutomaticApprovalAuditRate(parseInt(auditRatePercentage, 10), policyID)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -58,7 +57,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                         <InputWrapper
                             label={translate('common.percentage')}
                             InputComponent={PercentageForm}
-                            inputID={INPUT_IDS.MAX_EXPENSE_AUTO_APPROVAL_AMOUNT}
+                            inputID={INPUT_IDS.AUDIT_RATE_PERCENTAGE}
                             ref={inputCallbackRef}
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.randomReportAuditDescription')}</Text>

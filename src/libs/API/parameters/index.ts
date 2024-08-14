@@ -270,6 +270,7 @@ export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyC
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
-export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitleParams';
-export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApprovalParams';
+export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
+export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApproval';
 export type {default as SetPolicyAutomaticApprovalLimitParams} from './SetPolicyAutomaticApprovalLimit';
+export type {default as SetPolicyAutomaticApprovalAuditRateParams} from './SetPolicyAutomaticApprovalAuditRate';
