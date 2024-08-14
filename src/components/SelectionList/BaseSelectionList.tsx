@@ -450,7 +450,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         if (shouldSingleExecuteRowSelect) {
                             singleExecution(() => selectRow(item, index))();
                         } else {
-                            selectRow(item);
+                            selectRow(item, index);
                         }
                     }}
                     onCheckboxPress={handleOnCheckboxPress()}
