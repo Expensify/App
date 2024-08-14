@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connect} from '@libs/actions/Delegate';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ function AccountSwitcher() {
     const shouldShowDelegators = delegators.length > 0 && canUseNewDotCopilot;
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
+        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
 
         return {
             title: personalDetail?.displayName ?? email,
