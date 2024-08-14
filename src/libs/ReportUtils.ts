@@ -1397,7 +1397,6 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  * Checks if the user can write in the provided report
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
-    
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || (report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR) && report?.type === 'expense');
     }

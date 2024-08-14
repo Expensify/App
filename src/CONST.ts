@@ -911,7 +911,7 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
-            AUDITOR: 'auditor'
+            AUDITOR: 'auditor',
         },
         INVOICE_RECEIVER_TYPE: {
             INDIVIDUAL: 'individual',
