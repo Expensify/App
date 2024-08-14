@@ -632,6 +632,7 @@ const CONST = {
         INBOX: 'inbox',
     },
 
+    // TODO: change to expensify-policy once the new domain is available
     EXPENSIFY_POLICY_DOMAIN: 'expensify_policy',
     EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
 
