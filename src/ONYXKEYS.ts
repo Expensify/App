@@ -887,8 +887,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
-    [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflow;
     [ONYXKEYS.INVOICE_BALANCE_TRANSFER]: OnyxTypes.InvoiceBalanceTransfer;
+    [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

@@ -136,10 +136,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
+    const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = useMemo(() => {
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
-        return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
-    }, [report, isGroupChat, isSystemChat]);
+        return ReportUtils.getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
+    }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
@@ -307,7 +307,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin)) {
+                    if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
@@ -443,6 +443,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         leaveChat,

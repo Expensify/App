@@ -219,6 +219,7 @@ export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptio
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
+export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
@@ -272,3 +273,4 @@ export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, Remov
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as TransferInvoiceBalanceParams} from './TransferInvoiceBalanceParams';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
+export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
