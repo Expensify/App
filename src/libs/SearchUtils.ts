@@ -196,13 +196,10 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const transactionItem = {...data[key]};
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
