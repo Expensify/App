@@ -19,7 +19,7 @@ Open the expense and make the required changes. Then an admin must manually expo
 
 ![App screenshot: Danny's Donuts owes $200, with export option highlighted]({{site.url}}/assets/images/Xero_help_02.png){:width="100%"}
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/Xero_help_03.png){:width="100%"}
+![App screenshot: Export options showing Xero integration and manual entry, with the Xero integration option highlighted]({{site.url}}/assets/images/Xero_help_03.png){:width="100%"}
 
 ## Unable to manually export a report
 
