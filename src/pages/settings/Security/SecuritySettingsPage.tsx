@@ -32,10 +32,13 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
-
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
+
+    const hasDelegates = delegates.length > 0;
+    const hasDelegators = delegators.length > 0;
 
     const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
@@ -133,8 +136,12 @@ function SecuritySettingsPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
-                            <MenuItemList menuItems={delegateMenuItems} />
+                            {hasDelegates && (
+                                <>
+                                    <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                                    <MenuItemList menuItems={delegateMenuItems} />
+                                </>
+                            )}
                             <MenuItem
                                 title={translate('delegate.addCopilot')}
                                 icon={Expensicons.UserPlus}
@@ -143,8 +150,12 @@ function SecuritySettingsPage() {
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
                             />
-                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                            <MenuItemList menuItems={delegatorMenuItems} />
+                            {hasDelegators && (
+                                <>
+                                    <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                                    <MenuItemList menuItems={delegatorMenuItems} />
+                                </>
+                            )}
                         </Section>
                     )}
                 </View>
