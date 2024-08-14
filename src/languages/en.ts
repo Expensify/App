@@ -1026,6 +1026,7 @@ export default {
             exportOnyxState: 'Export Onyx state',
             importOnyxState: 'Import Onyx state',
             testCrash: 'Test crash',
+            resetToOriginalState: 'Reset to original state',
         },
         debugConsole: {
             saveLog: 'Save log',

@@ -1033,6 +1033,7 @@ export default {
             exportOnyxState: 'Exportar estado Onyx',
             importOnyxState: 'Importar estado Onyx',
             testCrash: 'Prueba de fallo',
+            resetToOriginalState: 'Restablecer al estado original',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

@@ -9,9 +9,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 // List of Onyx keys from the .txt file we want to omit for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK];
+const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION];
 
-function transformNumericKeysToArray(obj) {
+function transformNumericKeysToArray(obj: unknown): unknown {
     if (typeof obj !== 'object' || obj === null) {
         return obj;
     }
@@ -43,7 +43,7 @@ function transformNumericKeysToArray(obj) {
     return obj;
 }
 
-function readFileInChunks(fileUri, chunkSize = 1024 * 1024) {
+function readFileInChunks(fileUri: string, chunkSize = 1024 * 1024) {
     console.log('File URI:', fileUri); // Log the file URI
     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
     // Check if the file exists
@@ -81,7 +81,7 @@ function readFileInChunks(fileUri, chunkSize = 1024 * 1024) {
 
 const CHUNK_SIZE = 100; // Adjust the chunk size based on your needs
 
-function chunkArray(array, size) {
+function chunkArray<T>(array: T[], size: number): T[][] {
     const result = [];
     for (let i = 0; i < array.length; i += size) {
         result.push(array.slice(i, i + size));
@@ -89,7 +89,7 @@ function chunkArray(array, size) {
     return result;
 }
 
-function applyStateInChunks(state) {
+function applyStateInChunks(state: Record<string, unknown>) {
     const entries = Object.entries(state);
     const chunks = chunkArray(entries, CHUNK_SIZE);
 
@@ -103,9 +103,9 @@ function applyStateInChunks(state) {
 
 export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
     const {translate} = useLocalize();
-    const [error, setError] = useState(null);
+    const [, setError] = useState(null);
 
-    const handleFileRead = (fileUri) => {
+    const handleFileRead = (fileUri: string) => {
         console.log('File URI:', fileUri); // Log the file URI
         setIsLoading(true);
         readFileInChunks(fileUri)
@@ -121,7 +121,7 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                         delete transformedState[key];
                     }
                 });
-                console.log('Omitted keys');
+                console.log('Omgitted keys');
 
                 Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
                     // Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {

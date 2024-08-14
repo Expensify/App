@@ -111,6 +111,14 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
             .reverse();
     }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
 
+    const resetToOriginalState = () => {
+        Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false}).then(() => {
+            Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
+                App.openApp();
+            });
+        });
+    };
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -150,6 +158,12 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
                                 <OnyxStateImport setIsLoading={setIsLoading} />
+                            </View>
+                            <View style={styles.mt5}>
+                                <Button
+                                    text={translate('initialSettingsPage.troubleshoot.resetToOriginalState')}
+                                    onPress={resetToOriginalState}
+                                />
                             </View>
                             <View>
                                 <ClientSideLoggingToolMenu />

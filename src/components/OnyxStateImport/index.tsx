@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK];
+const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION];
 
 function transformNumericKeysToArray(obj) {
     if (typeof obj !== 'object' || obj === null) {
@@ -17,7 +17,7 @@ function transformNumericKeysToArray(obj) {
 
     // Check if all keys are numeric and sequential starting from 0
     const keys = Object.keys(obj);
-    const allKeysAreNumeric = keys.every((key) => !isNaN(key));
+    const allKeysAreNumeric = keys.every((key) => !Number.isNaN(key));
     const keysAreSequential = keys.every((key, index) => parseInt(key) === index);
 
     if (allKeysAreNumeric && keysAreSequential) {
