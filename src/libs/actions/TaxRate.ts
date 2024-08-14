@@ -490,58 +490,48 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
     const customUnits = Object.values(policy?.customUnits ?? {});
     const optimisticCustomUnit = {
         customUnits: {
-            ...policy?.customUnits,
             ...customUnits.reduce((units, customUnit) => {
                 // eslint-disable-next-line no-param-reassign
                 units[customUnit.customUnitID] = {
-                    ...customUnit,
                     rates: {
-                        ...customUnit.rates,
                         ...Object.keys(customUnit.rates).reduce((rates, rateID) => {
                             if (customUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
                                 // eslint-disable-next-line no-param-reassign
                                 rates[rateID] = {
-                                    ...customUnit.rates[rateID],
                                     attributes: {
-                                        ...customUnit.rates[rateID].attributes,
                                         taxRateExternalID: newTaxCode,
                                     },
                                 };
                             }
                             return rates;
                         }, {} as Record<string, Rate>),
-                    } as Record<string, Rate>,
+                    },
                 };
                 return units;
-            }, {} as Record<string, CustomUnit>),
+            }, {} as Record<string, Partial<CustomUnit>>),
         },
     };
     const failureCustomUnit = {
         customUnits: {
-            ...policy?.customUnits,
             ...customUnits.reduce((units, customUnit) => {
                 // eslint-disable-next-line no-param-reassign
                 units[customUnit.customUnitID] = {
-                    ...customUnit,
                     rates: {
-                        ...customUnit.rates,
                         ...Object.keys(customUnit.rates).reduce((rates, rateID) => {
                             if (customUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
                                 // eslint-disable-next-line no-param-reassign
                                 rates[rateID] = {
-                                    ...customUnit.rates[rateID],
                                     attributes: {
-                                        ...customUnit.rates[rateID].attributes,
                                         taxRateExternalID: oldTaxCode,
                                     },
                                 };
                             }
                             return rates;
                         }, {} as Record<string, Rate>),
-                    } as Record<string, Rate>,
+                    },
                 };
                 return units;
-            }, {} as Record<string, CustomUnit>),
+            }, {} as Record<string, Partial<CustomUnit>>),
         },
     };
     const onyxData: OnyxData = {
