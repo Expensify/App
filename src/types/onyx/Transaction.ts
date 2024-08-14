@@ -93,7 +93,7 @@ type TransactionCustomUnit = {
     customUnitRateID?: string;
 
     /** Custom unit amount */
-    quantity?: number | null;
+    quantity?: number;
 
     /** Name of the custom unit */
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
