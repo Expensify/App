@@ -202,7 +202,7 @@ describe('actions/IOU', () => {
                                     expect(transaction?.amount).toBe(amount);
 
                                     // The comment should be correct
-                                    expect(transaction?.comment.comment).toBe(comment);
+                                    expect(transaction?.comment?.comment).toBe(comment);
 
                                     // It should be pending
                                     expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -363,7 +363,7 @@ describe('actions/IOU', () => {
                                     expect(transaction?.amount).toBe(amount);
 
                                     // The comment should be correct
-                                    expect(transaction?.comment.comment).toBe(comment);
+                                    expect(transaction?.comment?.comment).toBe(comment);
 
                                     expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
 
@@ -556,7 +556,7 @@ describe('actions/IOU', () => {
 
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
-                                    expect(newTransaction?.comment.comment).toBe(comment);
+                                    expect(newTransaction?.comment?.comment).toBe(comment);
                                     expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
@@ -713,7 +713,7 @@ describe('actions/IOU', () => {
 
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
-                                        expect(transaction?.comment.comment).toBe(comment);
+                                        expect(transaction?.comment?.comment).toBe(comment);
                                         expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
@@ -1304,23 +1304,23 @@ describe('actions/IOU', () => {
                                     expect(vitTransaction?.amount).toBe(amount / 4);
                                     expect(groupTransaction?.amount).toBe(amount);
 
-                                    expect(carlosTransaction?.comment.comment).toBe(comment);
-                                    expect(julesTransaction?.comment.comment).toBe(comment);
-                                    expect(vitTransaction?.comment.comment).toBe(comment);
-                                    expect(groupTransaction?.comment.comment).toBe(comment);
+                                    expect(carlosTransaction?.comment?.comment).toBe(comment);
+                                    expect(julesTransaction?.comment?.comment).toBe(comment);
+                                    expect(vitTransaction?.comment?.comment).toBe(comment);
+                                    expect(groupTransaction?.comment?.comment).toBe(comment);
 
                                     expect(carlosTransaction?.merchant).toBe(merchant);
                                     expect(julesTransaction?.merchant).toBe(merchant);
                                     expect(vitTransaction?.merchant).toBe(merchant);
                                     expect(groupTransaction?.merchant).toBe(merchant);
 
-                                    expect(carlosTransaction?.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
-                                    expect(julesTransaction?.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
-                                    expect(vitTransaction?.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(carlosTransaction?.comment?.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(julesTransaction?.comment?.source).toBe(CONST.IOU.TYPE.SPLIT);
+                                    expect(vitTransaction?.comment?.source).toBe(CONST.IOU.TYPE.SPLIT);
 
-                                    expect(carlosTransaction?.comment.originalTransactionID).toBe(groupTransaction?.transactionID);
-                                    expect(julesTransaction?.comment.originalTransactionID).toBe(groupTransaction?.transactionID);
-                                    expect(vitTransaction?.comment.originalTransactionID).toBe(groupTransaction?.transactionID);
+                                    expect(carlosTransaction?.comment?.originalTransactionID).toBe(groupTransaction?.transactionID);
+                                    expect(julesTransaction?.comment?.originalTransactionID).toBe(groupTransaction?.transactionID);
+                                    expect(vitTransaction?.comment?.originalTransactionID).toBe(groupTransaction?.transactionID);
 
                                     expect(carlosTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(julesTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);

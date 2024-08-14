@@ -1,6 +1,5 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -36,38 +35,36 @@ function SearchFiltersDatePage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.date')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
+            <HeaderWithBackButton
+                title={translate('common.date')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <FormProvider
+                style={[styles.flex1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                onSubmit={updateDateFilter}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={INPUT_IDS.DATE_AFTER}
+                    label={translate('search.filters.date.after')}
+                    defaultValue={dateAfter}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
-                <FormProvider
-                    style={[styles.flex1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateDateFilter}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.DATE_AFTER}
-                        label={translate('search.filters.date.after')}
-                        defaultValue={dateAfter}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    />
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.DATE_BEFORE}
-                        label={translate('search.filters.date.before')}
-                        defaultValue={dateBefore}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    />
-                </FormProvider>
-            </FullPageNotFoundView>
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={INPUT_IDS.DATE_BEFORE}
+                    label={translate('search.filters.date.before')}
+                    defaultValue={dateBefore}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                />
+            </FormProvider>
         </ScreenWrapper>
     );
 }

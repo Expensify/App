@@ -9,9 +9,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as Url from '@libs/Url';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import * as IOU from '@userActions/IOU';
@@ -36,18 +38,11 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const policy = usePolicy(IOU.getIOURequestPolicyID(transaction, report));
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
-
-    const extractUrlDomain = (url: string): string | undefined => {
-        const DOMAIN_BASE_REGEX = '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)';
-        const match = String(url).match(DOMAIN_BASE_REGEX);
-
-        return match?.[1];
-    };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
@@ -57,7 +52,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
                     errors.companyWebsite = translate('bankAccount.error.website');
                 } else {
-                    const domain = extractUrlDomain(values.companyWebsite);
+                    const domain = Url.extractUrlDomain(values.companyWebsite);
 
                     if (!domain || !Str.isValidDomainName(domain)) {
                         errors.companyWebsite = translate('iou.invalidDomainError');

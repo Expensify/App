@@ -1,10 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -13,7 +13,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
@@ -25,7 +24,7 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
     const styles = useThemeStyles();
 
     const mappingName: SageIntacctMappingName = route.params.mapping;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
+    const policy = usePolicy(route.params.policyID);
     const policyID = policy?.id ?? '-1';
 
     const {config} = policy?.connections?.intacct ?? {};
@@ -69,10 +68,10 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
 
     const updateMapping = useCallback(
         ({value}: SelectorType) => {
-            updateSageIntacctMappingValue(policyID, mappingName, value as SageIntacctMappingValue);
+            updateSageIntacctMappingValue(policyID, mappingName, value as SageIntacctMappingValue, mappings?.[mappingName]);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mappingName));
         },
-        [mappingName, policyID],
+        [mappingName, policyID, mappings],
     );
 
     return (
