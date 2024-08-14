@@ -39,7 +39,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-// import Timing from './actions/Timing';
+import Timing from './actions/Timing';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
@@ -2081,7 +2081,7 @@ function getOptions(
  * Build the options for the Search view
  */
 function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
-    // Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
         betas,
@@ -2099,7 +2099,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeTasks: true,
         includeSelfDM: true,
     });
-    // Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return optionList;
