@@ -35,8 +35,8 @@ function SecuritySettingsPage() {
     const {canUseNewDotCopilot} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
+    const delegates = account?.delegatedAccess?.delegates ?? [];
 
     const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
@@ -63,7 +63,7 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
+    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
@@ -81,7 +81,7 @@ function SecuritySettingsPage() {
         };
     });
 
-    const delegatorsMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
@@ -146,7 +146,7 @@ function SecuritySettingsPage() {
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
                             />
                             <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                            <MenuItemList menuItems={delegatorsMenuItems} />
+                            <MenuItemList menuItems={delegatorMenuItems} />
                         </Section>
                     )}
                 </View>
