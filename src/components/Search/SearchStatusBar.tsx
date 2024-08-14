@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
+import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -138,17 +140,23 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                 const isActive = status === item.key;
 
                 return (
-                    <Button
-                        key={item.key}
-                        text={translate(item.text)}
-                        onPress={onPress}
-                        icon={item.icon}
-                        iconFill={isActive ? theme.success : undefined}
-                        innerStyles={!isActive && styles.bgTransparent}
-                        textStyles={!isActive ? StyleUtils.getTextColorStyle(theme.textSupporting) : undefined}
-                        hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                        medium
-                    />
+                    <Hoverable>
+                        {(isHovered) => (
+                            <View>
+                                <Button
+                                    key={item.key}
+                                    text={translate(item.text)}
+                                    onPress={onPress}
+                                    icon={item.icon}
+                                    iconFill={isActive || isHovered ? theme.success : undefined}
+                                    innerStyles={!isActive && styles.bgTransparent}
+                                    hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                                    textStyles={!isActive && !isHovered && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                                    medium
+                                />
+                            </View>
+                        )}
+                    </Hoverable>
                 );
             })}
         </ScrollView>
