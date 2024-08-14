@@ -18,7 +18,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import * as Link from '@userActions/Link';
-import {signOut} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
