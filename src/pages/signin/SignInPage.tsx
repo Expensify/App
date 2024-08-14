@@ -302,7 +302,6 @@ const SignInPage = forwardRef(function SignInPage(
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageThemeWrapper.displayName}
         >
-            {/* {shouldShowBackButton && <HeaderWithBackButton onBackButtonPress={navigateBack} />} */}
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
