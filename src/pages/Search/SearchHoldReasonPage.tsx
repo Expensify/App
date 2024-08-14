@@ -31,10 +31,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
 
-    const areSelectedModifiedByOthers = SearchActions.areSelectedModifiedByOthers(selectedTransactionIDs);
+    const areSelectedRequestsUnsubmitted = SearchActions.areSelectedRequestsUnsubmitted(selectedTransactionIDs);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (areSelectedModifiedByOthers) {
+        if (areSelectedRequestsUnsubmitted) {
             return;
         }
 
@@ -51,7 +51,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 errors.comment = translate('common.error.fieldRequired');
             }
 
-            if (areSelectedModifiedByOthers) {
+            if (areSelectedRequestsUnsubmitted) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModifiedSelected'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);

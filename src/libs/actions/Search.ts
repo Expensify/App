@@ -88,7 +88,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function areSelectedModifiedByOthers(selectedTransactionIDs: string[]) {
+function areSelectedRequestsUnsubmitted(selectedTransactionIDs: string[]) {
     const allReports = ReportConnection.getAllReports();
 
     const reports = selectedTransactionIDs.flatMap((transactionID) => {
@@ -161,5 +161,5 @@ export {
     exportSearchItemsToCSV,
     updateAdvancedFilters,
     clearAdvancedFilters,
-    areSelectedModifiedByOthers,
+    areSelectedRequestsUnsubmitted,
 };
