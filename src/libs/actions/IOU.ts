@@ -7441,7 +7441,6 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    console.log('in IOU');
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
