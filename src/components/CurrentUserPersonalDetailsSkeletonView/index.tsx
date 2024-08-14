@@ -23,34 +23,31 @@ function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSiz
     const StyleUtils = useStyleUtils();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
-    const spaceBetweenAvatarAndHeadline = styles.mb3.marginBottom + styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
-    const headlineSize = variables.fontSizeXLarge;
-    const spaceBetweenHeadlineAndLabel = styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
-    const labelSize = variables.fontSizeLabel;
+
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
-                height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
+                height={avatarPlaceholderSize + styles.pb5.paddingBottom}
             >
                 <Circle
-                    cx="50%"
+                    cx="30"
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
                 <Rect
-                    x="20%"
-                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline}
-                    width="60%"
-                    height={headlineSize}
+                    x={30 + avatarPlaceholderRadius + styles.gap3.gap}
+                    y="11"
+                    width="45%"
+                    height="8"
                 />
                 <Rect
-                    x="15%"
-                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel}
-                    width="70%"
-                    height={labelSize}
+                    x={30 + avatarPlaceholderRadius + styles.gap3.gap}
+                    y="31"
+                    width="55%"
+                    height="8"
                 />
             </SkeletonViewContentLoader>
         </View>
