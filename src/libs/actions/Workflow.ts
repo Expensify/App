@@ -118,6 +118,8 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         return;
     }
 
+    const previousDefaultApprover = policy.approver ?? policy.owner;
+    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
     const previousEmployeeList = {...policy.employeeList};
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE, membersToRemove});
 
@@ -135,6 +137,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             value: {
                 employeeList: updatedEmployees,
                 pendingFields: {employeeList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
     ];
@@ -151,6 +154,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
             value: {
                 employeeList: previousEmployeeList,
                 pendingFields: {employeeList: null},
+                ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
             },
         },
     ];
@@ -170,7 +174,6 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         },
     ];
 
-    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
     const parameters: UpdateWorkspaceApprovalParams = {
         policyID,
         authToken,
