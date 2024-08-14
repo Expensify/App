@@ -88,7 +88,7 @@ When the user is offline:
 - The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)
 - The behavior for when something fails is:
     - If you were adding new data, the failed to add data is displayed greyed out and with the button to dismiss the error
-    - If you were deleting data, the failed data is displayed regularly with the button to dismiss it
+    - If you were deleting data, the failed data is displayed regularly with the button to dismiss the error
     - If you are updating data, the original data is displayed regulary with the button to dismiss it
 - When dismissing the error, the `onClose` prop will be called, there we need to call an action that either:
   - If the pendingAction was `add`, it removes the data altogether
