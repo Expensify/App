@@ -11,8 +11,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
@@ -170,6 +172,27 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         });
 }
 
+function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
+    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
+        return translateLocal('iou.payerOwesAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
+    }
+
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
+        return translateLocal('iou.payerPaidAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
+    }
+
+    return reportItem.reportName;
+}
+
 function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -181,6 +204,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
+            const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
@@ -188,6 +212,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from: data.personalDetailsList?.[reportItem.accountID],
                 to: data.personalDetailsList?.[reportItem.managerID],
                 transactions,
+                reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const transactionItem = {...data[key]};
@@ -454,7 +479,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY) &&
+                    filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.TO) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
