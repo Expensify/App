@@ -188,7 +188,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID), CONST.NAVIGATION.TYPE.UP);
         } else {
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
     }, [approvalWorkflow, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
 
