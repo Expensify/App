@@ -5,6 +5,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -255,6 +256,7 @@ export default {
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
+            pleaseSelectOne: 'Seleccione una de las opciones.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -1319,6 +1321,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -1326,10 +1332,15 @@ export default {
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCreateApprovalsPage: {
-        title: 'Añadir flujo de aprobación',
+        title: 'Confirmar',
+        header: 'Agrega más aprobadores y confirma.',
+        additionalApprover: 'Añadir aprobador',
+        submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
+        deleteTitle: 'Eliminar flujo de trabajo de aprobación',
+        deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
@@ -3658,7 +3669,6 @@ export default {
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
-        shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor, introduce un título',
         pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },

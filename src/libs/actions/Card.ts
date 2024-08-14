@@ -9,6 +9,7 @@ import type {
     RevealExpensifyCardDetailsParams,
     StartIssueNewCardFlowParams,
     UpdateExpensifyCardLimitParams,
+    UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -374,6 +375,66 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
 }
 
+function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: newCardTitle,
+                    },
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: oldCardTitle,
+                    },
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateExpensifyCardTitleParams = {
+        authToken,
+        cardID,
+        cardTitle: newCardTitle,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
+}
+
 function startIssueNewCardFlow(policyID: string) {
     const parameters: StartIssueNewCardFlowParams = {
         policyID,
@@ -487,6 +548,7 @@ export {
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    updateExpensifyCardTitle,
     updateSettlementAccount,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
