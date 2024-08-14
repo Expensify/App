@@ -130,7 +130,10 @@ function AccountSwitcher() {
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
-                        <MenuItemList menuItems={delegatorMenuItemsWithCurrentUser} />
+                        <MenuItemList
+                            menuItems={delegatorMenuItemsWithCurrentUser}
+                            shouldUseSingleExecution
+                        />
                         {/* TODO error handling on API error <Text style={[styles.textLabelError, styles.ph5, styles.pt4]}>Oops something went wrong. Please try again</Text> */}
                     </View>
                 </Popover>
