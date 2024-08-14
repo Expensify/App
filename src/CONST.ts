@@ -5711,7 +5711,12 @@ const CONST = {
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',
     },
-
+    DEBUG: {
+        DETAILS: 'details',
+        JSON: 'json',
+        REPORT_ACTIONS: 'actions',
+        REPORT_ACTION_PREVIEW: 'preview',
+    },
     APPROVAL_WORKFLOW: {
         ACTION: {
             CREATE: 'create',
