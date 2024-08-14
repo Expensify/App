@@ -97,6 +97,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
+        shouldShowListEmptyContent = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -116,7 +117,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
-    const isEmptyList = sections.length === 0;
     const {singleExecution} = useSingleExecution();
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
@@ -475,6 +475,16 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
+    const renderListEmptyContent = () => {
+        if (showLoadingPlaceholder) {
+            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+        }
+        if (shouldShowListEmptyContent) {
+            return listEmptyContent;
+        }
+        return null;
+    };
+
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
@@ -677,14 +687,14 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-                    {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound')) && !!headerMessage && (
+                    {(((!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound')) && !!headerMessage) || flattenedSections.allOptions.length === 0) && (
                         <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
+                    {flattenedSections.allOptions.length === 0 ? (
+                        renderListEmptyContent()
                     ) : (
                         <>
                             {!listHeaderContent && header()}
@@ -719,9 +729,6 @@ function BaseSelectionList<TItem extends ListItem>(
                                 style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListEmptyComponent={listEmptyContent}
-                                contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
-                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
