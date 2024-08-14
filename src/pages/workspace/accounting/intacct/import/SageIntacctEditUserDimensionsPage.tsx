@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,11 +11,19 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctErrorField, editSageIntacctUserDimensions, removeSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
+import {
+    clearSageIntacctErrorField,
+    clearSageIntacctPendingField,
+    editSageIntacctUserDimensions,
+    removeSageIntacctUserDimensions,
+    removeSageIntacctUserDimensionsByName,
+} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +38,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const {translate} = useLocalize();
 
     const editedUserDimensionName: string = route.params.dimensionName;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
+    const policy = usePolicy(route.params.policyID);
     const policyID: string = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
@@ -85,9 +92,18 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={config?.pendingFields?.[`dimension_${editedUserDimensionName}`]}
-                    errors={config?.errorFields?.[`dimension_${editedUserDimensionName}`]}
-                    onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
+                    pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`)}
+                    errorRowStyles={[styles.pb3]}
+                    onClose={() => {
+                        clearSageIntacctErrorField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`);
+                        const pendingAction = settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`], config?.pendingFields);
+                        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                            removeSageIntacctUserDimensionsByName(userDimensions ?? [], policyID, editedUserDimensionName);
+                            Navigation.goBack();
+                        }
+                        clearSageIntacctPendingField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`);
+                    }}
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper

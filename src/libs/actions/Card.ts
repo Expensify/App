@@ -7,9 +7,11 @@ import type {
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     RevealExpensifyCardDetailsParams,
+    StartIssueNewCardFlowParams,
     UpdateExpensifyCardLimitParams,
+    UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
@@ -205,14 +207,14 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
-function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
+function updateSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
     // TODO: remove this code when the API is ready
     if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
             monthlySettlementDate: null,
         });
     } else {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
             monthlySettlementDate: new Date(),
         });
     }
@@ -221,7 +223,7 @@ function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof C
     // const optimisticData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: '',
     //         },
@@ -231,7 +233,7 @@ function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof C
     // const successData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: '',
     //         },
@@ -241,7 +243,7 @@ function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof C
     // const failureData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             monthlySettlementDate: null,
     //         },
@@ -249,16 +251,16 @@ function updateSettlementFrequency(policyID: string, frequency: ValueOf<typeof C
     // ];
     //
     // const parameters = {
-    //     workspaceAccountID: policyID,
+    //     workspaceAccountID,
     //     settlementFrequency: frequency,
     // };
     //
     // API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(policyID: string, accountID: number) {
+function updateSettlementAccount(workspaceAccountID: number, accountID: number) {
     // TODO: remove this code when the API is ready
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {
         paymentBankAccountID: accountID,
     });
 
@@ -266,7 +268,7 @@ function updateSettlementAccount(policyID: string, accountID: number) {
     // const optimisticData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: accountID,
     //         },
@@ -276,7 +278,7 @@ function updateSettlementAccount(policyID: string, accountID: number) {
     // const successData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: accountID,
     //         },
@@ -286,7 +288,7 @@ function updateSettlementAccount(policyID: string, accountID: number) {
     // const failureData: OnyxUpdate[] = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`,
+    //         key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
     //         value: {
     //             paymentBankAccountID: null,
     //         },
@@ -294,7 +296,7 @@ function updateSettlementAccount(policyID: string, accountID: number) {
     // ];
     //
     // const parameters = {
-    //     workspaceAccountID: policyID,
+    //     workspaceAccountID,
     //     settlementBankAccountID: accountID,
     // };
     //
@@ -312,7 +314,7 @@ function clearIssueNewCardFlow() {
     });
 }
 
-function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: number, oldLimit?: number) {
+function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, oldLimit?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -322,11 +324,11 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: newLimit,
+                        unapprovedExpenseLimit: newLimit,
                     },
                     isLoading: true,
                     errors: null,
@@ -338,7 +340,7 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     isLoading: false,
@@ -350,11 +352,11 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: oldLimit,
+                        unapprovedExpenseLimit: oldLimit,
                     },
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -372,6 +374,111 @@ function updateExpensifyCardLimit(policyID: string, cardID: number, newLimit: nu
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
 }
 
+function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: newCardTitle,
+                    },
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: oldCardTitle,
+                    },
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateExpensifyCardTitleParams = {
+        authToken,
+        cardID,
+        cardTitle: newCardTitle,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
+}
+
+function startIssueNewCardFlow(policyID: string) {
+    const parameters: StartIssueNewCardFlowParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
+}
+
+function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: number) {
+    if (!bankAccountID) {
+        return;
+    }
+
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
+}
+
+function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+    if (!data) {
+        return;
+    }
+
+    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+
+    const parameters = {
+        policyID,
+        assigneeEmail,
+        limit,
+        limitType,
+        cardTitle,
+    };
+
+    if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
+        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -382,6 +489,10 @@ export {
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    updateExpensifyCardTitle,
     updateSettlementAccount,
+    startIssueNewCardFlow,
+    configureExpensifyCardsForPolicy,
+    issueExpensifyCard,
 };
 export type {ReplacementReason};

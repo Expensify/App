@@ -13,6 +13,8 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -42,6 +44,9 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
+
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
 
@@ -70,13 +75,16 @@ function ReportFooter({
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
+    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
@@ -99,7 +107,7 @@ function ReportFooter({
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
 
-    const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
@@ -108,6 +116,7 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -169,7 +178,7 @@ function ReportFooter({
                     style={[
                         styles.chatFooter,
                         isArchivedRoom || isAnonymousUser || !canWriteInReport || (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) ? styles.mt4 : {},
-                        isSmallScreenWidth ? styles.mb5 : null,
+                        shouldUseNarrowLayout ? styles.mb5 : null,
                     ]}
                 >
                     {isAnonymousUser && !isArchivedRoom && (
@@ -189,12 +198,12 @@ function ReportFooter({
                             shouldShowIcon
                         />
                     )}
-                    {!isSmallScreenWidth && (
+                    {!shouldUseNarrowLayout && (
                         <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -208,6 +217,7 @@ function ReportFooter({
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
+                            shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
                         />
                     </SwipeableView>
                 </View>
@@ -227,5 +237,6 @@ export default memo(
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
 );

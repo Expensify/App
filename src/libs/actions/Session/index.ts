@@ -677,7 +677,7 @@ function clearSignInData() {
  */
 function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState().routes;
+        const routes = navigationRef.current?.getState()?.routes;
         const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
 
         const emptyParams: Record<string, undefined> = {};
@@ -911,7 +911,19 @@ function toggleTwoFactorAuth(enable: boolean) {
     API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
 }
 
-function validateTwoFactorAuth(twoFactorAuthCode: string) {
+function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
+    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+    updateSessionAuthTokens(authToken, encryptedAuthToken);
+
+    // Note: It is important to manually set the authToken that is in the store here since
+    // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+    // enough to do the updateSessionAuthTokens() call above.
+    NetworkStore.setAuthToken(authToken ?? null);
+
+    openApp();
+}
+
+function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -950,18 +962,14 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
             return;
         }
 
-        const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
-        Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => {
-            // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+        // Clear onyx data if the user has just signed in and is forced to add 2FA
+        if (shouldClearData) {
+            const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
+            Onyx.clear(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
+            return;
+        }
 
-            // Note: It is important to manually set the authToken that is in the store here since
-            // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
-            // enough to do the updateSessionAuthTokens() call above.
-            NetworkStore.setAuthToken(response.authToken ?? null);
-
-            openApp();
-        });
+        updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
     });
 }
 

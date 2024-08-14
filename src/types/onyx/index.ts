@@ -1,11 +1,13 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
@@ -29,6 +31,7 @@ import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MobileSelectionMode from './MobileSelectionMode';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -47,7 +50,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -68,6 +71,8 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
+import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
+import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
@@ -94,6 +99,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
+import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -145,7 +151,7 @@ export type {
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
-    PolicyTagList,
+    PolicyTagLists,
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
@@ -163,6 +169,9 @@ export type {
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
+    ReportViolationName,
+    ReportViolations,
+    ReportFieldsViolations,
     Request,
     Response,
     ScreenShareRequest,
@@ -207,4 +216,8 @@ export type {
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
+    CancellationDetails,
+    ApprovalWorkflowOnyx,
+    MobileSelectionMode,
+    WorkspaceTooltip,
 };

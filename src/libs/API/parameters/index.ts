@@ -1,6 +1,7 @@
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
+export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
 export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
@@ -218,6 +219,7 @@ export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptio
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
+export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
@@ -254,14 +256,21 @@ export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNe
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
 export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
 export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
+export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoicingParams';
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
+export type {default as CancelBillingSubscriptionParams} from './CancelBillingSubscriptionParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
+export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
+export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
+export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
+export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
+export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';

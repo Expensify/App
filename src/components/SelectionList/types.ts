@@ -66,9 +66,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -311,8 +308,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
+    shouldSingleExecuteRowSelect?: boolean;
 
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
@@ -492,9 +489,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
-
-    /** Whether Selection Mode is active - used only on small screens */
-    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

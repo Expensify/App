@@ -24,6 +24,7 @@ import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -108,6 +109,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const subscriptionPlan = useSubscriptionPlan();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -192,8 +194,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
-                translationKey: 'allSettingsScreen.cardsAndDomains',
-                icon: Expensicons.CardsAndDomains,
+                translationKey: 'allSettingsScreen.domains',
+                icon: Expensicons.Globe,
                 action: () => {
                     Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
@@ -203,7 +205,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             },
         ];
 
-        if (privateSubscription) {
+        if (subscriptionPlan) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
@@ -219,7 +221,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
 
     /**
      * Retuns a list of menu items data for general section

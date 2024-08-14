@@ -29,6 +29,7 @@ import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
@@ -128,15 +129,14 @@ function CardSection() {
                     )}
                 </View>
 
-                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-
+                <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
                 {billingStatus?.isRetryAvailable !== undefined && (
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
                         onPress={handleRetryPayment}
-                        style={[styles.w100, styles.mt5]}
+                        style={[styles.w100, styles.mb3]}
                         large
                     />
                 )}
@@ -148,8 +148,7 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
-                        style={styles.mt5}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
@@ -165,6 +164,8 @@ function CardSection() {
                         onPress={() => setIsRequestRefundModalVisible(true)}
                     />
                 )}
+
+                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
             </Section>
 
             {account?.isEligibleForRefund && (

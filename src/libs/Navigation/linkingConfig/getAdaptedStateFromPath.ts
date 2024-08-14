@@ -21,7 +21,12 @@ import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForSta
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
-const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS] as const;
+const RHP_SCREENS_OPENED_FROM_LHN = [
+    SCREENS.SETTINGS.SHARE_CODE,
+    SCREENS.SETTINGS.PROFILE.STATUS,
+    SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
+    SCREENS.MONEY_REQUEST.CREATE,
+] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
@@ -151,7 +156,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     // check for valid reportID in the route params
     // if the reportID is valid, we should navigate back to screen report in CPN
     const reportID = (route.params as Record<string, string | undefined>)?.reportID;
-    if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+    if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
         return {name: SCREENS.REPORT, params: {reportID}};
     }
 }
@@ -173,11 +178,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
-
-    if (isNarrowLayout) {
-        metainfo.isFullScreenNavigatorMandatory = false;
-        metainfo.isCentralPaneAndBottomTabMandatory = false;
-    }
 
     if (rhpNavigator) {
         // Routes

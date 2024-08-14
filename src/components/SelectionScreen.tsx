@@ -32,7 +32,7 @@ type SelectionScreenProps<T = string> = {
     displayName: string;
 
     /** Title of the selection component */
-    title: TranslationPaths;
+    title?: TranslationPaths;
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
@@ -84,6 +84,12 @@ type SelectionScreenProps<T = string> = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
+
+    /** Whether to single execute `onRowSelect` - this prevents bugs related to double interactions */
+    shouldSingleExecuteRowSelect?: boolean;
+
+    /** Used for dynamic header title translation with parameters */
+    headerTitleAlreadyTranslated?: string;
 };
 
 function SelectionScreen<T = string>({
@@ -106,6 +112,8 @@ function SelectionScreen<T = string>({
     errors,
     errorRowStyles,
     onClose,
+    shouldSingleExecuteRowSelect,
+    headerTitleAlreadyTranslated,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -125,7 +133,7 @@ function SelectionScreen<T = string>({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(title)}
+                    title={headerTitleAlreadyTranslated ?? (title ? translate(title) : '')}
                     onBackButtonPress={onBackButtonPress}
                 />
                 {headerContent}
@@ -143,7 +151,8 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     >
                         <ErrorMessageRow
                             errors={errors}

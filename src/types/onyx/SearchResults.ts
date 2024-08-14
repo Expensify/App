@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchStatus} from '@components/Search/types';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -9,11 +9,10 @@ import type CONST from '@src/CONST';
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
-    ? typeof TransactionListItem
-    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-    ? typeof ReportListItem
-    : never;
+type ListItemType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? typeof TransactionListItem : typeof ReportListItem;
+
+/** Model of search list item data type */
+type ListItemDataType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItemType[] : ReportListItemType[];
 
 /** Model of search result section */
 type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
@@ -21,20 +20,6 @@ type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DAT
     : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
     ? ReportListItemType[]
     : never;
-
-/** Mapping of search results to list item */
-type SearchTypeToItemMap = {
-    [K in SearchDataTypes]: {
-        /** Collection of search result list item */
-        listItem: ListItemType<K>;
-
-        /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
-
-        /** Returns sorted search results sections based on search results data */
-        getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
-    };
-};
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -180,9 +165,9 @@ type SearchTransaction = {
     tag: string;
 
     /** The transaction description */
-    comment: {
+    comment?: {
         /** Content of the transaction description */
-        comment: string;
+        comment?: string;
     };
 
     /** The transaction category */
@@ -235,6 +220,9 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
+
+    /** Whether the transaction report has only a single transaction */
+    isFromOneTransactionReport?: boolean;
 };
 
 /** Model of account details search result */
@@ -242,9 +230,6 @@ type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>
 
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
-/** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
 
 /** Model of search results */
 type SearchResults = {
@@ -261,7 +246,8 @@ type SearchResults = {
 export default SearchResults;
 
 export type {
-    SearchQuery,
+    ListItemType,
+    ListItemDataType,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
@@ -269,7 +255,6 @@ export type {
     SearchPolicyDetails,
     SearchAccountDetails,
     SearchDataTypes,
-    SearchTypeToItemMap,
     SearchReport,
     SectionsType,
 };
