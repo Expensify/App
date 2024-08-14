@@ -140,11 +140,10 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                 const isActive = status === item.key;
 
                 return (
-                    <Hoverable>
+                    <Hoverable key={item.key}>
                         {(isHovered) => (
                             <View>
                                 <Button
-                                    key={item.key}
                                     text={translate(item.text)}
                                     onPress={onPress}
                                     icon={item.icon}
