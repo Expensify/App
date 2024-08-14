@@ -1,6 +1,7 @@
-import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type { GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
+import type { AnimatedTextInputRef } from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 
 type CustomBaseTextInputProps = {
     /** Input label */
@@ -72,6 +73,9 @@ type CustomBaseTextInputProps = {
     /** Prefix character */
     prefixCharacter?: string;
 
+    /** Suffix character */
+    suffixCharacter?: string;
+
     /** Whether autoCorrect functionality should enable  */
     autoCorrect?: boolean;
 
@@ -120,6 +124,12 @@ type CustomBaseTextInputProps = {
 
     /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the suffix */
+    suffixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the suffix container */
+    suffixContainerStyle?: StyleProp<ViewStyle>;
 
     /** The width of inner content */
     contentWidth?: number;

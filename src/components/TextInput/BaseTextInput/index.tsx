@@ -61,11 +61,14 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
+        suffixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
         shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
+        suffixContainerStyle = [],
+        suffixStyle = [],
         contentWidth,
         ...inputProps
     }: BaseTextInputProps,
@@ -402,6 +405,17 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
+                            {!!suffixCharacter && (
+                                <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
+                                    <Text
+                                        tabIndex={-1}
+                                        style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        {suffixCharacter}
+                                    </Text>
+                                </View>
+                            )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator

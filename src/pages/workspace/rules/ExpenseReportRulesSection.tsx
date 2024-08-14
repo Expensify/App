@@ -77,7 +77,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 />,
             ],
         },
-
         {
             title: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),

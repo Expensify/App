@@ -50,6 +50,15 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
 }
 
 /**
+ * Check if percentage is between 0 and 100
+ */
+function validatePercentage(amount: string): boolean {
+    const regexString = '^(100|[0-9]{1,2})$';
+    const percentageRegex = new RegExp(regexString, 'i');
+    return amount === '' || percentageRegex.test(amount);
+}
+
+/**
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
  */
@@ -80,4 +89,15 @@ function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};
+export {
+    addLeadingZero,
+    isDistanceRequest,
+    isScanRequest,
+    replaceAllDigits,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    replaceCommasWithPeriod,
+    validateAmount,
+    validatePercentage,
+};

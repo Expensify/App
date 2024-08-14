@@ -248,6 +248,7 @@ export default {
         conjunctionAt: 'at',
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        percentage: 'Percentage',
         error: {
             invalidAmount: 'Invalid amount.',
             acceptTerms: 'You must accept the Terms of Service to continue.',
@@ -3551,6 +3552,7 @@ export default {
                 autoApproveReportsUnderTitle: 'Auto-approve reports under',
                 autoApproveReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically approved.',
                 randomReportAuditTitle: 'Random report audit',
+                randomReportAuditDescription: 'Require that some reports be manually approved, even if eligible for auto-approval.',
                 autoPayApprovedReportsTitle: 'Auto-pay approved reports',
                 autoPayApprovedReportsSubtitle: 'Configure which expense reports are eligible for auto-pay.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
