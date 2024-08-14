@@ -4895,9 +4895,9 @@ export default {
         role: (role: DelegateRole): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
-                    return 'All';
+                    return 'Completo';
                 case CONST.DELEGATE_ROLE.SUBMITTER:
-                    return 'Limited';
+                    return 'Limitado';
                 default:
                     return '';
             }
