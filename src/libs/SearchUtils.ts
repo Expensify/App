@@ -11,7 +11,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
@@ -54,12 +54,12 @@ const operatorToSignMap = {
 function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
-    to: SearchAccountDetails,
+    to: SearchPersonalDetails,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
+    const formattedTo = to?.displayName ?? to?.login ?? '';
     const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = TransactionUtils.getMerchant(transactionItem);
@@ -181,17 +181,12 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
-            const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
-
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID],
-                to,
+                to: data.personalDetailsList?.[reportItem.managerID],
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {

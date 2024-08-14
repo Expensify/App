@@ -5,10 +5,10 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
-    participant: SearchAccountDetails;
+    participant: SearchPersonalDetails;
     displayName: string;
 };
 
