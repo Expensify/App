@@ -54,8 +54,8 @@ function SearchFiltersAmountPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyForm}
-                        inputID={INPUT_IDS.LESS_THAN}
-                        name={INPUT_IDS.LESS_THAN}
+                        inputID={INPUT_IDS.GREATER_THAN}
+                        name={INPUT_IDS.GREATER_THAN}
                         defaultValue={greaterThan}
                         label={translate('search.filters.amount.greaterThan')}
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
@@ -65,8 +65,8 @@ function SearchFiltersAmountPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyForm}
-                        inputID={INPUT_IDS.GREATER_THAN}
-                        name={INPUT_IDS.GREATER_THAN}
+                        inputID={INPUT_IDS.LESS_THAN}
+                        name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThan}
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}

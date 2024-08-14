@@ -14,7 +14,7 @@ type AmountFormProps = {
     onInputChange?: (value: string) => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyForm({value: amount, onInputChange, ...rest}: AmountFormProps) {
+function AmountWithoutCurrencyForm({value: amount, onInputChange, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
 
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
@@ -43,6 +43,12 @@ function AmountWithoutCurrencyForm({value: amount, onInputChange, ...rest}: Amou
         <TextInput
             value={formattedAmount}
             onChangeText={setNewAmount}
+            inputID={inputID}
+            name={name}
+            label={label}
+            defaultValue={defaultValue}
+            accessibilityLabel={accessibilityLabel}
+            role={role}
             keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}

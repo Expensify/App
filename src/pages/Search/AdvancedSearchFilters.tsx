@@ -42,7 +42,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', lessThan, greaterThan);
+            return translate('search.filters.amount.between', greaterThan, lessThan);
         }
         if (lessThan) {
             return translate('search.filters.amount.lessThan', lessThan);
