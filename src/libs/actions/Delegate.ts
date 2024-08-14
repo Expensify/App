@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type {DelegatedAccess} from '@src/types/onyx/Account';
 import {openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 
