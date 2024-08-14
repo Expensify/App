@@ -4907,5 +4907,6 @@ export default {
                     return '';
             }
         },
+        genericError: 'Oops algo salió mal. Por favor, inténtalo de nuevo.',
     },
 } satisfies EnglishTranslation;

@@ -4387,5 +4387,6 @@ export default {
                     return '';
             }
         },
+        genericError: 'Oops something went wrong. Please try again.',
     },
 } satisfies TranslationBase;

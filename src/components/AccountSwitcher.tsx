@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {connect} from '@libs/actions/Delegate';
+import {clearDelegatorErrors, connect} from '@libs/actions/Delegate';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -37,9 +37,8 @@ function AccountSwitcher() {
     const delegators = account?.delegatedAccess?.delegators ?? [];
     const shouldShowDelegators = delegators.length > 0 && canUseNewDotCopilot;
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
+    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-
         return {
             title: personalDetail?.displayName ?? email,
             description: personalDetail?.displayName ? email : '',
@@ -52,6 +51,9 @@ function AccountSwitcher() {
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
+            errorText: error ? translate(error) : '',
+            shouldShowRedDotIndicator: !!error,
+            errorTextStyle: styles.mt2,
         };
     });
 
@@ -123,7 +125,10 @@ function AccountSwitcher() {
             {shouldShowDelegators && (
                 <Popover
                     isVisible={shouldShowDelegatorMenu}
-                    onClose={() => setShouldShowDelegatorMenu(false)}
+                    onClose={() => {
+                        setShouldShowDelegatorMenu(false);
+                        clearDelegatorErrors();
+                    }}
                     anchorRef={buttonRef}
                     anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
@@ -133,7 +138,6 @@ function AccountSwitcher() {
                             menuItems={delegatorMenuItemsWithCurrentUser}
                             shouldUseSingleExecution
                         />
-                        {/* TODO error handling on API error <Text style={[styles.textLabelError, styles.ph5, styles.pt4]}>Oops something went wrong. Please try again</Text> */}
                     </View>
                 </Popover>
             )}
