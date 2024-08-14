@@ -83,7 +83,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subtitle: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {},
-            isActive: true,
+            isActive: false,
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}

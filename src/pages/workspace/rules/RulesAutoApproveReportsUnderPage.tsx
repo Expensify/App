@@ -1,25 +1,34 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import AmountForm from '@components/AmountForm';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/RulesAutoApproveReportsUnderModalForm';
 
 type RulesAutoApproveReportsUnderPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER>;
 
 function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderPageProps) {
     const {policyID} = route.params;
 
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    // const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
 
     return (
         <AccessOrNotFoundWrapper
@@ -33,37 +42,34 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                 testID={RulesAutoApproveReportsUnderPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                    title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[{paddingHorizontal: 20}, styles.pt3, styles.pb4]}>
-                    <Text>
-                        {translate('workspace.rules.expenseReportRules.customNameDescription')}
-                        <TextLink
-                            style={[styles.link]}
-                            href="https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates"
-                        >
-                            {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
-                {/* <FormProvider
-                    style={[styles.flexGrow1, styles.mh5]}
-                    formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
+                <FormProvider
+                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({customName}) => WorkspaceRulesActions.modifyPolicyDefaultReportTitle(customName, policyID)}
+                    onSubmit={({amount}) => {}}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.CUSTOM_NAME}
-                        label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
-                    />
-                </FormProvider> */}
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            label={translate('iou.amount')}
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.MAX_EXPENSE_AUTO_APPROVAL_AMOUNT}
+                            // currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
+                            currency={CurrencyUtils.getCurrencySymbol(CONST.CURRENCY.USD)}
+                            // defaultValue="0"
+                            isCurrencyPressable={false}
+                            ref={inputCallbackRef}
+                            // @TODO Replace it when maxLength of this field is known
+                            amountMaxLength={20}
+                            displayAsTextInput
+                        />
+                        <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoApproveReportsUnderDescription')}</Text>
+                    </View>
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

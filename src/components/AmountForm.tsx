@@ -12,6 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
+import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
@@ -41,6 +42,10 @@ type AmountFormProps = {
 
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
+
+    label?: string;
+
+    displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
 
@@ -57,7 +62,19 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, amountMaxLength, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true, ...rest}: AmountFormProps,
+    {
+        value: amount,
+        currency = CONST.CURRENCY.USD,
+        extraDecimals = 0,
+        amountMaxLength,
+        errorText,
+        onInputChange,
+        onCurrencyButtonPress,
+        displayAsTextInput = false,
+        isCurrencyPressable = true,
+        label,
+        ...rest
+    }: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -194,6 +211,38 @@ function AmountForm(
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+
+    if (displayAsTextInput) {
+        return (
+            <TextInput
+                label={label}
+                value={formattedAmount}
+                onChangeText={setNewAmount}
+                placeholder={numberFormat(0)}
+                ref={(ref: BaseTextInputRef) => {
+                    if (typeof forwardedRef === 'function') {
+                        forwardedRef(ref);
+                    } else if (forwardedRef && 'current' in forwardedRef) {
+                        // eslint-disable-next-line no-param-reassign
+                        forwardedRef.current = ref;
+                    }
+                    textInput.current = ref;
+                }}
+                selection={selection}
+                onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                    if (!shouldUpdateSelection) {
+                        return;
+                    }
+                    setSelection(e.nativeEvent.selection);
+                }}
+                prefixCharacter={currency}
+                prefixStyle={styles.colorMuted}
+                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            />
+        );
+    }
 
     return (
         <>
