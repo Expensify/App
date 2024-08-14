@@ -52,7 +52,6 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
                     success
-                    medium
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addMailingAddress')}
                 />

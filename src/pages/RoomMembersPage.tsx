@@ -273,13 +273,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 <View style={[styles.w100, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
                         <Button
-                            medium
                             success
                             text={translate('common.invite')}
                             onPress={inviteUser}
                         />
                         <Button
-                            medium
                             danger
                             style={[styles.ml2]}
                             isDisabled={selectedMembers.length === 0}

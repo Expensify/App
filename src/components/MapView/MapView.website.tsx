@@ -279,7 +279,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         <Button
                             onPress={centerMap}
                             iconFill={theme.icon}
-                            medium
                             icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
                         />

@@ -239,7 +239,6 @@ function PolicyDistanceRatesPage({
             {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         style={[shouldUseNarrowLayout && styles.flex1]}
@@ -248,7 +247,6 @@ function PolicyDistanceRatesPage({
                     />
 
                     <Button
-                        medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
                         style={[shouldUseNarrowLayout && styles.flex1]}

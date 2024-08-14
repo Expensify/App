@@ -59,13 +59,11 @@ function GenericErrorPage() {
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     <Button
                                         success
-                                        medium
                                         onPress={resetBoundary}
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                     />
                                     <Button
-                                        medium
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
                                             resetBoundary();

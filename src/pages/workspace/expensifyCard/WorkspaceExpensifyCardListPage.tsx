@@ -103,7 +103,6 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             <Button
-                medium
                 success
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
                 icon={Expensicons.Plus}
@@ -111,7 +110,6 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
                 style={shouldUseNarrowLayout && styles.flex1}
             />
             <Button
-                medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}

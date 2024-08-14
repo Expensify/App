@@ -140,7 +140,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                         <Button
                             success
-                            medium
                             text={translate('iou.markAsCash')}
                             style={[styles.p0]}
                             onPress={markAsCash}
@@ -149,7 +148,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     {isDuplicate && !shouldUseNarrowLayout && (
                         <Button
                             success
-                            medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0]}
                             onPress={() => {
@@ -161,7 +159,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
-                            medium
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
@@ -173,7 +170,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             success
-                            medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
