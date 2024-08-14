@@ -126,7 +126,7 @@ function createTaskAndNavigate(
 
     const currentTime = DateUtils.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
-    const parentReport = getReport(parentReportID);
+    const parentReport = ReportUtils.getReport(parentReportID);
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -907,13 +907,6 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
 }
 
 /**
- * Returns the report
- */
-function getReport(reportID: string): OnyxEntry<OnyxTypes.Report> {
-    return ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-}
-
-/**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
 function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
@@ -929,7 +922,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1');
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
         message: [
             {
@@ -1063,7 +1056,13 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? '-1'));
+        if (parentReport?.reportID) {
+            return ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID);
+        }
+        const mostRecentReportID = Report.getMostRecentReportID(report);
+        if (mostRecentReportID) {
+            return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
+        }
     }
 }
 
@@ -1107,7 +1106,8 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     const parentReport = getParentReport(taskReport);
-    if (ReportUtils.isArchivedRoom(parentReport)) {
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
+    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
         return false;
     }
 

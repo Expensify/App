@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
+import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,7 +87,7 @@ function ConnectToQuickbooksOnlineButton({
                         <WebView
                             ref={webViewRef}
                             source={{
-                                uri: getQuickBooksOnlineSetupLink(policyID),
+                                uri: getQuickbooksOnlineSetupLink(policyID),
                                 headers: {
                                     Cookie: `authToken=${authToken}`,
                                 },

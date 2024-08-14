@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
+import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 /**
@@ -14,7 +15,13 @@ import type {AutoCompleteSuggestionsPortalProps} from './types';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
+function AutoCompleteSuggestionsPortal<TSuggestion>({
+    left = 0,
+    width = 0,
+    bottom = 0,
+    resetSuggestions = () => {},
+    ...props
+}: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
 
     const bodyElement = document.querySelector('body');
@@ -31,7 +38,10 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
         !!width &&
         bodyElement &&
         ReactDOM.createPortal(
-            <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>,
+            <>
+                <TransparentOverlay onPress={resetSuggestions} />
+                <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>
+            </>,
             bodyElement,
         )
     );

@@ -8,24 +8,17 @@ SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh"
 
 # Wrapper to run patch-package.
-# We use `script` to preserve colorization when the output of patch-package is piped to tee
-# and we provide /dev/null to discard the output rather than sending it to a file
-# `script` has different syntax on macOS vs linux, so that's why we need a wrapper function
 function patchPackage {
   OS="$(uname)"
-  if [[ "$OS" == "Darwin" ]]; then
-    # macOS
-    script -q /dev/null npx patch-package --error-on-fail
-  elif [[ "$OS" == "Linux" ]]; then
-    # Ubuntu/Linux
-    script -q -c "npx patch-package --error-on-fail" /dev/null
+  if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
+    npx patch-package --error-on-fail --color=always
   else
     error "Unsupported OS: $OS"
+    exit 1
   fi
 }
 
 # Run patch-package and capture its output and exit code, while still displaying the original output to the terminal
-# (we use `script -q /dev/null` to preserve colorization in the output)
 TEMP_OUTPUT="$(mktemp)"
 patchPackage 2>&1 | tee "$TEMP_OUTPUT"
 EXIT_CODE=${PIPESTATUS[0]}
@@ -36,7 +29,7 @@ rm -f "$TEMP_OUTPUT"
 echo "$OUTPUT" | grep -q "Warning:"
 WARNING_FOUND=$?
 
-printf "\n";
+printf "\n"
 
 # Determine the final exit code
 if [ "$EXIT_CODE" -eq 0 ]; then

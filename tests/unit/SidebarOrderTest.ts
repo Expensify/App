@@ -10,9 +10,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
@@ -812,6 +811,8 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
@@ -919,6 +920,8 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 lastMessageText: 'test',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2, true),

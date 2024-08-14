@@ -68,6 +68,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         shouldInitialize: didScreenTransitionEnd,
     });
 
+    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -124,6 +125,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             undefined,
             undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
+            action,
         );
 
         return optionList;
@@ -215,11 +217,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+            participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        debouncedSearchTerm,
+        participants,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        personalDetails,
+        translate,
+        cleanSearchTerm,
+    ]);
 
     /**
      * Adds a single participant to the expense
@@ -237,6 +250,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
+                // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
                 const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
                 newParticipants.push({
                     policyID,
@@ -410,7 +424,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             footerContent={footerContent}
             headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

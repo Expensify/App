@@ -6,6 +6,8 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import getImageManipulator from './getImageManipulator';
+import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
@@ -243,7 +245,7 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
-function validateImageForCorruption(file: FileObject): Promise<void> {
+function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
     if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
@@ -254,6 +256,24 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
+/** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
+function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
+    return fetch(fileUri)
+        .then((file) => file.arrayBuffer())
+        .then((arrayBuffer) => {
+            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+
+            const hexString = Array.from(uintArray)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            return hexString;
+        })
+        .then((hexSignature) => {
+            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+        });
+}
+
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -261,6 +281,44 @@ function isLocalFile(receiptUri?: string | number): boolean {
     return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
 }
 
+function getFileResolution(targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> {
+    if (!targetFile) {
+        return Promise.resolve(null);
+    }
+
+    // If the file already has width and height, return them directly
+    if ('width' in targetFile && 'height' in targetFile) {
+        return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
+    }
+
+    // Otherwise, attempt to get the image resolution
+    return getImageResolution(targetFile)
+        .then(({width, height}) => ({width, height}))
+        .catch((error: Error) => {
+            Log.hmmm('Failed to get image resolution:', error);
+            return null;
+        });
+}
+
+function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
+    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+}
+
+const getImageDimensionsAfterResize = (file: FileObject) =>
+    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+        const newWidth = Math.max(1, width * scaleFactor);
+        const newHeight = Math.max(1, height * scaleFactor);
+
+        return {width: newWidth, height: newHeight};
+    });
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
+};
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -275,4 +333,10 @@ export {
     base64ToFile,
     isLocalFile,
     validateImageForCorruption,
+    isImage,
+    getFileResolution,
+    isHighResolutionImage,
+    verifyFileFormat,
+    getImageDimensionsAfterResize,
+    resizeImageIfNeeded,
 };

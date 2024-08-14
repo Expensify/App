@@ -4,7 +4,7 @@ import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIconForAction from '@libs/getIconForAction';
@@ -41,13 +42,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
 const useIsFocused = () => {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocusedOriginal();
     const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
+    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && shouldUseNarrowLayout);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -96,6 +97,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -175,9 +177,11 @@ function FloatingActionButtonAndPopover(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
@@ -211,7 +215,7 @@ function FloatingActionButtonAndPopover(
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? -1), true) ?? '';
-            return translate('quickAction.paySomeone', {name});
+            return translate('quickAction.paySomeone', name);
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
@@ -238,7 +242,7 @@ function FloatingActionButtonAndPopover(
             onSelected();
         };
 
-        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport));
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
 
         switch (quickAction?.action) {
@@ -298,14 +302,14 @@ function FloatingActionButtonAndPopover(
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!isFocused && isSmallScreenWidth) {
+            if (!isFocused && shouldUseNarrowLayout) {
                 return;
             }
             setIsCreateMenuActive(true);
             onShowCreateMenu?.();
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isFocused, isSmallScreenWidth],
+        [isFocused, shouldUseNarrowLayout],
     );
 
     /**
@@ -354,10 +358,10 @@ function FloatingActionButtonAndPopover(
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!isSmallScreenWidth || isFocused)}
+                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!isSmallScreenWidth}
+                fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
@@ -485,8 +489,13 @@ function FloatingActionButtonAndPopover(
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                                  shouldRenderTooltip: quickAction?.isFirstQuickAction,
-                                  shouldForceRenderingTooltipLeft: true,
+                                  shouldRenderTooltip: quickAction.isFirstQuickAction,
+                                  tooltipAnchorAlignment: {
+                                      vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                      horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                  },
+                                  tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+                                  tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
                                   renderTooltipContent: renderQuickActionTooltip,
                                   tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },

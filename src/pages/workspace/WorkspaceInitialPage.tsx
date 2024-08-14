@@ -1,6 +1,6 @@
 import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -92,11 +92,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const hasSyncError = PolicyUtils.hasSyncError(policy);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
@@ -106,7 +108,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         }),
@@ -211,7 +213,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
+    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
@@ -284,23 +286,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.accounting',
-            icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.reportFields',
             icon: Expensicons.Pencil,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
+            brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
@@ -346,6 +347,24 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         PolicyUtils.goBackFromInvalidPolicy();
     }, [policy, prevPolicy]);
+
+    // We are checking if the user can access the route.
+    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
+    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage && canAccessRoute) {
+            return;
+        }
+        if (wasRendered.current) {
+            return;
+        }
+        wasRendered.current = true;
+        // We are dismissing any modals that are open when the NotFound view is shown
+        Navigation.isNavigationReady().then(() => {
+            Navigation.closeRHPFlow();
+        });
+    }, [canAccessRoute, shouldShowNotFoundPage]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {

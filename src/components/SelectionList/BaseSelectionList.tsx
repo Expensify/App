@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -21,6 +20,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
@@ -40,7 +40,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseUserSkeletonView,
         canSelectMultiple = false,
         onSelectRow,
-        shouldDebounceRowSelect = false,
+        shouldSingleExecuteRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
+        sectionListStyle,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -79,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>(
         customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
+        isAlternateTextMultilineSupported = false,
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
@@ -93,6 +95,8 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        shouldUpdateFocusedIndex = false,
+        onLongPressRow,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -113,6 +117,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const isEmptyList = sections.length === 0;
+    const {singleExecution} = useSingleExecution();
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -278,15 +283,13 @@ function BaseSelectionList<TItem extends ListItem>(
         onChangeText?.('');
     }, [onChangeText]);
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
-
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
+     * @param indexToFocus - the list item index to focus
      */
-    const selectRow = (item: TItem) => {
+    const selectRow = (item: TItem, indexToFocus?: number) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -306,11 +309,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        if (shouldDebounceRowSelect) {
-            debouncedOnSelectRow(item);
-        } else {
-            onSelectRow(item);
+        if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            setFocusedIndex(indexToFocus);
         }
+
+        onSelectRow(item);
 
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
@@ -334,11 +337,6 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     };
-
-    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
-    // enter presses runs the debounced function again.
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -447,7 +445,14 @@ function BaseSelectionList<TItem extends ListItem>(
                     isDisabled={isDisabled}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
-                    onSelectRow={() => selectRow(item)}
+                    onLongPressRow={onLongPressRow}
+                    onSelectRow={() => {
+                        if (shouldSingleExecuteRowSelect) {
+                            singleExecution(() => selectRow(item, index))();
+                        } else {
+                            selectRow(item);
+                        }
+                    }}
                     onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -456,6 +461,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     rightHandSideComponent={rightHandSideComponent}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                     onFocus={() => {
                         if (isDisabled) {
                             return;
@@ -502,26 +508,6 @@ function BaseSelectionList<TItem extends ListItem>(
         [scrollToIndex, setFocusedIndex],
     );
 
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedOnSelectRow.cancel();
-        };
-    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
-
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedSelectFocusedOption.cancel();
-        };
-    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
-
     /** Function to focus text input */
     const focusTextInput = useCallback(() => {
         if (!innerTextInputRef.current) {
@@ -552,7 +538,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
-        if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
+        if (
+            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
+            flattenedSections.allOptions.length === 0 ||
+            shouldUpdateFocusedIndex
+        ) {
             return;
         }
         // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
@@ -573,6 +563,7 @@ function BaseSelectionList<TItem extends ListItem>(
         updateAndScrollToFocusedIndex,
         prevSelectedOptionsLength,
         prevAllOptionsLength,
+        shouldUpdateFocusedIndex,
     ]);
 
     useEffect(
@@ -616,7 +607,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
@@ -676,7 +667,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 selectTextOnFocus
                                 spellCheck={false}
                                 iconLeft={textInputIconLeft}
-                                onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
+                                onSubmitEditing={selectFocusedOption}
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
@@ -725,7 +716,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
-                                style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListEmptyComponent={listEmptyContent}

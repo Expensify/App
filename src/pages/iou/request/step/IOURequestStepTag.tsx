@@ -35,7 +35,7 @@ type IOURequestStepTagOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
@@ -98,7 +98,7 @@ function IOURequestStepTag({
         }
         if (isEditing) {
             IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
+            navigateBack();
             return;
         }
         IOU.setMoneyRequestTag(transactionID, updatedTag);

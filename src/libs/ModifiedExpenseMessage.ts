@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -11,7 +11,7 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<PolicyTagList> = {};
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -23,6 +23,13 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
+
+/**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -253,6 +260,19 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
+            Localize.translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedReimbursable = reportActionOriginalMessage && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
             Localize.translateLocal('iou.expense'),
             true,
             setFragments,

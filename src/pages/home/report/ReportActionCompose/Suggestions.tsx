@@ -14,9 +14,6 @@ type SuggestionProps = {
     /** The current input value */
     value: string;
 
-    /** Callback to update the current input value */
-    setValue: (newValue: string) => void;
-
     /** The current selection value */
     selection: TextSelection;
 
@@ -56,7 +53,6 @@ type SuggestionProps = {
 function Suggestions(
     {
         value,
-        setValue,
         selection,
         setSelection,
         updateComment,
@@ -124,6 +120,11 @@ function Suggestions(
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
+    const getIsSuggestionsMenuVisible = useCallback((): boolean => {
+        const isEmojiVisible = suggestionEmojiRef.current?.getIsSuggestionsMenuVisible() ?? false;
+        const isSuggestionVisible = suggestionMentionRef.current?.getIsSuggestionsMenuVisible() ?? false;
+        return isEmojiVisible || isSuggestionVisible;
+    }, []);
 
     useImperativeHandle(
         ref,
@@ -134,8 +135,9 @@ function Suggestions(
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     useEffect(() => {
@@ -147,7 +149,6 @@ function Suggestions(
 
     const baseProps = {
         value,
-        setValue,
         setSelection,
         selection,
         updateComment,
