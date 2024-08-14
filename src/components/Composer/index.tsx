@@ -72,6 +72,7 @@ function Composer(
             end: 0,
         },
         isReportActionCompose = false,
+        isFullComposerAvailable = false,
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
@@ -379,7 +380,7 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
-            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
+            textContainsOnlyEmojis && isFullComposerAvailable ? styles.onlyEmojisTextLineHeight : {},
         ],
 
         [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],

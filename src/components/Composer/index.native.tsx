@@ -24,6 +24,7 @@ function Composer(
         maxLines,
         isComposerFullSize = false,
         setIsFullComposerAvailable = () => {},
+        isFullComposerAvailable = false,
         autoFocus = false,
         style,
         // On native layers we like to have the Text Input not focused so the
@@ -71,7 +72,10 @@ function Composer(
     );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
+    const composerStyle = useMemo(
+        () => StyleSheet.flatten([style, textContainsOnlyEmojis && isFullComposerAvailable ? styles.onlyEmojisTextLineHeight : {}]),
+        [style, textContainsOnlyEmojis, isFullComposerAvailable, styles],
+    );
 
     return (
         <RNMarkdownTextInput
