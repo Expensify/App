@@ -84,7 +84,7 @@ function AccountSwitcher() {
                     setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
                 }}
                 ref={buttonRef}
-                wrapperStyle={[styles.flexGrow1, styles.accountSwitcherWrapper, styles.justifyContentCenter]}
+                wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
             >
                 <View style={[styles.flexRow, styles.gap3]}>
                     <Avatar
