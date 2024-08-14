@@ -204,7 +204,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
-        // In the HybridApp, we want the Old Dot to close New Dot after signing out
+        // In the HybridApp, we want the Old Dot to handle the sign out process
         if (NativeModules.HybridAppModule && killHybridApp) {
             NativeModules.HybridAppModule.closeReactNativeApp(true);
             return;
