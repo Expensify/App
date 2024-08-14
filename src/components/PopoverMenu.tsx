@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -38,7 +37,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
 
-    /** Determines whether the menu item's onSelected() function is called after modal hide or not */
+    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+     */
     shouldCallAfterModalHide?: boolean;
 };
 
@@ -133,7 +134,7 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+        } else if (selectedItem.shouldCallAfterModalHide) {
             Modal.close(() => {
                 onItemSelected(selectedItem, index);
                 selectedItem.onSelected?.();
