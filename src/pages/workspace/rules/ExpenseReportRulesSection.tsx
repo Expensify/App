@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -18,6 +19,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const optionItems = [
         {
@@ -79,10 +82,14 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
-            subtitle: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
+            subtitle: autoPayApprovedReportsUnavailable
+                ? translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLockedSubtitle')
+                : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {},
-            isActive: true,
+            disabled: autoPayApprovedReportsUnavailable,
+            showLockIcon: autoPayApprovedReportsUnavailable,
+            // isActive: true,
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -103,7 +110,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
         >
-            {optionItems.map(({title, subtitle, isActive, subMenuItems}, index) => {
+            {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled}, index) => {
                 const showBorderBottom = index !== optionItems.length - 1;
 
                 return (
@@ -116,6 +123,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         titleStyle={styles.pv2}
                         subtitleStyle={styles.pt1}
                         isActive={!!isActive}
+                        showLockIcon={showLockIcon}
+                        disabled={disabled}
                         subMenuItems={subMenuItems}
                         onToggle={() => {}}
                     />
