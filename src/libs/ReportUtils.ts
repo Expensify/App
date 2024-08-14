@@ -1918,13 +1918,28 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
 }
 
 /**
+ * Cache the workspace icons
+ */
+const workSpaceIconsCache = new Map<string, {name: string; icon: Icon}>();
+
+/**
  * Given a report, return the associated workspace icon.
  */
 function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
-        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
-        : getDefaultWorkspaceAvatar(workspaceName);
+    const cacheKey = report?.policyID ?? workspaceName;
+    const iconFromCache = workSpaceIconsCache.get(cacheKey);
+    const avatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL;
+
+    const isSameAvatarURL = iconFromCache?.icon?.source === avatarURL;
+    const isDefaultWorkspaceAvatar = !avatarURL && typeof iconFromCache?.icon?.source !== 'string';
+    const hasWorkSpaceNameChanged = iconFromCache?.name !== workspaceName;
+    if (iconFromCache && (isSameAvatarURL || isDefaultWorkspaceAvatar) && !hasWorkSpaceNameChanged) {
+        return iconFromCache.icon;
+    }
+    // `avatarURL` can be an empty string, so we have to use || operator here
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyExpenseChatAvatarSource = avatarURL || getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
@@ -1932,6 +1947,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
         name: workspaceName,
         id: report?.policyID,
     };
+    workSpaceIconsCache.set(cacheKey, {name: workspaceName, icon: workspaceIcon});
     return workspaceIcon;
 }
 
@@ -3582,6 +3598,13 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
     return getPolicyName(report, false, invoiceReceiverPolicy);
 }
 
+const reportNameCache = new Map<string, {lastVisibleActionCreated: string; reportName: string}>();
+
+/**
+ * Get a cache key for the report name.
+ */
+const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
+
 /**
  * Get the title for a report.
  */
@@ -3592,6 +3615,17 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    const reportID = report?.reportID;
+    const cacheKey = getCacheKey(report);
+
+    if (reportID) {
+        const reportNameFromCache = reportNameCache.get(cacheKey);
+
+        if (reportNameFromCache && reportNameFromCache.reportName === report?.reportName) {
+            return reportNameFromCache.reportName;
+        }
+    }
+
     let formattedName: string | undefined;
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
@@ -3683,6 +3717,10 @@ function getReportName(
     }
 
     if (formattedName) {
+        if (reportID) {
+            reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
+        }
+
         return formatReportLastMessageText(formattedName);
     }
 
@@ -3695,7 +3733,14 @@ function getReportName(
         }
     });
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+    formattedName = participantNames;
+
+    if (reportID) {
+        reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
+    }
+
+    return formattedName;
 }
 
 /**
@@ -7364,6 +7409,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID: reportID,
         created,
+        modifiedCreated: undefined,
         amount,
         currency,
         comment,

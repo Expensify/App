@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -20,34 +21,22 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-// TODO: remove when Onyx data is available
-const mockedCard = {
-    accountID: 885646,
-    availableSpend: 1000,
-    nameValuePairs: {
-        cardTitle: 'Test 1',
-        isVirtual: true,
-        limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
-    },
-    lastFourPAN: '1234',
-};
-
 type WorkspaceEditCardLimitTypePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE>;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
     const {policyID, cardID} = route.params;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const policy = usePolicy(policyID);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
-    const card = cardsList?.[cardID] ?? mockedCard;
+    const card = cardsList?.[cardID];
     const areApprovalsConfigured = !isEmptyObject(policy?.approver) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
-    const initialLimitType = card.nameValuePairs?.limitType ?? defaultLimitType;
+    const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
         initialLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY
             ? 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning'
@@ -129,6 +118,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     onSelectRow={({value}) => setTypeSelected(value)}
                     sections={[{data}]}
                     shouldUpdateFocusedIndex
+                    shouldSingleExecuteRowSelect
                     isAlternateTextMultilineSupported
                     initiallyFocusedOptionKey={typeSelected}
                 />
@@ -137,7 +127,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     isVisible={isConfirmModalVisible}
                     onConfirm={updateCardLimitType}
                     onCancel={() => setIsConfirmModalVisible(false)}
-                    prompt={translate(promptTranslationKey, CurrencyUtils.convertToDisplayString(card.nameValuePairs?.limit, CONST.CURRENCY.USD))}
+                    prompt={translate(promptTranslationKey, CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD))}
                     confirmText={translate('workspace.expensifyCard.changeLimitType')}
                     cancelText={translate('common.cancel')}
                     danger
