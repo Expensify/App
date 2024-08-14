@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -40,9 +41,11 @@ type SearchFiltersParticipantsSelectorProps = {
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -56,7 +59,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         return OptionsListUtils.getFilteredOptions(
             options.reports,
             options.personalDetails,
-            betas,
+            undefined,
             '',
             selectedOptions,
             CONST.EXPENSIFY_EMAILS,
@@ -75,21 +78,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             undefined,
             true,
         );
-    }, [areOptionsInitialized, betas, options.personalDetails, options.reports, selectedOptions]);
+    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterOptions(defaultOptions, cleanSearchTerm, {
-            betas,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [defaultOptions, cleanSearchTerm, betas, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
-    const sections = useMemo(() => {
+    const {sections, headerMessage} = useMemo(() => {
         const newSections: OptionsListUtils.CategorySection[] = [];
         if (!areOptionsInitialized) {
-            return newSections;
+            return {sections: [], headerMessage: undefined};
         }
 
         const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -125,8 +127,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             shouldShow: chatOptions.personalDetails.length > 0,
         });
 
-        return newSections;
-    }, [areOptionsInitialized, chatOptions, cleanSearchTerm, selectedOptions, personalDetails]);
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
+        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+
+        return {
+            sections: newSections,
+            headerMessage: message,
+        };
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, chatOptions.currentUserOption, personalDetails, translate]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
@@ -179,9 +187,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         [selectedOptions],
     );
 
-    const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
-    const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
-
     const footerContent = (
         <Button
             success
@@ -197,6 +202,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         />
     );
 
+    const isLoadingNewOptions = !!isSearchingForReports;
+    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+
     return (
         <SelectionList
             canSelectMultiple
@@ -207,13 +215,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             textInputValue={searchTerm}
             footerContent={footerContent}
             showScrollIndicator
-            showLoadingPlaceholder={false}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onChangeText={(value) => {
                 setSearchTerm(value);
             }}
             onSelectRow={handleParticipantSelection}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={isLoadingNewOptions}
+            showLoadingPlaceholder={showLoadingPlaceholder}
         />
     );
 }
