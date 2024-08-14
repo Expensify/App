@@ -47,7 +47,13 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.export?.billDate) {
-                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billDate: row.value});
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {billDate: row.value},
+                    {billDate: config?.export?.billDate ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));
         },

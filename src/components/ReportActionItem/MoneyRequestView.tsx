@@ -61,7 +61,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
