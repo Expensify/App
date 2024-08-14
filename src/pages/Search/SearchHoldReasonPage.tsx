@@ -59,7 +59,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             return errors;
         },
-        [translate],
+        [translate, areSelectedRequestsUnsubmitted],
     );
 
     useEffect(() => {
