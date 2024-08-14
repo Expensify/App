@@ -22,6 +22,9 @@ type DelegatedAccess = {
 
     /** The the users you can access as a delegate */
     delegators: Delegate[];
+
+    /** The email of original user when they are acting as a delegate for another account */
+    delegate?: string;
 };
 
 /** Model of user account */
