@@ -805,7 +805,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         workspaceTooltip={workspaceTooltip}
                                     />
