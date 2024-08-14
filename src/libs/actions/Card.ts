@@ -16,7 +16,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
-import type {ReconciliationConnectionSettings} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -419,28 +419,28 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
 }
 
-function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, reconciliationSettings?: ReconciliationConnectionSettings) {
+function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
               workspaceAccountID,
               shouldUseContinuousReconciliation,
+              expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
               workspaceAccountID,
               shouldUseContinuousReconciliation,
-              reconciliationSettings,
           };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: true,
+            value: shouldUseContinuousReconciliation,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
-            value: reconciliationSettings ?? null,
+            value: connectionName,
         },
     ];
 
@@ -448,12 +448,12 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: true,
+            value: shouldUseContinuousReconciliation,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
-            value: reconciliationSettings ?? null,
+            value: connectionName,
         },
     ];
 
@@ -461,7 +461,7 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: false,
+            value: !shouldUseContinuousReconciliation,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

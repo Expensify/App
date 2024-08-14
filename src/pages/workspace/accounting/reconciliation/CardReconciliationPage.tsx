@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as AccountingUtils from '@libs/AccountingUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
 
@@ -38,26 +40,29 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const policyID = policy?.id ?? '-1';
     const {connection} = route.params;
-    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync?.enabled;
+    const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
+    const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
 
     // eslint-disable-next-line rulesdir/prefer-early-return
-    const toggleContinuousReconciliation = () => {
-        Card.toggleContinuousReconciliation(workspaceAccountID, true, {connectionName: connection});
-        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
+    const toggleContinuousReconciliation = (value: boolean) => {
+        Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName);
+        if (value) {
+            Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
+        }
     };
 
     const navigateToAdvancedSettings = useCallback(() => {
         switch (connection) {
-            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
                 Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
                 break;
             default:
@@ -98,7 +103,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             >
                                 {translate('workspace.accounting.autoSync').toLowerCase()}
                             </TextLink>{' '}
-                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]}
+                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
                         </Text>
                     )}
                     {!!paymentBankAccountID && isContinuousReconciliationOn && (
