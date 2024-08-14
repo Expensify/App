@@ -25,7 +25,7 @@ Open the expense and make the required changes. Then an admin must manually expo
 
 To export a report, it must be in the Approved, Closed, or Reimbursed state. If it is in the Open state, clicking Export will lead to a notification that the data is not yet available for export. 
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/Xero_help_04.png){:width="100%"}
+![App screenshot: Export blocked due to draft or unpaid expenses]({{site.url}}/assets/images/Xero_help_04.png){:width="100%"}
 
 ## How to resolve
 
