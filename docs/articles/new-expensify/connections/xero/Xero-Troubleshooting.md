@@ -15,7 +15,7 @@ An error on a report will prevent it from automatically exporting.
 
 ## How to resolve
 
-Open the expense and make the required changes. Then an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they’ll select Xero. 
+Open the expense and make the required changes. Then an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they'll select Xero. 
 
 ![App screenshot: Danny's Donuts owes $200, with export option highlighted]({{site.url}}/assets/images/Xero_help_02.png){:width="100%"}
 
