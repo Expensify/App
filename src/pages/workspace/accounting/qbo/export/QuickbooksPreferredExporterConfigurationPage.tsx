@@ -44,7 +44,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: qboConfig?.export?.exporter === exporter.email,
+                    isSelected: (qboConfig?.export?.exporter ?? policy?.owner) === exporter.email,
                 });
                 return options;
             }, []),

@@ -9,6 +9,7 @@ import type {
     RevealExpensifyCardDetailsParams,
     StartIssueNewCardFlowParams,
     UpdateExpensifyCardLimitParams,
+    UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -327,7 +328,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: newLimit,
+                        unapprovedExpenseLimit: newLimit,
                     },
                     isLoading: true,
                     errors: null,
@@ -355,7 +356,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             value: {
                 [cardID]: {
                     nameValuePairs: {
-                        limit: oldLimit,
+                        unapprovedExpenseLimit: oldLimit,
                     },
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -371,6 +372,66 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
+}
+
+function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: newCardTitle,
+                    },
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: oldCardTitle,
+                    },
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateExpensifyCardTitleParams = {
+        authToken,
+        cardID,
+        cardTitle: newCardTitle,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
 
 function startIssueNewCardFlow(policyID: string) {
@@ -394,6 +455,30 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     API.write(WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY, parameters);
 }
 
+function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+    if (!data) {
+        return;
+    }
+
+    const {assigneeEmail, limit, limitType, cardTitle, cardType} = data;
+
+    const parameters = {
+        policyID,
+        assigneeEmail,
+        limit,
+        limitType,
+        cardTitle,
+    };
+
+    if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
+        API.write(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD, {...parameters, feedCountry});
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -404,8 +489,10 @@ export {
     setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
     updateExpensifyCardLimit,
+    updateExpensifyCardTitle,
     updateSettlementAccount,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
+    issueExpensifyCard,
 };
 export type {ReplacementReason};

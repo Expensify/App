@@ -4,7 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -55,15 +55,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!qboConfig?.enableNewCategories}
-                onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(
-                        policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                        CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
-                        !qboConfig?.enableNewCategories,
-                        qboConfig?.enableNewCategories,
-                    )
-                }
+                onToggle={() => QuickbooksOnline.updateQuickbooksOnlineEnableNewCategories(policyID, !qboConfig?.enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES)}

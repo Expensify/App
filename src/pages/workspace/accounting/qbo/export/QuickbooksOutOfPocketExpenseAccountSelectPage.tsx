@@ -7,7 +7,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -81,13 +81,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qboConfig?.reimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,
-                    row.value,
-                    qboConfig?.reimbursableExpensesAccount,
-                );
+                QuickbooksOnline.updateQuickbooksOnlineReimbursableExpensesAccount(policyID, row.value, qboConfig?.reimbursableExpensesAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },

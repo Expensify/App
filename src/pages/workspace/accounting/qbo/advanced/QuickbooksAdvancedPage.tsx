@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -118,14 +119,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: !!qboConfig?.autoCreateVendor,
-            onToggle: () =>
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
-                    !qboConfig?.autoCreateVendor,
-                    qboConfig?.autoCreateVendor,
-                ),
+            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(policyID, !qboConfig?.autoCreateVendor),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
             errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR], qboConfig?.pendingFields),
