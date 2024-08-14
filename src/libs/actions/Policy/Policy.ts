@@ -2927,9 +2927,9 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 }
 
 const DEFAULT_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
-    maxExpenseAmountNoReceipt: 10000000000,
-    maxExpenseAmount: 10000000000,
-    maxExpenseAge: 10000000000,
+    maxExpenseAmountNoReceipt: CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+    maxExpenseAmount: CONST.DEFAULT_MAX_EXPENSE_AMOUNT,
+    maxExpenseAge: CONST.DEFAULT_MAX_EXPENSE_AGE,
 };
 
 function enablePolicyRules(policyID: string, enabled: boolean) {
@@ -2982,6 +2982,10 @@ function enablePolicyRules(policyID: string, enabled: boolean) {
 
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
     API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
+    }
 }
 
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
