@@ -118,6 +118,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     onSelectRow={({value}) => setTypeSelected(value)}
                     sections={[{data}]}
                     shouldUpdateFocusedIndex
+                    shouldSingleExecuteRowSelect
                     isAlternateTextMultilineSupported
                     initiallyFocusedOptionKey={typeSelected}
                 />

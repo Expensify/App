@@ -266,6 +266,7 @@ export default {
             enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
+            pleaseSelectOne: 'Please select an option above.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
