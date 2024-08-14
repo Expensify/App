@@ -117,7 +117,6 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    console.log('hanno WTF?');
     const {
         sortByReportTypeInSearch = false,
         canInviteUser = true,
@@ -127,7 +126,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         includeChatRoomsByParticipants = false,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
-        console.log('hanno filtering pD first case', options.personalDetails.length);
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
 
