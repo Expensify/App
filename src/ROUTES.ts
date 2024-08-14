@@ -956,6 +956,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/rules/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,
     },
+    RULES_AUTO_APPROVE_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-approve',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-approve` as const,
+    },
+    RULES_RANDOM_REPORT_AUDIT: {
+        route: 'settings/workspaces/:policyID/rules/audit',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/audit` as const,
+    },
+    RULES_AUTO_PAY_REPORTS_UNDER: {
+        route: 'settings/workspaces/:policyID/rules/auto-pay',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-pay` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

@@ -436,6 +436,9 @@ const SCREENS = {
         UPGRADE: 'Workspace_Upgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
+        RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
+        RULES_RANDOM_REPORT_AUDIT: 'Rules_Random_Report_Audit',
+        RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
     },
 
     EDIT_REQUEST: {

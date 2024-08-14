@@ -2,7 +2,6 @@ import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
-import Switch from '@components/Switch';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +24,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.customReportNamesSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
-            isActive: true,
+            isActive: false,
             onToggle: (isEnabled: boolean) => {},
             subMenuItems: [
                 <MenuItem
@@ -59,7 +58,24 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
+            isActive: true,
             onToggle: (isEnabled: boolean) => {},
+            subMenuItems: [
+                <MenuItem
+                    title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
+                    titleStyle={styles.textLabelSupportingEmptyValue}
+                    shouldShowRightIcon
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
+                />,
+                <MenuItem
+                    title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
+                    titleStyle={styles.textLabelSupportingEmptyValue}
+                    shouldShowRightIcon
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
+                />,
+            ],
         },
 
         {
@@ -67,6 +83,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subtitle: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {},
+            isActive: true,
+            subMenuItems: [
+                <MenuItem
+                    title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
+                    titleStyle={styles.textLabelSupportingEmptyValue}
+                    shouldShowRightIcon
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
+                />,
+            ],
         },
     ];
 
