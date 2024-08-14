@@ -71,6 +71,7 @@ function Composer(
         },
         [onClearProp],
     );
+
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items[0];

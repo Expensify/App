@@ -163,7 +163,7 @@ function buildOptimisticTransaction(
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
-        filename: (receipt?.source ?? receipt?.name ?? filename).toString(),
+        filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
         category,
         tag,
         taxCode,
@@ -804,6 +804,13 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
 }
 
 /**
+ * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
+ */
+function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
+}
+
+/**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
@@ -949,7 +956,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
     // Helper function to check if all comments exist
     function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+        return items.every((item) => !!item?.comment?.comment === !!firstTransaction?.comment?.comment);
     }
 
     // Helper function to check if all fields are equal for a given key
@@ -970,7 +977,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions[0];
-            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
@@ -978,7 +985,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
                 if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
@@ -1112,6 +1119,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
+    isPayAtEndExpense,
 };
 
 export type {TransactionChanges};
