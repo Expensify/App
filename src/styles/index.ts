@@ -5155,11 +5155,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
-        accountSwitcherWrapper: {
-            minWidth: 0,
-            flex: 1,
-        },
-
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
         },
