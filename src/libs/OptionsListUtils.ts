@@ -359,10 +359,10 @@ Onyx.connect({
     callback: (value) => (allReportsDraft = value),
 });
 
-let activePolicyID: OnyxEntry<string>;
+let primaryPolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
+    callback: (value) => (primaryPolicyID = value),
 });
 
 /**
@@ -1628,7 +1628,7 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
         options,
         [
             (option) => {
-                if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
+                if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === primaryPolicyID) {
                     return 0;
                 }
 
