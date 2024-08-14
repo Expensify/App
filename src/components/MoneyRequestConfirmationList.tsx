@@ -322,7 +322,7 @@ function MoneyRequestConfirmationList({
     const isFirstUpdatedDistanceAmount = useRef(false);
 
     useEffect(() => {
-        if (isFirstUpdatedDistanceAmount.current) {
+        if (isFirstUpdatedDistanceAmount.current || iouAmount) {
             return;
         }
         if (!isDistanceRequest) {
@@ -331,7 +331,7 @@ function MoneyRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
+    }, [distance, rate, unit, transactionID, currency, isDistanceRequest, iouAmount]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
