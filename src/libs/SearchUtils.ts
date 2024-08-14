@@ -193,10 +193,14 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
         return translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return translateLocal('iou.payerPaidAmount', {
-        payer: payerName,
-        amount: formattedAmount,
-    });
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
+        return translateLocal('iou.payerPaidAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
+    }
+
+    return reportItem.reportName;
 }
 
 function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
