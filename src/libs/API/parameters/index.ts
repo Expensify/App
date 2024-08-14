@@ -272,3 +272,4 @@ export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFl
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitleParams';
 export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApprovalParams';
+export type {default as SetPolicyAutomaticApprovalLimitParams} from './SetPolicyAutomaticApprovalLimit';

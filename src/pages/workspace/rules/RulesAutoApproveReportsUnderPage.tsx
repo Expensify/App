@@ -14,6 +14,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -49,7 +50,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({amount}) => {}}
+                    onSubmit={({maxExpenseAutoApprovalAmount}) => WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(parseInt(maxExpenseAutoApprovalAmount, 10), policyID)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
