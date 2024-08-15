@@ -308,8 +308,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
+    shouldSingleExecuteRowSelect?: boolean;
 
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
@@ -410,7 +410,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
-    /** Content to display if the list is empty */
+    /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
@@ -489,6 +489,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Whether to show the empty list content */
+    shouldShowListEmptyContent?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -2735,14 +2735,9 @@ const styles = (theme: ThemeColors) =>
             width: 110,
         },
 
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
-
-            if (isSmallScreenWidth) {
-                paddingHorizontal = spacing.ph4;
-                paddingVertical = spacing.pv4;
-            }
 
             if (isExtraSmallScreenWidth) {
                 paddingHorizontal = spacing.ph2;
@@ -3879,6 +3874,12 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        reportActionComposeTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+            paddingVertical: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
         quickActionTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
         },
@@ -4710,7 +4711,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerStatusBarContainer: {
-            minHeight: variables.componentSizeNormal,
+            minHeight: variables.componentSizeSmall,
         },
 
         walletIllustration: {
@@ -5103,8 +5104,6 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: '100%',
-            paddingRight: 8,
-            paddingLeft: 8,
         },
 
         emptyStateScrollView: {
