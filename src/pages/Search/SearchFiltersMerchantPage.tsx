@@ -15,14 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersMerchantPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const merchant = searchAdvancedFiltersForm?.[INPUT_IDS.MERCHANT];
+    const merchant = searchAdvancedFiltersForm?.[FILTER_KEYS.MERCHANT];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateMerchantFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -53,8 +53,8 @@ function SearchFiltersMerchantPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.MERCHANT}
-                        name={INPUT_IDS.MERCHANT}
+                        inputID={FILTER_KEYS.MERCHANT}
+                        name={FILTER_KEYS.MERCHANT}
                         defaultValue={merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}

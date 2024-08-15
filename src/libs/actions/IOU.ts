@@ -2291,6 +2291,9 @@ function getTrackExpenseInformation(
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (!filename) {
+        filename = existingTransaction?.filename;
+    }
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -5059,6 +5062,8 @@ function createDistanceRequest(
             report?.reportID ?? '',
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
+            taxCode,
+            taxAmount,
         );
         onyxData = splitOnyxData;
 

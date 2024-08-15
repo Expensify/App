@@ -9,7 +9,7 @@ env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event.action == 'released' }}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}
+  group: ${{ github.workflow }}-${{ github.event.action }}
   cancel-in-progress: true
 
 jobs:
