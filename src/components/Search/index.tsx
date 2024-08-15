@@ -9,6 +9,7 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -191,7 +192,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
-    if (shouldShowLoadingState) {
+    if (true) {
         return (
             <>
                 <SearchPageHeader
@@ -199,6 +200,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+                <SearchStatusSkeleton shouldAnimate />
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
