@@ -76,19 +76,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-function isSearchDataType(type: string): type is SearchDataTypes {
-    const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
-    return searchDataTypes.includes(type);
-}
-
-function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes {
-    if (!search || !isSearchDataType(search.type)) {
-        return CONST.SEARCH.DATA_TYPES.EXPENSE;
-    }
-
-    return search.type;
-}
-
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
@@ -551,7 +538,6 @@ export {
     getListItem,
     getQueryHash,
     getSearchHeaderTitle,
-    getSearchType,
     getSections,
     getShouldShowMerchant,
     getSortedSections,

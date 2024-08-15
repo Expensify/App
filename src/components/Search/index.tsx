@@ -89,7 +89,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -175,13 +175,13 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         lastSearchResultsRef.current = currentSearchResults;
     }
 
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
+    const hasSameTypeAndStatus = type === lastSearchResultsRef.current?.search?.type && status === lastSearchResultsRef.current?.search?.status;
+    const searchResults = currentSearchResults?.data ?? !hasSameTypeAndStatus ? currentSearchResults : lastSearchResultsRef.current;
 
     const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-
-    const isSearchResultsEmpty = !searchResults || SearchUtils.isSearchResultsEmpty(searchResults);
+    const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
@@ -209,7 +209,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         return null;
     }
 
-    const type = SearchUtils.getSearchType(searchResults?.search);
     const ListItem = SearchUtils.getListItem(status);
     const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
     const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);

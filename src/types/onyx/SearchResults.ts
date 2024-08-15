@@ -32,7 +32,10 @@ type SearchResultsInfo = {
     offset: number;
 
     /** Type of search */
-    type: string;
+    type: SearchDataTypes;
+
+    /** The status filter for the current search */
+    status: SearchStatus;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
