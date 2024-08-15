@@ -143,5 +143,4 @@ function addDelegate(email: string, role: DelegateRole) {
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {connect, clearDelegatorErrors, addDelegate};
