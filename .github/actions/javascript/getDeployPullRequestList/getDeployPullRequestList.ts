@@ -4,10 +4,34 @@ import {getJSONInput} from '@github/libs/ActionUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
+/**
+ * This function checks if a given release is a valid base to get the PR list with `git log startTag...endTag`.
+ * The rules are:
+ *     - production deploys can only be compared with other production deploys
+ *     - staging deploys can be compared with other staging deploys or production deploys.
+ *       The reason this is necessary is that the final staging release in each deploy cycle will BECOME a production release.
+ *       For example, imagine a checklist is closed with version 9.0.20-6. That's the most recent staging deploy, but the release for 9.0.20-6 is now finalized.
+ *       So the most recent prerelease will be 9.0.20-5.
+ *       When 9.0.21-0 finishes deploying, we want to list PRs between 9.0.20-6...9.0.21-0, NOT 9.0.20-5...9.0.21-0 (so that the PR CP'd in 9.0.20-6 is not included in the next checklist)
+ */
+async function isReleaseValidBaseForEnvironment(releaseTag: string, isProductionDeploy: boolean) {
+    if (!isProductionDeploy) {
+        return true;
+    }
+    const isPrerelease = (
+        await GithubUtils.octokit.repos.getReleaseByTag({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            tag: releaseTag,
+        })
+    ).data.prerelease;
+    return !isPrerelease;
+}
+
 async function run() {
     try {
         const inputTag = core.getInput('TAG', {required: true});
-        const isProductionDeploy = getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
+        const isProductionDeploy = !!getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
 
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
@@ -39,14 +63,7 @@ async function run() {
             // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
             // In this case, the check for wrongEnvironment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
             ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
-                (wrongEnvironment =
-                    (
-                        await GithubUtils.octokit.repos.getReleaseByTag({
-                            owner: github.context.repo.owner,
-                            repo: github.context.repo.repo,
-                            tag: lastSuccessfulDeploy.head_branch,
-                        })
-                    ).data.prerelease === isProductionDeploy) ||
+                (wrongEnvironment = await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy)) ||
                 (unsuccessfulDeploy = !(
                     await GithubUtils.octokit.actions.listJobsForWorkflowRun({
                         owner: github.context.repo.owner,
