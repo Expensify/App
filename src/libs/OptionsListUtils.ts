@@ -1632,10 +1632,6 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
                     return 0;
                 }
 
-                if (option.isPolicyExpenseChat && preferPolicyExpenseChat) {
-                    return 1;
-                }
-
                 if (option.isSelfDM) {
                     return 0;
                 }
