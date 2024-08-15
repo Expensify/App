@@ -50,6 +50,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
+import ReportActionsListItemRenderer from './report/ReportActionsListItemRenderer';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
@@ -382,6 +383,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
     const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
@@ -399,7 +401,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !!prevIsLinkedActionDeleted) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -697,6 +699,16 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         fetchReport();
     }, [fetchReport]);
 
+    useEffect(() => {
+        // If the linked action is previously available but now deleted,
+        // remove the reportActionID from the params to not link to the deleted action.
+        const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
+        if (!isLinkedActionBecomesDeleted) {
+            return;
+        }
+        Navigation.setParams({reportActionID: ''});
+    }, [prevIsLinkedActionDeleted, isLinkedActionDeleted]);
+
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
     useEffect(() => {
@@ -715,6 +727,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
+    const firstReportAction = reportActions[0];
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -783,7 +796,28 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                     If we prevent rendering the report while they are loading then
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+                                {shouldShowSkeleton && (
+                                    <>
+                                        <ReportActionsSkeletonView />
+                                        {!!firstReportAction && (
+                                            <ReportActionsListItemRenderer
+                                                reportAction={firstReportAction}
+                                                reportActions={reportActions}
+                                                parentReportAction={parentReportAction}
+                                                parentReportActionForTransactionThread={undefined}
+                                                transactionThreadReport={undefined}
+                                                index={0}
+                                                report={report}
+                                                displayAsGroup={false}
+                                                shouldHideThreadDividerLine
+                                                shouldDisplayNewMarker={false}
+                                                shouldDisplayReplyDivider={false}
+                                                isFirstVisibleReportAction
+                                                shouldUseThreadDividerLine={false}
+                                            />
+                                        )}
+                                    </>
+                                )}
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
