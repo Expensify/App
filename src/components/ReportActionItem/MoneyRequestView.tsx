@@ -413,8 +413,8 @@ function MoneyRequestView({
     };
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
-        const tag = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
-        const shouldShow = !!tag || OptionsListUtils.hasEnabledOptions(tags);
+        const tagForDisplay = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
+        const shouldShow = !!tagForDisplay || OptionsListUtils.hasEnabledOptions(tags);
         if (!shouldShow) {
             return null;
         }
@@ -426,7 +426,7 @@ function MoneyRequestView({
                 tagListName: name,
             },
             PolicyUtils.hasDependentTags(policy, policyTagList),
-            TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index),
+            tagForDisplay,
         );
         return (
             <OfflineWithFeedback
@@ -435,7 +435,7 @@ function MoneyRequestView({
             >
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
-                    title={tag}
+                    title={tagForDisplay}
                     interactive={canEdit && !readonly}
                     shouldShowRightIcon={canEdit && !readonly}
                     titleStyle={styles.flex1}
