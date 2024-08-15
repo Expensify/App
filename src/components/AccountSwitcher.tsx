@@ -98,7 +98,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold]}
+                                style={[styles.textBold, styles.textLarge]}
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
@@ -115,7 +115,7 @@ function AccountSwitcher() {
                         </View>
                         <Text
                             numberOfLines={1}
-                            style={styles.colorMuted}
+                            style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
                             {currentUserPersonalDetails?.login}
                         </Text>
