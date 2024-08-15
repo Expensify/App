@@ -1594,6 +1594,21 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
+}
+
+function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
+        return '';
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.addEmployee', email, role);
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1688,6 +1703,7 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
+    getPolicyChangeLogAddEmployeeMessage,
 };
 
 export type {LastVisibleMessage};

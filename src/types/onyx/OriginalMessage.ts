@@ -244,6 +244,12 @@ type OriginalMessageChangeLog = {
 
     /** ID of the report */
     reportID?: number;
+
+    /** email of the report */
+    email?: string;
+
+    /** role of the report */
+    role?: string;
 };
 
 /** Model of `join policy changelog` report action */
