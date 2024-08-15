@@ -4713,7 +4713,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerStatusBarContainer: {
-            minHeight: variables.componentSizeNormal,
+            minHeight: variables.componentSizeSmall,
         },
 
         walletIllustration: {

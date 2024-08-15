@@ -117,10 +117,11 @@ function getOrderedReportIDs(
             doesTransactionThreadReportHasViolations ||
             doesReportHaveViolations ||
             Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+        const isReportInAccessible = report?.errorFields?.notFound;
         if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0', parentReportAction)) {
             return;
         }
-        if (hasErrorsOtherThanFailedReceipt) {
+        if (hasErrorsOtherThanFailedReceipt && !isReportInAccessible) {
             reportsToDisplay.push({
                 ...report,
                 hasErrorsOtherThanFailedReceipt: true,
