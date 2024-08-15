@@ -47,7 +47,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     const selectReimbursableDestination = useCallback(
         (row: MenuListItem) => {
             if (row.value !== reimbursable) {
-                updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value);
+                updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value, reimbursable);
             }
             if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
                 // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
@@ -124,7 +124,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                         isActive={!!reimbursableExpenseReportDefaultVendor}
                         onToggle={(enabled) => {
                             const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, reimbursableExpenseReportDefaultVendor);
                         }}
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields)}
                         errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}

@@ -1,8 +1,8 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
-import {Dimensions} from 'react-native';
-import type {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
@@ -221,11 +221,15 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
-            <EmojiPickerMenu
-                onEmojiSelected={selectEmoji}
-                activeEmoji={activeEmoji.current}
-                ref={(el) => (emojiSearchInput.current = el)}
-            />
+            <FocusTrapForModal active={isEmojiPickerVisible}>
+                <View>
+                    <EmojiPickerMenu
+                        onEmojiSelected={selectEmoji}
+                        activeEmoji={activeEmoji.current}
+                        ref={(el) => (emojiSearchInput.current = el)}
+                    />
+                </View>
+            </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }
