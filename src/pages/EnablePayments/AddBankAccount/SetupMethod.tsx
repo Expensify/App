@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
-import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
