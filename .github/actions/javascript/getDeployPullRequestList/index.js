@@ -11518,22 +11518,46 @@ async function run() {
             // Note: we filter out cancelled runs instead of looking only for success runs
             // because if a build fails on even one platform, then it will have the status 'failure'
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
+        // 9.0.20-6 -> data.prerelease is false and isProductionDeploy is true
+        // 9.0.20-5 -> data.prerelease is false and isProductionDeploy is false
         // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
         let lastSuccessfulDeploy = completedDeploys.shift();
-        while (lastSuccessfulDeploy?.head_branch &&
-            ((await GithubUtils_1.default.octokit.repos.getReleaseByTag({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                tag: lastSuccessfulDeploy.head_branch,
-            })).data.prerelease === isProductionDeploy ||
-                !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
+        let invalidReleaseBranch = false;
+        let sameAsInputTag = false;
+        let wrongEnvironment = false;
+        let unsuccessfulDeploy = false;
+        while ((invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
+            ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
+                (wrongEnvironment =
+                    (await GithubUtils_1.default.octokit.repos.getReleaseByTag({
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        tag: lastSuccessfulDeploy.head_branch,
+                    })).data.prerelease === isProductionDeploy) ||
+                (unsuccessfulDeploy = !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     run_id: lastSuccessfulDeploy.id,
                     filter: 'latest',
-                })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success'))) {
-            console.log(`Deploy was not a success: ${lastSuccessfulDeploy.html_url}, looking at the next one`);
+                })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')))) {
+            let reason;
+            if (invalidReleaseBranch) {
+                reason = 'Invalid release branch';
+            }
+            else if (sameAsInputTag) {
+                reason = `Same as input tag ${inputTag}`;
+            }
+            else if (wrongEnvironment) {
+                reason = `Was a ${isProductionDeploy ? 'staging' : 'production'} deploy, we only want to compare with ${isProductionDeploy ? 'production' : 'staging'} deploys`;
+            }
+            else if (unsuccessfulDeploy) {
+                reason = 'Was an unsuccessful deploy';
+            }
+            else {
+                reason = 'WTF?!';
+            }
+            console.log(`Deploy of tag ${lastSuccessfulDeploy?.head_branch} was not valid as a base for comparison, looking at the next one. Reason: ${reason}`, lastSuccessfulDeploy.html_url);
             lastSuccessfulDeploy = completedDeploys.shift();
         }
         if (!lastSuccessfulDeploy) {
