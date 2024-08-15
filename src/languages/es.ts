@@ -3893,7 +3893,7 @@ export default {
                 reimbursementDelayed: `procesó el pago pero se retrasó entre 1 y 2 días hábiles más`,
                 selectedForRandomAudit: `seleccionado al azar para revisión`,
                 selectedForRandomAuditMarkdown: `[seleccionado al azar](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) para revisión`,
-                share: ({to}: ShareParams) => `usuario invitado ${to}`,
+                share: ({to}: ShareParams) => `miembro invitado ${to}`,
                 unshare: ({to}: UnshareParams) => `usuario eliminado ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
