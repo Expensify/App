@@ -120,7 +120,7 @@ function IOURequestStepDistanceRate({
                 sections={[{data: sections}]}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>

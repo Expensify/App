@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -64,6 +64,8 @@ type HeaderViewProps = HeaderViewOnyxProps & {
 
 function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -82,7 +84,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
@@ -129,7 +131,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
-    const icons = ReportUtils.getIcons(reportHeaderData, personalDetails);
+    const icons = ReportUtils.getIcons(reportHeaderData, personalDetails, null, '', -1, undefined, invoiceReceiverPolicy);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
