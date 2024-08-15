@@ -185,7 +185,6 @@ type GetUserToInviteConfig = {
     excludeUnknownUsers?: boolean;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
-    betas: OnyxEntry<Beta[]>;
     reportActions?: ReportActions;
     showChatPreviewLine?: boolean;
 };
@@ -219,10 +218,11 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<
-    GetOptionsConfig,
-    'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean; preferPolicyExpenseChat?: boolean};
+type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'> & {
+    preferChatroomsOverThreads?: boolean;
+    includeChatRoomsByParticipants?: boolean;
+    preferPolicyExpenseChat?: boolean;
+};
 
 type HasText = {
     text?: string;
@@ -1741,7 +1741,7 @@ function getUserToInviteOption({
 /**
  * Check whether report has violations
  */
-function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+function shouldShowViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>) {
     const {parentReportID, parentReportActionID} = report ?? {};
     const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
     if (!canGetParentReport) {
@@ -1864,7 +1864,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
+        const doesReportHaveViolations = shouldShowViolations(report, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -2067,7 +2067,6 @@ function getOptions(
             excludeUnknownUsers,
             optionsToExclude,
             selectedOptions,
-            betas,
             reportActions,
             showChatPreviewLine,
         });
@@ -2440,7 +2439,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     const {
         sortByReportTypeInSearch = false,
         canInviteUser = true,
-        betas = [],
         maxRecentReportsToShow = 0,
         excludeLogins = [],
         preferChatroomsOverThreads = false,
@@ -2546,7 +2544,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         if (recentReports.length === 0 && personalDetails.length === 0) {
             userToInvite = getUserToInviteOption({
                 searchValue,
-                betas,
                 selectedOptions: config?.selectedOptions,
                 optionsToExclude,
             });

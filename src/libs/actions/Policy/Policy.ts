@@ -20,6 +20,7 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
@@ -206,8 +207,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
-
+    const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
 
@@ -2077,6 +2077,18 @@ function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: numb
     API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
+function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyEditCardLimitTypePageParams = {
+        policyID,
+        authToken,
+        cardID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -3347,6 +3359,7 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
+    openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,

@@ -68,6 +68,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -252,6 +253,11 @@ type OptimisticCreatedReportAction = Pick<
 type OptimisticRenamedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>,
     'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'originalMessage'
+>;
+
+type OptimisticRoomDescriptionUpdatedReportAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION>,
+    'actorAccountID' | 'created' | 'message' | 'person' | 'reportActionID' | 'pendingAction' | 'actionName' | 'originalMessage'
 >;
 
 type OptimisticChatReport = Pick<
@@ -2077,6 +2083,37 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
     }
 
     return participantsEntries.map(([accountID]) => Number(accountID));
+}
+
+function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
+    const isReportGroupChat = isGroupChat(report);
+    const isReportIOU = isIOUReport(report);
+    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isReportIOU;
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants);
+
+    return chatParticipants.filter((accountID) => {
+        const details = personalDetails?.[accountID];
+
+        if (!isRoomMembersList) {
+            if (!details) {
+                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+                return false;
+            }
+        } else {
+            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
+            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
+            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
+            // member here.
+            const isDuplicateOptimisticDetail =
+                details?.isOptimisticPersonalDetail && chatParticipants.some((accID) => accID !== accountID && details.login === personalDetails?.[accID]?.login);
+
+            if (!details || isDuplicateOptimisticDetail) {
+                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
+                return false;
+            }
+        }
+        return true;
+    });
 }
 
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
@@ -5097,6 +5134,38 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
 }
 
 /**
+ * Returns the necessary reportAction onyx data to indicate that the room description has been updated
+ */
+function buildOptimisticRoomDescriptionUpdatedReportAction(description: string): OptimisticRoomDescriptionUpdatedReportAction {
+    const now = DateUtils.getDBTime();
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: description ? `set the room description to: ${Parser.htmlToText(description)}` : 'cleared the room description',
+                html: description ? `<muted-text>set the room description to: ${description}</muted-text>` : '<muted-text>cleared the room description</muted-text>',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        originalMessage: {
+            description,
+            lastModified: now,
+        },
+        created: now,
+    };
+}
+
+/**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
@@ -7640,6 +7709,7 @@ export {
     buildOptimisticMovedReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
+    buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticSubmittedReportAction,
@@ -7724,6 +7794,7 @@ export {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsAccountIDsForDisplay,
+    getParticipantsList,
     getParticipants,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
