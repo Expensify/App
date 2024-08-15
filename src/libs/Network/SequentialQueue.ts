@@ -176,7 +176,9 @@ function unpause() {
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
     console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
-    flushOnyxUpdatesQueue();
+    if (PersistedRequests.getAll().length === 0) {
+        flushOnyxUpdatesQueue();
+    }
     flush();
 }
 
