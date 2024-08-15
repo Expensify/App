@@ -8,7 +8,7 @@ import * as FormActions from '@libs/actions/FormActions';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
@@ -69,7 +69,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         onSubmit(draft.reason, draft.note?.trim());
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
+        FormActions.clearDraftValues(formID);
     };
 
     const handleSetNote = () => {
