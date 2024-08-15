@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import * as BankAccounts from '@userActions/BankAccounts';
-import CONFIG from '@src/CONFIG';
+import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
@@ -28,7 +28,6 @@ type SetupMethodOnyxProps = {
 type SetupMethodProps = SetupMethodOnyxProps;
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
-const enablePayments = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_ENABLE_PAYMENTS}`;
 
 function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const styles = useThemeStyles();
@@ -46,7 +45,7 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
                 </View>
                 {!!plaidDesktopMessage && (
                     <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={enablePayments}>{translate(plaidDesktopMessage)}</TextLink>
+                        <TextLink onPress={() => Link.openExternalLinkWithToken(ROUTES.SETTINGS_ENABLE_PAYMENTS)}>{translate(plaidDesktopMessage)}</TextLink>
                     </View>
                 )}
                 <Button
