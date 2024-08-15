@@ -11526,6 +11526,8 @@ async function run() {
         let sameAsInputTag = false;
         let wrongEnvironment = false;
         let unsuccessfulDeploy = false;
+        // note: this while statement looks a bit weird because uses assignment as a condition: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while#using_an_assignment_as_a_condition
+        // while ugly, it's beneficial in this case because it prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
         while ((invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
             ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
                 (wrongEnvironment =
