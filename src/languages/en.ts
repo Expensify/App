@@ -3821,6 +3821,7 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
+                integrationSyncFailed: (label: string, errorMessage: string) => `failed to sync with ${label} ("${errorMessage}")`,
             },
         },
     },
