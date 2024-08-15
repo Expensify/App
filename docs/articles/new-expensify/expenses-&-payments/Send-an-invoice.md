@@ -1,6 +1,6 @@
 ---
-title: Send an invoice
-description: Notify a customer that a payment is due
+title: Send an invoice and receive payment 
+description: steps to send an invoice to someone and receipt payment
 ---
 <div id="new-expensify" markdown="1">
 
