@@ -354,8 +354,7 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    const hasAccentedChars = !!name.match(CONST.REGEX.ACCENT_LATIN_CHARS);
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**

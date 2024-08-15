@@ -108,6 +108,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             );
             return;
         }
+
         Workflow.setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers: approvalWorkflows.at(0)?.members ?? [],
@@ -178,7 +179,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
-                                    policyID={route.params.policyID}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
                                 />
                             </OfflineWithFeedback>
                         ))}

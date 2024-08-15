@@ -7,6 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {
     Connections,
     SageIntacctConnectionsConfig,
@@ -30,7 +31,12 @@ function connectToSageIntacct(policyID: string, credentials: SageIntacctCredenti
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
 }
 
-function prepareOnyxDataForMappingUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: boolean | SageIntacctMappingValue) {
+function prepareOnyxDataForMappingUpdate(
+    policyID: string,
+    mappingName: keyof SageIntacctMappingType,
+    mappingValue: boolean | SageIntacctMappingValue,
+    oldMappingValue?: boolean | SageIntacctMappingValue,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -63,6 +69,9 @@ function prepareOnyxDataForMappingUpdate(policyID: string, mappingName: keyof Sa
                 connections: {
                     intacct: {
                         config: {
+                            mappings: {
+                                [mappingName]: oldMappingValue ?? null,
+                            },
                             pendingFields: {
                                 [mappingName]: null,
                             },
@@ -105,7 +114,7 @@ function updateSageIntacctBillable(policyID: string, enabled: boolean) {
         policyID,
         enabled,
     };
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE, parameters, prepareOnyxDataForMappingUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS, enabled));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE, parameters, prepareOnyxDataForMappingUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS, enabled, !enabled));
 }
 
 function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>) {
@@ -125,13 +134,13 @@ function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CON
     }
 }
 
-function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue) {
+function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
     const command = getCommandForMapping(mappingName);
     if (!command) {
         return;
     }
 
-    const onyxData = prepareOnyxDataForMappingUpdate(policyID, mappingName, mappingValue);
+    const onyxData = prepareOnyxDataForMappingUpdate(policyID, mappingName, mappingValue, oldMappingValue);
     API.write(
         command,
         {
@@ -144,13 +153,13 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacc
 
 function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIntacctMappingType) {
     if (mappings?.departments === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
-        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
     }
     if (mappings?.classes === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
-        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
     }
     if (mappings?.locations === CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT) {
-        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG);
+        updateSageIntacctMappingValue(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS, CONST.SAGE_INTACCT_MAPPING_VALUE.TAG, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
     }
 }
 
@@ -187,6 +196,9 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
                 connections: {
                     intacct: {
                         config: {
+                            tax: {
+                                syncTax: !enabled,
+                            },
                             pendingFields: {
                                 tax: null,
                             },
@@ -223,7 +235,14 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: string, newDimensions: SageIntacctDimension[]) {
+function prepareOnyxDataForUserDimensionUpdate(
+    policyID: string,
+    dimensionName: string,
+    newDimensions: SageIntacctDimension[],
+    oldDimensions: SageIntacctDimension[],
+    oldDimensionName: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -235,7 +254,7 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                             mappings: {
                                 dimensions: newDimensions,
                             },
-                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: pendingAction},
                             errorFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
                         },
                     },
@@ -243,6 +262,8 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
             },
         },
     ];
+
+    const pendingActionAfterFailure = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? pendingAction : null;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -253,11 +274,11 @@ function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: 
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: newDimensions,
+                                dimensions: oldDimensions,
                             },
-                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: null},
+                            pendingFields: {[`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName}`]: pendingActionAfterFailure},
                             errorFields: {
-                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${oldDimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -300,7 +321,7 @@ function addSageIntacctUserDimensions(
     API.write(
         WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
         {policyID, dimensions: JSON.stringify(newDimensions)},
-        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions),
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, newDimensions, dimensionName, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
     );
 }
 
@@ -318,7 +339,11 @@ function editSageIntacctUserDimensions(
         return userDimension;
     });
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, dimensions: JSON.stringify(newDimensions)}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
+        {policyID, dimensions: JSON.stringify(newDimensions)},
+        prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions, existingUserDimensions, previousName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+    );
 }
 
 function removeSageIntacctUserDimensions(policyID: string, dimensionName: string, existingUserDimensions: SageIntacctDimension[]) {
@@ -327,11 +352,11 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
     API.write(
         WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION,
         {policyID, dimensions: JSON.stringify(newDimensions)},
-        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions),
+        prepareOnyxDataForUserDimensionUpdate(policyID, dimensionName, newDimensions, existingUserDimensions, dimensionName, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 }
 
-function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null) {
+function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null, oldSettingValue?: string | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -364,6 +389,9 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
                 connections: {
                     intacct: {
                         config: {
+                            export: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -401,8 +429,8 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctExporter(policyID: string, exporter: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
+function updateSageIntacctExporter(policyID: string, exporter: string, oldExporter?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter, oldExporter);
     const parameters = {
         policyID,
         email: exporter,
@@ -411,8 +439,8 @@ function updateSageIntacctExporter(policyID: string, exporter: string) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date);
+function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>, oldDate?: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date, oldDate);
     const parameters = {
         policyID,
         value: date,
@@ -421,8 +449,12 @@ function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONS
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctReimbursableExpensesExportDestination(policyID: string, reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable);
+function updateSageIntacctReimbursableExpensesExportDestination(
+    policyID: string,
+    reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>,
+    oldReimbursable?: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable, oldReimbursable);
     const parameters = {
         policyID,
         value: reimbursable,
@@ -431,8 +463,12 @@ function updateSageIntacctReimbursableExpensesExportDestination(policyID: string
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesExportDestination(policyID: string, nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable);
+function updateSageIntacctNonreimbursableExpensesExportDestination(
+    policyID: string,
+    nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>,
+    oldNonReimbursable?: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>,
+) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable, oldNonReimbursable);
     const parameters = {
         policyID,
         value: nonReimbursable,
@@ -441,8 +477,8 @@ function updateSageIntacctNonreimbursableExpensesExportDestination(policyID: str
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID: string, vendor: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
+function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID: string, vendor: string, oldVendor?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, oldVendor);
     const parameters = {
         policyID,
         vendorID: vendor,
@@ -451,8 +487,8 @@ function updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID: string, vendor: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
+function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID: string, vendor: string, oldVendor?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor, oldVendor);
     const parameters = {
         policyID,
         vendorID: vendor,
@@ -461,8 +497,13 @@ function updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVe
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string, nonReimbursableAccount: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
+function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string, nonReimbursableAccount: string, oldReimbursableAccount?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(
+        policyID,
+        CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+        nonReimbursableAccount,
+        oldReimbursableAccount,
+    );
     const parameters = {
         policyID,
         creditCardAccountID: nonReimbursableAccount,
@@ -471,8 +512,8 @@ function updateSageIntacctNonreimbursableExpensesExportAccount(policyID: string,
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, vendor: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR, vendor);
+function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, vendor: string, oldVendor?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR, vendor, oldVendor);
     const parameters = {
         policyID,
         vendorID: vendor,
@@ -481,13 +522,13 @@ function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof SageIntacctExportConfig, vendor: string) {
+function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof SageIntacctExportConfig, vendor: string, oldVendor?: string) {
     if (settingName === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR) {
-        updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID, vendor);
+        updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID, vendor, oldVendor);
     } else if (settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR) {
-        updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID, vendor);
+        updateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor(policyID, vendor, oldVendor);
     } else if (settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR) {
-        updateSageIntacctNonreimbursableExpensesExportVendor(policyID, vendor);
+        updateSageIntacctNonreimbursableExpensesExportVendor(policyID, vendor, oldVendor);
     }
 }
 
@@ -495,7 +536,16 @@ function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineSta
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
-function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof SageIntacctConnectionsConfig, settingValue: string | boolean | null) {
+function clearSageIntacctPendingField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {pendingFields: {[key]: null}}}}});
+}
+
+function removeSageIntacctUserDimensionsByName(dimensions: SageIntacctDimension[], policyID: string, dimensionName: string) {
+    const Dimensions = dimensions.filter((dimension) => dimension.dimension !== dimensionName);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {mappings: {dimensions: Dimensions}}}}});
+}
+
+function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof SageIntacctConnectionsConfig, settingValue: string | boolean | null, oldSettingValue?: string | boolean | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -526,6 +576,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
                 connections: {
                     intacct: {
                         config: {
+                            [settingName]: oldSettingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -563,7 +614,7 @@ function prepareOnyxDataForConfigUpdate(policyID: string, settingName: keyof Sag
     return {optimisticData, failureData, successData};
 }
 
-function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean) {
+function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean, oldSettingValue?: string | boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -596,6 +647,9 @@ function prepareOnyxDataForSyncUpdate(policyID: string, settingName: keyof Conne
                 connections: {
                     intacct: {
                         config: {
+                            sync: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -666,6 +720,9 @@ function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof C
                 connections: {
                     intacct: {
                         config: {
+                            autoSync: {
+                                [settingName]: !settingValue,
+                            },
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -714,7 +771,7 @@ function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
 }
 
 function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled);
+    const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled, !enabled);
     const parameters = {
         policyID,
         enabled,
@@ -725,7 +782,13 @@ function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
 
 function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : '';
-    const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE, approvalModeSettingValue);
+    const oldApprovalModeSettingValue = enabled ? '' : CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL;
+    const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(
+        policyID,
+        CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
+        approvalModeSettingValue,
+        oldApprovalModeSettingValue,
+    );
     const parameters = {
         policyID,
         value: approvalModeSettingValue,
@@ -735,7 +798,7 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
 }
 
 function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boolean) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, enabled);
+    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, !enabled);
     const parameters = {
         policyID,
         enabled,
@@ -744,8 +807,8 @@ function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boole
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID);
+function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string, oldVendorID?: string) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID, oldVendorID);
     const parameters = {
         policyID,
         vendorID,
@@ -754,12 +817,12 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID:
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctEntity(policyID: string, entity: string) {
+function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: string) {
     const parameters = {
         policyID,
         entity,
     };
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity, oldEntity));
 }
 
 export {
@@ -770,8 +833,10 @@ export {
     updateSageIntacctMappingValue,
     editSageIntacctUserDimensions,
     removeSageIntacctUserDimensions,
+    removeSageIntacctUserDimensionsByName,
     updateSageIntacctExporter,
     clearSageIntacctErrorField,
+    clearSageIntacctPendingField,
     updateSageIntacctExportDate,
     updateSageIntacctReimbursableExpensesExportDestination,
     updateSageIntacctNonreimbursableExpensesExportDestination,

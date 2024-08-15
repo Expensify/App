@@ -2289,6 +2289,7 @@ const CONST = {
             DAILY: 'daily',
             MONTHLY: 'monthly',
         },
+        CARD_TITLE_INPUT_LIMIT: 255,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2309,7 +2310,6 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
-        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,

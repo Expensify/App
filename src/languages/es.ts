@@ -256,6 +256,7 @@ export default {
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
+            pleaseSelectOne: 'Seleccione una de las opciones.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -449,6 +450,26 @@ export default {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
+    },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Presentar un gasto',
+            subtitleText1: 'Presente un gasto a alguien y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Dividir un gasto',
+            subtitleText1: 'Divide con un amigo y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pagar a alguien',
+            subtitleText1: 'Paga a quien quieras y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
     },
     videoChatButtonAndMenu: {
         tooltip: 'Programar una llamada',
@@ -1339,6 +1360,8 @@ export default {
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
+        deleteTitle: 'Eliminar flujo de trabajo de aprobación',
+        deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
@@ -3668,7 +3691,6 @@ export default {
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
-        shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor, introduce un título',
         pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },
