@@ -1391,9 +1391,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
         isPolicyExpenseChatEnabled: boolean;
 
-        /** Whether the auto reporting is enabled */
-        autoReporting?: boolean;
-
         /**
          * The scheduled submit frequency set up on this policy.
          * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
