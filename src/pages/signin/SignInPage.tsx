@@ -147,10 +147,7 @@ function getRenderOptions({
     };
 }
 
-const SignInPage = forwardRef(function SignInPage(
-    {credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps,
-    ref: ForwardedRef<SignInPageRef>,
-) {
+function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -339,10 +336,11 @@ const SignInPage = forwardRef(function SignInPage(
             </SignInPageLayout>
         </ScreenWrapper>
     );
-});
+}
 
 type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
+const SignInPageWithRef = forwardRef(SignInPage);
 
 function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
@@ -350,7 +348,7 @@ function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignIn
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPage
+                    <SignInPageWithRef
                         ref={ref}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
