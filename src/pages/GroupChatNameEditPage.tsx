@@ -91,7 +91,7 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
         >
             <HeaderWithBackButton
                 title={translate('groupConfirmPage.groupName')}
-                onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_SETTINGS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
+                onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}

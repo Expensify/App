@@ -18,6 +18,8 @@ Onyx.connect({
     },
 });
 
+const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [ONYXKEYS.NVP_TRY_FOCUS_MODE, ONYXKEYS.PREFERRED_THEME, ONYXKEYS.NVP_PREFERRED_LOCALE, ONYXKEYS.SESSION];
+
 function connect(email: string) {
     if (!delegatedAccess?.delegators) {
         return;
@@ -68,7 +70,7 @@ function connect(email: string) {
                 return;
             }
             return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear())
+                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
                     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
                     updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
