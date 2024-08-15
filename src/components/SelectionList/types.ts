@@ -5,7 +5,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -156,10 +156,10 @@ type ListItem = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -200,10 +200,10 @@ type TransactionListItemType = ListItem &
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         transactions: TransactionListItemType[];
     };
