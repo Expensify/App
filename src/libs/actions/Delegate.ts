@@ -95,10 +95,6 @@ function clearDelegatorErrors() {
 }
 
 function addDelegate(email: string, role: DelegateRole) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -106,7 +102,7 @@ function addDelegate(email: string, role: DelegateRole) {
             value: {
                 delegatedAccess: {
                     delegates: [
-                        ...delegatedAccess.delegates,
+                        ...(delegatedAccess.delegates ?? []),
                         {email, role, pendingAction: 'add', pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
                     ],
                 },
@@ -120,7 +116,7 @@ function addDelegate(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: [...delegatedAccess.delegates, {email, role, error: undefined, pendingAction: null, pendingFields: {email: null, role: null}}],
+                    delegates: [...(delegatedAccess.delegates ?? []), {email, role, error: undefined, pendingAction: null, pendingFields: {email: null, role: null}}],
                 },
             },
         },
@@ -132,7 +128,7 @@ function addDelegate(email: string, role: DelegateRole) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates.map((delegate) => (delegate.email !== email ? delegate : {...delegate, error: 'delegate.genericError'})),
+                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email !== email ? delegate : {...delegate, error: 'delegate.genericError'})),
                 },
             },
         },
