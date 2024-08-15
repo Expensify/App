@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -16,14 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersDescriptionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const description = searchAdvancedFiltersForm?.[INPUT_IDS.DESCRIPTION];
+    const description = searchAdvancedFiltersForm?.[FILTER_KEYS.DESCRIPTION];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateDescriptionFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -38,35 +37,33 @@ function SearchFiltersDescriptionPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton
-                    title={translate('common.description')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                    }}
-                />
-                <FormProvider
-                    style={[styles.flex1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    onSubmit={updateDescriptionFilter}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.DESCRIPTION}
-                            name={INPUT_IDS.DESCRIPTION}
-                            defaultValue={description}
-                            maxLength={CONST.DESCRIPTION_LIMIT}
-                            label={translate('common.description')}
-                            accessibilityLabel={translate('common.description')}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
-                </FormProvider>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('common.description')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
+            />
+            <FormProvider
+                style={[styles.flex1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                onSubmit={updateDescriptionFilter}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={FILTER_KEYS.DESCRIPTION}
+                        name={FILTER_KEYS.DESCRIPTION}
+                        defaultValue={description}
+                        maxLength={CONST.DESCRIPTION_LIMIT}
+                        label={translate('common.description')}
+                        accessibilityLabel={translate('common.description')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
