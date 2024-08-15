@@ -84,7 +84,7 @@ function FormAlertWithSubmitButton({
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
-    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard, 
+    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
     // More details: https://github.com/Expensify/App/issues/46644
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
