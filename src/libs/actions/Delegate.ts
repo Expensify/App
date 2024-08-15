@@ -85,6 +85,30 @@ function connect(email: string) {
         });
 }
 
+function disconnect() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {})
+        .then((response) => {
+            if (!response?.restrictedToken || !response?.encryptedAuthToken) {
+                Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                return;
+            }
+
+            return SequentialQueue.waitForIdle()
+                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
+                .then(() => {
+                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                    updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+
+                    NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    openApp();
+                });
+        })
+        .catch((error) => {
+            Log.alert('[Delegate] Error disconnecting as a delegate', {error});
+        });
+}
+
 function clearDelegatorErrors() {
     if (!delegatedAccess?.delegators) {
         return;
@@ -92,4 +116,4 @@ function clearDelegatorErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, error: undefined}))}});
 }
 
-export {connect, clearDelegatorErrors};
+export {connect, clearDelegatorErrors, disconnect};
