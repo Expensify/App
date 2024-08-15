@@ -245,11 +245,14 @@ type OriginalMessageChangeLog = {
     /** ID of the report */
     reportID?: number;
 
-    /** email of the report */
+    /** Email of user */
     email?: string;
 
-    /** role of the report */
+    /** Role of user */
     role?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
 };
 
 /** Model of `join policy changelog` report action */
