@@ -99,7 +99,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                             style={[styles.mr2]}
                             containerStyle={[styles.taskCheckbox]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) || !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport);
