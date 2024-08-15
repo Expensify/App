@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegatorErrors, connect} from '@libs/actions/Delegate';
+import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -35,45 +35,84 @@ function AccountSwitcher() {
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
 
     const delegators = account?.delegatedAccess?.delegators ?? [];
-    const shouldShowDelegators = delegators.length > 0 && canUseNewDotCopilot;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
-        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-        return {
-            title: personalDetail?.displayName ?? email,
-            description: personalDetail?.displayName ? email : '',
-            badgeText: translate('delegate.role', role),
-            onPress: () => {
-                connect(email);
+    const menuItems: MenuItemProps[] = useMemo(() => {
+        if (isActingAsDelegate) {
+            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
+            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+            // Show original account and the account we are acting as
+            return [
+                {
+                    title: personalDetail?.displayName,
+                    description: delegateEmail,
+                    onPress: () => {
+                        disconnect();
+                    },
+                    avatarID: personalDetail?.accountID ?? -1,
+                    icon: personalDetail?.avatar ?? '',
+                    iconType: CONST.ICON_TYPE_AVATAR,
+                    outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+                    numberOfLinesDescription: 1,
+                    errorTextStyle: styles.mt2,
+                },
+                {
+                    title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
+                    description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
+                    iconRight: Expensicons.Checkmark,
+                    shouldShowRightIcon: true,
+                    success: true,
+                    avatarID: currentUserPersonalDetails?.accountID ?? -1,
+                    icon: avatarUrl,
+                    iconType: CONST.ICON_TYPE_AVATAR,
+                    outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+                    numberOfLinesDescription: 1,
+                    wrapperStyle: [styles.buttonDefaultBG],
+                    focused: true,
+                },
+            ];
+        }
+
+        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
+            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            return {
+                title: personalDetail?.displayName ?? email,
+                description: personalDetail?.displayName ? email : '',
+                badgeText: translate('delegate.role', role),
+                onPress: () => {
+                    connect(email);
+                },
+                avatarID: personalDetail?.accountID ?? -1,
+                icon: personalDetail?.avatar ?? '',
+                iconType: CONST.ICON_TYPE_AVATAR,
+                outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+                numberOfLinesDescription: 1,
+                errorText: error ? translate(error) : '',
+                shouldShowRedDotIndicator: !!error,
+                errorTextStyle: styles.mt2,
+            };
+        });
+
+        const delegatorMenuItemsWithCurrentUser: MenuItemProps[] = [
+            {
+                title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
+                description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: true,
+                success: true,
+                avatarID: currentUserPersonalDetails?.accountID ?? -1,
+                icon: avatarUrl,
+                iconType: CONST.ICON_TYPE_AVATAR,
+                outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+                numberOfLinesDescription: 1,
+                wrapperStyle: [styles.buttonDefaultBG],
+                focused: true,
             },
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-            numberOfLinesDescription: 1,
-            errorText: error ? translate(error) : '',
-            shouldShowRedDotIndicator: !!error,
-            errorTextStyle: styles.mt2,
-        };
-    });
-
-    const delegatorMenuItemsWithCurrentUser: MenuItemProps[] = [
-        {
-            title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
-            description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
-            iconRight: Expensicons.Checkmark,
-            shouldShowRightIcon: true,
-            success: true,
-            avatarID: currentUserPersonalDetails?.accountID ?? -1,
-            icon: avatarUrl,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.buttonDefaultBG],
-            focused: true,
-        },
-        ...delegatorMenuItems,
-    ];
+            ...delegatorMenuItems,
+        ];
+        return delegatorMenuItemsWithCurrentUser;
+    }, []);
 
     return (
         <>
@@ -102,7 +141,7 @@ function AccountSwitcher() {
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
-                            {shouldShowDelegators && (
+                            {canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>
                                     <Icon
                                         fill={theme.icon}
@@ -122,7 +161,7 @@ function AccountSwitcher() {
                     </View>
                 </View>
             </PressableWithFeedback>
-            {shouldShowDelegators && (
+            {canSwitchAccounts && (
                 <Popover
                     isVisible={shouldShowDelegatorMenu}
                     onClose={() => {
@@ -135,7 +174,7 @@ function AccountSwitcher() {
                     <View style={styles.pb4}>
                         <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
                         <MenuItemList
-                            menuItems={delegatorMenuItemsWithCurrentUser}
+                            menuItems={menuItems}
                             shouldUseSingleExecution
                         />
                     </View>
