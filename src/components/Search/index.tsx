@@ -175,10 +175,11 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         lastSearchResultsRef.current = currentSearchResults;
     }
 
-    const hasSameTypeAndStatus = type === lastSearchResultsRef.current?.search?.type && status === lastSearchResultsRef.current?.search?.status;
-    const searchResults = currentSearchResults?.data ?? !hasSameTypeAndStatus ? currentSearchResults : lastSearchResultsRef.current;
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
-    const isDataLoaded = searchResults?.data !== undefined;
+    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
+    // we also need to check that the searchResults matches the type and status of the current search
+    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
