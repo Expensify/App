@@ -89,7 +89,7 @@ function disconnect() {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {})
         .then((response) => {
-            if (!response?.restrictedToken || !response?.encryptedAuthToken) {
+            if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
                 return;
             }
@@ -98,9 +98,9 @@ function disconnect() {
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
                     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
-                    NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
                     openApp();
                 });
         })
