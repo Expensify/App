@@ -92,5 +92,4 @@ function clearDelegatorErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, error: undefined}))}});
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {connect, clearDelegatorErrors};
