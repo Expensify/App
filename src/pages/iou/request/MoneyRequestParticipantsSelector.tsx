@@ -156,13 +156,12 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            betas,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, betas, defaultOptions, debouncedSearchTerm, participants]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants]);
 
     /**
      * Returns the sections needed for the OptionsSelector
