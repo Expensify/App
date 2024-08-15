@@ -28,7 +28,6 @@ type SetupMethodOnyxProps = {
 type SetupMethodProps = SetupMethodOnyxProps;
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
-const enablePaymentsRoute = `${ROUTES.SETTINGS_ENABLE_PAYMENTS}`;
 
 function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const styles = useThemeStyles();
@@ -46,7 +45,7 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
                 </View>
                 {!!plaidDesktopMessage && (
                     <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink onPress={() => Link.openExternalLinkWithToken(enablePaymentsRoute)}>{translate(plaidDesktopMessage)}</TextLink>
+                        <TextLink onPress={() => Link.openExternalLinkWithToken(ROUTES.SETTINGS_ENABLE_PAYMENTS)}>{translate(plaidDesktopMessage)}</TextLink>
                     </View>
                 )}
                 <Button
