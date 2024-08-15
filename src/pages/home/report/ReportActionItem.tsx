@@ -58,6 +58,7 @@ import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
+import * as Transaction from '@userActions/Transaction';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -925,7 +926,13 @@ function ReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
+                                onClose={() => {
+                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+                                    if (transactionID) {
+                                        Transaction.clearError(transactionID);
+                                    }
+                                    ReportActions.clearAllRelatedReportActionErrors(report.reportID, action);
+                                }}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
