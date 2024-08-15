@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -42,10 +43,13 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
+    const settledTransaction = transactions.find((transaction) => ReportUtils.isSettled(transaction?.reportID));
+
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <FullPageNotFoundView shouldShow={transactionID === '-1'}>
                 <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                {!!settledTransaction && <View style={[styles.textNormal, styles.colorMuted]}>Some of these duplicates have been approved or paid already</View>}
                 <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                     <Button
                         text={translate('iou.keepAll')}

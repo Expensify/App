@@ -125,9 +125,11 @@ function MoneyRequestPreviewContent({
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const duplicates = useMemo(
         () =>
-            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
-                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-            )?.data?.duplicates ?? [],
+            ReportUtils.removeSettledTransactions(
+                transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                    (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                )?.data?.duplicates ?? [],
+            ),
         [transaction?.transactionID, transactionViolations],
     );
 
@@ -438,7 +440,7 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransactionPage && (
+            {isReviewDuplicateTransactionPage && !isSettled && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success

@@ -7615,6 +7615,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+function removeSettledTransactions(transactionIDs: string[]) {
+    return transactionIDs.filter((transactionID) => !isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID));
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7914,6 +7918,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    removeSettledTransactions,
 };
 
 export type {
