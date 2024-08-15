@@ -146,7 +146,7 @@ function SecuritySettingsPage() {
                                 title={translate('delegate.addCopilot')}
                                 icon={Expensicons.UserPlus}
                                 iconFill={theme.iconSuccessFill}
-                                onPress={() => {}}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
                             />

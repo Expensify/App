@@ -279,6 +279,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_2FA.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
+                            path: ROUTES.SETTINGS_ADD_DELEGATE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
                             path: ROUTES.SETTINGS_STATUS,
                             exact: true,
