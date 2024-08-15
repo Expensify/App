@@ -34,7 +34,10 @@ function AccountSwitcher() {
     const buttonRef = useRef<HTMLDivElement>(null);
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
 
-    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const delegators = useMemo(() => {
+        return account?.delegatedAccess?.delegators ?? [];
+    }, [account?.delegatedAccess?.delegators]);
+
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
@@ -112,7 +115,20 @@ function AccountSwitcher() {
             ...delegatorMenuItems,
         ];
         return delegatorMenuItemsWithCurrentUser;
-    }, []);
+    }, [
+        account?.delegatedAccess?.delegate,
+        avatarUrl,
+        currentUserPersonalDetails?.accountID,
+        currentUserPersonalDetails?.displayName,
+        currentUserPersonalDetails?.login,
+        delegators,
+        isActingAsDelegate,
+        isSmallScreenWidth,
+        styles.accountSwitcherPopover,
+        styles.buttonDefaultBG,
+        styles.mt2,
+        translate,
+    ]);
 
     return (
         <>
