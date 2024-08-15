@@ -66,7 +66,7 @@ function SearchStatusSkeleton({shouldAnimate = true}: SearchStatusSkeletonProps)
                     height={8}
                 />
             </SkeletonViewContentLoader>
-            <View style={[styles.pAbsolute]}>
+            <View style={[styles.pAbsolute, styles.w100]}>
                 <SkeletonViewContentLoader
                     animate={shouldAnimate}
                     height={40}

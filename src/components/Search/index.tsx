@@ -192,7 +192,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         turnOffMobileSelectionMode();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
-    if (shouldShowLoadingState) {
+    if (true) {
         return (
             <>
                 <SearchPageHeader
