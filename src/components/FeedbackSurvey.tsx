@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
-import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -45,18 +44,21 @@ type FeedbackSurveyProps = {
     isLoading?: boolean;
 };
 
-const OPTIONS: Choice[] = [
-    {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY)},
-    {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY)},
-    {value: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY)},
-    {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translateLocal(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
-];
-
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft] = useOnyx(`${formID}Draft`);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
+
+    const options = useMemo<Choice[]>(
+        () => [
+            {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY)},
+            {value: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY)},
+            {value: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY)},
+            {value: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: translate(CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY)},
+        ],
+        [translate],
+    );
 
     const handleOptionSelect = () => {
         setShouldShowReasonError(false);
@@ -95,7 +97,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                 <InputWrapper
                     InputComponent={RadioButtons}
                     inputID={INPUT_IDS.REASON}
-                    items={OPTIONS}
+                    items={options}
                     radioButtonStyle={[styles.mb7, optionRowStyles]}
                     onPress={handleOptionSelect}
                     shouldSaveDraft
