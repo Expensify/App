@@ -895,6 +895,10 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
+function removeSettledTransactions(transactionIDs: string[]) {
+    return transactionIDs.filter((transactionID) => !ReportUtils.isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID));
+}
+
 /**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
  *
@@ -916,7 +920,7 @@ type FieldsToChange = {
 function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = ReportUtils.removeSettledTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
+    const transactions = removeSettledTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1036,7 +1040,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID ?? '',
-        transactionIDList: ReportUtils.removeSettledTransactions(reviewDuplicates?.duplicates ?? []),
+        transactionIDList: removeSettledTransactions(reviewDuplicates?.duplicates ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -1121,6 +1125,7 @@ export {
     buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
+    removeSettledTransactions,
 };
 
 export type {TransactionChanges};

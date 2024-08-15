@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,18 +44,18 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const settledTransaction = transactions.find((transaction) => ReportUtils.isSettled(transaction?.reportID));
+    const hasSettledTransaction = transactions.find((transaction) => ReportUtils.isSettled(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <FullPageNotFoundView shouldShow={transactionID === '-1'}>
                 <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-                {!!settledTransaction && <View style={[styles.textNormal, styles.colorMuted]}>Some of these duplicates have been approved or paid already</View>}
                 <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                     <Button
                         text={translate('iou.keepAll')}
                         onPress={keepAll}
                     />
+                    {!!hasSettledTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
                 <DuplicateTransactionsList transactions={transactions} />
             </FullPageNotFoundView>

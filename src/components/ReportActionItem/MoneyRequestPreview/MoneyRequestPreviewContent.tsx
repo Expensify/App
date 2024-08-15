@@ -123,15 +123,13 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const duplicates = useMemo(
-        () =>
-            ReportUtils.removeSettledTransactions(
-                transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
-                    (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                )?.data?.duplicates ?? [],
-            ),
-        [transaction?.transactionID, transactionViolations],
-    );
+    const duplicates = useMemo(() => {
+        const transactions =
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [];
+        return TransactionUtils.removeSettledTransactions(transactions);
+    }, [transaction?.transactionID, transactionViolations]);
 
     const hasDuplicates = duplicates.length > 0;
 
