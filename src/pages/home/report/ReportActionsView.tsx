@@ -70,9 +70,6 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** There an error when loading newer report actions */
     hasLoadingNewerReportActionsError?: boolean;
 
-    /** Whether the report is ready for comment linking */
-    isReadyForCommentLinking?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -92,13 +89,13 @@ function ReportActionsView({
     hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
-    isReadyForCommentLinking = false,
     transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
+    const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -117,7 +114,6 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
-    const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
         if (!shouldFetchReport(report)) {
@@ -141,7 +137,7 @@ function ReportActionsView({
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID) {
+        if (!reportActionID && !prevReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -151,7 +147,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions, reportActionID]);
+    }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -239,7 +235,7 @@ function ReportActionsView({
         if (!reportActionID) {
             return combinedReportActions;
         }
-        if (isLoading || indexOfLinkedAction === -1) {
+        if (indexOfLinkedAction === -1) {
             return [];
         }
 
@@ -251,7 +247,7 @@ function ReportActionsView({
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+    }, [reportActionID, combinedReportActions, indexOfLinkedAction, currentReportActionID]);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions.map((action) => action.reportActionID);
@@ -393,7 +389,7 @@ function ReportActionsView({
                 !force &&
                 (!reportActionID ||
                     !isFocused ||
-                    isLoadingInitialReportActions ||
+                    (isLoadingInitialReportActions && !hasMoreCached) ||
                     isLoadingNewerReportActions ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
@@ -435,12 +431,13 @@ function ReportActionsView({
         if (!ReportActionsView.initMeasured) {
             Performance.markEnd(CONST.TIMING.OPEN_REPORT);
             Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
     }, [hasCachedActionOnFirstRender]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -511,9 +508,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
-    if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
-        return false;
-    }
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }
