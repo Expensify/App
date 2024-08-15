@@ -379,7 +379,8 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     }
 
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || connection?.lastSync?.isSuccessful) {
+
+    if (isSyncInProgress || connection?.lastSync?.isSuccessful !== false) {
         return;
     }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
