@@ -25,9 +25,6 @@ async function run() {
             // because if a build fails on even one platform, then it will have the status 'failure'
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
 
-        // 9.0.20-6 -> data.prerelease is false and isProductionDeploy is true
-        // 9.0.20-5 -> data.prerelease is false and isProductionDeploy is false
-
         // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
         let lastSuccessfulDeploy = completedDeploys.shift();
         let invalidReleaseBranch = false;
@@ -39,6 +36,8 @@ async function run() {
         // while ugly, it's beneficial in this case because it prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
         while (
             (invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
+            // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
+            // In this case, the check for wrongEnvironment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
             ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
                 (wrongEnvironment =
                     (
