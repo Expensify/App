@@ -18,7 +18,7 @@ import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
