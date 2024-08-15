@@ -194,7 +194,7 @@ function PopoverMenu({
         setFocusedIndex(-1);
     };
 
-    // When the menu items are changed, we want to reset the sub-menu to make sure 
+    // When the menu items are changed, we want to reset the sub-menu to make sure
     // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
     // We use useLayoutEffect so the reset happens before the repaint
     useLayoutEffect(() => {
