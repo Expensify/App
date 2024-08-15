@@ -276,3 +276,4 @@ export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
+export type {default as AddDelegateParams} from './AddDelegateParams';

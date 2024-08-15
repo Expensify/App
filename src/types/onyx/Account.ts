@@ -11,7 +11,7 @@ type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
 /** Model of delegate */
-type Delegate = {
+type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The email of the delegate */
     email: string;
 
@@ -20,7 +20,7 @@ type Delegate = {
 
     /** Authentication failure errors */
     error?: TranslationPaths;
-};
+}>;
 
 /** Model of delegated access data */
 type DelegatedAccess = {
