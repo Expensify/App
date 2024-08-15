@@ -5,14 +5,15 @@ import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
 /**
- * This function checks if a given release is a valid base to get the PR list with `git log startTag...endTag`.
+ * This function checks if a given release is a valid baseTag to get the PR list with `git log baseTag...endTag`.
+ *
  * The rules are:
  *     - production deploys can only be compared with other production deploys
  *     - staging deploys can be compared with other staging deploys or production deploys.
- *       The reason this is necessary is that the final staging release in each deploy cycle will BECOME a production release.
- *       For example, imagine a checklist is closed with version 9.0.20-6. That's the most recent staging deploy, but the release for 9.0.20-6 is now finalized.
- *       So the most recent prerelease will be 9.0.20-5.
- *       When 9.0.21-0 finishes deploying, we want to list PRs between 9.0.20-6...9.0.21-0, NOT 9.0.20-5...9.0.21-0 (so that the PR CP'd in 9.0.20-6 is not included in the next checklist)
+ *       The reason is that the final staging release in each deploy cycle will BECOME a production release.
+ *       For example, imagine a checklist is closed with version 9.0.20-6; that's the most recent staging deploy, but the release for 9.0.20-6 is now finalized, so it looks like a prod deploy.
+ *       When 9.0.21-0 finishes deploying to staging, the most recent prerelease is 9.0.20-5. However, we want 9.0.20-6...9.0.21-0,
+ *       NOT 9.0.20-5...9.0.21-0 (so that the PR CP'd in 9.0.20-6 is not included in the next checklist)
  */
 async function isReleaseValidBaseForEnvironment(releaseTag: string, isProductionDeploy: boolean) {
     if (!isProductionDeploy) {
@@ -26,6 +27,22 @@ async function isReleaseValidBaseForEnvironment(releaseTag: string, isProduction
         })
     ).data.prerelease;
     return !isPrerelease;
+}
+
+/**
+ * Was a given platformDeploy workflow run successful on at least one platform?
+ */
+async function wasDeploySuccessful(runID: number) {
+    const jobsForWorkflowRun = (
+        await GithubUtils.octokit.actions.listJobsForWorkflowRun({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            run_id: runID,
+            filter: 'latest',
+        })
+    ).data.jobs;
+    return jobsForWorkflowRun.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success');
 }
 
 async function run() {
@@ -56,23 +73,15 @@ async function run() {
         let wrongEnvironment = false;
         let unsuccessfulDeploy = false;
 
-        // note: this while statement looks a bit weird because uses assignment as a condition: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while#using_an_assignment_as_a_condition
-        // while ugly, it's beneficial in this case because it prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
+        // note: this while statement looks a bit weird because uses assignments as conditions: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while#using_an_assignment_as_a_condition
+        // it's beneficial in this case because it prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
         while (
             (invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
             // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
             // In this case, the check for wrongEnvironment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
             ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
                 (wrongEnvironment = await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy)) ||
-                (unsuccessfulDeploy = !(
-                    await GithubUtils.octokit.actions.listJobsForWorkflowRun({
-                        owner: github.context.repo.owner,
-                        repo: github.context.repo.repo,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        run_id: lastSuccessfulDeploy.id,
-                        filter: 'latest',
-                    })
-                ).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')))
+                (unsuccessfulDeploy = !(await wasDeploySuccessful(lastSuccessfulDeploy.id))))
         ) {
             let reason;
             if (invalidReleaseBranch) {
