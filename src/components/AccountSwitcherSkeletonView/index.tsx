@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type CurrentUserPersonalDetailsSkeletonViewProps = {
+type AccountSwitcherSkeletonViewProps = {
     /** Whether to animate the skeleton view */
     shouldAnimate?: boolean;
 
@@ -16,7 +16,7 @@ type CurrentUserPersonalDetailsSkeletonViewProps = {
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
-function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: CurrentUserPersonalDetailsSkeletonViewProps) {
+function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: AccountSwitcherSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -54,5 +54,5 @@ function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSiz
     );
 }
 
-CurrentUserPersonalDetailsSkeletonView.displayName = 'CurrentUserPersonalDetailsSkeletonView';
-export default CurrentUserPersonalDetailsSkeletonView;
+AccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
+export default AccountSwitcherSkeletonView;
