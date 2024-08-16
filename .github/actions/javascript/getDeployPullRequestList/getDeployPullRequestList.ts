@@ -7,6 +7,8 @@ import GitUtils from '@github/libs/GitUtils';
 
 type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
 
+const BUILD_AND_DEPLOY_JOB_NAME_PREFIX = 'Build and deploy';
+
 /**
  * This function checks if a given release is a valid baseTag to get the PR list with `git log baseTag...endTag`.
  *
@@ -45,7 +47,7 @@ async function wasDeploySuccessful(runID: number) {
             filter: 'latest',
         })
     ).data.jobs;
-    return jobsForWorkflowRun.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success');
+    return jobsForWorkflowRun.some((job) => job.name.startsWith(BUILD_AND_DEPLOY_JOB_NAME_PREFIX) && job.conclusion === 'success');
 }
 
 /**

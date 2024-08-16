@@ -11502,6 +11502,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const ActionUtils_1 = __nccwpck_require__(6981);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+const BUILD_AND_DEPLOY_JOB_NAME_PREFIX = 'Build and deploy';
 /**
  * This function checks if a given release is a valid baseTag to get the PR list with `git log baseTag...endTag`.
  *
@@ -11535,7 +11536,7 @@ async function wasDeploySuccessful(runID) {
         run_id: runID,
         filter: 'latest',
     })).data.jobs;
-    return jobsForWorkflowRun.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success');
+    return jobsForWorkflowRun.some((job) => job.name.startsWith(BUILD_AND_DEPLOY_JOB_NAME_PREFIX) && job.conclusion === 'success');
 }
 /**
  * This function checks if a given deploy workflow is a valid basis for comparison when listing PRs merged between two versions.
