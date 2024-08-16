@@ -186,30 +186,31 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
-                Navigation.dismissModal(report.reportID);
-                InteractionManager.runAfterInteractions(() => {
-                    const assigneeChatReport = TaskActions.setAssigneeValue(
-                        option?.login ?? '',
-                        option?.accountID ?? -1,
-                        report.reportID,
-                        undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
-                    );
+                const assigneeChatReport = TaskActions.setAssigneeValue(
+                    option?.login ?? '',
+                    option?.accountID ?? -1,
+                    report.reportID,
+                    undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
+                );
 
-                    // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                // Pass through the selected assignee
+                TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.dismissModal(report.reportID);
                 });
+
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
-                Navigation.goBack(ROUTES.NEW_TASK);
+                TaskActions.setAssigneeValue(
+                    option?.login ?? '',
+                    option.accountID ?? -1,
+                    task?.shareDestination ?? '',
+                    undefined, // passing null as report is null in this condition
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
+                );
                 InteractionManager.runAfterInteractions(() => {
-                    TaskActions.setAssigneeValue(
-                        option?.login ?? '',
-                        option.accountID ?? -1,
-                        task?.shareDestination ?? '',
-                        undefined, // passing null as report is null in this condition
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
-                    );
+                    Navigation.goBack(ROUTES.NEW_TASK);
                 });
             }
         },
