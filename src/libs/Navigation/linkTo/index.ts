@@ -110,6 +110,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             if (type === CONST.NAVIGATION.TYPE.UP) {
+                if (!areParamsDifferent && isSideModalNavigator(lastRoute?.name) && topmostCentralPaneRoute?.name === targetName) {
+                    dismissModal(navigation);
+                    return;
+                }
                 action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             } else {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
