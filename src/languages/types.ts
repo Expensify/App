@@ -381,6 +381,11 @@ type IssueVirtualCardParams = {
     link: string;
 };
 
+type ApprovalWorkflowErrorParams = {
+    name1: string;
+    name2: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -506,4 +511,5 @@ export type {
     ExportAgainModalDescriptionTranslationParams,
     StatementPageTitleTranslationParams,
     ReportIntegrationMessageTranslationParams,
+    ApprovalWorkflowErrorParams,
 };

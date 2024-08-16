@@ -58,16 +58,22 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: config?.export?.exporter === exporter.email,
+                isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
-    }, [config?.export?.exporter, exporters, policyOwner, currentUserLogin]);
+    }, [policyOwner, exporters, currentUserLogin, config?.export?.exporter]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== config?.export?.exporter) {
-                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {exporter: row.value},
+                    {exporter: config?.export?.exporter ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },

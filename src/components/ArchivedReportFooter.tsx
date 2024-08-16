@@ -43,7 +43,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
         oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? -1]);
     }
 
-    const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+    const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;
 
     let policyName = ReportUtils.getPolicyName(report);
 
