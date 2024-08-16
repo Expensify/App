@@ -11537,6 +11537,28 @@ async function wasDeploySuccessful(runID) {
     })).data.jobs;
     return jobsForWorkflowRun.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success');
 }
+/**
+ * This function checks if a given deploy workflow is a valid basis for comparison when listing PRs merged between two versions.
+ * It returns the reason a version should be skipped, or an empty string if the version should not be skipped.
+ */
+async function shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy) {
+    if (!lastSuccessfulDeploy?.head_branch) {
+        // This should never happen. Just doing this to appease TS.
+        return '';
+    }
+    // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
+    // In this case, the next for wrong environment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
+    if (lastSuccessfulDeploy?.head_branch === inputTag) {
+        return `Same as input tag ${inputTag}`;
+    }
+    if (!(await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy))) {
+        return 'Was a staging deploy, we only want to compare with other production deploys';
+    }
+    if (!(await wasDeploySuccessful(lastSuccessfulDeploy.id))) {
+        return 'Was an unsuccessful deploy, nothing was deployed in that version';
+    }
+    return '';
+}
 async function run() {
     try {
         const inputTag = core.getInput('TAG', { required: true });
@@ -11555,41 +11577,9 @@ async function run() {
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
         // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
         let lastSuccessfulDeploy = completedDeploys.shift();
-        let invalidReleaseBranch = false;
-        let sameAsInputTag = false;
-        let wrongEnvironment = false;
-        let unsuccessfulDeploy = false;
-        // note: this while statement looks a bit weird because uses assignments as conditions: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while#using_an_assignment_as_a_condition
-        // it's beneficial in this case because:
-        //    - keeping the async calls in the while loop conditional prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
-        //    - using conditional assignment, we can keep track of why a release is being skipped over for the sake of logs + debugging
-        while (
+        let reason = '';
         // eslint-disable-next-line no-cond-assign
-        (invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
-            // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
-            // In this case, the check for wrongEnvironment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
-            // eslint-disable-next-line no-cond-assign
-            ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
-                // eslint-disable-next-line no-cond-assign
-                (wrongEnvironment = await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy)) ||
-                // eslint-disable-next-line no-cond-assign
-                (unsuccessfulDeploy = !(await wasDeploySuccessful(lastSuccessfulDeploy.id))))) {
-            let reason;
-            if (invalidReleaseBranch) {
-                reason = 'Invalid release branch';
-            }
-            else if (sameAsInputTag) {
-                reason = `Same as input tag ${inputTag}`;
-            }
-            else if (wrongEnvironment) {
-                reason = `Was a ${isProductionDeploy ? 'staging' : 'production'} deploy, we only want to compare with ${isProductionDeploy ? 'production' : 'staging'} deploys`;
-            }
-            else if (unsuccessfulDeploy) {
-                reason = 'Was an unsuccessful deploy';
-            }
-            else {
-                reason = 'WTF?!';
-            }
+        while (lastSuccessfulDeploy?.head_branch && (reason = await shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy))) {
             console.log(`Deploy of tag ${lastSuccessfulDeploy?.head_branch} was not valid as a base for comparison, looking at the next one. Reason: ${reason}`, lastSuccessfulDeploy.html_url);
             lastSuccessfulDeploy = completedDeploys.shift();
         }
