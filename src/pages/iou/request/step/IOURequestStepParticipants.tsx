@@ -121,41 +121,44 @@ function IOURequestStepParticipants({
     );
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
-    const setDistanceRequestData = useCallback(() => {
-        const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const setDistanceRequestData = useCallback(
+        (isPolicyExpenseChat: boolean) => {
+            const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
 
-        // Get policy report based on transaction participants
-        const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(transaction.participants[0].reportID ?? '') ?? report : report;
+            // Get policy report based on transaction participants
+            const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(transaction.participants[0].reportID ?? '') ?? report : report;
 
-        const policyID = IOU.getIOURequestPolicyID(transaction, policyReport);
-        const policy = PolicyUtils.getPolicy(report?.policyID ?? policyID);
-        const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+            const policyID = IOU.getIOURequestPolicyID(transaction, policyReport);
+            const policy = PolicyUtils.getPolicy(report?.policyID ?? policyID);
+            const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
-        const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-        const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-        const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-            ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-            : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
+            const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+                ? DistanceRequestUtils.getRateForP2P(policyCurrency)
+                : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
 
-        const {unit, rate} = mileageRate ?? {};
-        const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
-        const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-        IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
+            const {unit, rate} = mileageRate ?? {};
+            const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
+            const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
+            const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+            IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
 
-        const participantsMap =
-            transaction?.participants?.map((participant) => {
-                if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
-                    return participant;
-                }
-                return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }) ?? [];
-        const participantAccountIDs: number[] = participantsMap.map((participant) => participant.accountID ?? -1);
-        if (isTypeSplit && amount && transaction?.currency) {
-            IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
-        }
-    }, [iouType, personalDetails, report, transaction, transactionID]);
+            const participantsMap =
+                transaction?.participants?.map((participant) => {
+                    if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
+                        return participant;
+                    }
+                    return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                }) ?? [];
+            const participantAccountIDs: number[] = participantsMap.map((participant) => participant.accountID ?? -1);
+            if (isTypeSplit && amount && transaction?.currency && !isPolicyExpenseChat) {
+                IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs);
+            }
+        },
+        [iouType, personalDetails, report, transaction, transactionID],
+    );
 
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
@@ -168,7 +171,7 @@ function IOURequestStepParticipants({
         }
 
         if (isDistanceRequest) {
-            setDistanceRequestData();
+            setDistanceRequestData(!!isPolicyExpenseChat);
         }
 
         IOU.setMoneyRequestTag(transactionID, '');

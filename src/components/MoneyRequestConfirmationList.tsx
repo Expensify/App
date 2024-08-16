@@ -340,7 +340,7 @@ function MoneyRequestConfirmationList({
     const isFirstUpdatedDistanceAmount = useRef(false);
 
     useEffect(() => {
-        if (isFirstUpdatedDistanceAmount.current || iouAmount) {
+        if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
         if (!isDistanceRequest) {
