@@ -158,7 +158,10 @@ function flush() {
                     resolveIsReadyPromise?.();
                 }
                 currentRequest = null;
-                flushOnyxUpdatesQueue();
+                // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
+                if (PersistedRequests.getAll().length === 0) {
+                    flushOnyxUpdatesQueue();
+                }
             });
         },
     });
@@ -176,9 +179,6 @@ function unpause() {
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
     console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
-    if (PersistedRequests.getAll().length === 0) {
-        flushOnyxUpdatesQueue();
-    }
     flush();
 }
 
