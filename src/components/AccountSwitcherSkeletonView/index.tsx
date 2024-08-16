@@ -22,7 +22,7 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
     const StyleUtils = useStyleUtils();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
-    const x = 30;
+    const startPositionX = 30;
 
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
@@ -33,18 +33,18 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                 height={avatarPlaceholderSize + styles.pb5.paddingBottom}
             >
                 <Circle
-                    cx={x}
+                    cx={startPositionX}
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
                 <Rect
-                    x={x + avatarPlaceholderRadius + styles.gap3.gap}
+                    x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
                     y="11"
                     width="45%"
                     height="8"
                 />
                 <Rect
-                    x={x + avatarPlaceholderRadius + styles.gap3.gap}
+                    x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
                     y="31"
                     width="55%"
                     height="8"
