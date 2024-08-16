@@ -1,14 +1,21 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import Text from '@components/Text';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import type TextWithTooltipProps from './types';
 
 function TextWithTooltip({text, style, numberOfLines = 1}: TextWithTooltipProps) {
+    const styles = useThemeStyles();
+    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(text), [text]);
+
     return (
         <Text
             style={style}
             numberOfLines={numberOfLines}
         >
-            {text}
+            {processedTextArray.length !== 0
+                ? processedTextArray.map(({text: textItem, isEmoji}) => (isEmoji ? <Text style={[style, styles.emojisFontFamily]}>{textItem}</Text> : textItem))
+                : text}
         </Text>
     );
 }

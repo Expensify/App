@@ -413,7 +413,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -1716,6 +1716,10 @@ const styles = (theme: ThemeColors) =>
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
             marginVertical: -7,
+        },
+
+        emojisFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
         },
 
         emojisWithTextFontSize: {
