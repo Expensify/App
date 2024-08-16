@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,10 +27,11 @@ import Text from './Text';
 function AccountSwitcher() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const theme = useTheme();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {canUseNewDotCopilot} = usePermissions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const buttonRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +48,7 @@ function AccountSwitcher() {
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
             errorText: error ? translate(error) : '',
             shouldShowRedDotIndicator: !!error,
