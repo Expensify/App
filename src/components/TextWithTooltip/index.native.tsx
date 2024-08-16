@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -6,7 +6,7 @@ import type TextWithTooltipProps from './types';
 
 function TextWithTooltip({text, style, numberOfLines = 1}: TextWithTooltipProps) {
     const styles = useThemeStyles();
-    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(text), [text]);
+    const processedTextArray = EmojiUtils.splitTextWithEmojis(text);
 
     return (
         <Text
