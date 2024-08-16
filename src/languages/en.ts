@@ -376,6 +376,7 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        offlinePrompt: "You can't take this action right now.",
     },
     location: {
         useCurrent: 'Use current location',

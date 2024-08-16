@@ -366,6 +366,7 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
     },
     connectionComplete: {
         title: 'Conexión completa',

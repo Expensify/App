@@ -16,6 +16,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import Avatar from './Avatar';
+import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
@@ -36,6 +37,7 @@ function AccountSwitcher() {
     const buttonRef = useRef<HTMLDivElement>(null);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
+    const [shouldShowOfflineError, setShouldShowOfflineError] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
@@ -72,7 +74,13 @@ function AccountSwitcher() {
             const error = account?.delegatedAccess?.error;
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
-                    onPress: () => disconnect(),
+                    onPress: () => {
+                        if (isOffline) {
+                            setShouldShowOfflineError(true);
+                            return;
+                        }
+                        disconnect();
+                    },
                 }),
                 currentUserMenuItem,
             ];
@@ -82,7 +90,13 @@ function AccountSwitcher() {
             const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
             return createBaseMenuItem(personalDetails, error, {
                 badgeText: translate('delegate.role', role),
-                onPress: () => connect(email),
+                onPress: () => {
+                    if (isOffline) {
+                        setShouldShowOfflineError(true);
+                        return;
+                    }
+                    connect(email);
+                },
             });
         });
 
@@ -157,6 +171,15 @@ function AccountSwitcher() {
                     </View>
                 </Popover>
             )}
+            <ConfirmModal
+                title={translate('common.youAppearToBeOffline')}
+                isVisible={shouldShowOfflineError}
+                onConfirm={() => setShouldShowOfflineError(false)}
+                onCancel={() => setShouldShowOfflineError(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('common.offlinePrompt')}
+                shouldShowCancelButton={false}
+            />
         </>
     );
 }
