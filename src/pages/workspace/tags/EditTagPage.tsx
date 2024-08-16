@@ -41,10 +41,11 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
+            const escapedTagName = PolicyUtils.escapeTagName(values.tagName.trim());
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (tags?.[tagName] && currentTagName !== tagName) {
+            } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             }
 
