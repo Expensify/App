@@ -11,6 +11,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Avatar from './Avatar';
 import Icon from './Icon';
@@ -41,99 +42,60 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const menuItems: MenuItemProps[] = useMemo(() => {
+    const createBaseMenuItem = (email: string, error?: TranslationPaths, additionalProps = {}): MenuItemProps => {
+        const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+        return {
+            title: personalDetails?.displayName ?? email,
+            description: email,
+            avatarID: personalDetails?.accountID ?? -1,
+            icon: personalDetails?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+            numberOfLinesDescription: 1,
+            errorText: error ? translate(error) : '',
+            shouldShowRedDotIndicator: !!error,
+            errorTextStyle: styles.mt2,
+            ...additionalProps,
+        };
+    };
+
+    const menuItems = (): MenuItemProps[] => {
+        const currentUserMenuItem: MenuItemProps = {
+            title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
+            description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
+            iconRight: Expensicons.Checkmark,
+            shouldShowRightIcon: true,
+            success: true,
+            avatarID: currentUserPersonalDetails?.accountID ?? -1,
+            icon: avatarUrl,
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
+            numberOfLinesDescription: 1,
+            wrapperStyle: [styles.buttonDefaultBG],
+            focused: true,
+        };
+
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
             const error = account?.delegatedAccess?.error;
 
-            // Show original account and the account we are acting as
             return [
-                {
-                    title: personalDetail?.displayName,
-                    description: delegateEmail,
-                    onPress: () => {
-                        disconnect();
-                    },
-                    avatarID: personalDetail?.accountID ?? -1,
-                    icon: personalDetail?.avatar ?? '',
-                    iconType: CONST.ICON_TYPE_AVATAR,
-                    outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-                    numberOfLinesDescription: 1,
-                    errorText: error ? translate(error) : '',
-                    shouldShowRedDotIndicator: !!error,
-                    errorTextStyle: styles.mt2,
-                },
-                {
-                    title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
-                    description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
-                    iconRight: Expensicons.Checkmark,
-                    shouldShowRightIcon: true,
-                    success: true,
-                    avatarID: currentUserPersonalDetails?.accountID ?? -1,
-                    icon: avatarUrl,
-                    iconType: CONST.ICON_TYPE_AVATAR,
-                    outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-                    numberOfLinesDescription: 1,
-                    wrapperStyle: [styles.buttonDefaultBG],
-                    focused: true,
-                },
+                createBaseMenuItem(delegateEmail, error, {
+                    onPress: () => disconnect(),
+                }),
+                currentUserMenuItem,
             ];
         }
 
-        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-            return {
-                title: personalDetail?.displayName ?? email,
-                description: personalDetail?.displayName ? email : '',
+        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) =>
+            createBaseMenuItem(email, error, {
                 badgeText: translate('delegate.role', role),
-                onPress: () => {
-                    connect(email);
-                },
-                avatarID: personalDetail?.accountID ?? -1,
-                icon: personalDetail?.avatar ?? '',
-                iconType: CONST.ICON_TYPE_AVATAR,
-                outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-                numberOfLinesDescription: 1,
-                errorText: error ? translate(error) : '',
-                shouldShowRedDotIndicator: !!error,
-                errorTextStyle: styles.mt2,
-            };
-        });
+                onPress: () => connect(email),
+            }),
+        );
 
-        const delegatorMenuItemsWithCurrentUser: MenuItemProps[] = [
-            {
-                title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
-                description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: true,
-                success: true,
-                avatarID: currentUserPersonalDetails?.accountID ?? -1,
-                icon: avatarUrl,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-                numberOfLinesDescription: 1,
-                wrapperStyle: [styles.buttonDefaultBG],
-                focused: true,
-            },
-            ...delegatorMenuItems,
-        ];
-        return delegatorMenuItemsWithCurrentUser;
-    }, [
-        account?.delegatedAccess?.delegate,
-        account?.delegatedAccess?.error,
-        avatarUrl,
-        currentUserPersonalDetails?.accountID,
-        currentUserPersonalDetails?.displayName,
-        currentUserPersonalDetails?.login,
-        delegators,
-        isActingAsDelegate,
-        isSmallScreenWidth,
-        styles.accountSwitcherPopover,
-        styles.buttonDefaultBG,
-        styles.mt2,
-        translate,
-    ]);
+        return [currentUserMenuItem, ...delegatorMenuItems];
+    };
 
     return (
         <>
@@ -197,7 +159,7 @@ function AccountSwitcher() {
                     <View style={styles.pb4}>
                         <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
                         <MenuItemList
-                            menuItems={menuItems}
+                            menuItems={menuItems()}
                             shouldUseSingleExecution
                         />
                     </View>
