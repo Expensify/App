@@ -7,7 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
-import ReportActionItemMessageHeaderSender from '@pages/home/report/ReportActionItemMessageHeaderSender';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -15,6 +14,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
+import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
