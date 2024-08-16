@@ -10,10 +10,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type ListItemType = {
-    value: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    value: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.AUDITOR;
     text: string;
+    alternateText: string;
     isSelected: boolean;
-    keyForList: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    keyForList: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.AUDITOR;
 };
 
 type WorkspaceMemberDetailsPageProps = {

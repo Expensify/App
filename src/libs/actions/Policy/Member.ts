@@ -407,7 +407,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.AUDITOR) {
     const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {

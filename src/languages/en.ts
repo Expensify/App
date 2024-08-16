@@ -344,6 +344,7 @@ export default {
         default: 'Default',
         update: 'Update',
         member: 'Member',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Currency',
         rate: 'Rate',
@@ -2167,6 +2168,21 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            memberAlternateText: 'Members can submit and approve reports.',
+            adminAlternateText: 'Auditors can view and comment on reports.',
+            auditorAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Admin';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Member';
+                    default:
+                        return 'Member';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -3041,6 +3057,7 @@ export default {
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
+            makeAuditor: 'Make auditor',
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',

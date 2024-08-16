@@ -2065,6 +2065,7 @@ const CONST = {
             REMOVE: 'remove',
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
+            MAKE_AUDITOR: 'makeAuditor',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',

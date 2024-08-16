@@ -334,6 +334,7 @@ export default {
         default: 'Predeterminado',
         update: 'Actualizar',
         member: 'Miembro',
+        auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
         rate: 'Tarifa',
@@ -2202,6 +2203,21 @@ export default {
             existingConnections: 'Conexiones existentes',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
+            memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
+            adminAlternateText: 'Los auditores pueden ver y comentar los informes.',
+            auditorAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            roleName: (role?: string): string => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Administrador';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Miembro';
+                    default:
+                        return 'Miembro';
+                }
+            },
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -3093,6 +3109,7 @@ export default {
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
+            makeAuditor: 'Hacer auditor',
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',

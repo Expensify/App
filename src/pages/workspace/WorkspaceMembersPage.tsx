@@ -449,7 +449,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
-    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.AUDITOR) => {
         if (!isEmptyObject(errors)) {
             return;
         }
@@ -481,22 +481,46 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             const email = personalDetails?.[accountID]?.login ?? '';
             return policy?.employeeList?.[email]?.role;
         });
+
+        const memberOption = {
+            text: translate('workspace.people.makeMember'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            icon: Expensicons.User,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+        };
+        const adminOption = {
+            text: translate('workspace.people.makeAdmin'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            icon: Expensicons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+        };
+
+        const auditorOption = {
+            text: translate('workspace.people.makeAuditor'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
+            icon: Expensicons.User,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
+        };
+
         if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
+            options.push(auditorOption, memberOption);
+        }
+        // TODO: Refactor this logic
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
+            options.push(adminOption);
+            if (!options.includes(auditorOption)) {
+                options.push(auditorOption);
+            }
         }
 
-        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.AUDITOR)) {
+            if (!options.includes(memberOption)) {
+                options.push(memberOption);
+            }
+
+            if (!options.includes(adminOption)) {
+                options.push(adminOption);
+            }
         }
         return options;
     };
