@@ -11560,12 +11560,19 @@ async function run() {
         let wrongEnvironment = false;
         let unsuccessfulDeploy = false;
         // note: this while statement looks a bit weird because uses assignments as conditions: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while#using_an_assignment_as_a_condition
-        // it's beneficial in this case because it prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
-        while ((invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
+        // it's beneficial in this case because:
+        //    - keeping the async calls in the while loop conditional prevents extra network requests from happening unnecessarily (i.e: we only check wrongEnvironment if sameAsInputTag is false, etc...)
+        //    - using conditional assignment, we can keep track of why a release is being skipped over for the sake of logs + debugging
+        while (
+        // eslint-disable-next-line no-cond-assign
+        (invalidReleaseBranch = !!lastSuccessfulDeploy?.head_branch) &&
             // we never want to compare a tag with itself. This check is necessary because prod deploys almost always have the same version as the last staging deploy.
             // In this case, the check for wrongEnvironment fails because the release that triggered that staging deploy is now finalized, so it looks like a prod deploy.
+            // eslint-disable-next-line no-cond-assign
             ((sameAsInputTag = lastSuccessfulDeploy?.head_branch === inputTag) ||
+                // eslint-disable-next-line no-cond-assign
                 (wrongEnvironment = await isReleaseValidBaseForEnvironment(lastSuccessfulDeploy?.head_branch, isProductionDeploy)) ||
+                // eslint-disable-next-line no-cond-assign
                 (unsuccessfulDeploy = !(await wasDeploySuccessful(lastSuccessfulDeploy.id))))) {
             let reason;
             if (invalidReleaseBranch) {
