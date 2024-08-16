@@ -14,16 +14,19 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
     const {translate} = useLocalize();
 
     const {sections, headerMessage} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
+        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
-            return {
-                currencyName: currencyInfo?.name ?? '',
-                text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                currencyCode,
-                keyForList: currencyCode,
-                isSelected: isSelectedCurrency,
-            };
-        });
+            if (isSelectedCurrency || !currencyInfo?.retired) {
+                acc.push({
+                    currencyName: currencyInfo?.name ?? '',
+                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                    currencyCode,
+                    keyForList: currencyCode,
+                    isSelected: isSelectedCurrency,
+                });
+            }
+            return acc;
+        }, [] as CurrencyListItem[]);
 
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
