@@ -819,9 +819,11 @@ export default {
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
-            receiptFailureMessage: "The receipt didn't upload",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            receiptFailureMessage: "The receipt didn't upload.",
             saveFileMessage: 'Download the file ',
-            loseFileMessage: 'or dismiss this error and lose it',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            loseFileMessage: 'or dismiss this error and lose it.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields.',
