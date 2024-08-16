@@ -1552,7 +1552,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'addWorkspaceRoom' | keyof ACHAccount
 >;
 
 /** Stages of policy connection sync */

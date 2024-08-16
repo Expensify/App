@@ -1038,8 +1038,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    // only add pending action for currency if it's different from the current currency
     const currencyPendingAction = currency !== policy?.outputCurrency ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
+    const namePendingAction = name !== policy?.name ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
 
     const currentRates = distanceUnit?.rates ?? {};
     const optimisticRates: Record<string, Rate> = {};
@@ -1076,13 +1076,14 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
 
                 pendingFields: {
                     ...policy.pendingFields,
-                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    name: namePendingAction,
                     outputCurrency: currencyPendingAction,
                 },
 
                 // Clear errorFields in case the user didn't dismiss the general settings error
                 errorFields: {
-                    generalSettings: null,
+                    name: null,
+                    outputCurrency: null,
                 },
                 name,
                 outputCurrency: currency,
@@ -1103,7 +1104,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    generalSettings: null,
+                    name: null,
+                    outputCurrency: null,
                 },
                 ...(customUnitID && {
                     customUnits: {
@@ -1123,7 +1125,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    generalSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                    name: namePendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                    outputCurrency: currencyPendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                 },
                 ...(customUnitID && {
                     customUnits: {
@@ -1618,7 +1621,9 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },

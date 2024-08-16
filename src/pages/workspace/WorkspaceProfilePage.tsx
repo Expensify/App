@@ -196,7 +196,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
                             disabledStyle={styles.cursorDefault}
                             errorRowStyles={styles.mt3}
                         />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
