@@ -149,7 +149,7 @@ function showContextMenu(
     // If there is an already open context menu, close it first before opening
     // a new one.
     if (contextMenuRef.current.instanceID) {
-        hideContextMenu(undefined, show);
+        hideContextMenu(false, show);
         return;
     }
 
