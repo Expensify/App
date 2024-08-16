@@ -8,6 +8,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +26,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`);
+    const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const isAnonymousUser = Session.isAnonymousUser(session);
 

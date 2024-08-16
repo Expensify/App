@@ -6,9 +6,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -166,6 +168,18 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
+function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+    return Object.values(cardsList ?? {}).sort((cardA: Card, cardB: Card) => {
+        const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
+        const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
+
+        const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
+        const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
+
+        return localeCompare(aName, bName);
+    });
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -180,4 +194,5 @@ export {
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
+    sortCardsByCardholderName,
 };

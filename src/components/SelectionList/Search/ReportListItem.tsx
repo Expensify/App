@@ -96,8 +96,8 @@ function ReportListItem<TItem extends ListItem>({
 
     // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
-    const participantFromDisplayName = participantFrom?.name ?? participantFrom?.displayName ?? participantFrom?.login ?? '';
-    const participantToDisplayName = participantTo?.name ?? participantTo?.displayName ?? participantTo?.login ?? '';
+    const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
+    const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
         const transactionItem = reportItem.transactions[0];
@@ -189,6 +189,7 @@ function ReportListItem<TItem extends ListItem>({
                 </View>
                 {reportItem.transactions.map((transaction) => (
                     <TransactionListItemRow
+                        key={transaction.transactionID}
                         parentAction={reportItem.action}
                         item={transaction}
                         showTooltip={showTooltip}

@@ -116,7 +116,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             if (!participantOption) {
                 participantOption = OptionsListUtils.getUserToInviteOption({
                     searchValue: participant.login,
-                    betas,
                 });
             }
             if (!participantOption) {
@@ -128,7 +127,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
 
     return {
         ...options,
@@ -317,6 +316,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             <KeyboardAvoidingView
                 style={styles.flex1}
