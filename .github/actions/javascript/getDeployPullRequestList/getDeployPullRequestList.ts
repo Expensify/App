@@ -103,7 +103,7 @@ async function run() {
         let reason = await shouldSkipVersion(lastSuccessfulDeploy, inputTag, isProductionDeploy);
         while (lastSuccessfulDeploy && reason) {
             console.log(
-                `Deploy of tag ${lastSuccessfulDeploy?.head_branch} was not valid as a base for comparison, looking at the next one. Reason: ${reason}`,
+                `Deploy of tag ${lastSuccessfulDeploy.head_branch} was not valid as a base for comparison, looking at the next one. Reason: ${reason}`,
                 lastSuccessfulDeploy.html_url,
             );
             lastSuccessfulDeploy = completedDeploys.shift();
