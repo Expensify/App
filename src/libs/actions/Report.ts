@@ -2304,7 +2304,9 @@ function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID, shouldDeleteChildReports);
+    InteractionManager.runAfterInteractions(() => {
+        deleteReport(reportID, shouldDeleteChildReports);
+    });
 }
 
 /**
