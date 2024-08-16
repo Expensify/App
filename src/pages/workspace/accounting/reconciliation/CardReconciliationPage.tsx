@@ -43,7 +43,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     const toggleContinuousReconciliation = (value: boolean) => {
         Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName);
         if (value) {
