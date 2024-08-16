@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
+import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -124,16 +125,15 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                 console.log('Omgitted keys');
 
                 Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
-                    // Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-
-                    // 4. Apply the new state from the file
-                    applyStateInChunks(transformedState).then(() => {
-                        console.log('Applied imported state.');
-                        Navigation.navigate(ROUTES.HOME);
+                    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+                        // 4. Apply the new state from the file
+                        applyStateInChunks(transformedState).then(() => {
+                            setIsLoading(false);
+                            console.log('Applied imported state.');
+                            Navigation.navigate(ROUTES.HOME);
+                        });
                     });
                 });
-                // Handle the transformed state as needed
-                setIsLoading(false);
             })
             .catch((err) => {
                 setError(err.message);

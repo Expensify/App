@@ -3,7 +3,9 @@ import Onyx from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
+import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
+import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -69,14 +71,16 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                                         const t = transformNumericKeysToArray(parsedState);
 
                                         Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
-                                            Onyx.multiSet(t)
-                                                .then(() => {
-                                                    console.log('Applied imported state.');
-                                                    Navigation.navigate(ROUTES.HOME);
-                                                })
-                                                .finally(() => {
-                                                    setIsLoading(false);
-                                                });
+                                            Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+                                                Onyx.multiSet(t)
+                                                    .then(() => {
+                                                        console.log('Applied imported state.');
+                                                        Navigation.navigate(ROUTES.HOME);
+                                                    })
+                                                    .finally(() => {
+                                                        setIsLoading(false);
+                                                    });
+                                            });
                                         });
                                     };
 
