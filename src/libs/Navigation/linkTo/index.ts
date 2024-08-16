@@ -110,10 +110,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             if (type === CONST.NAVIGATION.TYPE.UP) {
-                if (!areParamsDifferent && isSideModalNavigator(lastRoute?.name) && topmostCentralPaneRoute?.name === targetName) {
-                    dismissModal(navigation);
-                    return;
-                }
                 action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             } else {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -127,6 +123,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
             // and at the same time we want the back button to go to the page we were before the deeplink
         } else if (type === CONST.NAVIGATION.TYPE.UP) {
+            if (!areParamsDifferent && isSideModalNavigator(lastRoute?.name) && topmostCentralPaneRoute?.name === targetName) {
+                dismissModal(navigation);
+                return;
+            }
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
