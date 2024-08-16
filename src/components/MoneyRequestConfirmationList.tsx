@@ -349,7 +349,7 @@ function MoneyRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, unit, transactionID, currency, isDistanceRequest, iouAmount]);
+    }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
