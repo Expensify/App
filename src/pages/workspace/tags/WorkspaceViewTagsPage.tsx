@@ -70,6 +70,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
         setSelectedTags({});
+
+        return () => {
+            setSelectedTags({});
+            turnOffMobileSelectionMode();
+        };
     }, [isFocused]);
 
     const tagList = useMemo<TagListItem[]>(
