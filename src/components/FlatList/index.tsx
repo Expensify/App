@@ -3,6 +3,9 @@ import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import {isMobileSafari} from '@libs/Browser';
+
+const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function forwardRef(node: FlatList) {
@@ -57,9 +60,20 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const getContentView = useCallback(() => getScrollableNode(scrollRef.current)?.childNodes[0], []);
 
     const scrollToOffset = useCallback(
-        (offset: number, animated: boolean) => {
+        (offset: number, animated: boolean, interrupt: boolean) => {
             const behavior = animated ? 'smooth' : 'instant';
-            getScrollableNode(scrollRef.current)?.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
+            const node = getScrollableNode(scrollRef.current);
+            if (node == null) {
+                return;
+            }
+
+            if (IS_MOBILE_SAFARI && interrupt) {
+                node.style.overflowY = 'hidden';
+            }
+            node.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
+            if (IS_MOBILE_SAFARI && interrupt) {
+                node.style.overflowY = 'scroll';
+            }
         },
         [horizontal],
     );
@@ -102,12 +116,12 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
         const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
         const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
-        if (Math.abs(delta) > 0.5) {
+        if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
             const scrollOffset = getScrollOffset();
             prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
-            scrollToOffset(scrollOffset + delta, false);
+            scrollToOffset(scrollOffset + delta, false, true);
             if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
-                scrollToOffset(0, true);
+                scrollToOffset(0, true, false);
             }
         }
     }, [getScrollOffset, scrollToOffset, mvcpMinIndexForVisible, horizontal]);
@@ -147,8 +161,8 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             // reset the scroll position to the last value we got from an event.
             const lastScrollOffset = lastScrollOffsetRef.current;
             const scrollOffset = getScrollOffset();
-            if (lastScrollOffset !== scrollOffset) {
-                scrollToOffset(lastScrollOffset, false);
+            if (!IS_MOBILE_SAFARI && lastScrollOffset !== scrollOffset) {
+                scrollToOffset(lastScrollOffset, false, false);
             }
 
             adjustForMaintainVisibleContentPosition();
