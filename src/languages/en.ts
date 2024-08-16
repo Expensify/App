@@ -2037,7 +2037,7 @@ export default {
         completeVerification: 'Complete verification',
         confirmAgreements: 'Please confirm the agreements below.',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
-        certifyTrueAndAccurateError: 'Must certify information is true and accurate',
+        certifyTrueAndAccurateError: 'Please certify that the information is true and accurate',
         isAuthorizedToUseBankAccount: 'I am authorized to use this business bank account for business spend',
         isAuthorizedToUseBankAccountError: 'You must be a controlling officer with authorization to operate the business bank account.',
         termsAndConditions: 'terms and conditions',
