@@ -113,7 +113,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -242,7 +242,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         selectedTransactions,
         translate,
         onSelectDeleteOption,
-        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -253,7 +252,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        selectionMode?.isEnabled,
     ]);
 
     if (isSmallScreenWidth) {
