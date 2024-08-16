@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -42,8 +42,6 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     return (
         <SafeAreaConsumer>
@@ -70,7 +68,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         }}
                     />
                     <MenuItemWithTopDescription
-                        description={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
+                        description={translate('personalInfoStep.last4SSN')}
                         title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
                         shouldShowRightIcon
                         onPress={() => {

@@ -30,7 +30,7 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN) {
+            if (shouldAskForFullSSN) {
                 if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
                     errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
                 }
@@ -40,7 +40,7 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
 
             return errors;
         },
-        [translate, walletAdditionalDetails?.errorCode],
+        [translate, shouldAskForFullSSN],
     );
 
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';

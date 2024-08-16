@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -53,9 +53,6 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
         shouldSaveDraft: isEditing,
     });
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -72,13 +69,13 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
-                        label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
-                        aria-label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
+                        label={translate('personalInfoStep.last4SSN')}
+                        aria-label={translate('personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
-                        maxLength={shouldAskForFullSSN ? 9 : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
