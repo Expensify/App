@@ -250,6 +250,9 @@ type OriginalMessageChangeLog = {
 
     /** New name of the workspace */
     newName?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
 };
 
 /** Model of `join policy changelog` report action */
