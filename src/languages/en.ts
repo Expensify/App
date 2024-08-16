@@ -1791,7 +1791,7 @@ export default {
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
-        genericError: 'There was an error. Please try again.',
+        genericError: 'An error occurred while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Enable camera access',
         cameraRequestMessage: 'We need access to your camera to complete bank account verification. Please enable via Settings > New Expensify.',
         microphonePermissionsNotGranted: 'Enable microphone access',
