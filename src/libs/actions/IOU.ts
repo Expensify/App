@@ -2719,22 +2719,36 @@ function getUpdateMoneyRequestParams(
 
     if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                !!policy.requiresTag,
-                policyTagList ?? {},
-                !!policy.requiresCategory,
-                policyCategories ?? {},
-                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
-            ),
+        const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`] ?? {};
+        const nextViolationOnyxUpdate = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            !!policy.requiresTag,
+            policyTagList ?? {},
+            !!policy.requiresCategory,
+            policyCategories ?? {},
+            PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
         );
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
+        optimisticData.push(nextViolationOnyxUpdate);
+        if (nextViolationOnyxUpdate.value.length === 0 && currentTransactionViolations.length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+                value: NextStepUtils.buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN),
+            });
+        }
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: currentTransactionViolations,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+                value: currentNextStep,
+            },
+        );
     }
 
     // Reset the transaction thread to its original state
