@@ -76,6 +76,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
 
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
+        if (!hasAccountingConnection) {
+            return;
+        }
+        setIsOrganizeWarningModalOpen(true);
+    }, [hasAccountingConnection]);
+
     const spendItems: Item[] = [
         {
             icon: Illustrations.Car,
@@ -149,13 +156,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
             disabled: hasAccountingConnection,
+            disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Category.enablePolicyCategories(policyID, isEnabled);
@@ -168,12 +172,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areTagsEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Tag.enablePolicyTags(policyID, isEnabled);
@@ -186,12 +187,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.tax,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Policy.enablePolicyTaxes(policyID, isEnabled);
@@ -204,12 +202,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areReportFieldsEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
+            disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
-                    return;
-                }
-                if (hasAccountingConnection) {
-                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 if (isEnabled) {
@@ -235,12 +230,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
+            disabledAction: () => {
+                if (!hasAccountingConnection) {
                     return;
                 }
-                if (hasAccountingConnection) {
-                    setIsIntegrateWarningModalOpen(true);
+                setIsIntegrateWarningModalOpen(true);
+            },
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
                     return;
                 }
                 Policy.enablePolicyConnections(policyID, isEnabled);
