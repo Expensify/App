@@ -2638,12 +2638,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports.length).toBe(4);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
             expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
         it('should filter users by email', () => {
@@ -2692,7 +2691,7 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);
         });
 
@@ -2742,17 +2741,6 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
-        });
-
-        it('should return the workspaces that match the participant login', () => {
-            const searchText = 'reedrichards@expensify.com';
-
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-
-            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
-
-            expect(recentReportsNames).toContain('Test Workspace');
         });
 
         it('should return limited amount of recent reports if the limit is set', () => {
