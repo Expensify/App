@@ -121,6 +121,7 @@ function AccountSwitcher() {
         return delegatorMenuItemsWithCurrentUser;
     }, [
         account?.delegatedAccess?.delegate,
+        account?.delegatedAccess?.error,
         avatarUrl,
         currentUserPersonalDetails?.accountID,
         currentUserPersonalDetails?.displayName,
