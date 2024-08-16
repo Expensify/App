@@ -1754,7 +1754,7 @@ export default {
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             firstName: 'Please enter a valid first name',
             lastName: 'Please enter a valid last name',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
         },
     },
