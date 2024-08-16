@@ -45,6 +45,8 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
+            } else if (escapedTagName === '0') {
+                errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             }
