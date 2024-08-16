@@ -143,7 +143,7 @@ function IOURequestStepParticipants({
             const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
             const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-            IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
+            IOU.setMoneyRequestAmount(transactionID, amount, currency);
 
             const participantsMap =
                 transaction?.participants?.map((participant) => {
@@ -153,7 +153,7 @@ function IOURequestStepParticipants({
                     return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
                 }) ?? [];
             const participantAccountIDs: number[] = participantsMap.map((participant) => participant.accountID ?? -1);
-            if (isTypeSplit && amount && transaction?.currency && !isPolicyExpenseChat) {
+            if (isTypeSplit && amount && currency && !isPolicyExpenseChat) {
                 IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs);
             }
         },
