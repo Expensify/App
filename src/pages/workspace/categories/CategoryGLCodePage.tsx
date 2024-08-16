@@ -38,7 +38,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             if (newGLCode !== glCode) {
                 Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
             }
-            Navigation.dismissModal();
+            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName));
         },
         [categoryName, glCode, route.params.policyID],
     );
