@@ -102,7 +102,7 @@ import type {
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participant, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -490,7 +490,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const shouldUpdateNotificationPrefernece = !isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     if (shouldUpdateNotificationPrefernece) {
-        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+        optimisticReport.participants = {
+            [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        };
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -550,7 +552,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             },
         });
     }
@@ -1688,7 +1692,6 @@ function updateNotificationPreference(
     parentReportID?: string,
     parentReportActionID?: string,
     report?: OnyxEntry<Report>,
-    isJoiningRoom?: boolean,
 ) {
     if (previousValue === newValue) {
         if (navigate && !isEmptyObject(report) && report.reportID) {
@@ -1701,7 +1704,13 @@ function updateNotificationPreference(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: newValue},
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: newValue,
+                    },
+                },
+            },
         },
     ];
 
@@ -1709,7 +1718,13 @@ function updateNotificationPreference(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: previousValue},
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: previousValue,
+                    },
+                },
+            },
         },
     ];
 
@@ -1723,20 +1738,6 @@ function updateNotificationPreference(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
-        });
-    }
-
-    if (isJoiningRoom) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: {
-                    [currentUserAccountID]: {
-                        hidden: false,
-                    },
-                },
-            },
         });
     }
 
@@ -2424,7 +2425,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    const notificationPreference = ReportUtils.getReportNotificationPreference(ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
     if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
@@ -2747,13 +2748,12 @@ function joinRoom(report: OnyxEntry<Report>) {
     }
     updateNotificationPreference(
         report.reportID,
-        report.notificationPreference,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         false,
         report.parentReportID,
         report.parentReportActionID,
         report,
-        true,
     );
 }
 
@@ -2808,10 +2808,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
             value:
                 isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
                     ? {
-                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                           participants: {
                               [currentUserAccountID]: {
-                                  hidden: true,
+                                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                               },
                           },
                       }
@@ -2819,7 +2818,11 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                           reportID: null,
                           stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                           statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                          notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                          participants: {
+                              [currentUserAccountID]: {
+                                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                              },
+                          },
                       },
         },
     ];
@@ -2830,7 +2833,13 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value:
                 isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
-                    ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
+                    ? {
+                          participants: {
+                              [currentUserAccountID]: {
+                                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                              },
+                          },
+                      }
                     : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
                           acc[key] = null;
                           return acc;
@@ -2860,7 +2869,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {[report.parentReportActionID]: {childReportNotificationPreference: report.notificationPreference}},
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: ReportUtils.getReportNotificationPreference(report)}},
         });
     }
 
@@ -2886,6 +2895,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         return;
     }
 
+    const defaultNotificationPreference = ReportUtils.getDefaultNotificationPreferenceForReport(report);
+
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
 
@@ -2895,7 +2906,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
             const participant: ReportParticipant = {
-                hidden: false,
+                notificationPreference: defaultNotificationPreference,
                 role: CONST.REPORT.ROLE.MEMBER,
             };
             // eslint-disable-next-line no-param-reassign
@@ -2998,8 +3009,8 @@ function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
     const memberRoles: Record<number, string> = {};
-    const optimisticParticipants: Participants = {};
-    const successParticipants: Participants = {};
+    const optimisticParticipants: Record<number, Partial<Participant>> = {};
+    const successParticipants: Record<number, Partial<Participant>> = {};
 
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;

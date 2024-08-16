@@ -103,7 +103,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [TEST_USER_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
                             lastActorAccountID: TEST_USER_ACCOUNT_ID,
@@ -230,7 +234,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [USER_1_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_2_ACCOUNT_ID,
                             lastVisibleActionCreated: reportActionCreatedDate,
@@ -380,7 +388,11 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            notificationPreference: 'always',
+                            participants: {
+                                [USER_1_ACCOUNT_ID]: {
+                                    notificationPreference: 'always',
+                                },
+                            },
                             lastMessageText: 'Current User Comment 3',
                             lastActorAccountID: 1,
                             lastVisibleActionCreated: reportActionCreatedDate,

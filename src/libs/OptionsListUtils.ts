@@ -805,7 +805,7 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
-        result.notificationPreference = report.notificationPreference;
+        result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -899,7 +899,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
-        .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
+        .filter(([, reportParticipant]) => reportParticipant && reportParticipant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map(([accountID]) => Number(accountID));
 
     const option = createOption(
@@ -2578,7 +2578,7 @@ function getEmptyOptions(): Options {
 }
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
-    return report.isUnread === true && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    return report.isUnread === true && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 export {
