@@ -450,6 +450,26 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
     },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Presentar un gasto',
+            subtitleText1: 'Presente un gasto a alguien y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Dividir un gasto',
+            subtitleText1: 'Divide con un amigo y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pagar a alguien',
+            subtitleText1: 'Paga a quien quieras y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Programar una llamada',
     },

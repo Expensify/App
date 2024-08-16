@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     RevealExpensifyCardDetailsParams,
@@ -315,7 +316,7 @@ function clearIssueNewCardFlow() {
     });
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, oldLimit?: number) {
+function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -328,6 +329,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    availableSpend: newAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: newLimit,
                     },
@@ -356,6 +358,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    availableSpend: oldAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: oldLimit,
                     },
@@ -480,6 +483,21 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
     API.write(WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD, parameters);
 }
 
+function openCardDetailsPage(cardID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const parameters: OpenCardDetailsPageParams = {
+        authToken,
+        cardID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
+}
+
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
@@ -553,6 +571,7 @@ export {
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
+    openCardDetailsPage,
     toggleContinuousReconciliation,
 };
 export type {ReplacementReason};
