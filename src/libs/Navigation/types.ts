@@ -1293,6 +1293,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
+            readonly?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };

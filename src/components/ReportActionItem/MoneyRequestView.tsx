@@ -494,6 +494,7 @@ function MoneyRequestView({
                                     filename={receiptURIs?.filename}
                                     transaction={transaction}
                                     enablePreviewModal
+                                    readonly={readonly}
                                 />
                             </View>
                         )}
