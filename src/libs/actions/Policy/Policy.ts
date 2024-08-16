@@ -1121,9 +1121,9 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
 
     const errorFields: Policy['errorFields'] = {
         name: namePendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
-    }
+    };
 
-    if(!errorFields.name && currencyPendingAction) {
+    if (!errorFields.name && currencyPendingAction) {
         errorFields.outputCurrency = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage');
     }
 
