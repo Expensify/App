@@ -1816,7 +1816,7 @@ export default {
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
         weCouldNotVerify: "We couldn't verify",
         pleaseFixIt: 'Please fix this information before continuing',
-        failedKYCTextBefore: "We weren't able to successfully verify your identity. Please try again later and reach out to ",
+        failedKYCTextBefore: "We weren't able to verify your identity. Please try again later or reach out to ",
         failedKYCTextAfter: ' if you have any questions.',
     },
     termsStep: {
