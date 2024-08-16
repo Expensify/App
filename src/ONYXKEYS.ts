@@ -460,8 +460,8 @@ const ONYXKEYS = {
         SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
 
         /**
-         * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
-         * So for example: card_12345_Expensify Card
+         * Stores the card list for a given fundID and feed in the format: cards_<fundID>_<bankName>
+         * So for example: cards_12345_Expensify Card
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
@@ -551,8 +551,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
-        CHANGE_BILLING_CURRENCY_FORM: 'changeBillingCurrencyForm',
-        CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'changeBillingCurrencyFormDraft',
+        CHANGE_BILLING_CURRENCY_FORM: 'billingCurrencyForm',
+        CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'billingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         PRIVATE_NOTES_FORM_DRAFT: 'privateNotesFormDraft',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',

@@ -269,10 +269,10 @@ Onyx.connect({
     },
 });
 
-let primaryPolicyID: OnyxEntry<string>;
+let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (primaryPolicyID = value),
+    callback: (value) => (activePolicyID = value),
 });
 
 /**
@@ -2291,6 +2291,9 @@ function getTrackExpenseInformation(
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (!filename) {
+        filename = existingTransaction?.filename;
+    }
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -5059,6 +5062,8 @@ function createDistanceRequest(
             report?.reportID ?? '',
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
+            taxCode,
+            taxAmount,
         );
         onyxData = splitOnyxData;
 
@@ -6544,8 +6549,8 @@ function getPayMoneyRequestParams(
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
     let chatReport = initialChatReport;
 
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', primaryPolicyID);
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }
@@ -6591,10 +6596,10 @@ function getPayMoneyRequestParams(
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
     };
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
         optimisticChatReport.invoiceReceiver = {
             type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-            policyID: primaryPolicyID,
+            policyID: activePolicyID,
         };
     }
 
