@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
@@ -47,8 +48,11 @@ type FeedbackSurveyProps = {
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft] = useOnyx(`${formID}Draft`);
+    const [draft, draftResults] = useOnyx(`${formID}Draft`);
+    const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
+
+    const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
     const options = useMemo<Choice[]>(
         () => [
@@ -60,7 +64,17 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         [translate],
     );
 
-    const handleOptionSelect = () => {
+    useEffect(() => {
+        if (!draft?.reason || isLoadingDraft) {
+            return;
+        }
+
+        setReason(draft.reason);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
+    }, [isLoadingDraft]);
+
+    const handleOptionSelect = (value: string) => {
+        setReason(value);
         setShouldShowReasonError(false);
     };
 
@@ -102,7 +116,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     onPress={handleOptionSelect}
                     shouldSaveDraft
                 />
-                {!!draft?.reason && (
+                {!!reason && (
                     <>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
