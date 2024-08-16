@@ -65,6 +65,7 @@ function AccountSwitcher() {
             focused: true,
             shouldShowRightIcon: true,
             iconRight: Expensicons.Checkmark,
+            success: true,
         });
 
         if (isActingAsDelegate) {
