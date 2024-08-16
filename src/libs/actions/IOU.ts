@@ -2717,10 +2717,11 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`] ?? {};
-        const nextViolationOnyxUpdate = ViolationsUtils.getViolationsOnyxData(
+    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`] ?? {};
+    let nextViolationOnyxUpdate: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
+        nextViolationOnyxUpdate = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
             !!policy.requiresTag,
@@ -2729,26 +2730,28 @@ function getUpdateMoneyRequestParams(
             policyCategories ?? {},
             PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
         );
+    }
+
+    if (nextViolationOnyxUpdate?.value) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+            value: NextStepUtils.buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, nextViolationOnyxUpdate.value.length > 0),
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
+            value: currentNextStep,
+        });
+    }
+
+    if (nextViolationOnyxUpdate && ('tag' in transactionChanges || 'category' in transactionChanges)) {
         optimisticData.push(nextViolationOnyxUpdate);
-        if (nextViolationOnyxUpdate.value.length === 0 && currentTransactionViolations.length > 0) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
-                value: NextStepUtils.buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN),
-            });
-        }
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: currentTransactionViolations,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? '-1'}`,
-                value: currentNextStep,
-            },
-        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
     }
 
     // Reset the transaction thread to its original state
