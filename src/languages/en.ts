@@ -866,7 +866,6 @@ export default {
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
-            zero: `This expense is on hold. Do you want to pay anyway?`,
             one: `This expense is on hold. Do you want to pay anyway?`,
             other: () => `These expenses are on hold. Do you want to pay anyway?`,
         }),

@@ -859,7 +859,6 @@ export default {
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
-            zero: `Ningún gasto está bloqueado. ¿Quieres pagar todo el informe?`,
             one: `Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?`,
             other: () => `Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?`,
         }),
