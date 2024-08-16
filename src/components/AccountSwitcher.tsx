@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails} from '@src/types/onyx';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -42,11 +43,10 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (email: string, error?: TranslationPaths, additionalProps = {}): MenuItemProps => {
-        const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps = {}): MenuItemProps => {
         return {
-            title: personalDetails?.displayName ?? email,
-            description: email,
+            title: personalDetails?.displayName ?? personalDetails?.login,
+            description: personalDetails?.login,
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -60,39 +60,32 @@ function AccountSwitcher() {
     };
 
     const menuItems = (): MenuItemProps[] => {
-        const currentUserMenuItem: MenuItemProps = {
-            title: currentUserPersonalDetails?.displayName ?? currentUserPersonalDetails?.login,
-            description: currentUserPersonalDetails?.displayName ? currentUserPersonalDetails?.login : '',
-            iconRight: Expensicons.Checkmark,
-            shouldShowRightIcon: true,
-            success: true,
-            avatarID: currentUserPersonalDetails?.accountID ?? -1,
-            icon: avatarUrl,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
-            numberOfLinesDescription: 1,
+        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
             wrapperStyle: [styles.buttonDefaultBG],
             focused: true,
-        };
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.Checkmark,
+        });
 
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
+            const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
             const error = account?.delegatedAccess?.error;
-
             return [
-                createBaseMenuItem(delegateEmail, error, {
+                createBaseMenuItem(delegatePersonalDetails, error, {
                     onPress: () => disconnect(),
                 }),
                 currentUserMenuItem,
             ];
         }
 
-        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) =>
-            createBaseMenuItem(email, error, {
+        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
+            const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            return createBaseMenuItem(personalDetails, error, {
                 badgeText: translate('delegate.role', role),
                 onPress: () => connect(email),
-            }),
-        );
+            });
+        });
 
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
