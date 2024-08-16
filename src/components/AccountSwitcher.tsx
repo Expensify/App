@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -25,8 +25,6 @@ import Text from './Text';
 
 function AccountSwitcher() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const avatarUrl = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? -1;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -34,11 +32,9 @@ function AccountSwitcher() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const buttonRef = useRef<HTMLDivElement>(null);
-    const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
 
-    const delegators = useMemo(() => {
-        return account?.delegatedAccess?.delegators ?? [];
-    }, [account?.delegatedAccess?.delegators]);
+    const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
+    const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
@@ -108,8 +104,8 @@ function AccountSwitcher() {
                     <Avatar
                         type={CONST.ICON_TYPE_AVATAR}
                         size={CONST.AVATAR_SIZE.MEDIUM}
-                        avatarID={accountID}
-                        source={avatarUrl}
+                        avatarID={currentUserPersonalDetails?.accountID}
+                        source={currentUserPersonalDetails?.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
