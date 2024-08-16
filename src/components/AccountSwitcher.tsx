@@ -45,6 +45,8 @@ function AccountSwitcher() {
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
             const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+            const error = account?.delegatedAccess?.error;
+
             // Show original account and the account we are acting as
             return [
                 {
@@ -58,6 +60,8 @@ function AccountSwitcher() {
                     iconType: CONST.ICON_TYPE_AVATAR,
                     outerWrapperStyle: isSmallScreenWidth ? {} : styles.accountSwitcherPopover,
                     numberOfLinesDescription: 1,
+                    errorText: error ? translate(error) : '',
+                    shouldShowRedDotIndicator: !!error,
                     errorTextStyle: styles.mt2,
                 },
                 {

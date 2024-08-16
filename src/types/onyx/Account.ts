@@ -32,6 +32,9 @@ type DelegatedAccess = {
 
     /** The email of original user when they are acting as a delegate for another account */
     delegate?: string;
+
+    /** Authentication failure errors when disconnecting as a copilot */
+    error?: TranslationPaths;
 };
 
 /** Model of user account */
