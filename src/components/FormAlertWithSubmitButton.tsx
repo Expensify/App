@@ -1,3 +1,4 @@
+import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -46,6 +47,9 @@ type FormAlertWithSubmitButtonProps = {
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
+    /** React ref being forwarded to the submit button */
+    buttonRef?: Ref<View>;
+
     /** Text for the button */
     buttonText: string;
 
@@ -70,6 +74,7 @@ function FormAlertWithSubmitButton({
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
     footerContent,
+    buttonRef,
     buttonStyles,
     buttonText,
     isAlertVisible = false,
@@ -105,6 +110,7 @@ function FormAlertWithSubmitButton({
                         />
                     ) : (
                         <Button
+                            ref={buttonRef}
                             success
                             pressOnEnter={!disablePressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
