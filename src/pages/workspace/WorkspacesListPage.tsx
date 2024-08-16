@@ -315,8 +315,8 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy): WorkspaceItem => {
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                    const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
-                    const id = Object.keys(policy.policyDetailsForNonMembers)[0];
+                    const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0);
+                    const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
                     return {
                         title: policyInfo.name,
                         icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),

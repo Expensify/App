@@ -124,7 +124,7 @@ const emojiTrie: EmojiTrie = supportedLanguages.reduce((acc, lang) => {
 
 const buildEmojisTrie = (locale: Locale) => {
     // Normalize the locale to lowercase and take the first part before any dash
-    const normalizedLocale = locale.toLowerCase().split('-')[0];
+    const normalizedLocale = locale.toLowerCase().split('-').at(0);
     const localeToUse = supportedLanguages.includes(normalizedLocale as SupportedLanguage) ? (normalizedLocale as SupportedLanguage) : undefined;
 
     if (!localeToUse || emojiTrie[localeToUse]) {

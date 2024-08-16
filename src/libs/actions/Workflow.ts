@@ -119,7 +119,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousDefaultApprover = policy.approver ?? policy.owner;
-    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
+    const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0).email : undefined;
     const previousEmployeeList = {...policy.employeeList};
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE, membersToRemove});
 

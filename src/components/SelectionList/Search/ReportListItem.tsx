@@ -100,7 +100,7 @@ function ReportListItem<TItem extends ListItem>({
     const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions[0];
+        const transactionItem = reportItem.transactions.at(0);
 
         return (
             <TransactionListItem

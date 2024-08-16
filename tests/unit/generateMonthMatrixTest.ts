@@ -130,6 +130,6 @@ describe('generateMonthMatrix', () => {
     it('returns a matrix with 6 rows and 7 columns for January 2022', () => {
         const matrix = generateMonthMatrix(2022, 0);
         expect(matrix.length).toBe(6);
-        expect(matrix[0].length).toBe(7);
+        expect(matrix.at(0).length).toBe(7);
     });
 });

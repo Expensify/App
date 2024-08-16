@@ -46,7 +46,7 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
  */
 function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
     for (let i = page.length - 1; i >= 0; i--) {
-        const id = page[i];
+        const id = page.at(i);
         if (id === CONST.PAGINATION_END_ID) {
             return {id, index: sortedItems.length - 1};
         }
@@ -121,10 +121,10 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
         return b.lastIndex - a.lastIndex;
     });
 
-    const result = [sortedPages[0]];
+    const result = [sortedPages.at(0)];
     for (let i = 1; i < sortedPages.length; i++) {
-        const page = sortedPages[i];
-        const prevPage = result[result.length - 1];
+        const page = sortedPages.at(i);
+        const prevPage = result.at(result.length - 1);
 
         // Current page is inside the previous page, skip
         if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
@@ -181,12 +181,12 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 
         // If we are linked to an action in a gap return it by itself
         if (!linkedPage) {
-            return [sortedItems[index]];
+            return [sortedItems.at(index)];
         }
 
         page = linkedPage;
     } else {
-        page = pagesWithIndexes[0];
+        page = pagesWithIndexes.at(0);
     }
 
     return page ? sortedItems.slice(page.firstIndex, page.lastIndex + 1) : sortedItems;

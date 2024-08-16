@@ -23,7 +23,7 @@ test('Request.use() can register a middleware and it will run', () => {
 
     Request.processWithMiddleware(request, true);
     return waitForBatchedUpdates().then(() => {
-        const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls[0];
+        const [promise, returnedRequest, isFromSequentialQueue] = testMiddleware.mock.calls.at(0);
         expect(testMiddleware).toHaveBeenCalled();
         expect(returnedRequest).toEqual(request);
         expect(isFromSequentialQueue).toBe(true);

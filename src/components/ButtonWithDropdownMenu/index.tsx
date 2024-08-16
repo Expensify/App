@@ -50,7 +50,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
-    const selectedItem = options[selectedItemIndex] || options[0];
+    const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
@@ -85,7 +85,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 }
                 onPress(e, selectedItem?.value);
             } else {
-                onPress(e, options[0]?.value);
+                onPress(e, options.at(0)?.value);
             }
         },
         {
@@ -150,11 +150,11 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled || !!options[0].disabled}
+                    isDisabled={isDisabled || !!options.at(0).disabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
                     text={selectedItem.text}
-                    onPress={(event) => onPress(event, options[0].value)}
+                    onPress={(event) => onPress(event, options.at(0).value)}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}

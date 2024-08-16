@@ -3823,7 +3823,7 @@ function trackExpense(
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
-    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+    const existingChatReportID = existingSplitChatReportID || participants.at(0).reportID;
 
     // Check if the report is available locally if we do have one
     let existingSplitChatReport = existingChatReportID ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`] : null;
@@ -5096,7 +5096,7 @@ function createDistanceRequest(
             chatType: splitData.chatType,
         };
     } else {
-        const participant = participants[0] ?? {};
+        const participant = participants.at(0) ?? {};
         const {
             iouReport,
             chatReport,
@@ -5209,8 +5209,8 @@ function editRegularMoneyRequest(
             '',
             false,
         );
-        updatedMoneyRequestReport.lastMessageText = ReportActionsUtils.getTextFromHtml(lastMessage[0].html);
-        updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
+        updatedMoneyRequestReport.lastMessageText = ReportActionsUtils.getTextFromHtml(lastMessage.at(0).html);
+        updatedMoneyRequestReport.lastMessageHtml = lastMessage.at(0).html;
 
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
@@ -5572,9 +5572,9 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     });
 
     if (ReportActionsUtils.getReportActionMessage(updatedReportPreviewAction)) {
-        if (Array.isArray(updatedReportPreviewAction?.message) && updatedReportPreviewAction.message?.[0]) {
-            updatedReportPreviewAction.message[0].text = messageText;
-            updatedReportPreviewAction.message[0].deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
+        if (Array.isArray(updatedReportPreviewAction?.message) && updatedReportPreviewAction.message?.at(0)) {
+            updatedReportPreviewAction.message.at(0).text = messageText;
+            updatedReportPreviewAction.message.at(0).deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
         } else if (!Array.isArray(updatedReportPreviewAction.message) && updatedReportPreviewAction.message) {
             updatedReportPreviewAction.message.text = messageText;
             updatedReportPreviewAction.message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
@@ -6376,7 +6376,7 @@ function getReportFromHoldRequestsOnyxData(
     failureData: OnyxUpdate[];
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport.reportID);
-    const firstHoldTransaction = holdTransactions[0];
+    const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = rand64();
 
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
@@ -6880,7 +6880,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     if (approvalChain.length === 0) {
         return true;
     }
-    return approvalChain[approvalChain.length - 1] === currentUserEmail;
+    return approvalChain.at(approvalChain.length - 1) === currentUserEmail;
 }
 
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
@@ -7918,10 +7918,10 @@ function mergeDuplicates(params: TransactionMergeParams) {
                     deleted: deletedTime,
                 },
                 ...(Array.isArray(reportAction.message) &&
-                    !!reportAction.message[0] && {
+                    !!reportAction.message.at(0) && {
                         message: [
                             {
-                                ...reportAction.message[0],
+                                ...reportAction.message.at(0),
                                 deleted: deletedTime,
                             },
                             ...reportAction.message.slice(1),

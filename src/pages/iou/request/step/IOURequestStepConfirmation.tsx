@@ -249,7 +249,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                selectedParticipants.at(0),
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -283,7 +283,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                selectedParticipants.at(0),
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -534,7 +534,7 @@ function IOURequestStepConfirmation({
         (paymentMethod: PaymentMethodType | undefined) => {
             const currency = transaction?.currency;
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-            const participant = participants?.[0];
+            const participant = participants?.at(0);
 
             if (!participant || !transaction?.amount || !currency) {
                 return;

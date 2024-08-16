@@ -51,12 +51,12 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls[1] as FormDataObject[])[1].body, {
+            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[])?.at(1).body, {
                 reportID: '1234',
                 reportActionID: '5678',
             });
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls[0] as FormDataObject[])[1].body, {
+            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1).body, {
                 reportID: '1234',
             });
         });
@@ -100,12 +100,12 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls[1] as FormDataObject[])[1].body, {
+            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1).body, {
                 reportID: '5555',
                 reportActionID: '5678',
             });
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls[0] as FormDataObject[])[1].body, {reportID: '1234'});
+            TestHelper.assertFormDataMatchesObject(((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1).body, {reportID: '1234'});
         });
     });
 });

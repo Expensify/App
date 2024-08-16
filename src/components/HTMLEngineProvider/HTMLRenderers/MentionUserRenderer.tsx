@@ -53,7 +53,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         }
 
         // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@')[0];
+        return displayText.split('@').at(0);
     };
 
     if (!isEmpty(htmlAttribAccountID)) {
@@ -68,7 +68,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0);
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {

@@ -273,7 +273,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
-    return workspaceColorOptions[colorHash];
+    return workspaceColorOptions.at(colorHash);
 }
 
 /**
@@ -292,7 +292,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors[colorHash];
+    return eReceiptColors.at(colorHash);
 }
 
 /**
@@ -477,7 +477,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     const result = hexadecimalToRGBArray(backgroundColor);
     if (result !== undefined) {
         return {
-            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
+            backgroundColor: `rgba(${result.at(0)}, ${result.at(1)}, ${result.at(2)}, ${opacity})`,
         };
     }
     return {};

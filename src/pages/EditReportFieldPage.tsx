@@ -153,7 +153,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                     policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}
+                    fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions.at(index))}
                     onSubmit={handleReportFieldChange}
                 />
             )}

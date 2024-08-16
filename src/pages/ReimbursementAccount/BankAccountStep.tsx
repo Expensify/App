@@ -161,7 +161,35 @@ function BankAccountStep({
                             />
                         </View>
                     </Section>
-                    {!user?.validated && <ValidateAccountMessage />}
+                    {!user?.validated && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                            <Icon
+                                src={Expensicons.Exclamation}
+                                fill={theme.danger}
+                            />
+
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {translate('bankAccount.validateAccountError.phrase1')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={() => Session.signOutAndRedirectToSignIn()}
+                                >
+                                    {translate('bankAccount.validateAccountError.phrase2')}
+                                </TextLink>
+                                {translate('bankAccount.validateAccountError.phrase3')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={() => {
+                                        const login = loginList?.[loginNames?.at(0) ?? ''] ?? {};
+                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.at(0) ?? ''));
+                                    }}
+                                >
+                                    {translate('bankAccount.validateAccountError.phrase4')}
+                                </TextLink>
+                                .
+                            </Text>
+                        </View>
+                    )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback

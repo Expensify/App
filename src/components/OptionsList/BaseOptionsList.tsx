@@ -138,10 +138,10 @@ function BaseOptionsList(
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListDataWithIndexOffset[] | null, flatDataArrayIndex: number) => {
-        if (!flattenedData.current[flatDataArrayIndex]) {
+        if (!flattenedData.current.at(flatDataArrayIndex)) {
             flattenedData.current = buildFlatSectionArray();
         }
-        const targetItem = flattenedData.current[flatDataArrayIndex];
+        const targetItem = flattenedData.current.at(flatDataArrayIndex);
         return {
             length: targetItem.length,
             offset: targetItem.offset,

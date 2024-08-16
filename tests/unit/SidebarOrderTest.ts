@@ -148,9 +148,9 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
 
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('Three, Four');
-                        expect(displayNames[2]).toHaveTextContent('One, Two');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(2)).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -201,9 +201,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('One, Two'); // this has `hasDraft` flag enabled so it will be on top
-                        expect(displayNames[1]).toHaveTextContent('Five, Six');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(displayNames.at(1)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -252,9 +252,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('One, Two');
-                        expect(displayNames[1]).toHaveTextContent('Five, Six');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(1)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -306,10 +306,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent(taskReportName);
-                        expect(displayNames[1]).toHaveTextContent('Five, Six');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
-                        expect(displayNames[3]).toHaveTextContent('One, Two');
+                        expect(displayNames.at(0)).toHaveTextContent(taskReportName);
+                        expect(displayNames.at(1)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(3)).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -370,10 +370,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
-                        expect(displayNames[1]).toHaveTextContent('Five, Six');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
-                        expect(displayNames[3]).toHaveTextContent('One, Two');
+                        expect(displayNames.at(0)).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(3)).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -438,10 +438,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent('Workspace owes $100.00');
-                        expect(displayNames[1]).toHaveTextContent('Email Five');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
-                        expect(displayNames[3]).toHaveTextContent('One, Two');
+                        expect(displayNames.at(0)).toHaveTextContent('Workspace owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Email Five');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(3)).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -498,9 +498,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Three, Four');
-                        expect(displayNames[1]).toHaveTextContent('Five, Six');
-                        expect(displayNames[2]).toHaveTextContent('One, Two');
+                        expect(displayNames.at(0)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(1)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(2)).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -655,9 +655,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -707,9 +707,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -720,10 +720,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
-                        expect(displayNames[3]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Seven, Eight');
+                        expect(displayNames.at(3)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -776,9 +776,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -796,10 +796,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
-                        expect(displayNames[3]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Seven, Eight');
+                        expect(displayNames.at(3)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -851,9 +851,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('Three, Four');
-                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(2)).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -891,9 +891,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -904,10 +904,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
-                        expect(displayNames[3]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Seven, Eight');
+                        expect(displayNames.at(3)).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -958,9 +958,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('Three, Four');
-                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(2)).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -1098,11 +1098,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(displayNames[0]).toHaveTextContent('Email Five owes $100.00');
-                        expect(displayNames[1]).toHaveTextContent('Email Four owes $1,000.00');
-                        expect(displayNames[2]).toHaveTextContent('Email Six owes $100.00');
-                        expect(displayNames[3]).toHaveTextContent('Email Three owes $100.00');
-                        expect(displayNames[4]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames.at(0)).toHaveTextContent('Email Five owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Email Four owes $1,000.00');
+                        expect(displayNames.at(2)).toHaveTextContent('Email Six owes $100.00');
+                        expect(displayNames.at(3)).toHaveTextContent('Email Three owes $100.00');
+                        expect(displayNames.at(4)).toHaveTextContent('Email Two owes $100.00');
                     })
             );
         });
@@ -1153,9 +1153,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0]).toHaveTextContent('Five, Six');
-                        expect(displayNames[1]).toHaveTextContent('One, Two');
-                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames.at(0)).toHaveTextContent('Five, Six');
+                        expect(displayNames.at(1)).toHaveTextContent('One, Two');
+                        expect(displayNames.at(2)).toHaveTextContent('Three, Four');
                     })
             );
         });

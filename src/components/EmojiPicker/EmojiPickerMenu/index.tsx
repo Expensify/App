@@ -148,12 +148,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     indexToSelect = 0;
                 }
 
-                const item = filteredEmojis[indexToSelect];
+                const item = filteredEmojis.at(indexToSelect);
                 if (!item) {
                     return;
                 }
                 if ('types' in item || 'name' in item) {
-                    const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
+                    const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.at(preferredSkinTone) : item.code;
                     onEmojiSelected(emoji, item);
                 }
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
@@ -257,7 +257,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types.at(preferredSkinTone) : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
             const shouldEmojiBeHighlighted =

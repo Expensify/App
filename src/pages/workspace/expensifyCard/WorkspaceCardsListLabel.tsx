@@ -52,7 +52,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
     // TODO: instead of the first bankAccount on the list get settlementBankAccountID from the private_expensifyCardSettings NVP and check if that is connected via Plaid.
-    const isConnectedWithPlaid = useMemo(() => !!Object.values(bankAccountList ?? {})[0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList]);
+    const isConnectedWithPlaid = useMemo(() => !!Object.values(bankAccountList ?? {}).at(0)?.accountData?.additionalData?.plaidAccountID, [bankAccountList]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {

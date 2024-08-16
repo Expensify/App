@@ -220,7 +220,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         setSelectedApproverEmail(approver.login);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const headerMessage = useMemo(() => (searchTerm && !sections.at(0).data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -368,7 +368,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     }, [formattedPolicyEmployeeList, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(
-        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
+        () => (searchTerm && !sections.at(0).data.length ? translate('common.noResultsFound') : ''),
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate, sections],

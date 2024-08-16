@@ -121,8 +121,8 @@ function AvatarWithDisplayName({
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
-                                mainAvatar={icons[0]}
-                                secondaryAvatar={icons[1]}
+                                mainAvatar={icons.at(0)}
+                                secondaryAvatar={icons.at(1)}
                                 size={size}
                             />
                         ) : (

@@ -58,15 +58,15 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
         });
     }
 
-    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
-    const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
+    const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems.at(activeItemIndex)?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
+    const menuTitle = useMemo(() => title ?? popoverMenuItems.at(activeItemIndex)?.text, [activeItemIndex, popoverMenuItems, title]);
     const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
             <PressableWithFeedback
                 accessible
-                accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
+                accessibilityLabel={popoverMenuItems.at(activeItemIndex)?.text ?? ''}
                 ref={buttonRef}
                 style={[styles.tabSelectorButton, styles.ph5]}
                 wrapperStyle={styles.flex1}

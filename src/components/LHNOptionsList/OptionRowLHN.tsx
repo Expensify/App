@@ -192,8 +192,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons[0]}
-                                            secondaryAvatar={optionItem.icons[1]}
+                                            mainAvatar={optionItem.icons.at(0)}
+                                            secondaryAvatar={optionItem.icons.at(1)}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (

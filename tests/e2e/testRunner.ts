@@ -43,7 +43,7 @@ const getArg = (argName: string): string | undefined => {
     if (argIndex === -1) {
         return undefined;
     }
-    return args[argIndex + 1];
+    return args.at(argIndex + 1);
 };
 
 let config = defaultConfig;
@@ -217,7 +217,7 @@ const runTests = async (): Promise<void> => {
     // Run the tests
     const tests = Object.keys(config.TESTS_CONFIG);
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
-        const test = Object.values(config.TESTS_CONFIG)[testIndex];
+        const test = Object.values(config.TESTS_CONFIG).at(testIndex);
 
         // re-instal app for each new test suite
         await installApp(config.MAIN_APP_PACKAGE, mainAppPath);

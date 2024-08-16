@@ -102,7 +102,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
         return [policyReportFieldOptions, header];
     }, [recentlyUsedOptions, debouncedSearchValue, fieldValue, fieldOptions]);
 
-    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((option) => option.searchText === fieldValue)?.[0]?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
     return (
         <SelectionList
             textInputValue={searchValue}

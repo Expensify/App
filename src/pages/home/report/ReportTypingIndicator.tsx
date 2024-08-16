@@ -26,7 +26,7 @@ function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps)
 
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
-    const firstUserTyping = usersTyping[0];
+    const firstUserTyping = usersTyping.at(0);
 
     const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 

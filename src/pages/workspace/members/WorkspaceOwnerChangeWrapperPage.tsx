@@ -51,7 +51,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors.at(0) as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 

@@ -64,7 +64,7 @@ async function run() {
     if (assistantResponse.includes(`[${CONST.NO_ACTION}]`)) {
         // extract the text after [NO_ACTION] from assistantResponse since this is a
         // bot related action keyword
-        const noActionContext = assistantResponse.split(`[${CONST.NO_ACTION}] `)?.[1]?.replace('"', '');
+        const noActionContext = assistantResponse.split(`[${CONST.NO_ACTION}] `)?.at(1)?.replace('"', '');
         console.log('[NO_ACTION] w/ context: ', noActionContext);
         return;
     }
@@ -89,7 +89,8 @@ async function run() {
         // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
         // bot related action keyword
         let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
-        // format the date like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+        // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+        const date = new Date(payload.comment?.updated_at ?? '');
         const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
         extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
         console.log('ProposalPolice™ editing issue comment...', payload.comment.id);

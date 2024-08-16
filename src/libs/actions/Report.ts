@@ -326,7 +326,7 @@ function subscribeToReportTypingEvents(reportID: string) {
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedStatus(typingStatus);
-        const accountIDOrLogin = Object.keys(normalizedTypingStatus)[0];
+        const accountIDOrLogin = Object.keys(normalizedTypingStatus).at(0);
 
         if (!accountIDOrLogin) {
             return;
@@ -369,7 +369,7 @@ function subscribeToReportLeavingEvents(reportID: string) {
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedLeavingStatus = getNormalizedStatus(leavingStatus);
-        const accountIDOrLogin = Object.keys(normalizedLeavingStatus)[0];
+        const accountIDOrLogin = Object.keys(normalizedLeavingStatus).at(0);
 
         if (!accountIDOrLogin) {
             return;
@@ -852,8 +852,8 @@ function openReport(
     if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-        optimisticData[0].value = {
+        optimisticData.at(0).onyxMethod = Onyx.METHOD.SET;
+        optimisticData.at(0).value = {
             ...optimisticReport,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...newReportObject,
@@ -885,7 +885,7 @@ function openReport(
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = participantAccountIDs[index];
+            const accountID = participantAccountIDs.at(index);
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
@@ -2058,7 +2058,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
                 pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                 lastActorAccountID: currentUserAccountID,
                 lastVisibleActionCreated: optimisticDescriptionUpdatedReportAction.created,
-                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.[0]?.text,
+                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.at(0)?.text,
             },
         },
         {
@@ -3325,7 +3325,7 @@ function completeOnboarding(
     // If the target report isn't opened, the permission field will not exist. So we should add the fallback permission for task report
     const fallbackPermission = isAccountIDOdd ? [CONST.REPORT.PERMISSIONS.READ] : [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE];
 
-    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail]).at(0);
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 

@@ -233,9 +233,9 @@ function PaymentMethodList({
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
                 if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
-                    assignedCardsGrouped[domainGroupIndex].errors = {...assignedCardsGrouped[domainGroupIndex].errors, ...card.errors};
+                    assignedCardsGrouped.at(domainGroupIndex).errors = {...assignedCardsGrouped.at(domainGroupIndex).errors, ...card.errors};
                     if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
-                        assignedCardsGrouped[domainGroupIndex].brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        assignedCardsGrouped.at(domainGroupIndex).brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     }
                     return;
                 }

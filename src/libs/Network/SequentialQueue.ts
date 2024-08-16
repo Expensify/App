@@ -79,7 +79,7 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    const requestToProcess = persistedRequests[0];
+    const requestToProcess = persistedRequests.at(0);
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true)

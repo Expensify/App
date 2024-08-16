@@ -146,7 +146,7 @@ function ReportActionItemSingle({
         const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
-        secondaryAvatar = reportIcons[avatarIconIndex];
+        secondaryAvatar = reportIcons.at(avatarIconIndex);
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }

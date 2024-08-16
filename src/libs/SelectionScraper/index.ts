@@ -125,7 +125,7 @@ const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {
             // We are excluding divs that are children of our editor element and have only one child to prevent
             // additional newlines from being added in the HTML to Markdown conversion process.
-            return replaceNodes(dom.children[0], isChildOfEditorElement);
+            return replaceNodes(dom.children.at(0), isChildOfEditorElement);
         }
 
         // We need to preserve href attribute in order to copy links.

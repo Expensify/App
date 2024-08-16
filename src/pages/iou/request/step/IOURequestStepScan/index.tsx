@@ -138,7 +138,7 @@ function IOURequestStepScan({
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
                     let lastBackDeviceId = '';
                     for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices[i];
+                        const device = devices.at(i);
                         if (device.kind === 'videoinput') {
                             lastBackDeviceId = device.deviceId;
                             break;
@@ -309,7 +309,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants.at(0),
                                 '',
                                 receipt,
                                 '',
@@ -334,7 +334,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants.at(0),
                                 '',
                                 receipt,
                                 '',
@@ -364,7 +364,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants.at(0),
                                 '',
                                 receipt,
                             );
@@ -377,7 +377,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants.at(0),
                                 '',
                                 receipt,
                             );

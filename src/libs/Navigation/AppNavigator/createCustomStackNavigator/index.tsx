@@ -64,7 +64,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         if (isSmallScreenWidth) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-            const lastRoute = routes[routes.length - 1];
+            const lastRoute = routes.at(routes.length - 1);
             const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
             const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
 
@@ -74,7 +74,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                     stateToRender: {
                         ...state,
                         index: 0,
-                        routes: [filteredRoutes[0]],
+                        routes: [filteredRoutes.at(0)],
                     },
                     searchRoute: lastSearchCentralPane,
                 };

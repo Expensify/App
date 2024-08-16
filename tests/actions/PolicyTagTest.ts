@@ -177,7 +177,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
-                        Object.values(fakePolicyTags)[0].orderWeight,
+                        Object.values(fakePolicyTags).at(0).orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -245,7 +245,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
-                        Object.values(fakePolicyTags)[0].orderWeight,
+                        Object.values(fakePolicyTags).at(0).orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -506,7 +506,7 @@ describe('actions/Policy', () => {
 
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
+            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0);
             const newTagName = 'New tag';
 
             mockFetch?.pause?.();
@@ -574,7 +574,7 @@ describe('actions/Policy', () => {
 
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
+            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0) ?? '';
             const newTagName = 'New tag';
 
             mockFetch?.pause?.();

@@ -214,7 +214,7 @@ function FloatingActionButtonAndPopover(
             return '';
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
-            const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? -1), true) ?? '';
+            const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars.at(0)?.id ?? -1), true) ?? '';
             return translate('quickAction.paySomeone', name);
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
@@ -228,7 +228,7 @@ function FloatingActionButtonAndPopover(
         if (quickActionAvatars.length === 0) {
             return false;
         }
-        const displayName = personalDetails?.[quickActionAvatars[0]?.id ?? -1]?.firstName ?? '';
+        const displayName = personalDetails?.[quickActionAvatars.at(0)?.id ?? -1]?.firstName ?? '';
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
     }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 

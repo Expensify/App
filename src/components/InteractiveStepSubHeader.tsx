@@ -70,7 +70,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                         return;
                     }
                     setCurrentStep(index);
-                    onStepSelected(stepNames[index]);
+                    onStepSelected(stepNames.at(index));
                 };
 
                 return (

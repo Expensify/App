@@ -15,7 +15,7 @@ const run = (): boolean => {
     console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
+        const measurement = regressionOutput.countChanged.at(i);
         const baseline: PerformanceEntry = measurement.baseline;
         const current: PerformanceEntry = measurement.current;
 

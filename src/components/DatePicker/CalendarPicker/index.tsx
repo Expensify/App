@@ -170,7 +170,7 @@ function CalendarPicker({
                         testID="currentMonthText"
                         accessibilityLabel={translate('common.currentMonth')}
                     >
-                        {monthNames[currentMonthView]}
+                        {monthNames.at(currentMonthView)}
                     </Text>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}

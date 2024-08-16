@@ -290,7 +290,7 @@ function IOURequestStepDistance({
                         translate('iou.fieldPending'),
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0),
                         '',
                         {},
                         '',

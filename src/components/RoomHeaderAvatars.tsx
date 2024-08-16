@@ -39,19 +39,19 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}
-                onPress={() => navigateToAvatarPage(icons[0])}
+                onPress={() => navigateToAvatarPage(icons.at(0))}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={icons[0].name ?? ''}
-                disabled={icons[0].source === Expensicons.FallbackAvatar}
+                accessibilityLabel={icons.at(0).name ?? ''}
+                disabled={icons.at(0).source === Expensicons.FallbackAvatar}
             >
                 <Avatar
-                    source={icons[0].source}
+                    source={icons.at(0).source}
                     imageStyles={styles.avatarXLarge}
                     size={CONST.AVATAR_SIZE.XLARGE}
-                    name={icons[0].name}
-                    avatarID={icons[0].id}
-                    type={icons[0].type}
-                    fallbackIcon={icons[0].fallbackIcon}
+                    name={icons.at(0).name}
+                    avatarID={icons.at(0).id}
+                    type={icons.at(0).type}
+                    fallbackIcon={icons.at(0).fallbackIcon}
                 />
             </PressableWithoutFocus>
         );

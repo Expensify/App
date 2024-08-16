@@ -173,8 +173,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             >
                                 {shouldShowSubscript ? (
                                     <SubscriptAvatar
-                                        mainAvatar={icons[0]}
-                                        secondaryAvatar={icons[1]}
+                                        mainAvatar={icons.at(0)}
+                                        secondaryAvatar={icons.at(1)}
                                         size={defaultSubscriptSize}
                                     />
                                 ) : (

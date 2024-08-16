@@ -120,13 +120,13 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
-    const isLegacyDeletedComment = message.length === 0 || message[0]?.html === '';
+    const isLegacyDeletedComment = message.length === 0 || message.at(0)?.html === '';
 
-    return isLegacyDeletedComment || !!message[0]?.deleted;
+    return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    return Array.isArray(reportAction?.message) ? reportAction.message[0] : reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -504,8 +504,8 @@ function findPreviousAction(reportActions: ReportAction[] | undefined, actionInd
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions[i].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return reportActions[i];
+        if (isNetworkOffline || reportActions.at(i).pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return reportActions.at(i);
         }
     }
 
@@ -714,8 +714,8 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return updatedReportAction;
     }
 
-    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message[0]) {
-        updatedReportAction.message[0].html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message.at(0)) {
+        updatedReportAction.message.at(0).html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
     }
 
     return updatedReportAction;
@@ -735,7 +735,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     if (sortedReportActions.length === 0) {
         return undefined;
     }
-    return sortedReportActions[0];
+    return sortedReportActions.at(0);
 }
 
 function getLastVisibleMessage(
@@ -832,7 +832,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
         return '';
     }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
-    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2).reportActionID : '';
 }
 
 /**
@@ -1011,7 +1011,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
         return;
     }
 
-    const singleAction = iouRequestActions[0];
+    const singleAction = iouRequestActions.at(0);
     const originalMessage = getOriginalMessage(singleAction);
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
@@ -1407,7 +1407,7 @@ function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAc
     if (currentActionIndex === -1) {
         return false;
     }
-    const prevReportAction = sortedReportActions[currentActionIndex - 1];
+    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
     return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
@@ -1558,7 +1558,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     if (reimbursableUrls.length === 1) {
         result.push({
             text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
-            url: reimbursableUrls[0],
+            url: reimbursableUrls.at(0),
         });
     }
 
@@ -1567,7 +1567,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls[0];
+            url = nonReimbursableUrls.at(0);
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -1579,7 +1579,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
                     // The first three characters in a Salesforce ID is the expense type
-                    url = nonReimbursableUrls[0].substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
+                    url = nonReimbursableUrls.at(0).substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
                     break;
                 default:
                     url = QBO_EXPENSES_URL;

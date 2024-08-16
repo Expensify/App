@@ -55,7 +55,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
                 }
 
                 const whitespace = /([\n\r])/gm;
-                const comment = combinedComments[i].replace(whitespace, '');
+                const comment = combinedComments.at(i).replace(whitespace, '');
 
                 console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
 

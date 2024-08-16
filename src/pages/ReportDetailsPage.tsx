@@ -496,8 +496,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (isGroupChat && !isThread) {
             return (
                 <AvatarWithImagePicker
-                    source={icons[0].source}
-                    avatarID={icons[0].id}
+                    source={icons.at(0).source}
+                    avatarID={icons.at(0).id}
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}

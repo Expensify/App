@@ -56,7 +56,7 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     }, [bodyContent]);
 
     return {
-        componentToRender: bodyContent[screenIndex],
+        componentToRender: bodyContent.at(screenIndex),
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,

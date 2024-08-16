@@ -223,7 +223,7 @@ function ReportActionsList({
      */
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
-            const nextMessage = sortedVisibleReportActions[index + 1];
+            const nextMessage = sortedVisibleReportActions.at(index + 1);
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
             let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
@@ -240,7 +240,7 @@ function ReportActionsList({
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
-            const reportAction = sortedVisibleReportActions[index];
+            const reportAction = sortedVisibleReportActions.at(index);
             if (shouldDisplayNewMarker(reportAction, index)) {
                 return reportAction.reportActionID;
             }
@@ -279,7 +279,7 @@ function ReportActionsList({
             return;
         }
 
-        const mostRecentReportActionCreated = sortedVisibleReportActions[0]?.created ?? '';
+        const mostRecentReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
         if (mostRecentReportActionCreated <= unreadMarkerTime) {
             return;
         }
@@ -290,14 +290,14 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sortedVisibleReportActions]);
 
-    const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
+    const lastActionIndex = sortedVisibleReportActions.at(0)?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions.at(0)?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isLastPendingActionIsDelete = sortedReportActions?.at(0)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
@@ -465,7 +465,7 @@ function ReportActionsList({
     const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
 
     const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
 
         if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
@@ -489,7 +489,7 @@ function ReportActionsList({
 
         if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
-                lastMessageTime.current = sortedVisibleReportActions[0]?.created ?? '';
+                lastMessageTime.current = sortedVisibleReportActions.at(0)?.created ?? '';
             }
             return;
         }

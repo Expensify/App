@@ -96,9 +96,9 @@ describe('actions/IOU', () => {
                                     const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                     expect(Object.keys(chatReports).length).toBe(2);
                                     expect(Object.keys(iouReports).length).toBe(1);
-                                    const chatReport = chatReports[0];
-                                    const transactionThreadReport = chatReports[1];
-                                    const iouReport = iouReports[0];
+                                    const chatReport = chatReports.at(0);
+                                    const transactionThreadReport = chatReports.at(1);
+                                    const iouReport = iouReports.at(0);
                                     iouReportID = iouReport?.reportID;
                                     transactionThread = transactionThreadReport;
 
@@ -132,8 +132,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
                                     expect(Object.values(iouActions).length).toBe(1);
-                                    createdAction = createdActions?.[0] ?? null;
-                                    iouAction = iouActions?.[0] ?? null;
+                                    createdAction = createdActions?.at(0) ?? null;
+                                    iouAction = iouActions?.at(0) ?? null;
                                     const originalMessage = ReportActionsUtils.isMoneyRequestAction(iouAction) ? ReportActionsUtils.getOriginalMessage(iouAction) : undefined;
 
                                     // The CREATED action should not be created after the IOU action
@@ -175,7 +175,7 @@ describe('actions/IOU', () => {
                                         (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
-                                    transactionThreadCreatedAction = createdActions[0];
+                                    transactionThreadCreatedAction = createdActions.at(0);
 
                                     expect(transactionThreadCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     resolve();
@@ -633,11 +633,11 @@ describe('actions/IOU', () => {
                                         const iouReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                         expect(Object.values(chatReports).length).toBe(2);
                                         expect(Object.values(iouReports).length).toBe(1);
-                                        const chatReport = chatReports[0];
+                                        const chatReport = chatReports.at(0);
                                         chatReportID = chatReport?.reportID;
-                                        transactionThreadReport = chatReports[1];
+                                        transactionThreadReport = chatReports.at(1);
 
-                                        const iouReport = iouReports[0];
+                                        const iouReport = iouReports.at(0);
                                         iouReportID = iouReport?.reportID;
 
                                         expect(iouReport?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
@@ -671,8 +671,8 @@ describe('actions/IOU', () => {
                                             ) ?? null;
                                         expect(Object.values(createdActions).length).toBe(1);
                                         expect(Object.values(iouActions).length).toBe(1);
-                                        createdAction = createdActions[0];
-                                        iouAction = iouActions[0];
+                                        createdAction = createdActions.at(0);
+                                        iouAction = iouActions.at(0);
                                         const originalMessage = ReportActionsUtils.getOriginalMessage(iouAction);
 
                                         // The CREATED action should not be created after the IOU action
@@ -778,7 +778,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connection);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
+                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
@@ -1429,7 +1429,7 @@ describe('actions/IOU', () => {
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
 
                                     const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
-                                    chatReport = chatReports[0];
+                                    chatReport = chatReports.at(0);
                                     expect(chatReport).toBeTruthy();
                                     expect(chatReport).toHaveProperty('reportID');
                                     expect(chatReport).toHaveProperty('iouReportID');
@@ -1877,7 +1877,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(Object.values(updatedAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
+                                    expect(Object.values(updatedAction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
                                     resolve();
                                 },
                             });
@@ -2099,7 +2099,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.other'));
+                                    expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(Localize.translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });

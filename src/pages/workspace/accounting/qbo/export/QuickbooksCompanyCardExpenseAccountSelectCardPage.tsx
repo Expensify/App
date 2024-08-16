@@ -71,7 +71,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
                     {
                         [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
-                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts[0],
+                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
                         [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
                     },
                     {
@@ -101,7 +101,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                         ListItem={RadioListItem}
                         onSelectRow={selectExportCompanyCard}
                         shouldSingleExecuteRowSelect
-                        initiallyFocusedOptionKey={sections[0].data.find((option) => option.isSelected)?.keyForList}
+                        initiallyFocusedOptionKey={sections.at(0).data.find((option) => option.isSelected)?.keyForList}
                         footerContent={
                             isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
                         }

@@ -330,7 +330,7 @@ function MoneyRequestView({
             // Return violations if there are any
             if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+                return ViolationsUtils.getViolationTranslation(violations.at(0), translate);
             }
 
             return '';

@@ -74,8 +74,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons[0]}
-                                secondaryAvatar={item.icons[1]}
+                                mainAvatar={item.icons.at(0)}
+                                secondaryAvatar={item.icons.at(1)}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />

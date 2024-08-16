@@ -209,8 +209,8 @@ function OptionRow({
                                 {!!option.icons?.length &&
                                     (option.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            mainAvatar={option.icons[0]}
-                                            secondaryAvatar={option.icons[1]}
+                                            mainAvatar={option.icons.at(0)}
+                                            secondaryAvatar={option.icons.at(1)}
                                             backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />

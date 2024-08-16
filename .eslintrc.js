@@ -289,5 +289,11 @@ module.exports = {
                 'rulesdir/use-periods-for-error-messages': 'error',
             },
         },
+        {
+            files: ['*.ts', '*.tsx'],
+            rules: {
+                'rulesdir/prefer-at': 'error',
+            },
+        },
     ],
 };
