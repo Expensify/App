@@ -9,10 +9,10 @@ import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps = ChildrenProps & {
@@ -66,7 +66,7 @@ function OnyxTabNavigator({
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, {status: onyxFetchStatus}] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
+    const [selectedTab, onyxFetchMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
     // This callback is used to register the focus trap container element of each avaiable tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
@@ -103,7 +103,7 @@ function OnyxTabNavigator({
         onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
     }, [selectedTab, focusTrapContainerElementMapping, onActiveTabFocusTrapContainerElementChanged]);
 
-    if (onyxFetchStatus === CONST.ONYX_FETCH_STATUS.LOADING) {
+    if (isLoadingOnyxValue(onyxFetchMetadata)) {
         return null;
     }
 
