@@ -176,10 +176,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                         setOfflineModalOpen?.();
                         return;
                     }
-
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -197,11 +193,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     if (isOffline) {
                         setOfflineModalOpen?.();
                         return;
-                    }
-
-                    clearSelectedTransactions();
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
                     }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
