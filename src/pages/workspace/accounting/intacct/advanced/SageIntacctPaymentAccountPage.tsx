@@ -30,7 +30,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== config?.sync?.reimbursementAccountID) {
-                updateSageIntacctSyncReimbursementAccountID(policyID, value);
+                updateSageIntacctSyncReimbursementAccountID(policyID, value, config?.sync?.reimbursementAccountID);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
         },

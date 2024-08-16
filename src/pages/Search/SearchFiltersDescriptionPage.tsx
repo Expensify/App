@@ -15,14 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersDescriptionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const description = searchAdvancedFiltersForm?.[INPUT_IDS.DESCRIPTION];
+    const description = searchAdvancedFiltersForm?.[FILTER_KEYS.DESCRIPTION];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateDescriptionFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -53,8 +53,8 @@ function SearchFiltersDescriptionPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.DESCRIPTION}
-                        name={INPUT_IDS.DESCRIPTION}
+                        inputID={FILTER_KEYS.DESCRIPTION}
+                        name={FILTER_KEYS.DESCRIPTION}
                         defaultValue={description}
                         maxLength={CONST.DESCRIPTION_LIMIT}
                         label={translate('common.description')}
