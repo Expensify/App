@@ -5,6 +5,8 @@ import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react
 import {FlatList} from 'react-native';
 import {isMobileSafari} from '@libs/Browser';
 
+// Changing the scroll position during a momentum scroll does not work on mobile Safari.
+// We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
@@ -67,6 +69,8 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 return;
             }
 
+            // Stop momentum scrolling on mobile Safari otherwise the scroll position update
+            // will not work.
             if (IS_MOBILE_SAFARI && interrupt) {
                 node.style.overflowY = 'hidden';
             }
