@@ -122,14 +122,14 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
         const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
         if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
-            const scrollOffset = getScrollOffset();
+            const scrollOffset = lastScrollOffsetRef.current;
             prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
             scrollToOffset(scrollOffset + delta, false, true);
             if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
                 scrollToOffset(0, true, false);
             }
         }
-    }, [getScrollOffset, scrollToOffset, mvcpMinIndexForVisible, horizontal]);
+    }, [scrollToOffset, mvcpMinIndexForVisible, horizontal]);
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
@@ -161,15 +161,6 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 return;
             }
 
-            // Chrome adjusts scroll position when elements are added at the top of the
-            // view. We want to have the same behavior as react-native / Safari so we
-            // reset the scroll position to the last value we got from an event.
-            const lastScrollOffset = lastScrollOffsetRef.current;
-            const scrollOffset = getScrollOffset();
-            if (!IS_MOBILE_SAFARI && lastScrollOffset !== scrollOffset) {
-                scrollToOffset(lastScrollOffset, false, false);
-            }
-
             adjustForMaintainVisibleContentPosition();
             prepareForMaintainVisibleContentPosition();
         });
@@ -180,7 +171,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         });
 
         mutationObserverRef.current = mutationObserver;
-    }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
+    }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView]);
 
     useEffect(() => {
         if (!isListRenderedRef.current) {
