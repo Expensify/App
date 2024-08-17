@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -45,6 +46,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
@@ -93,7 +95,7 @@ function IOURequestStepParticipants({
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipantReportID = val[0]?.reportID ?? '';
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID, !canUseP2PDistanceRequests);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
 
@@ -110,7 +112,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [iouType, reportID, transactionID],
+        [iouType, reportID, transactionID, canUseP2PDistanceRequests],
     );
 
     const goToNextStep = useCallback(() => {
