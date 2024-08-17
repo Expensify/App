@@ -336,6 +336,7 @@ function ReportActionCompose({
     );
 
     const onFocus = useCallback(() => {
+        Report.clearHighlightIfCurrentUserAction(currentUserPersonalDetails.accountID);
         setIsFocused(true);
         onComposerFocus?.();
     }, [onComposerFocus]);
