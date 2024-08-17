@@ -69,14 +69,15 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 return;
             }
 
+            const overflowProp = horizontal ? 'overflowX' : 'overflowY';
             // Stop momentum scrolling on mobile Safari otherwise the scroll position update
             // will not work.
             if (IS_MOBILE_SAFARI && interrupt) {
-                node.style.overflowY = 'hidden';
+                node.style[overflowProp] = 'hidden';
             }
             node.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
             if (IS_MOBILE_SAFARI && interrupt) {
-                node.style.overflowY = 'scroll';
+                node.style[overflowProp] = 'scroll';
             }
         },
         [horizontal],
