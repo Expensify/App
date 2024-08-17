@@ -20,7 +20,7 @@ function ModalContent({children, onDismiss = () => {}, onModalWillShow = () => {
     React.useEffect(() => {
         onModalWillShow();
         return onDismiss;
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     return children;
 }
