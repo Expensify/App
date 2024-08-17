@@ -345,8 +345,8 @@ function FloatingActionButtonAndPopover(
     }));
 
     const handleMenuItemSelection = () => {
-        hideCreateMenu();
         Report.clearHighlightIfCurrentUserAction(session?.accountID);
+        hideCreateMenu();
     };
 
     const toggleCreateMenu = () => {

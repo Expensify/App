@@ -266,7 +266,9 @@ function ReportActionCompose({
     }, []);
 
     const onItemSelected = useCallback(() => {
+        Report.clearHighlightIfCurrentUserAction(currentUserPersonalDetails.accountID);
         isKeyboardVisibleWhenShowingModalRef.current = false;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -304,6 +306,7 @@ function ReportActionCompose({
             playSound(SOUNDS.DONE);
 
             const newCommentTrimmed = newComment.trim();
+            Report.clearHighlightIfCurrentUserAction(currentUserPersonalDetails.accountID);
 
             if (attachmentFileRef.current) {
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
@@ -312,6 +315,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [onSubmit, reportID],
     );
 
