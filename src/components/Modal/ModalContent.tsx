@@ -17,10 +17,10 @@ type ModalContentProps = {
 };
 
 function ModalContent({children, onDismiss = () => {}, onModalWillShow = () => {}}: ModalContentProps) {
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     React.useEffect(() => {
         onModalWillShow();
         return onDismiss;
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
     return children;
 }
