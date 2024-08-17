@@ -41,7 +41,7 @@ type NewCustomUnit = {
 type WorkspaceMembersRoleData = {
     accountID: number;
     email: string;
-    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.AUDITOR;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
