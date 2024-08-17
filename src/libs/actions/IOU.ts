@@ -84,6 +84,7 @@ type MoneyRequestInformation = {
     reportPreviewAction: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
+    isRequestingFromMoneyRequestReport: boolean;
     onyxData: OnyxData;
 };
 
@@ -2037,8 +2038,12 @@ function getMoneyRequestInformation(
     // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
+
+    // Are we submitting an expense directly from within an expense report?
+    let isRequestingFromMoneyRequestReport = false;
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+        isRequestingFromMoneyRequestReport = true;
     } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
@@ -2184,6 +2189,7 @@ function getMoneyRequestInformation(
         reportPreviewAction,
         transactionThreadReportID: optimisticTransactionThread?.reportID ?? '-1',
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1',
+        isRequestingFromMoneyRequestReport,
         onyxData: {
             optimisticData,
             successData,
@@ -3490,6 +3496,7 @@ function requestMoney(
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        isRequestingFromMoneyRequestReport,
         onyxData,
     } = getMoneyRequestInformation(
         isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
@@ -3557,7 +3564,7 @@ function requestMoney(
                 comment,
                 created,
                 merchant,
-                iouReportID: iouReport.reportID,
+                iouReportID: isRequestingFromMoneyRequestReport ? iouReport.reportID : '0',
                 chatReportID: chatReport.reportID,
                 transactionID: transaction.transactionID,
                 reportActionID: iouAction.reportActionID,
