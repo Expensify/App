@@ -775,8 +775,15 @@ function calculateAmountForUpdatedWaypointOrRate(
     const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
     const updatedAmount = isFromExpenseReport ? -amount : amount;
     const updatedCurrency = currency ?? CONST.CURRENCY.USD;
-    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
-        toLocaleDigit(preferredLocale, digit),
+    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        rate,
+        updatedCurrency,
+        Localize.translateLocal,
+        (digit) => toLocaleDigit(preferredLocale, digit),
+        true,
     );
 
     return {

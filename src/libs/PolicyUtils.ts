@@ -137,16 +137,21 @@ function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string):
     return distanceUnit?.rates[customUnitRateID];
 }
 
-function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
+function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
         return '';
     }
+
+    if (!Number.isNaN(Number(numValue)) && withDecimals) {
+        return Number(numValue).toFixed(2).toString().replace('.', toLocaleDigit('.'));
+    }
+
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
-    return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate, withDecimals?: boolean) {
+    return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit, withDecimals);
 }
 
 /**
