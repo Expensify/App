@@ -3588,7 +3588,6 @@ function requestMoney(
     }
 
     Navigation.dismissModal(activeReportID);
-    Report.clearHighlightIfCurrentUserAction(payeeAccountID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -3631,7 +3630,6 @@ function sendInvoice(
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
     Navigation.dismissModalWithReport(invoiceRoom);
-    Report.clearHighlightIfCurrentUserAction(receiver.accountID);
     Report.notifyNewAction(invoiceRoom.reportID, receiver.accountID);
 }
 
@@ -3815,7 +3813,6 @@ function trackExpense(
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     }
 
-    Report.clearHighlightIfCurrentUserAction(payeeAccountID);
     Report.notifyNewAction(activeReportID ?? '', payeeAccountID);
 }
 
@@ -4377,7 +4374,6 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     Navigation.dismissModal(existingSplitChatReportID);
-    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -4445,7 +4441,6 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
     Navigation.dismissModal(splitData.chatReportID);
-    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -4755,7 +4750,6 @@ function startSplitBill({
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModalWithReport(splitChatReport);
-    Report.clearHighlightIfCurrentUserAction(currentUserAccountID);
     Report.notifyNewAction(splitChatReport.reportID ?? '-1', currentUserAccountID);
 }
 
@@ -5001,7 +4995,6 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReportID);
-    Report.clearHighlightIfCurrentUserAction(sessionAccountID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -5161,7 +5154,6 @@ function createDistanceRequest(
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
     Navigation.dismissModal(activeReportID);
-    Report.clearHighlightIfCurrentUserAction(userAccountID);
     Report.notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -6763,7 +6755,6 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
-    Report.clearHighlightIfCurrentUserAction(managerID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -6777,7 +6768,6 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
-    Report.clearHighlightIfCurrentUserAction(managerID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 

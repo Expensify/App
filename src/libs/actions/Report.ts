@@ -635,7 +635,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         successData,
         failureData,
     });
-    clearHighlightIfCurrentUserAction(lastAction?.actorAccountID);
     notifyNewAction(reportID, lastAction?.actorAccountID, lastAction?.reportActionID);
 }
 
