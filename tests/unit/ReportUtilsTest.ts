@@ -656,6 +656,7 @@ describe('ReportUtils', () => {
                 const paidPolicy: Policy = {
                     id: 'ef72dfeb',
                     type: CONST.POLICY.TYPE.TEAM,
+                    autoReporting: true,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                     name: '',
                     role: 'user',

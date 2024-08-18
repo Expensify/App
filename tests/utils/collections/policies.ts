@@ -8,6 +8,7 @@ export default function createRandomPolicy(index: number): Policy {
         id: index.toString(),
         name: randWord(),
         type: rand(Object.values(CONST.POLICY.TYPE)),
+        autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
             Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES).filter(
