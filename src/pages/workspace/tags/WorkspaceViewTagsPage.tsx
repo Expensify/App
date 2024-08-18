@@ -70,6 +70,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
         setSelectedTags({});
+
+        return () => {
+            setSelectedTags({});
+            turnOffMobileSelectionMode();
+        };
     }, [isFocused]);
 
     const tagList = useMemo<TagListItem[]>(
@@ -80,14 +85,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     value: tag.name,
                     text: PolicyUtils.getCleanedTagName(tag.name),
                     keyForList: tag.name,
-                    isSelected: selectedTags[tag.name],
+                    isSelected: selectedTags[tag.name] && canSelectMultiple,
                     pendingAction: tag.pendingAction,
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [currentPolicyTag, selectedTags, translate],
+        [currentPolicyTag, selectedTags, canSelectMultiple, translate],
     );
 
     const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);

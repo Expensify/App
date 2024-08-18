@@ -15,7 +15,7 @@ Onyx.connect({
                 return;
             }
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? String(personalDetails.accountID);
+            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
         });
     },
 });
