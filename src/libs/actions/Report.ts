@@ -1336,7 +1336,8 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         return;
     }
 
-    if (report?.reportID && report.preexistingReportID && ReportUtils.isMoneyRequestReport(report)) {
+    // Handle cleanup of stale optimistic IOU report and its report preview separately
+    if (report?.reportID && report.preexistingReportID && ReportUtils.isMoneyRequestReport(report) && report?.parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
             [report.parentReportActionID]: null,
         });
