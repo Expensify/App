@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -12,7 +11,6 @@ import type {MileageRate} from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -50,7 +48,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const personalDetails = usePersonalDetails();
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
@@ -123,10 +120,8 @@ function IOURequestStepParticipants({
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
         (isPolicyExpenseChat: boolean) => {
-            const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
-
             // Get policy report based on transaction participants
-            const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(transaction.participants[0].reportID ?? '') ?? report : report;
+            const policyReport = transaction?.participants?.[0] ? ReportUtils.getReport(selectedReportID.current) : report;
 
             const policyID = IOU.getIOURequestPolicyID(transaction, policyReport);
             const policy = PolicyUtils.getPolicy(report?.policyID ?? policyID);
@@ -145,19 +140,12 @@ function IOURequestStepParticipants({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
             IOU.setMoneyRequestAmount(transactionID, amount, currency);
 
-            const participantsMap =
-                transaction?.participants?.map((participant) => {
-                    if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
-                        return participant;
-                    }
-                    return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-                }) ?? [];
-            const participantAccountIDs: number[] = participantsMap.map((participant) => participant.accountID ?? -1);
-            if (isTypeSplit && amount && currency && !isPolicyExpenseChat) {
-                IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs);
+            const participantAccountIDs: number[] | undefined = transaction?.participants?.map((participant) => participant.accountID ?? -1);
+            if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
+                IOU.setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [iouType, personalDetails, report, transaction, transactionID],
+        [report, transaction, transactionID, isSplitRequest],
     );
 
     const goToNextStep = useCallback(() => {
