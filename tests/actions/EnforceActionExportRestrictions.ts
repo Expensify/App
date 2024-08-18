@@ -1,4 +1,5 @@
 import * as IOU from '@libs/actions/IOU';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
@@ -27,6 +28,11 @@ describe('ReportUtils', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getAllReportActions).toBeUndefined();
     });
+
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getReportOrDraftReport).toBeUndefined();
+    });
 });
 
 describe('Policy', () => {
@@ -41,11 +47,23 @@ describe('IOU', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(IOU.getPolicy).toBeUndefined();
     });
+
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(IOU.getReportOrDraftReport).toBeUndefined();
+    });
 });
 
 describe('Task', () => {
     it('does not export getParentReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Task.getParentReport).toBeUndefined();
+    });
+});
+
+describe('OptionsListUtils', () => {
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(OptionsListUtils.getReportOrDraftReport).toBeUndefined();
     });
 });

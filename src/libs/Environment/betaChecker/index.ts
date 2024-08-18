@@ -1,4 +1,4 @@
-import type IsBetaBuild from './types';
+import type {IsBetaBuild} from './types';
 
 /**
  * There's no beta build in non native

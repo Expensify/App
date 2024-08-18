@@ -1,3 +1,4 @@
+import type {Unit} from '@libs/E2E/types';
 import type {Stats} from '../measure/math';
 import getStats from '../measure/math';
 import * as math from './math';
@@ -28,7 +29,16 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
 
-function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry {
+const LowerIsBetter: Record<Unit, boolean> = {
+    ms: true,
+    MB: true,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '%': true,
+    renders: true,
+    FPS: false,
+};
+
+function buildCompareEntry(name: string, compare: Stats, baseline: Stats, unit: Unit): Entry {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
 
@@ -38,11 +48,12 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
     const isDurationDiffOfSignificance = prob < PROBABILITY_CONSIDERED_SIGNIFICANCE && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
 
     return {
+        unit,
         name,
         baseline,
         current: compare,
         diff,
-        relativeDurationDiff,
+        relativeDurationDiff: LowerIsBetter[unit] ? relativeDurationDiff : -relativeDurationDiff,
         isDurationDiffOfSignificance,
     };
 }
@@ -50,7 +61,7 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
 /**
  * Compare results between baseline and current entries and categorize.
  */
-function compareResults(compareEntries: Metric | string, baselineEntries: Metric | string) {
+function compareResults(baselineEntries: Metric | string, compareEntries: Metric | string = baselineEntries, metricForTest: Record<string, Unit> = {}) {
     // Unique test scenario names
     const baselineKeys = Object.keys(baselineEntries ?? {});
     const names = Array.from(new Set([...baselineKeys]));
@@ -66,7 +77,7 @@ function compareResults(compareEntries: Metric | string, baselineEntries: Metric
             const deltaStats = getStats(current);
 
             if (baseline && current) {
-                compared.push(buildCompareEntry(name, deltaStats, currentStats));
+                compared.push(buildCompareEntry(name, deltaStats, currentStats, metricForTest[name]));
             }
         });
     }
@@ -80,9 +91,9 @@ function compareResults(compareEntries: Metric | string, baselineEntries: Metric
     };
 }
 
-export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all') => {
-    // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
-    const outputData = compareResults(delta, main);
+export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all', metricForTest = {}) => {
+    // IMPORTANT NOTE: make sure you are passing the main/baseline results first, then the delta/compare results:
+    const outputData = compareResults(main, delta, metricForTest);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);
@@ -92,3 +103,4 @@ export default (main: Metric | string, delta: Metric | string, outputFile: strin
         return writeToMarkdown(outputFile, outputData);
     }
 };
+export {compareResults};

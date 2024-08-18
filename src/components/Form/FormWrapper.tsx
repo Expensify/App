@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, View} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -32,14 +32,14 @@ type FormWrapperProps = ChildrenProps &
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
 
-        /** Whether the form container should grow or adapt to the viewable available space */
-        shouldContainerGrow?: boolean;
-
         /** Server side errors keyed by microtime */
         errors: FormInputErrors;
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;
+
+        /** Whether the submit button is disabled */
+        isSubmitDisabled?: boolean;
 
         /** Callback to submit the form */
         onSubmit: () => void;
@@ -60,10 +60,11 @@ function FormWrapper({
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
+    shouldUseScrollView = true,
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
-    disablePressOnEnter = true,
-    shouldContainerGrow = true,
+    disablePressOnEnter = false,
+    isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -108,10 +109,11 @@ function FormWrapper({
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
             >
-                <View style={styles.flex1}>{children}</View>
+                {children}
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
+                        isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
@@ -137,6 +139,7 @@ function FormWrapper({
             children,
             isSubmitButtonVisible,
             submitButtonText,
+            isSubmitDisabled,
             errors,
             formState?.errorFields,
             formState?.isLoading,
@@ -153,13 +156,17 @@ function FormWrapper({
         ],
     );
 
+    if (!shouldUseScrollView) {
+        return scrollViewContent({});
+    }
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) =>
                 scrollContextEnabled ? (
                     <ScrollViewWithContext
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={shouldContainerGrow ? styles.flexGrow1 : styles.flex1}
+                        contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >
@@ -168,7 +175,7 @@ function FormWrapper({
                 ) : (
                     <ScrollView
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={shouldContainerGrow ? styles.flexGrow1 : styles.flex1}
+                        contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >

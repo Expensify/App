@@ -3,7 +3,7 @@
  * only one tab is processing those saved requests or we would be duplicating data (or creating errors).
  * This file ensures exactly that by tracking all the clientIDs connected, storing the most recent one last and it considers that last clientID the "leader".
  */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import * as ActiveClients from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';

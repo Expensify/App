@@ -12,9 +12,10 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     onFocus,
+    onLongPressRow,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -22,7 +23,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useWindowDimensions();
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, styles.ph3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -42,24 +43,26 @@ function TransactionListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered?: boolean) => (
-                <TransactionListItemRow
-                    item={transactionItem}
-                    showTooltip={showTooltip}
-                    onButtonPress={() => {
-                        onSelectRow(item);
-                    }}
-                    isHovered={hovered}
-                />
-            )}
+            <TransactionListItemRow
+                item={transactionItem}
+                showTooltip={showTooltip}
+                onButtonPress={() => {
+                    onSelectRow(item);
+                }}
+                onCheckboxPress={() => onCheckboxPress?.(item)}
+                isDisabled={!!isDisabled}
+                canSelectMultiple={!!canSelectMultiple}
+                isButtonSelected={item.isSelected}
+                shouldShowTransactionCheckbox={false}
+            />
         </BaseListItem>
     );
 }

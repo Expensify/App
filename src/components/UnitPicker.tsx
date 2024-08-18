@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
@@ -15,7 +15,7 @@ type UnitItemType = {
 };
 
 type UnitPickerProps = {
-    defaultValue: Unit;
+    defaultValue?: Unit;
     onOptionSelected: (unit: UnitItemType) => void;
 };
 

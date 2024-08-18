@@ -105,9 +105,9 @@ function showContextMenu(
     event: GestureResponderEvent | MouseEvent,
     selection: string,
     contextMenuAnchor: ContextMenuAnchor,
-    reportID = '0',
-    reportActionID = '0',
-    originalReportID = '0',
+    reportID = '-1',
+    reportActionID = '-1',
+    originalReportID = '-1',
     draftMessage: string | undefined = undefined,
     onShow = () => {},
     onHide = () => {},
@@ -123,33 +123,37 @@ function showContextMenu(
     if (!contextMenuRef.current) {
         return;
     }
+    const show = () => {
+        contextMenuRef.current?.showContextMenu(
+            type,
+            event,
+            selection,
+            contextMenuAnchor,
+            reportID,
+            reportActionID,
+            originalReportID,
+            draftMessage,
+            onShow,
+            onHide,
+            isArchivedRoom,
+            isChronosReport,
+            isPinnedChat,
+            isUnreadChat,
+            disabledActions,
+            shouldCloseOnTarget,
+            setIsEmojiPickerActive,
+            isOverflowMenu,
+        );
+    };
+
     // If there is an already open context menu, close it first before opening
     // a new one.
     if (contextMenuRef.current.instanceID) {
-        hideContextMenu();
-        contextMenuRef.current.runAndResetOnPopoverHide();
+        hideContextMenu(false, show);
+        return;
     }
 
-    contextMenuRef.current.showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage,
-        onShow,
-        onHide,
-        isArchivedRoom,
-        isChronosReport,
-        isPinnedChat,
-        isUnreadChat,
-        disabledActions,
-        shouldCloseOnTarget,
-        setIsEmojiPickerActive,
-        isOverflowMenu,
-    );
+    show();
 }
 
 /**

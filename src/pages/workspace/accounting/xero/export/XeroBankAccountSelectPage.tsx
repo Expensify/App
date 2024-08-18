@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -7,9 +9,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroBankAccounts} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -17,20 +24,12 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const policyID = policy?.id ?? '-1';
 
-    const {nonReimbursableAccount: nonReimbursableAccountID} = policy?.connections?.xero?.config.export ?? {};
-
+    const {config} = policy?.connections?.xero ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            (bankAccounts ?? []).map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: nonReimbursableAccountID === id,
-            })),
-        [nonReimbursableAccountID, bankAccounts],
+        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount),
+        [config?.export?.nonReimbursableAccount, policy],
     );
 
     const listHeaderComponent = useMemo(
@@ -47,13 +46,33 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
             if (initiallyFocusedOptionKey !== value) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
-                    nonReimbursableAccount: value,
-                });
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {
+                        nonReimbursableAccount: value,
+                    },
+                    {nonReimbursableAccount: config?.export?.nonReimbursableAccount ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
-        [policyID, initiallyFocusedOptionKey],
+        [initiallyFocusedOptionKey, policyID, config?.export?.nonReimbursableAccount],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.xero.noAccountsFound')}
+                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
     );
 
     return (
@@ -62,13 +81,19 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroBankAccountSelectPage.displayName}
-            sections={[{data: xeroSelectorOptions}]}
+            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.xeroBankAccount"
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
         />
     );
 }

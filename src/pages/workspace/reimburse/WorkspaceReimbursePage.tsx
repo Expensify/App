@@ -20,7 +20,6 @@ function WorkspaceReimbursePage({route, policy}: WorkspaceReimbursePageProps) {
             headerText={translate('workspace.common.reimburse')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            shouldSkipVBBACall
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
         >

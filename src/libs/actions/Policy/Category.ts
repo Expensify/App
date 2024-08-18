@@ -2,19 +2,19 @@ import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams} from '@libs/API/parameters';
+import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams, UpdatePolicyCategoryGLCodeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -64,40 +64,31 @@ Onyx.connect({
 });
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                name: category,
-                enabled: true,
-                errors: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        }),
-        {},
-    );
+    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            name: category,
+            enabled: true,
+            errors: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        return acc;
+    }, {});
 
-    const successCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: null,
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: null,
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
-    const failureCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -211,7 +202,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
                             },
@@ -276,7 +267,7 @@ function createPolicyCategory(policyID: string, categoryName: string) {
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -288,9 +279,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
-                        unencodedName: decodeURIComponent(policyCategory.newName),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         previousCategoryName: policyCategory.oldName,
@@ -307,10 +298,10 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
-                        unencodedName: decodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
                         pendingFields: {
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: null,
                         },
                     },
@@ -326,8 +317,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.oldName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
-                        unencodedName: decodeURIComponent(policyCategory.oldName),
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
                     },
                 },
@@ -341,6 +331,142 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     };
 
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+}
+
+function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': payrollCode,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updatePayrollCodeFailureMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'Payroll Code': null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categoryName,
+        payrollCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE, parameters, onyxData);
+}
+
+function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': glCode,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': null,
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': glCode,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateGLCodeFailureMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: UpdatePolicyCategoryGLCodeParams = {
+        policyID,
+        categoryName,
+        glCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
 }
 
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
@@ -380,7 +506,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresCategory: !requiresCategory,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                     pendingFields: {
                         requiresCategory: null,
                     },
@@ -446,7 +572,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                 value: categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
                     acc[categoryName] = {
                         pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.deleteFailureMessage'),
                     };
                     return acc;
                 }, {}),
@@ -494,6 +620,30 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
+    const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
+    if (!enabled) {
+        onyxUpdatesToDisableCategories.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: Object.fromEntries(
+                    Object.entries(allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}).map(([categoryName]) => [
+                        categoryName,
+                        {
+                            enabled: false,
+                        },
+                    ]),
+                ),
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory: false,
+                },
+            },
+        );
+    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -531,6 +681,10 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
             },
         ],
     };
+
+    if (onyxUpdatesToDisableCategories.length > 0) {
+        onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);
+    }
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
@@ -579,7 +733,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {defaultCategory: null},
                     },
                 },
@@ -600,10 +754,13 @@ export {
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyCategoryPayrollCode,
     createPolicyCategory,
     renamePolicyCategory,
+    setPolicyCategoryGLCode,
     clearCategoryErrors,
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
+    buildOptimisticPolicyCategories,
 };

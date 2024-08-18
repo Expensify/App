@@ -66,7 +66,7 @@ export default function (
                 }
 
                 Report.openReport(props.route.params.reportID);
-                // eslint-disable-next-line react-hooks/exhaustive-deps
+                // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {

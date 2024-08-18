@@ -54,7 +54,7 @@ function computeComponentSpecificRegistrationParams({
         shouldSetTouchedOnBlurOnly: false,
         // Forward the originally provided value
         blurOnSubmit,
-        shouldSubmitForm: false,
+        shouldSubmitForm: !!shouldSubmitForm,
     };
 }
 

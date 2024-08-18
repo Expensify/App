@@ -3,6 +3,7 @@
 /* eslint-disable no-param-reassign */
 
 /* eslint-disable @typescript-eslint/naming-convention */
+import type Environment from 'config/webpack/types';
 import dotenv from 'dotenv';
 import path from 'path';
 import {DefinePlugin} from 'webpack';
@@ -18,6 +19,12 @@ type CustomWebpackConfig = {
     };
 };
 
+type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
+
+type WebpackModule = {
+    default: CustomWebpackFunction;
+};
+
 let envFile: string;
 switch (process.env.ENV) {
     case 'production':
@@ -31,9 +38,9 @@ switch (process.env.ENV) {
 }
 
 const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const custom: CustomWebpackConfig = require('../config/webpack/webpack.common').default({
-    envFile,
-});
+const customFunction = require<WebpackModule>('../config/webpack/webpack.common').default;
+
+const custom: CustomWebpackConfig = customFunction({file: envFile});
 
 const webpackConfig = ({config}: {config: Configuration}) => {
     if (!config.resolve) {
@@ -92,6 +99,11 @@ const webpackConfig = ({config}: {config: Configuration}) => {
             __DEV__: process.env.NODE_ENV === 'development',
         }),
     );
+
+    config.module.rules?.push({
+        test: /\.lottie$/,
+        type: 'asset/resource',
+    });
 
     return config;
 };

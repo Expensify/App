@@ -22,12 +22,13 @@ import type {Beta, PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
+import createAddListenerMock from '../utils/createAddListenerMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('lodash/debounce', () =>
-    jest.fn((fn: Record<string, jest.Mock<jest.Func>>) => {
+    jest.fn((fn: Record<string, jest.Mock>) => {
         // eslint-disable-next-line no-param-reassign
         fn.cancel = jest.fn();
         return fn;
@@ -42,10 +43,15 @@ jest.mock('@src/libs/API', () => ({
     read: jest.fn(),
 }));
 
-jest.mock('@src/libs/Navigation/Navigation');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    dismissModalWithReport: jest.fn(),
+    getTopmostReportId: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(() => false),
+}));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
@@ -55,8 +61,14 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        createNavigationContainerRef: jest.fn(),
-    } as typeof NativeNavigation;
+        createNavigationContainerRef: () => ({
+            addListener: () => jest.fn(),
+            removeListener: () => jest.fn(),
+            isReady: () => jest.fn(),
+            getCurrentRoute: () => jest.fn(),
+            getState: () => jest.fn(),
+        }),
+    };
 });
 
 jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
@@ -157,7 +169,7 @@ function ChatFinderPageWithCachedOptions(args: ChatFinderPageProps) {
 }
 
 test('[ChatFinderPage] should render list with cached options', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('ChatFinderPage');
@@ -186,7 +198,7 @@ test('[ChatFinderPage] should render list with cached options', async () => {
 });
 
 test('[ChatFinderPage] should interact when text input changes', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('ChatFinderPage');

@@ -1,10 +1,11 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
-import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -36,10 +37,10 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction: ReportAction = {
+            const fakeReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction;
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -47,7 +48,7 @@ describe('actions/PolicyMember', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, {
                 [fakeReportAction.reportActionID]: fakeReportAction,
             });
-            Policy.acceptJoinRequest(fakeReport.reportID, fakeReportAction);
+            Member.acceptJoinRequest(fakeReport.reportID, fakeReportAction);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -56,12 +57,10 @@ describe('actions/PolicyMember', () => {
                     callback: (reportActions) => {
                         Onyx.disconnect(connectionID);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
                         if (!isEmptyObject(reportAction)) {
-                            expect((reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice)?.toBe(
-                                CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
-                            );
+                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
                             expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         }
                         resolve();
@@ -105,7 +104,7 @@ describe('actions/PolicyMember', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
-            Policy.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -145,7 +144,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.requestWorkspaceOwnerChange(fakePolicy.id);
+            Member.requestWorkspaceOwnerChange(fakePolicy.id);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

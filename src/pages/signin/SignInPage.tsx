@@ -1,5 +1,6 @@
-import Str from 'expensify-common/lib/str';
-import React, {useEffect, useRef, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -31,8 +32,10 @@ import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
+import SignUpWelcomeForm from './SignUpWelcomeForm';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
+import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type SignInPageInnerOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -52,6 +55,10 @@ type SignInPageInnerProps = SignInPageInnerOnyxProps & {
     shouldEnableMaxHeight?: boolean;
 };
 
+type SignInPageRef = {
+    navigateBack: () => void;
+};
+
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
@@ -61,6 +68,7 @@ type RenderOption = {
     shouldInitiateSAMLLogin: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
+    shouldShouldSignUpWelcomeForm: boolean;
 };
 
 type GetRenderOptionsParams = {
@@ -71,6 +79,7 @@ type GetRenderOptionsParams = {
     isUsingMagicCode: boolean;
     hasInitiatedSAMLLogin: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
+    credentials: OnyxEntry<Credentials>;
 };
 
 /**
@@ -90,6 +99,7 @@ function getRenderOptions({
     isUsingMagicCode,
     hasInitiatedSAMLLogin,
     shouldShowAnotherLoginPageOpenedMessage,
+    credentials,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -107,33 +117,46 @@ function getRenderOptions({
         Session.clearSignInData();
     }
 
+    // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
+    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
-        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage;
+        !shouldShouldSignUpWelcomeForm &&
+        hasAccount &&
+        (hasLogin || hasValidateCode) &&
+        !isUnvalidatedSecondaryLogin &&
+        !hasEmailDeliveryFailure &&
+        !shouldShowChooseSSOOrMagicCode &&
+        !isSAMLRequired;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
+    const shouldShowWelcomeText =
+        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
+
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
-        shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
+        shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
+        shouldShouldSignUpWelcomeForm,
     };
 }
 
-function SignInPageInner({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
+function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
+    const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
+
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -145,6 +168,8 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
+
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
     const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
@@ -181,6 +206,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
+        shouldShouldSignUpWelcomeForm,
     } = getRenderOptions({
         hasLogin: !!credentials?.login,
         hasValidateCode: !!credentials?.validateCode,
@@ -189,6 +215,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
+        credentials,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -199,6 +226,11 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     let welcomeHeader = '';
     let welcomeText = '';
     const headerText = translate('login.hero.header');
+
+    const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
+
+    // replacing spaces with "hard spaces" to prevent breaking the number
+    const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin) : userLogin;
 
     if (shouldShowAnotherLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
@@ -212,21 +244,10 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
-
-            // replacing spaces with "hard spaces" to prevent breaking the number
-            const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-            if (account?.validated) {
-                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                    : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-            } else {
-                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                    : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
-            }
+            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
+            welcomeText = shouldUseNarrowLayout
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
@@ -235,6 +256,11 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
+    } else if (shouldShouldSignUpWelcomeForm) {
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
+        welcomeText = shouldUseNarrowLayout
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -244,14 +270,34 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         loginFormRef.current?.clearDataAndFocus();
     };
 
+    const navigateBack = () => {
+        if (
+            shouldShouldSignUpWelcomeForm ||
+            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+        ) {
+            Session.clearSignInData();
+            return;
+        }
+
+        if (shouldShowValidateCodeForm) {
+            validateCodeFormRef.current?.clearSignInData();
+            return;
+        }
+
+        Navigation.goBack();
+    };
+    useImperativeHandle(ref, () => ({
+        navigateBack,
+    }));
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageInner.displayName}
+            shouldUseCachedViewportHeight
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
+            testID={SignInPageThemeWrapper.displayName}
         >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
@@ -266,14 +312,18 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
+                    login={login}
+                    onLoginChanged={setLogin}
                     blurOnSubmit={account?.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
+                {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                        ref={validateCodeFormRef}
                     />
                 )}
                 {!shouldShowAnotherLoginPageOpenedMessage && (
@@ -288,18 +338,18 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     );
 }
 
-SignInPageInner.displayName = 'SignInPage';
-
 type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
+const SignInPageWithRef = forwardRef(SignInPage);
 
-function SignInPage(props: SignInPageProps) {
+function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPageInner
+                    <SignInPageWithRef
+                        ref={ref}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
@@ -309,7 +359,9 @@ function SignInPage(props: SignInPageProps) {
     );
 }
 
-export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
+SignInPageThemeWrapper.displayName = 'SignInPage';
+
+export default withOnyx<SignInPageProps & RefAttributes<SignInPageRef>, SignInPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     /**
@@ -323,4 +375,6 @@ export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
-})(SignInPage);
+})(forwardRef(SignInPageThemeWrapper));
+
+export type {SignInPageRef};

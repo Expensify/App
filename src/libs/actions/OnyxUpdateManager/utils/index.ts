@@ -67,14 +67,12 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists) {
-        updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>(
-            (accUpdates, [lastUpdateID, update]) => ({
-                ...accUpdates,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                ...(Number(lastUpdateID) >= firstUpdateAfterGapWithFallback ? {[Number(lastUpdateID)]: update} : {}),
-            }),
-            {},
-        );
+        updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+            if (Number(lastUpdateID) >= firstUpdateAfterGapWithFallback) {
+                acc[Number(lastUpdateID)] = update;
+            }
+            return acc;
+        }, {});
     }
 
     return {applicableUpdates, updatesAfterGaps, latestMissingUpdateID};

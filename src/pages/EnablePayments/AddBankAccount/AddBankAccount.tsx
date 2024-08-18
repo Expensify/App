@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,7 +45,6 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
         if (selectedPlaidBankAccount) {
             BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
@@ -54,7 +54,6 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;
-        // TODO: https://github.com/Expensify/App/issues/36648 This should be updated to the correct route once the refactor is complete
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
         if (exitReportID) {
@@ -75,18 +74,19 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         }
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
+            Wallet.updateCurrentStep(null);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();
     };
-
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicator
         >
             <HeaderWithBackButton
                 shouldShowBackButton

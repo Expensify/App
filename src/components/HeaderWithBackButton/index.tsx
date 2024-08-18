@@ -30,7 +30,7 @@ function HeaderWithBackButton({
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
-    report = null,
+    report,
     policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
@@ -53,6 +53,8 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    threeDotsMenuIcon,
+    threeDotsMenuIconFill,
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
@@ -158,7 +160,7 @@ function HeaderWithBackButton({
                                 }
                             }}
                             style={[styles.touchableButtonImage]}
-                            role="button"
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
@@ -234,6 +236,8 @@ function HeaderWithBackButton({
                     {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
+                            icon={threeDotsMenuIcon}
+                            iconFill={threeDotsMenuIconFill}
                             disabled={shouldDisableThreeDotsButton}
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}

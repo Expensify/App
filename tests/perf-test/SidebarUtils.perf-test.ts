@@ -2,12 +2,13 @@ import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import type {ChatReportSelector} from '@hooks/useReportIDs';
+import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -20,7 +21,7 @@ const REPORTS_COUNT = 15000;
 const REPORT_TRESHOLD = 5;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 
-const allReports = createCollection<ChatReportSelector>(
+const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
         ...createRandomReport(index),
@@ -61,7 +62,7 @@ const allReportActions = Object.fromEntries(
                 message: [
                     {
                         moderationDecision: {
-                            decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
+                            decision: getReportActionMessage(reportActions[key])?.moderationDecision?.decision,
                         },
                     },
                 ],

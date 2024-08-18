@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -16,6 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import * as TaskActions from '@userActions/Task';
@@ -33,12 +34,10 @@ type NewTaskDescriptionPageOnyxProps = {
 
 type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
 
-const parser = new ExpensiMark();
-
 function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDescriptionValue(values.taskDescription);
@@ -47,9 +46,9 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
-
-        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
+        if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
         return errors;
@@ -78,14 +77,16 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={parser.htmlToMarkdown(parser.replace(task?.description ?? ''))}
+                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''))}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
                                 inputCallbackRef(el);
-                                updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

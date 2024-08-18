@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +18,9 @@ function formatPhoneNumber(number: string): string {
     if (!number) {
         return '';
     }
+
+    // eslint-disable-next-line no-param-reassign
+    number = number.replace(/ /g, '\u00A0');
 
     // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
     if (number.indexOf(CONST.SMS.DOMAIN) === -1 && !CONST.REGEX.DIGITS_AND_PLUS.test(number)) {

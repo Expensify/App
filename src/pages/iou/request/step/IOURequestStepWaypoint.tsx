@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
+import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,16 +13,17 @@ import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
-import useSubmitButtonVisibility from '@hooks/useSubmitButtonVisibility';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Modal from '@userActions/Modal';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -57,15 +59,15 @@ function IOURequestStepWaypoint({
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {isSubmitButtonVisible, showSubmitButton, hideSubmitButton, formStyle} = useSubmitButtonVisibility();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const allWaypoints = transaction?.comment?.waypoints ?? {};
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
@@ -87,17 +89,25 @@ function IOURequestStepWaypoint({
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
+    const goBack = () => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+    };
+
     const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('bankAccount.error.address'));
         }
 
         // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.error.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('distance.error.selectSuggestedAddress'));
         }
 
         return errors;
@@ -126,13 +136,14 @@ function IOURequestStepWaypoint({
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
+        goBack();
     };
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
+        goBack();
     };
 
     const selectWaypoint = (values: Waypoint) => {
@@ -145,11 +156,7 @@ function IOURequestStepWaypoint({
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        goBack();
     };
 
     return (
@@ -158,15 +165,12 @@ function IOURequestStepWaypoint({
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
-            style={styles.overflowHidden}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
-                    }}
+                    onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -174,7 +178,12 @@ function IOURequestStepWaypoint({
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
-                            onSelected: () => setIsDeleteStopModalOpen(true),
+                            onSelected: () => {
+                                Modal.close(() => {
+                                    setRestoreFocusType(undefined);
+                                    setIsDeleteStopModalOpen(true);
+                                });
+                            },
                         },
                     ]}
                 />
@@ -187,51 +196,50 @@ function IOURequestStepWaypoint({
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
+                    shouldEnableNewFocusManagement
                     danger
+                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
-                    style={[styles.flex1, styles.mh5, formStyle]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
-                    submitFlexEnabled={false}
-                    shouldContainerGrow={false}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
-                    isSubmitButtonVisible={isSubmitButtonVisible}
                     submitButtonText={translate('common.save')}
                 >
-                    <InputWrapperWithRef
-                        InputComponent={AddressSearch}
-                        locationBias={locationBias}
-                        canUseCurrentLocation
-                        inputID={`waypoint${pageIndex}`}
-                        ref={(e: HTMLElement | null) => {
-                            textInput.current = e as unknown as TextInput;
-                        }}
-                        hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
-                        containerStyles={[styles.mt4]}
-                        label={translate('distance.address')}
-                        defaultValue={waypointAddress}
-                        onPress={selectWaypoint}
-                        onFocus={hideSubmitButton}
-                        onBlur={showSubmitButton}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        renamedInputKeys={{
-                            address: `waypoint${pageIndex}`,
-                            city: '',
-                            country: '',
-                            street: '',
-                            street2: '',
-                            zipCode: '',
-                            lat: '',
-                            lng: '',
-                            state: '',
-                        }}
-                        predefinedPlaces={recentWaypoints}
-                        resultTypes=""
-                    />
+                    <View>
+                        <InputWrapperWithRef
+                            InputComponent={AddressSearch}
+                            locationBias={locationBias}
+                            canUseCurrentLocation
+                            inputID={`waypoint${pageIndex}`}
+                            ref={(e: HTMLElement | null) => {
+                                textInput.current = e as unknown as TextInput;
+                            }}
+                            hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
+                            containerStyles={[styles.mt4]}
+                            label={translate('distance.address')}
+                            defaultValue={waypointAddress}
+                            onPress={selectWaypoint}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                            renamedInputKeys={{
+                                address: `waypoint${pageIndex}`,
+                                city: '',
+                                country: '',
+                                street: '',
+                                street2: '',
+                                zipCode: '',
+                                lat: '',
+                                lng: '',
+                                state: '',
+                            }}
+                            predefinedPlaces={recentWaypoints}
+                            resultTypes=""
+                        />
+                    </View>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -252,16 +260,18 @@ export default withWritableReportOrNotFound(
                 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
                 // that the google autocomplete component expects for it's "predefined places" feature.
                 selector: (waypoints) =>
-                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER) : []).map((waypoint) => ({
-                        name: waypoint.name,
-                        description: waypoint.address ?? '',
-                        geometry: {
-                            location: {
-                                lat: waypoint.lat ?? 0,
-                                lng: waypoint.lng ?? 0,
+                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
+                        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+                        .map((waypoint) => ({
+                            name: waypoint.name,
+                            description: waypoint.address ?? '',
+                            geometry: {
+                                location: {
+                                    lat: waypoint.lat ?? 0,
+                                    lng: waypoint.lng ?? 0,
+                                },
                             },
-                        },
-                    })),
+                        })),
             },
         })(IOURequestStepWaypoint),
     ),
