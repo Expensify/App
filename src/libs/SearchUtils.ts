@@ -11,16 +11,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {
-    ListItemDataType,
-    ListItemType,
-    SearchAccountDetails,
-    SearchDataTypes,
-    SearchPersonalDetails,
-    SearchPolicyDetails,
-    SearchReport,
-    SearchTransaction,
-} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -65,12 +56,12 @@ const operatorToSignMap = {
 function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
-    to: SearchAccountDetails,
+    to: SearchPersonalDetails,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
+    const formattedTo = to?.displayName ?? to?.login ?? '';
     const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = TransactionUtils.getMerchant(transactionItem);
@@ -157,11 +148,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, transactionItem]) => {
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -184,11 +172,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         });
 }
 
-function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchTransaction & Record<string, SearchPersonalDetails> & SearchPolicyDetails & SearchReport) {
-    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const payerName = payerPersonalDetails?.name || payerPersonalDetails?.displayName || payerPersonalDetails?.login || translateLocal('common.hidden');
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem?.currency ?? CONST.CURRENCY.USD);
+function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
+    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
         return translateLocal('iou.payerOwesAmount', {
             payer: payerName,
@@ -217,30 +204,22 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
-            const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
-
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID],
-                to,
+                to: data.personalDetailsList?.[reportItem.managerID],
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const transactionItem = {...data[key]};
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
