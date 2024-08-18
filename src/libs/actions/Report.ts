@@ -3009,8 +3009,8 @@ function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
     const memberRoles: Record<number, string> = {};
-    const optimisticParticipants: Record<number, Partial<Participant>> = {};
-    const successParticipants: Record<number, Partial<Participant>> = {};
+    const optimisticParticipants: Record<number, Partial<ReportParticipant>> = {};
+    const successParticipants: Record<number, Partial<ReportParticipant>> = {};
 
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;

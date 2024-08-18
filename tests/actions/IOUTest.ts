@@ -101,8 +101,8 @@ describe('actions/IOU', () => {
                                     transactionThread = transactionThreadReport;
 
                                     expect(iouReport?.participants).toBe({
-                                        [RORY_ACCOUNT_ID]: {notification: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                                        [CARLOS_ACCOUNT_ID]: {notification: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
 
                                     // They should be linked together
@@ -297,8 +297,8 @@ describe('actions/IOU', () => {
                                     iouReportID = iouReport?.reportID;
 
                                     expect(iouReport?.participants).toBe({
-                                        [RORY_ACCOUNT_ID]: {notification: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-                                        [CARLOS_ACCOUNT_ID]: {notification: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                                        [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
 
                                     // They should be linked together
@@ -644,10 +644,10 @@ describe('actions/IOU', () => {
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport?.reportID;
 
-                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
+                                        expect(chatReport?.participants).toStrictEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
 
                                         // They should be linked together
-                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
+                                        expect(chatReport?.participants).toStrictEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -1165,7 +1165,7 @@ describe('actions/IOU', () => {
                                     // The 1:1 chat reports and the IOU reports should be linked together
                                     expect(carlosChatReport?.iouReportID).toBe(carlosIOUReport?.reportID);
                                     expect(carlosIOUReport?.chatReportID).toBe(carlosChatReport?.reportID);
-                                    expect(carlosIOUReport?.participants).toBe({[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
+                                    expect(carlosIOUReport?.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
 
                                     expect(julesChatReport?.iouReportID).toBe(julesIOUReport?.reportID);
                                     expect(julesIOUReport?.chatReportID).toBe(julesChatReport?.reportID);
@@ -2442,7 +2442,7 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, iouReport);
 
-            expect(thread.participants).toBe({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toStrictEqual({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2719,7 +2719,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, iouReport);
 
-            expect(thread.participants).toBe({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toStrictEqual({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2959,7 +2959,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, iouReport);
 
-            expect(thread.participants).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            expect(thread.participants).toStrictEqual({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
