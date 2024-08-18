@@ -50,13 +50,10 @@ function Composer(
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
 
     useEffect(() => {
-        if (!autoFocus) {
-            inputCallbackRef(null);
+        if (autoFocus === !!autoFocusInputRef.current) {
             return;
         }
-        if (textInput.current && !autoFocusInputRef.current) {
-            inputCallbackRef(textInput.current);
-        }
+        inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
     /**
