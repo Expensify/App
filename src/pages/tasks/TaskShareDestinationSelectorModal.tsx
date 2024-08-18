@@ -130,7 +130,7 @@ function TaskShareDestinationSelectorModal() {
         >
             <>
                 <HeaderWithBackButton
-                    title={translate('newTaskPage.shareSomewhere')}
+                    title={translate('common.share')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
@@ -138,7 +138,7 @@ function TaskShareDestinationSelectorModal() {
                         ListItem={UserListItem}
                         sections={areOptionsInitialized ? sections : []}
                         onSelectRow={selectReportHandler}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={options.header}

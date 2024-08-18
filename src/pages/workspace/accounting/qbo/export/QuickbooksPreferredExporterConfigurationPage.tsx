@@ -45,7 +45,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                     value: exporter.email,
                     text: exporter.email,
                     keyForList: exporter.email,
-                    isSelected: exportConfiguration?.exporter === exporter.email,
+                    isSelected: (exportConfiguration?.exporter ?? policy?.owner) === exporter.email,
                 });
                 return options;
             }, []),
@@ -80,7 +80,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExporter}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

@@ -1,12 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -24,7 +22,6 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
-import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,51 +40,17 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-    const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-    const [onboardingPurposeSelected, onboardingPurposeSelectedResult] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
-    const PurposeFooterInstance = <OfflineIndicator />;
-
-    useEffect(() => {
-        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
-    }, [onboardingPurposeSelected]);
-
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-
     const paddingHorizontal = isMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
-
-    const selectedCheckboxIcon = useMemo(
-        () => (
-            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                <Icon
-                    src={Expensicons.Checkmark}
-                    fill={theme.success}
-                />
-            </View>
-        ),
-        [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
-    );
-
-    const saveAndNavigate = useCallback(() => {
-        if (selectedPurpose === undefined) {
-            return;
-        }
-
-        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
-    }, [selectedPurpose, route]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
-        const isSelected = selectedPurpose === choice;
         return {
             key: translationKey,
             title: translate(translationKey),
@@ -96,32 +59,31 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconWidth: variables.menuIconSize,
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
+            wrapperStyle: [styles.purposeMenuItem],
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
-            rightComponent: selectedCheckboxIcon,
-            shouldShowRightComponent: isSelected,
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
+
+                if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
+                    return;
+                }
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
-            focused: isSelected,
         };
     });
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        if (!selectedPurpose) {
-            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-        } else {
-            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorContinue'));
-        }
-    }, [selectedPurpose, translate]);
+        Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
+    }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
-    if (isLoadingOnyxValue(onboardingPurposeSelectedResult, onboardingErrorMessageResult)) {
+    if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
     }
     return (
@@ -146,22 +108,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             />
                         </View>
                     </ScrollView>
-                    <FormAlertWithSubmitButton
-                        enabledWhenOffline
-                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
-                        buttonText={translate('common.continue')}
-                        onSubmit={() => {
-                            if (!selectedPurpose) {
-                                Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
-                                return;
-                            }
-                            Welcome.setOnboardingErrorMessage('');
-                            saveAndNavigate();
-                        }}
-                        message={onboardingErrorMessage}
-                        isAlertVisible={!!onboardingErrorMessage}
-                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
-                    />
+                    <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                        <FormHelpMessage message={onboardingErrorMessage} />
+                    </View>
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
         </SafeAreaConsumer>

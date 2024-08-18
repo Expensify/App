@@ -61,7 +61,6 @@ function SelectableListItem<TItem extends ListItem>({
                         />
                     </View>
                 </View>
-                {!!item.rightElement && item.rightElement}
                 {canSelectMultiple && !item.isDisabled && (
                     <PressableWithFeedback
                         onPress={handleCheckboxPress}
