@@ -100,7 +100,7 @@ describe('actions/IOU', () => {
                                     iouReportID = iouReport?.reportID;
                                     transactionThread = transactionThreadReport;
 
-                                    expect(iouReport?.participants).toBe({
+                                    expect(iouReport?.participants).toEqual({
                                         [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                         [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
@@ -296,7 +296,7 @@ describe('actions/IOU', () => {
                                     const iouReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
                                     iouReportID = iouReport?.reportID;
 
-                                    expect(iouReport?.participants).toBe({
+                                    expect(iouReport?.participants).toEqual({
                                         [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                         [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                                     });
@@ -2631,7 +2631,7 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, iouReport);
 
-            expect(thread.participants).toBe({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
