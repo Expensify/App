@@ -127,7 +127,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         }
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
-        const hasDelayedSubmissionError = !!policy?.errorFields?.autoReportingFrequency;
+        const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
         return [
             {
@@ -158,9 +158,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     />
                 ),
                 isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
-                pendingAction: policy?.pendingFields?.autoReportingFrequency,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY),
-                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY),
+                pendingAction: policy?.pendingFields?.autoReporting,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),

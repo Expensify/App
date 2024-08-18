@@ -1504,6 +1504,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 employeeList: {
                     [sessionEmail]: {
@@ -1516,7 +1517,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                     enabled: true,
                 },
                 pendingFields: {
-                    autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -1572,6 +1573,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
@@ -1592,7 +1594,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
-                    autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1669,7 +1671,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             value: {
                 pendingAction: null,
                 pendingFields: {
-                    autoReportingFrequency: null,
+                    autoReporting: null,
                     approvalMode: null,
                     reimbursementChoice: null,
                 },
@@ -1849,6 +1851,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
@@ -1869,7 +1872,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
-                    autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -2190,6 +2193,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
         harvesting: {
@@ -2213,7 +2217,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             },
         },
         pendingFields: {
-            autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
@@ -2290,7 +2294,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             value: {
                 pendingAction: null,
                 pendingFields: {
-                    autoReportingFrequency: null,
+                    autoReporting: null,
                     approvalMode: null,
                     reimbursementChoice: null,
                 },
@@ -2854,7 +2858,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     ...(!enabled
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                              autoReporting: false,
                               harvesting: {
                                   enabled: false,
                               },
@@ -2866,7 +2870,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ...(!enabled
                             ? {
                                   approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                               }
@@ -2885,7 +2889,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ...(!enabled
                             ? {
                                   approvalMode: null,
-                                  autoReportingFrequency: null,
+                                  autoReporting: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -2903,7 +2907,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     ...(!enabled
                         ? {
                               approvalMode: policy?.approvalMode,
-                              autoReportingFrequency: policy?.autoReportingFrequency,
+                              autoReporting: policy?.autoReporting,
                               harvesting: policy?.harvesting,
                               reimbursementChoice: policy?.reimbursementChoice,
                           }
@@ -2913,7 +2917,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ...(!enabled
                             ? {
                                   approvalMode: null,
-                                  autoReportingFrequency: null,
+                                  autoReporting: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -3233,6 +3237,7 @@ function upgradeToCorporate(policyID: string, featureName: string) {
                 maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
                 ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
+                    autoReporting: true,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
                 }),
                 harvesting: {
@@ -3263,6 +3268,7 @@ function upgradeToCorporate(policyID: string, featureName: string) {
                 maxExpenseAmount: policy?.maxExpenseAmount ?? null,
                 maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
+                autoReporting: policy?.autoReporting ?? null,
                 autoReportingFrequency: policy?.autoReportingFrequency ?? null,
                 harvesting: policy?.harvesting ?? null,
             },
