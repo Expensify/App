@@ -39,7 +39,7 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
     );
 
     return (
-        <View style={[styles.flex1, styles.overflowHidden]}>
+        <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
             <BlockingView
                 icon={Illustrations.ToddWithPhones}
                 iconWidth={variables.emptySelectionListIconWidth}
