@@ -130,13 +130,13 @@ function IOURequestStepParticipants({
             const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-            const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+            const mileageRate: MileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency)
                 : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = TransactionUtils.getDistanceInMeters(transaction, unit);
-            const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
+            const currency = mileageRate?.currency ?? policyCurrency;
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
             IOU.setMoneyRequestAmount(transactionID, amount, currency);
 
