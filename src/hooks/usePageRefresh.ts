@@ -29,12 +29,6 @@ function useDetectPageRefresh(): UseDetectPageRefreshProps {
                 window.addEventListener('click', resetRefreshStatus);
                 window.addEventListener('keypress', resetRefreshStatus);
             }
-
-            // Cleanup event listeners on component unmount
-            return () => {
-                window.removeEventListener('click', resetRefreshStatus);
-                window.removeEventListener('keypress', resetRefreshStatus);
-            };
         } else {
             // For non-web environments, always set refresh status to false
             setWasPageRefreshed(false);
