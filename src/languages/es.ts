@@ -817,8 +817,10 @@ export default {
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
-            receiptFailureMessage: 'El recibo no se subió',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            receiptFailureMessage: 'El recibo no se subió.',
             saveFileMessage: 'Guarda el archivo ',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             loseFileMessage: 'o descarta este error y piérdelo.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
