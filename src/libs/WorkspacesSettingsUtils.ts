@@ -112,9 +112,8 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConn
         () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanPolicies).some(hasEmployeeListError),
         () =>
-            Object.values(cleanPolicies).some(
-                (cleanPolicy) =>
-                    hasSyncError(cleanPolicy) && !isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+            Object.values(cleanPolicies).some((cleanPolicy) =>
+                hasSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
             ),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
@@ -157,19 +156,6 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
     }
 
     return undefined;
-}
-
-function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
-    if (!policyID) {
-        return hasGlobalWorkspaceSettingsRBR(allPolicies);
-    }
-    const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
-
-    if (!policy) {
-        return false;
-    }
-
-    return hasWorkspaceSettingsRBR(policy);
 }
 
 /**
@@ -323,7 +309,6 @@ export {
     getWorkspacesBrickRoads,
     getWorkspacesUnreadStatuses,
     hasGlobalWorkspaceSettingsRBR,
-    checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
     getUnitTranslationKey,

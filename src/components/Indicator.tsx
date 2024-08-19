@@ -12,6 +12,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LoginList, Policy, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 
+
 type CheckingMethod = () => boolean;
 
 type IndicatorOnyxProps = {
@@ -58,10 +59,11 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
         () => Object.values(cleanPolicies).some(PolicyUtils.hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasEmployeeListError),
         () =>
-            Object.values(cleanPolicies).some(
-                (cleanPolicy) =>
-                    PolicyUtils.hasSyncError(cleanPolicy) &&
-                    !isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}}`], cleanPolicy),
+            Object.values(cleanPolicies).some((cleanPolicy) =>
+                PolicyUtils.hasSyncError(
+                    cleanPolicy,
+                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}}`], cleanPolicy),
+                ),
             ),
         () => SubscriptionUtils.hasSubscriptionRedDotError(),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
