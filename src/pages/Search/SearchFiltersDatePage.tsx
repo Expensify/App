@@ -13,15 +13,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const dateAfter = searchAdvancedFiltersForm?.[INPUT_IDS.DATE_AFTER];
-    const dateBefore = searchAdvancedFiltersForm?.[INPUT_IDS.DATE_BEFORE];
+    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER];
+    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE];
 
     const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
@@ -50,7 +50,7 @@ function SearchFiltersDatePage() {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={INPUT_IDS.DATE_AFTER}
+                    inputID={FILTER_KEYS.DATE_AFTER}
                     label={translate('search.filters.date.after')}
                     defaultValue={dateAfter}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
@@ -58,7 +58,7 @@ function SearchFiltersDatePage() {
                 />
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={INPUT_IDS.DATE_BEFORE}
+                    inputID={FILTER_KEYS.DATE_BEFORE}
                     label={translate('search.filters.date.before')}
                     defaultValue={dateBefore}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

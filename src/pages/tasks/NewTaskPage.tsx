@@ -1,8 +1,9 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -14,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
@@ -21,6 +23,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TaskActions from '@userActions/Task';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -58,6 +61,19 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
+
+    const confirmButtonRef = useRef<View>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     useEffect(() => {
         setErrorMessage('');
@@ -187,9 +203,9 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 titleWithTooltips={assigneeTooltipDetails}
                             />
                             <MenuItem
-                                label={shareDestination?.displayName ? translate('newTaskPage.shareSomewhere') : ''}
+                                label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
-                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('newTaskPage.shareSomewhere')}
+                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
                                 icon={shareDestination?.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
@@ -205,6 +221,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline
+                            buttonRef={confirmButtonRef}
                             buttonText={translate('newTaskPage.confirmTask')}
                             containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
                         />
