@@ -1,6 +1,7 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,14 +68,14 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 WorkspaceRulesActions.enableAutoApprovalOptions(isEnabled, policyID);
             },
             subMenuItems: [
-                <MenuItem
-                    title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                    titleStyle={styles.textLabelSupportingEmptyValue}
+                <MenuItemWithTopDescription
+                    description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
+                    title={CurrencyUtils.convertToDisplayString(policy?.autoApproval?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
                 />,
-                <MenuItem
+                <MenuItemWithTopDescription
                     title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
                     titleStyle={styles.textLabelSupportingEmptyValue}
                     shouldShowRightIcon
@@ -96,14 +97,12 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption,
             subMenuItems: [
-                <MenuItem
+                <MenuItemWithTopDescription
                     description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
                     title={CurrencyUtils.convertToDisplayString(policy?.autoReimbursement?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
-                    shouldShowBasicTitle
-                    shouldShowDescriptionOnTop
                 />,
             ],
         },

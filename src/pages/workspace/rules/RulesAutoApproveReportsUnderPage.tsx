@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,12 +25,13 @@ type RulesAutoApproveReportsUnderPageProps = StackScreenProps<SettingsNavigatorP
 
 function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderPageProps) {
     const {policyID} = route.params;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
+    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoApproval?.limit, policy?.outputCurrency);
 
     return (
         <AccessOrNotFoundWrapper
@@ -50,7 +52,10 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({maxExpenseAutoApprovalAmount}) => WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(parseInt(maxExpenseAutoApprovalAmount, 10), policyID)}
+                    onSubmit={({maxExpenseAutoApprovalAmount}) => {
+                        WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(parseInt(maxExpenseAutoApprovalAmount, 10), policyID);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -59,13 +64,10 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AUTO_APPROVAL_AMOUNT}
-                            // currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                            currency={CurrencyUtils.getCurrencySymbol(CONST.CURRENCY.USD)}
-                            // defaultValue="0"
+                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            // @TODO Replace it when maxLength of this field is known
-                            amountMaxLength={20}
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoApproveReportsUnderDescription')}</Text>

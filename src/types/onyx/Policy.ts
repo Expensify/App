@@ -1420,6 +1420,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         shouldShowAutoApprovalOptions?: boolean;
 
+        /** Detailed settings for the autoApproval */
+        autoApproval?: {
+            /**
+             * The maximum report total allowed to trigger auto approval.
+             */
+            limit?: number;
+        };
+
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
 

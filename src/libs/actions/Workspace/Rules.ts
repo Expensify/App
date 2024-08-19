@@ -169,7 +169,9 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
  * @param limit - max amount for auto-approval of the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
  */
-function setPolicyAutomaticApprovalLimit(limit: number, policyID: string) {
+function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(limit));
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -202,7 +204,7 @@ function setPolicyAutomaticApprovalLimit(limit: number, policyID: string) {
     ];
 
     const parameters: SetPolicyAutomaticApprovalLimitParams = {
-        limit,
+        limit: parsedLimit,
         policyID,
     };
 
