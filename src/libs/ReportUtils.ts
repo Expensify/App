@@ -43,6 +43,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -68,6 +69,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -252,6 +254,11 @@ type OptimisticCreatedReportAction = Pick<
 type OptimisticRenamedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>,
     'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'originalMessage'
+>;
+
+type OptimisticRoomDescriptionUpdatedReportAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION>,
+    'actorAccountID' | 'created' | 'message' | 'person' | 'reportActionID' | 'pendingAction' | 'actionName' | 'originalMessage'
 >;
 
 type OptimisticChatReport = Pick<
@@ -1397,7 +1404,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
-        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || (report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR) && isExpenseReport(report));
     }
 
     return true;
@@ -2079,6 +2086,37 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
     return participantsIds;
 }
 
+function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
+    const isReportGroupChat = isGroupChat(report);
+    const isReportIOU = isIOUReport(report);
+    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isReportIOU;
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants);
+
+    return chatParticipants.filter((accountID) => {
+        const details = personalDetails?.[accountID];
+
+        if (!isRoomMembersList) {
+            if (!details) {
+                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+                return false;
+            }
+        } else {
+            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
+            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
+            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
+            // member here.
+            const isDuplicateOptimisticDetail =
+                details?.isOptimisticPersonalDetail && chatParticipants.some((accID) => accID !== accountID && details.login === personalDetails?.[accID]?.login);
+
+            if (!details || isDuplicateOptimisticDetail) {
+                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
+                return false;
+            }
+        }
+        return true;
+    });
+}
+
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     const finalParticipants: Participants = {};
     return accountIDs.reduce((participants, accountID) => {
@@ -2091,28 +2129,30 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    // Get participantAccountIDs from participants object
-    let participants = participantAccountIDs ?? Object.keys(report?.participants ?? {}).map(Number);
+    let participantAccountIDs = participants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
     if (shouldApplyLimit) {
-        participants = participants.slice(0, 5);
+        participantAccountIDs = participantAccountIDs.slice(0, 5);
     }
-    const isMultipleParticipantReport = participants.length > 1;
+    const isMultipleParticipantReport = participantAccountIDs.length > 1;
 
     if (isMultipleParticipantReport) {
-        return participants
-            .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+        return participantAccountIDs
+            .map(
+                (participantAccountID, index) =>
+                    getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(participants?.[index]?.login ?? ''),
+            )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
     }
 
-    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});
+    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participantAccountIDs[0], false)});
 }
 
 function getParticipants(reportID: string) {
@@ -2889,8 +2929,9 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
+    const isSubmitted = isProcessingReport(moneyRequestReport);
     if (isIOUReport(moneyRequestReport)) {
-        return isProcessingReport(moneyRequestReport) && isRequestor;
+        return isSubmitted && isRequestor;
     }
 
     const policy = getPolicy(moneyRequestReport?.policyID ?? '-1');
@@ -2906,8 +2947,8 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return true;
     }
 
-    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
-        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport.ownerAccountID ?? 0) !== moneyRequestReport.managerID;
+    if (policy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport.reportID)) {
+        const isForwarded = PolicyUtils.getSubmitToAccountID(policy, moneyRequestReport.ownerAccountID ?? -1) !== moneyRequestReport.managerID;
         return !isForwarded;
     }
 
@@ -2954,7 +2995,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         return false;
     }
 
-    const policy = getPolicy(moneyRequestReport?.reportID ?? '-1');
+    const policy = getPolicy(moneyRequestReport?.policyID);
     const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
 
@@ -4351,6 +4392,12 @@ function getIOUForwardedMessage(reportID: string) {
     return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
 }
 
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
+    return message;
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -5097,6 +5144,38 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
 }
 
 /**
+ * Returns the necessary reportAction onyx data to indicate that the room description has been updated
+ */
+function buildOptimisticRoomDescriptionUpdatedReportAction(description: string): OptimisticRoomDescriptionUpdatedReportAction {
+    const now = DateUtils.getDBTime();
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: description ? `set the room description to: ${Parser.htmlToText(description)}` : 'cleared the room description',
+                html: description ? `<muted-text>set the room description to: ${description}</muted-text>` : '<muted-text>cleared the room description</muted-text>',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        originalMessage: {
+            description,
+            lastModified: now,
+        },
+        created: now,
+    };
+}
+
+/**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
@@ -5692,6 +5771,11 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
     return true;
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isReportNotFound(report: OnyxEntry<Report>): boolean {
+    return !!report?.errorFields?.notFound;
+}
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
@@ -6143,7 +6227,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
     const pathSegments = parsingRoute.split('/');
 
     const reportIDSegment = pathSegments[1];
-    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
+    const hasRouteReportActionID = !Number.isNaN(Number(pathSegments[2]));
 
     // Check for "undefined" or any other unwanted string values
     if (!reportIDSegment || reportIDSegment === 'undefined') {
@@ -7640,6 +7724,7 @@ export {
     buildOptimisticMovedReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
+    buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticSubmittedReportAction,
@@ -7651,6 +7736,7 @@ export {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAccessReport,
+    isReportNotFound,
     canAddTransaction,
     canDeleteTransaction,
     canBeAutoReimbursed,
@@ -7709,6 +7795,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
@@ -7724,6 +7811,7 @@ export {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsAccountIDsForDisplay,
+    getParticipantsList,
     getParticipants,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
