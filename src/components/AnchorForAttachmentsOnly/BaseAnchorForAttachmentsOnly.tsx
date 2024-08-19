@@ -66,7 +66,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
-                        isDeleted={isDeleted}
+                        isDeleted={!!isDeleted}
                     />
                 </PressableWithoutFeedback>
             )}

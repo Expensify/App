@@ -113,22 +113,22 @@ function ThumbnailImage({
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
-    if (isDeleted) {
-        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.sidebarHover);
+    // if (isDeleted) {
+    //     const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.sidebarHover);
 
-        return (
-            <View style={[style, styles.overflowHidden, fallbackColor]}>
-                <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        fill={theme.border}
-                        src={Expensicons.Trashcan}
-                        width={variables.iconSizeSuperLarge}
-                        height={variables.iconSizeSuperLarge}
-                    />
-                </View>
-            </View>
-        );
-    }
+    //     return (
+    //         <View style={[style, styles.overflowHidden, fallbackColor]}>
+    //             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+    //                 <Icon
+    //                     fill={theme.border}
+    //                     src={Expensicons.Trashcan}
+    //                     width={variables.iconSizeSuperLarge}
+    //                     height={variables.iconSizeSuperLarge}
+    //                 />
+    //             </View>
+    //         </View>
+    //     );
+    // }
 
     if (failedToLoad || previewSourceURL === '') {
         const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
@@ -149,6 +149,23 @@ function ThumbnailImage({
 
     return (
         <View style={[style, styles.overflowHidden]}>
+            {isDeleted && (
+                <>
+                    <View style={[styles.pAbsolute, {zIndex: 2}]}>
+                        <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter, styles.highlightBG, {opacity: 0.8}]} />
+                    </View>
+                    <View style={[styles.pAbsolute, {zIndex: 2}]}>
+                        <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                fill={theme.iconHovered}
+                                src={Expensicons.Trashcan}
+                                width={variables.iconSizeSuperLarge}
+                                height={variables.iconSizeSuperLarge}
+                            />
+                        </View>
+                    </View>
+                </>
+            )}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
