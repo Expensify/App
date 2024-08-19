@@ -3313,10 +3313,8 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: {
-                        pendingFields: {foreignTaxDefault: null},
-                        errorFields: null,
-                    },
+                    pendingFields: {maxExpenseAmountNoReceipt: null},
+                    errorFields: null,
                 },
             },
         ],
@@ -3364,10 +3362,8 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: {
-                        pendingFields: {foreignTaxDefault: null},
-                        errorFields: null,
-                    },
+                    pendingFields: {maxExpenseAmount: null},
+                    errorFields: null,
                 },
             },
         ],
@@ -3390,6 +3386,56 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
+}
+
+function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: number) {
+    const policy = getPolicy(policyID);
+
+    const originalMaxExpenseAge = policy?.maxExpenseAge;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAge,
+                    pendingFields: {
+                        maxExpenseAge: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAge: originalMaxExpenseAge,
+                    pendingFields: {maxExpenseAge: null},
+                    errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAge,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);
 }
 
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
@@ -3588,6 +3634,7 @@ export {
     enablePolicyRules,
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
+    setPolicyMaxExpenseAge,
     setPolicyBillableMode,
     setPolicyEReceiptsEnabled,
 };
