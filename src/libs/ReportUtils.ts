@@ -43,6 +43,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -1666,6 +1667,14 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
+    if (isIOUReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID && currentUserAccountID !== moneyRequestReport?.ownerAccountID) {
+        return false;
+    }
+
+    if (isExpenseReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID) {
+        return false;
+    }
+
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -2128,28 +2137,30 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    // Get participantAccountIDs from participants object
-    let participants = participantAccountIDs ?? Object.keys(report?.participants ?? {}).map(Number);
+    let participantAccountIDs = participants?.map((participant) => participant.accountID) ?? Object.keys(report?.participants ?? {}).map(Number);
     if (shouldApplyLimit) {
-        participants = participants.slice(0, 5);
+        participantAccountIDs = participantAccountIDs.slice(0, 5);
     }
-    const isMultipleParticipantReport = participants.length > 1;
+    const isMultipleParticipantReport = participantAccountIDs.length > 1;
 
     if (isMultipleParticipantReport) {
-        return participants
-            .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+        return participantAccountIDs
+            .map(
+                (participantAccountID, index) =>
+                    getDisplayNameForParticipant(participantAccountID, isMultipleParticipantReport) || LocalePhoneNumber.formatPhoneNumber(participants?.[index]?.login ?? ''),
+            )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ');
     }
 
-    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});
+    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participantAccountIDs[0], false)});
 }
 
 function getParticipants(reportID: string) {
