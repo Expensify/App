@@ -1640,6 +1640,14 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return Localize.translateLocal('report.actions.type.removeMember', email, role);
 }
 
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+    const initialMessage = getOriginalMessage(reportAction);
+    return Localize.translateLocal('newRoomPage.renamedRoomAction', {
+        oldName: initialMessage?.oldName ?? '',
+        newName: initialMessage?.newName ?? '',
+    });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1737,6 +1745,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getRenamedAction,
 };
 
 export type {LastVisibleMessage};

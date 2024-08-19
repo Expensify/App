@@ -435,6 +435,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
+                } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
+                    setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
                     const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
                     Clipboard.setString(displayMessage);
