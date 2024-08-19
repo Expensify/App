@@ -287,6 +287,10 @@ export default {
         marginBottom: 4,
     },
 
+    mb1half: {
+        marginBottom: 6,
+    },
+
     mb2: {
         marginBottom: 8,
     },
@@ -399,6 +403,10 @@ export default {
 
     pv1: {
         paddingVertical: 4,
+    },
+
+    pv1half: {
+        paddingVertical: 6,
     },
 
     pv2: {
@@ -549,6 +557,10 @@ export default {
         paddingTop: 4,
     },
 
+    pt1half: {
+        paddingTop: 6,
+    },
+
     pt2: {
         paddingTop: 8,
     },
@@ -651,5 +663,13 @@ export default {
 
     rowGap4: {
         rowGap: 16,
+    },
+
+    minHeight5: {
+        minHeight: 20,
+    },
+
+    minHeight65: {
+        minHeight: 260,
     },
 } satisfies Record<string, ViewStyle>;

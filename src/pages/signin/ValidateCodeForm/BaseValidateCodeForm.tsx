@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -51,11 +52,18 @@ type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
         autoComplete: 'sms-otp' | 'one-time-code';
     };
 
+type BaseValidateCodeFormRef = {
+    clearSignInData: () => void;
+};
+
 type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryCode';
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm(
+    {account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps,
+    forwardedRef: ForwardedRef<BaseValidateCodeFormRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -64,7 +72,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const [formError, setFormError] = useState<FormError>({});
     const [validateCode, setValidateCode] = useState(credentials?.validateCode ?? '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [timeRemaining, setTimeRemaining] = useState(30);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
 
@@ -91,6 +99,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
 
@@ -161,27 +170,31 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-        setTimeRemaining(30);
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = () => {
+    const clearLocalSignInData = useCallback(() => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    };
+    }, [setIsUsingRecoveryCode]);
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = () => {
+    const clearSignInData = useCallback(() => {
         clearLocalSignInData();
         SessionActions.clearSignInData();
-    };
+    }, [clearLocalSignInData]);
+
+    useImperativeHandle(forwardedRef, () => ({
+        clearSignInData,
+    }));
 
     useEffect(() => {
         if (!needToClearError) {
@@ -414,5 +427,7 @@ export default withToggleVisibilityView(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
-    })(BaseValidateCodeForm),
+    })(forwardRef(BaseValidateCodeForm)),
 );
+
+export type {BaseValidateCodeFormRef};

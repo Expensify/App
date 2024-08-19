@@ -11,9 +11,11 @@ import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 
-let onboarding: Onboarding | [] | undefined;
+type OnboardingData = Onboarding | [] | undefined;
+
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
+let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -30,7 +32,7 @@ let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
+let resolveOnboardingFlowStatus: () => void;
 let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
@@ -95,30 +97,14 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_ROOT);
+                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
                     }, variables.explanationModalDelay),
             }),
     });
 }
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
- * Check if onboarding data is ready in order to check if the user has completed onboarding or not
- */
-function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
-        return;
-    }
-
-    resolveOnboardingFlowStatus?.();
-}
-
-/**
- * Check if user dismissed modal and if report data are loaded
+ * Check if report data are loaded
  */
 function checkServerDataReady() {
     if (isLoadingReportData) {
@@ -139,8 +125,23 @@ function checkTryNewDotDataReady() {
     resolveTryNewDotStatus?.();
 }
 
+/**
+ * Check if the onboarding data is loaded
+ */
+function checkOnboardingDataReady() {
+    if (onboarding === undefined) {
+        return;
+    }
+
+    resolveOnboardingFlowStatus();
+}
+
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
+function setOnboardingErrorMessage(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -182,12 +183,7 @@ function completeHybridAppOnboarding() {
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
         onboarding = value;
-
         checkOnboardingDataReady();
     },
 });
@@ -213,10 +209,9 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise((resolve) => {
+    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
-    onboarding = undefined;
     isLoadingReportData = true;
 }
 
@@ -229,4 +224,5 @@ export {
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
+    setOnboardingErrorMessage,
 };

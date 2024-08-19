@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchParams} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ActionCell from './ActionCell';
@@ -71,16 +70,21 @@ function ReportListItem<TItem extends ListItem>({
         return;
     }
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, styles.ph3];
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv1half,
+        styles.ph0,
+        styles.overflowHidden,
+        item.isSelected && styles.activeComponentBG,
+        isFocused && styles.sidebarLinkActive,
+    ];
 
     const handleOnButtonPress = () => {
         onSelectRow(item);
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        const searchParams = getSearchParams();
-        const currentQuery = searchParams?.query ?? CONST.SEARCH.TAB.ALL;
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(transactionItem.transactionThreadReportID));
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
@@ -92,8 +96,8 @@ function ReportListItem<TItem extends ListItem>({
 
     // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
-    const participantFromDisplayName = participantFrom?.name ?? participantFrom?.displayName ?? participantFrom?.login ?? '';
-    const participantToDisplayName = participantTo?.name ?? participantTo?.displayName ?? participantTo?.login ?? '';
+    const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
+    const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
         const transactionItem = reportItem.transactions[0];
@@ -144,10 +148,11 @@ function ReportListItem<TItem extends ListItem>({
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
+                        containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mnh40]}>
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
                                 <Checkbox
@@ -156,6 +161,7 @@ function ReportListItem<TItem extends ListItem>({
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
+                                    shouldStopMouseDownPropagation
                                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !isLargeScreenWidth && styles.mr3]}
                                 />
                             )}
@@ -183,6 +189,7 @@ function ReportListItem<TItem extends ListItem>({
                 </View>
                 {reportItem.transactions.map((transaction) => (
                     <TransactionListItemRow
+                        key={transaction.transactionID}
                         parentAction={reportItem.action}
                         item={transaction}
                         showTooltip={showTooltip}
@@ -191,11 +198,11 @@ function ReportListItem<TItem extends ListItem>({
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
-                        containerStyle={styles.mt3}
+                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
-                        isButtonSelected={item.isSelected}
+                        isButtonSelected={transaction.isSelected}
                         shouldShowTransactionCheckbox
                     />
                 ))}

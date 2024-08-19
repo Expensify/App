@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -50,6 +51,7 @@ function BaseModal(
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
+        initialFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -255,7 +257,11 @@ function BaseModal(
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
                     <ModalContent onDismiss={handleDismissModal}>
-                        <FocusTrapForModal active={isVisible}>
+                        <PortalHost name="modal" />
+                        <FocusTrapForModal
+                            active={isVisible}
+                            initialFocus={initialFocus}
+                        >
                             <View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}

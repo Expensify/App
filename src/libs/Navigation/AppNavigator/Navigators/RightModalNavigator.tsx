@@ -1,11 +1,12 @@
 import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {isSafari} from '@libs/Browser';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
@@ -19,7 +20,7 @@ type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NA
 
 const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator({navigation}: RightModalNavigatorProps) {
+function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -51,6 +52,23 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator
                     screenOptions={screenOptions}
+                    screenListeners={{
+                        blur: () => {
+                            if (
+                                // @ts-expect-error There is something wrong with a types here and it's don't see the params list
+                                navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
+                                    SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
+                                route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
+                            ) {
+                                return;
+                            }
+                            // Delay clearing review duplicate data till the RHP is completely closed
+                            // to avoid not found showing briefly in confirmation page when RHP is closing
+                            InteractionManager.runAfterInteractions(() => {
+                                abandonReviewDuplicateTransactions();
+                            });
+                        },
+                    }}
                     id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                 >
                     <Stack.Screen
@@ -164,6 +182,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                         component={ModalStackNavigators.RestrictedActionModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
+                        component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

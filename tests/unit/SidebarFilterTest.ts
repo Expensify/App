@@ -12,7 +12,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -283,11 +282,16 @@ xdescribe('Sidebar', () => {
         it('filter paycheck and bill report', () => {
             const report1: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.PAYCHECK,
+                type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
             };
             const report2: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.BILL,
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: {
+                    notFound: {
+                        error: 'Report not found',
+                    },
+                },
             };
             const report3: Report = LHNTestUtils.getFakeReport();
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);

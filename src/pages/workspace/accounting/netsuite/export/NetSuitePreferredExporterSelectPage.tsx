@@ -55,7 +55,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: config?.exporter === exporter.email,
+                isSelected: (config?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
@@ -84,7 +84,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuitePreferredExporterSelectPage.displayName}
             sections={[{data}]}

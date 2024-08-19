@@ -8,15 +8,24 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({
+    SkeletonComponent,
+    headerMediaType,
+    headerMedia,
+    buttonText,
+    buttonAction,
+    title,
+    subtitle,
+    headerStyles,
+    headerContentStyles,
+    minModalHeight = 400,
+}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
@@ -68,14 +77,14 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={styles.emptyStateScrollView}>
+        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}
                 />
             </View>
-            <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
+            <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
@@ -85,9 +94,9 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                             <Button
                                 success
                                 onPress={buttonAction}
-                            >
-                                {buttonText}
-                            </Button>
+                                text={buttonText}
+                                style={[styles.mt5]}
+                            />
                         )}
                     </View>
                 </View>
