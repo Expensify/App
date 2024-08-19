@@ -74,10 +74,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-function replaceCommaWithDot(amount: string): string {
-    return amount.replace(/,/g, '.');
-}
-
 function isSearchDataType(type: string): type is SearchDataTypes {
     const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
     return searchDataTypes.includes(type);
@@ -440,14 +436,14 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
     const greaterThan = filterValues[FILTER_KEYS.GREATER_THAN];
 
     let amountFilter = '';
-    if (lessThan) {
-        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}<${lessThan}`;
+    if (greaterThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}>${greaterThan}`;
     }
     if (lessThan && greaterThan) {
         amountFilter += ' ';
     }
-    if (greaterThan) {
-        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}>${greaterThan}`;
+    if (lessThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}<${lessThan}`;
     }
 
     return amountFilter;
@@ -601,5 +597,4 @@ export {
     normalizeQuery,
     shouldShowYear,
     getExpenseTypeTranslationKey,
-    replaceCommaWithDot,
 };

@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
-import {replaceCommaWithDot} from '@libs/SearchUtils';
+import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
@@ -28,8 +27,8 @@ function AmountWithoutCurrencyForm({value: amount, onInputChange, inputID, name,
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const replacedCommasAmount = replaceCommaWithDot(newAmountWithoutSpaces);
-            if (!validateAmount(replacedCommasAmount, 3)) {
+            const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            if (!validateAmount(replacedCommasAmount, 2)) {
                 return;
             }
             onInputChange?.(replacedCommasAmount);
