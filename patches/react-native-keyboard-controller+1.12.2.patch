@@ -28,8 +28,6 @@ index 6e566fc..07ccb3c 100644
 -    this.setupWindowInsets()
 +    // this.setupWindowInsets()
      this.setupKeyboardCallbacks()
--    modalAttachedWatcher.enable()
-+    // modalAttachedWatcher.enable()
    }
  
    private fun disable() {
@@ -37,17 +35,5 @@ index 6e566fc..07ccb3c 100644
 -    this.setupWindowInsets()
 +    // this.setupWindowInsets()
      this.removeKeyboardCallbacks()
--    modalAttachedWatcher.disable()
-+    // modalAttachedWatcher.disable()
    }
    // endregion
- 
-@@ -206,7 +206,7 @@ class EdgeToEdgeReactViewGroup(private val reactContext: ThemedReactContext) : R
-   fun forceStatusBarTranslucent(isStatusBarTranslucent: Boolean) {
-     if (active && this.isStatusBarTranslucent != isStatusBarTranslucent) {
-       this.isStatusBarTranslucent = isStatusBarTranslucent
--      this.setupWindowInsets()
-+      // this.setupWindowInsets()
-       this.requestApplyInsetsWhenAttached()
-     }
-   }
