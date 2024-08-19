@@ -1,5 +1,5 @@
 import React from 'react';
-import {OnyxKey, useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -62,8 +62,10 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: false,
-            onToggle: (isEnabled: boolean) => {},
+            isActive: policy?.shouldShowAutoApprovalOptions,
+            onToggle: (isEnabled: boolean) => {
+                WorkspaceRulesActions.enableAutoApprovalOptions(isEnabled, policyID);
+            },
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}

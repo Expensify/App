@@ -1408,12 +1408,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
         /** Detailed settings for the autoReimbursement */
-        autoReimbursement: {
+        autoReimbursement?: {
             /**
              * The maximum report total allowed to trigger auto reimbursement.
              */
-            limit: number;
+            limit?: number;
         };
+
+        /**
+         * Whether the auto-approval options are enabled in the policy rules
+         */
+        shouldShowAutoApprovalOptions?: boolean;
 
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;

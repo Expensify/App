@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
+    EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -262,6 +263,43 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string
 }
 
 /**
+ * Call the API to enable auto-approval for the reports in the given policy
+ * @param enabled - whether auto-approve for the reports is enabled in the given policy
+ * @param policyID - id of the policy to apply the limit to
+ */
+function enableAutoApprovalOptions(enabled: boolean, policyID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowAutoApprovalOptions: enabled,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowAutoApprovalOptions: !enabled,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyAutoApprovalOptionsParams = {
+        enabled,
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
+/**
  * Call the API to deactivate the card and request a new one
  * @param limit - max amount for auto-payment for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
@@ -314,7 +352,7 @@ function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReimbursement: policy?.autoReimbursement,
-                errors
+                errors,
             },
         },
     ];
@@ -332,7 +370,7 @@ function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to enable auto-payment for the reports in the given policy
  * @param enabled - whether auto-payment for the reports is enabled in the given policy
  * @param policyID - id of the policy to apply the limit to
  */
@@ -384,4 +422,5 @@ export {
     setPolicyAutomaticApprovalAuditRate,
     setPolicyAutoReimbursementLimit,
     enablePolicyAutoReimbursementLimit,
+    enableAutoApprovalOptions,
 };
