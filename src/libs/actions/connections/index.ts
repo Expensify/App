@@ -368,7 +368,7 @@ function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: Poli
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return (
             !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || !policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified)
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
         );
     }
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
