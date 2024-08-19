@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -42,6 +42,7 @@ import type {Policy as PolicyType, ReimbursementAccount, Report, Session as Sess
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
+import { isConnectionInProgress } from '@libs/actions/connections';
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
@@ -123,6 +124,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
 
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -338,7 +340,12 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy),
+                    brickRoadIndicator:
+                        reimbursementAccountBrickRoadIndicator ??
+                        PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                            policy,
+                            isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                        ),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),

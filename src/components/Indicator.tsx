@@ -12,7 +12,6 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LoginList, Policy, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 
-
 type CheckingMethod = () => boolean;
 
 type IndicatorOnyxProps = {
