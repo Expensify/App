@@ -52,6 +52,9 @@ type ReportActionItemImageProps = {
 
     /** Whether the map view should have border radius  */
     shouldMapHaveBorderRadius?: boolean;
+
+    /** Whether the receipt is not editable */
+    readonly?: boolean;
 };
 
 /**
@@ -70,6 +73,7 @@ function ReportActionItemImage({
     fileExtension,
     filename,
     isSingleImage = true,
+    readonly = false,
     shouldMapHaveBorderRadius,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
@@ -130,7 +134,9 @@ function ReportActionItemImage({
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1'))
+                            Navigation.navigate(
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1', readonly),
+                            )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}

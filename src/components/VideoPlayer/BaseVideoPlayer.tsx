@@ -91,6 +91,8 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+    const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumberRef.current = 0;
@@ -149,8 +151,10 @@ function BaseVideoPlayer({
             if (!('rate' in status && status.rate)) {
                 return;
             }
+            if (shouldUseNewRate) {
+                setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+            }
             setIsPopoverVisible(true);
-            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
         });
         if (!event || !('nativeEvent' in event)) {
             return;
@@ -177,18 +181,31 @@ function BaseVideoPlayer({
         [playVideo, videoResumeTryNumberRef],
     );
 
+    const prevIsMutedRef = useRef(false);
+    const prevVolumeRef = useRef(0);
+
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
             if (!status.isLoaded) {
                 preventPausingWhenExitingFullscreen(false);
                 setIsPlaying(false);
-                setIsLoading(false); // when video is ready to display duration is not NaN
+                setIsLoading(true); // when video is ready to display duration is not NaN
                 setIsBuffering(false);
                 setDuration(videoDuration * 1000);
                 setPosition(0);
                 onPlaybackStatusUpdate?.(status);
                 return;
             }
+
+            if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
+                updateVolume(0.25);
+            }
+            if (isFullScreenRef.current && prevVolumeRef.current !== 0 && status.volume === 0 && !status.isMuted) {
+                currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
+            }
+            prevIsMutedRef.current = status.isMuted;
+            prevVolumeRef.current = status.volume;
+
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const currentDuration = status.durationMillis || videoDuration * 1000;
@@ -413,8 +430,7 @@ function BaseVideoPlayer({
                                                     playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
-                                                const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
-                                                if (typeof source === 'number' || !source || source.uri !== sourceURL) {
+                                                if (shouldUseNewRate) {
                                                     return;
                                                 }
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
@@ -426,7 +442,7 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
