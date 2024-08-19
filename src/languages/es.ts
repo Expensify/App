@@ -661,11 +661,9 @@ export default {
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
-        locationAccessMessage:
-            'Usaremos tu ubicación para determinar con precisión la moneda y zona horaria predeterminadas. Puedes editar el acceso en la configuración de tu dispositivo en cualquier momento.',
-        locationErrorTitle: 'Habilitar ubicación en la configuración',
-        locationErrorMessage:
-            'Es necesario permitir el acceso a la ubicación para ayudar a determinar con precisión su moneda y zona horaria predeterminadas. Haz click en Configuración para actualizar los permisos.',
+        locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
+        locationErrorTitle: 'Permitir acceso a la ubicación',
+        locationErrorMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
         cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
