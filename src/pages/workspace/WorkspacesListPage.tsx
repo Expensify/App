@@ -363,7 +363,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 };
             })
             .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms]);
+    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms, allConnectionSyncProgresses]);
 
     const getHeaderButton = () => (
         <Button
