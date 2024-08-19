@@ -1609,6 +1609,37 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
     return Localize.translateLocal('report.actions.type.addEmployee', email, role);
 }
 
+function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
+}
+
+function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const newRole = originalMessage?.newValue ?? '';
+    const oldRole = originalMessage?.oldValue ?? '';
+    return Localize.translateLocal('report.actions.type.updateRole', email, oldRole, newRole);
+}
+
+function isPolicyChangeLogDeleteMemberMessage(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
+}
+
+function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.removeMember', email, role);
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1704,6 +1735,8 @@ export {
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
     getPolicyChangeLogAddEmployeeMessage,
+    getPolicyChangeLogChangeRoleMessage,
+    getPolicyChangeLogDeleteMemberMessage,
 };
 
 export type {LastVisibleMessage};

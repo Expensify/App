@@ -253,6 +253,12 @@ type OriginalMessageChangeLog = {
 
     /** When was it last modified */
     lastModified?: string;
+
+    /** New role of user */
+    newValue?: string;
+
+    /** Old role of user */
+    oldValue?: string;
 };
 
 /** Model of `join policy changelog` report action */

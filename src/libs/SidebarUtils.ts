@@ -430,6 +430,10 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             result.alternateText = ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
