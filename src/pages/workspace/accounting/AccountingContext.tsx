@@ -1,5 +1,5 @@
 import type {MutableRefObject, RefObject} from 'react';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
@@ -130,7 +130,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 }
 
 function useAccountingContext() {
-    return React.useContext(AccountingContext);
+    return useContext(AccountingContext);
 }
 
 export default AccountingContext;
