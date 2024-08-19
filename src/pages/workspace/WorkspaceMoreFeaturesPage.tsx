@@ -134,10 +134,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areRulesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areRulesEnabled,
             action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
