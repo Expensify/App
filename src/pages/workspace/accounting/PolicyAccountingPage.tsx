@@ -60,7 +60,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {canUseWorkspaceFeeds} = usePermissions();
-    const {startIntegrationFlow, integrationRefs: integrationsRef} = useAccountingContext();
+    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -215,11 +215,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             small
                             isDisabled={isOffline}
                             ref={(ref) => {
-                                if (!integrationsRef?.current) {
+                                if (!popoverAnchorRefs?.current) {
                                     return;
                                 }
                                 // eslint-disable-next-line react-compiler/react-compiler
-                                integrationsRef.current[integration].current = ref;
+                                popoverAnchorRefs.current[integration].current = ref;
                             }}
                         />
                     ),
@@ -341,7 +341,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         accountingIntegrations,
         isOffline,
         startIntegrationFlow,
-        integrationsRef,
+        popoverAnchorRefs,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -371,10 +371,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         small
                         isDisabled={isOffline}
                         ref={(r) => {
-                            if (!integrationsRef?.current) {
+                            if (!popoverAnchorRefs?.current) {
                                 return;
                             }
-                            integrationsRef.current[integration].current = r;
+                            popoverAnchorRefs.current[integration].current = r;
                         }}
                     />
                 ),
@@ -395,7 +395,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.sectionMenuItemTopDescription,
         isOffline,
         startIntegrationFlow,
-        integrationsRef,
+        popoverAnchorRefs,
     ]);
 
     return (

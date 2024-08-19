@@ -18,9 +18,9 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {integrationRefs} = useAccountingContext();
+    const {popoverAnchorRefs} = useAccountingContext();
 
-    const threeDotsMenuContainerRef = integrationRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 
     const connectionOptions = [
         {

@@ -28,10 +28,10 @@ type AccountingContextType = {
     /*
      * This stores refs to integration buttons, so the PopoverMenu can be positioned correctly
      */
-    integrationRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
+    popoverAnchorRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
 };
 
-const integrationRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce((acc, key) => {
+const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce((acc, key) => {
     acc[key] = {current: null};
     return acc;
 }, {} as Record<ConnectionName, MutableRefObject<View | null>>);
@@ -39,8 +39,8 @@ const integrationRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME)
 const defaultAccountingContext = {
     activeIntegration: undefined,
     startIntegrationFlow: () => {},
-    integrationRefs: {
-        current: integrationRefsInitialValue,
+    popoverAnchorRefs: {
+        current: popoverAnchorRefsInitialValue,
     },
 };
 
@@ -51,7 +51,7 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const integrationRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.integrationRefs.current);
+    const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy.id;
@@ -91,7 +91,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         () => ({
             activeIntegration,
             startIntegrationFlow,
-            integrationRefs,
+            popoverAnchorRefs,
         }),
         [activeIntegration, startIntegrationFlow],
     );

@@ -21,8 +21,8 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {integrationRefs} = useAccountingContext();
-    const threeDotsMenuContainerRef = integrationRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+    const {popoverAnchorRefs} = useAccountingContext();
+    const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
 
     const connectionOptions = [
         {
