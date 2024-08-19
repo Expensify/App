@@ -27,7 +27,9 @@ jobs:
         run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: 🚀 Create prerelease to trigger staging deploy 🚀
-        run: gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease
+        run: gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease --target staging
+        env:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Warn deployers if staging deploy failed
         if: ${{ failure() }}
