@@ -44,7 +44,7 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const hasSettledTransaction = transactions.find((transaction) => ReportUtils.isSettled(transaction?.reportID));
+    const hasSettledTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
