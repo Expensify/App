@@ -1594,6 +1594,14 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+    const initialMessage = getOriginalMessage(reportAction);
+    return Localize.translateLocal('newRoomPage.renamedRoomAction', {
+        oldName: initialMessage?.oldName ?? '',
+        newName: initialMessage?.newName ?? '',
+    });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1688,6 +1696,7 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
+    getRenamedAction,
 };
 
 export type {LastVisibleMessage};
