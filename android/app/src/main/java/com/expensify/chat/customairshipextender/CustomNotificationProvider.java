@@ -8,6 +8,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -30,6 +31,8 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
@@ -47,6 +50,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -210,39 +214,53 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             // create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
             builder.setLargeIcon(personIcon);
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("new-expensify://r/" + reportID));
 
             Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
+            ShortcutInfoCompat shortcutInfo = new ShortcutInfoCompat.Builder(context, accountID)
+                    .setShortLabel(name)
+                    .setLongLabel(name)
+                    .setCategories(Collections.singleton(CATEGORY_MESSAGE))
+                    .setIntent(intent)
+                    .setLongLived(true)
+                    .setPerson(person)
+                    .setIcon(IconCompat.createWithBitmap(personIcon))
+                    .build();
+
+            ShortcutManagerCompat.pushDynamicShortcut(context, shortcutInfo);
 
             // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             NotificationCompat.MessagingStyle.Message newMessage = new NotificationCompat.MessagingStyle.Message(message, createdTimeInMillis, person);
 
+            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
+
+            // Add all conversation messages to the notification, including the last one we just received.
+            List<NotificationCompat.MessagingStyle.Message> messages;
+            if (hasExistingNotification) {
+                NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
+                messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+            } else {
+                messages = new ArrayList<>();
+            }
+
+            // add the last one message we just received.
+            messages.add(newMessage);
+
+            for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
+                messagingStyle.addMessage(activeMessage);
+            }
+
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!conversationName.isEmpty() || hasExistingNotification) {
+            if (!conversationName.isEmpty()) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
-                NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
+                messagingStyle
                         .setGroupConversation(true)
                         .setConversationTitle(conversationName);
-
-
-                // Add all conversation messages to the notification, including the last one we just received.
-                List<NotificationCompat.MessagingStyle.Message> messages;
-                if (hasExistingNotification) {
-                    NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
-                    messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
-                } else {
-                    messages = new ArrayList<>();
-                }
-
-                // add the last one message we just received.
-                messages.add(newMessage);
-
-                for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
-                    messagingStyle.addMessage(activeMessage);
-                }
-
-                builder.setStyle(messagingStyle);
             }
+            builder.setStyle(messagingStyle);
+            builder.setShortcutId(accountID);
 
             // save reportID and person info for future merging
             builder.addExtras(createMessageExtrasBundle(reportID, person));
