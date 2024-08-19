@@ -3341,6 +3341,65 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
 }
 
+function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
+    const policy = getPolicy(policyID);
+
+    const originalDefaultBillable = policy?.defaultBillable;
+    const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    defaultBillable,
+                    disabledFields: {
+                        defaultBillable: false,
+                    },
+                    pendingFields: {
+                        defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        defaultBillable: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {defaultBillable: originalDefaultBillableDisabled},
+                    defaultBillable: originalDefaultBillable,
+                    pendingFields: {defaultBillable: null},
+                    errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        defaultBillable,
+        disabledFields: JSON.stringify({
+            defaultBillable: false,
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
@@ -3426,6 +3485,7 @@ export {
     hasInvoicingDetails,
     enablePolicyRules,
     setPolicyMaxExpenseAmountNoReceipt,
+    setPolicyBillableMode,
 };
 
 export type {NewCustomUnit};

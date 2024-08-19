@@ -3552,6 +3552,11 @@ export default {
                 maxExpenseAge: 'Max expense age',
                 maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
                 billableDefault: 'Billable default',
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in tags.',
+                billable: 'Billable',
+                billableDescription: 'Expenses are most often re-billed to clients',
+                nonBillable: 'Non-billable',
+                nonBillableDescription: 'Expenses are occasionally re-billed to clients',
                 eReceipts: 'eReceipts',
             },
             expenseReportRules: {

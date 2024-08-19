@@ -48,6 +48,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return `${(policy.maxExpenseAmountNoReceipt / 100).toFixed(2)} ${policyCurrency}`;
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
+    const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+
     return (
         <Section
             isCentralPane
@@ -74,7 +76,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             subtitle={translate('workspace.rules.individualExpenseRules.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <View style={[styles.mt3]}>
+            <View style={[styles.mt3, styles.gap3]}>
                 <MenuItemWithTopDescription
                     key={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
                     shouldShowRightIcon
@@ -82,6 +84,18 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     description={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
                     onPress={() => {
                         Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID));
+                    }}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    numberOfLinesTitle={2}
+                />
+
+                <MenuItemWithTopDescription
+                    key={translate('workspace.rules.individualExpenseRules.billableDefault')}
+                    shouldShowRightIcon
+                    title={billableModeText}
+                    description={translate('workspace.rules.individualExpenseRules.billableDefault')}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID));
                     }}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     numberOfLinesTitle={2}
