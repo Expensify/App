@@ -14,6 +14,7 @@ type OpenReportParams = {
     chatType?: string;
     optimisticAccountIDList?: string;
     file?: File | CustomRNImageManipulatorResult;
+    guidedSetupObject?: string;
 };
 
 export default OpenReportParams;

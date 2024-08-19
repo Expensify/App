@@ -750,8 +750,6 @@ function getInviteOnboardingDetails() {
     const firstName = personalDetails?.firstName ?? '';
     const lastName = personalDetails?.lastName ?? '';
 
-    Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
-
     if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         return {
             firstName,
@@ -792,8 +790,6 @@ function openReport(
         : {
               reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
-
-    const inviteOnboardingDetails = getInviteOnboardingDetails();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -844,13 +840,168 @@ function openReport(
         },
     ];
 
+    const inviteOnboardingDetails = getInviteOnboardingDetails();
+
+    const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
+    const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
+
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
+    const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
+
+    // Introductory message
+    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
+    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
+    const introductionMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: introductionCommentAction.reportActionID,
+        reportComment: introductionComment.commentText,
+    };
+
+    // Text message
+    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(inviteOnboardingDetails?.onboardingMessage?.message, undefined, actorAccountID, 1);
+    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
+    const textMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textComment.commentText,
+    };
+
+    let videoCommentAction: OptimisticAddCommentReportAction | null = null;
+    let videoMessage: AddCommentOrAttachementParams | null = null;
+    if (inviteOnboardingDetails?.onboardingMessage?.video) {
+        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+        videoCommentAction = videoComment.reportAction;
+        videoMessage = {
+            reportID: targetChatReportID,
+            reportActionID: videoCommentAction.reportActionID,
+            reportComment: videoComment.commentText,
+        };
+    }
+
+    const guidedSetupData: GuidedSetupData = [
+        {type: 'message', ...introductionMessage},
+        {type: 'message', ...textMessage},
+    ];
+
+    const guidedSetupObject = {
+        ...inviteOnboardingDetails,
+        guidedSetupData,
+    };
+
+    if (inviteOnboardingDetails?.onboardingMessage?.video && videoCommentAction && videoMessage) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+
+        guidedSetupData.push({type: 'video', ...inviteOnboardingDetails?.onboardingMessage?.video, ...videoMessage});
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: {
+                lastMentionedTime: DateUtils.getDBTime(),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice: introSelected?.choice},
+        },
+    );
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [introductionCommentAction.reportActionID]: {pendingAction: null},
+            [textCommentAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
+    let failureReport: Partial<Report> = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+        hasOutstandingChildTask: false,
+    };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        failureReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: failureReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [introductionCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+                [textCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice: null},
+        },
+    );
+
     const parameters: OpenReportParams = {
         reportID,
         reportActionID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        ...inviteOnboardingDetails,
+        guidedSetupObject: JSON.stringify(guidedSetupObject),
     };
 
     if (ReportUtils.isGroupChat(newReportObject)) {
