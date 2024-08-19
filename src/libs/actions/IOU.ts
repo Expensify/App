@@ -6578,9 +6578,9 @@ function getPayMoneyRequestParams(
             expenseCreatedReportActionID,
         };
 
-        optimisticData.push(...policyOptimisticData);
+        optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
         successData.push(...policySuccessData);
-        failureData.push(...policyFailureData);
+        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
     }
 
     if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
