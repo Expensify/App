@@ -33,6 +33,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
@@ -44,7 +45,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
 
     const toggleContinuousReconciliation = (value: boolean) => {
-        Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName);
+        Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
         if (value) {
             Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
         }

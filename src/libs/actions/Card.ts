@@ -498,7 +498,7 @@ function openCardDetailsPage(cardID: number) {
     API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
 }
 
-function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName) {
+function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
               workspaceAccountID,
@@ -545,7 +545,7 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
-            value: null,
+            value: oldConnectionName ?? null,
         },
     ];
 
