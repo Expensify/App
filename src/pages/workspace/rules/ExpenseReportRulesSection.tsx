@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
@@ -94,11 +95,13 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.shouldShowAutoReimbursementLimitOption,
             subMenuItems: [
                 <MenuItem
-                    title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                    titleStyle={styles.textLabelSupportingEmptyValue}
+                    description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
+                    title={CurrencyUtils.convertToDisplayString(policy?.autoReimbursement?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
+                    shouldShowBasicTitle
+                    shouldShowDescriptionOnTop
                 />,
             ],
         },

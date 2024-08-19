@@ -11,6 +11,7 @@ import type {
 import type SetPolicyAutomaticApprovalAuditRateParams from '@libs/API/parameters/SetPolicyAutomaticApprovalAuditRate';
 import type SetPolicyPreventMemberCreatedTitleParams from '@libs/API/parameters/SetPolicyPreventMemberCreatedTitleParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {getPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -265,14 +266,25 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string
  * @param limit - max amount for auto-payment for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
  */
-function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
+function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
+    const policy = getPolicy(policyID);
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(limit));
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
             value: {
-                isLoading: true,
-                errors: null,
+                maxExpenseAutoPayAmount: limit,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReimbursement: {
+                    limit: parsedLimit,
+                },
             },
         },
     ];
@@ -282,7 +294,16 @@ function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
             value: {
-                isLoading: false,
+                maxExpenseAutoPayAmount: limit,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReimbursement: {
+                    limit: parsedLimit,
+                },
             },
         },
     ];
@@ -290,15 +311,16 @@ function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: false,
+                autoReimbursement: policy?.autoReimbursement,
+                errors
             },
         },
     ];
 
     const parameters: SetPolicyAutoReimbursementLimitParams = {
-        autoReimbursement: {limit},
+        autoReimbursement: {limit: parsedLimit},
         policyID,
     };
 

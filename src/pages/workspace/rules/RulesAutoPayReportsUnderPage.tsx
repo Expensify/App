@@ -1,9 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -24,12 +26,23 @@ type RulesAutoPayReportsUnderPageProps = StackScreenProps<SettingsNavigatorParam
 
 function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps) {
     const {policyID} = route.params;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
+    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoReimbursement?.limit, policy?.outputCurrency);
+
+    // const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<'rulesAutoPayReportsUnderModalForm'>) => {
+    //     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
+    //     if (CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT) {
+    //         console.log('ERROR');
+    //         errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('common.error.fieldRequired');
+    //     }
+    //     console.log('ERRORS ', errors);
+    //     return errors;
+    // };
 
     return (
         <AccessOrNotFoundWrapper
@@ -49,8 +62,11 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
-                    // validate={validator}
-                    onSubmit={({maxExpenseAutoPayAmount}) => WorkspaceRulesActions.setPolicyAutoReimbursementLimit(parseInt(maxExpenseAutoPayAmount, 10), policyID)}
+                    // validate={validateLimit}
+                    onSubmit={({maxExpenseAutoPayAmount}) => {
+                        WorkspaceRulesActions.setPolicyAutoReimbursementLimit(maxExpenseAutoPayAmount, policyID);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -59,9 +75,8 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT}
-                            // currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                            currency={CurrencyUtils.getCurrencySymbol(CONST.CURRENCY.USD)}
-                            // defaultValue="0"
+                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
                             amountMaxLength={7}

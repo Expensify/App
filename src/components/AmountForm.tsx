@@ -47,7 +47,7 @@ type AmountFormProps = {
 
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
-    Pick<BaseTextInputProps, 'autoFocus'>;
+    Pick<BaseTextInputProps, 'autoFocus' | 'hasError'>;
 
 /**
  * Returns the new selection object based on the updated amount's length

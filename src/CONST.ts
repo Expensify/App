@@ -2027,6 +2027,7 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
         },
+        AUTO_REIMBURSEMENT_MAX_LIMIT: 2000000,
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
             IMMEDIATE: 'immediate',
