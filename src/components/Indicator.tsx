@@ -61,7 +61,7 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
             Object.values(cleanPolicies).some((cleanPolicy) =>
                 PolicyUtils.hasSyncError(
                     cleanPolicy,
-                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}}`], cleanPolicy),
+                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
                 ),
             ),
         () => SubscriptionUtils.hasSubscriptionRedDotError(),
