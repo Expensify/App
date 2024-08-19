@@ -244,10 +244,23 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
-        const signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
+        }
+
+        const signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
+        if (signupQualifier) {
+            if (signupQualifier === 'individual') {
+                Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [
+                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT
+                ])
+            }
+            if (signupQualifier === 'vsb') {
+                Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+            }
         }
 
         NetworkConnection.listenForReconnect();
