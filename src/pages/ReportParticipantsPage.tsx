@@ -80,7 +80,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         if (!shouldShowInput) {
             setSearchValue('');
         }
-    }, [report, shouldShowTextInput]);
+    }, [report, shouldShowTextInput, personalDetails]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
