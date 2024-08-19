@@ -24,8 +24,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import {isConnectionInProgress} from '@libs/actions/connections';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +43,6 @@ import type {Policy as PolicyType, ReimbursementAccount, Report, Session as Sess
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
-
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &

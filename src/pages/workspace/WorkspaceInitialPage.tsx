@@ -43,7 +43,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-
 type WorkspaceMenuItem = {
     translationKey: TranslationPaths;
     icon: IconAsset;
