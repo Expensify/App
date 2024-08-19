@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -27,7 +27,7 @@ type IOURequestStepTaxAmountPageOnyxProps = {
     policyCategories: OnyxEntry<PolicyCategories>;
 
     /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
@@ -50,7 +50,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
     const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
     const editingTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount, currency ?? CONST.CURRENCY.USD));
 }
 
 function IOURequestStepTaxAmountPage({

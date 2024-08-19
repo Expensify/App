@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
@@ -20,7 +19,6 @@ import SubscriptionSettings from './SubscriptionSettings';
 
 function SubscriptionSettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
@@ -34,7 +32,10 @@ function SubscriptionSettingsPage() {
     }
 
     return (
-        <ScreenWrapper testID={SubscriptionSettingsPage.displayName}>
+        <ScreenWrapper
+            testID={SubscriptionSettingsPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -42,7 +43,7 @@ function SubscriptionSettingsPage() {
                 icon={Illustrations.CreditCardsNew}
             />
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />

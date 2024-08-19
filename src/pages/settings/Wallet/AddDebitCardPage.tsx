@@ -7,12 +7,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function DebitCardPage() {
+    // Temporarily disabled
+    return <NotFoundPage />;
+
     const {translate} = useLocalize();
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
 
@@ -20,10 +24,10 @@ function DebitCardPage() {
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
      */
     useEffect(() => {
-        PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 

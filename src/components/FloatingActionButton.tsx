@@ -63,6 +63,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const buttonRef = ref;
 
     useEffect(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         sharedValue.value = withTiming(isActive ? 1 : 0, {
             duration: 340,
             easing: Easing.inOut(Easing.ease),

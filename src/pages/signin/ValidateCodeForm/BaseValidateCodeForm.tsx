@@ -1,9 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -50,11 +52,18 @@ type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
         autoComplete: 'sms-otp' | 'one-time-code';
     };
 
+type BaseValidateCodeFormRef = {
+    clearSignInData: () => void;
+};
+
 type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryCode';
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm(
+    {account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps,
+    forwardedRef: ForwardedRef<BaseValidateCodeFormRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -63,7 +72,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const [formError, setFormError] = useState<FormError>({});
     const [validateCode, setValidateCode] = useState(credentials?.validateCode ?? '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [timeRemaining, setTimeRemaining] = useState(30);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
 
@@ -90,6 +99,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
 
@@ -160,27 +170,31 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-        setTimeRemaining(30);
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = () => {
+    const clearLocalSignInData = useCallback(() => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    };
+    }, [setIsUsingRecoveryCode]);
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = () => {
+    const clearSignInData = useCallback(() => {
         clearLocalSignInData();
         SessionActions.clearSignInData();
-    };
+    }, [clearLocalSignInData]);
+
+    useImperativeHandle(forwardedRef, () => ({
+        clearSignInData,
+    }));
 
     useEffect(() => {
         if (!needToClearError) {
@@ -217,7 +231,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
         // overcomplicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {
@@ -291,7 +305,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
     return (
-        <>
+        <SafariFormWrapper>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
             {account?.requiresTwoFactorAuth ? (
                 <View style={[styles.mv3]}>
@@ -303,7 +317,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError?.recoveryCode ?? ''}
+                            errorText={formError?.recoveryCode ? translate(formError?.recoveryCode) : ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -323,7 +337,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError?.twoFactorAuthCode ?? ''}
+                            errorText={formError?.twoFactorAuthCode ? translate(formError?.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -356,7 +370,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError?.validateCode ?? ''}
+                        errorText={formError?.validateCode ? translate(formError?.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
@@ -402,7 +416,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
             </View>
-        </>
+        </SafariFormWrapper>
     );
 }
 
@@ -413,5 +427,7 @@ export default withToggleVisibilityView(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
-    })(BaseValidateCodeForm),
+    })(forwardRef(BaseValidateCodeForm)),
 );
+
+export type {BaseValidateCodeFormRef};

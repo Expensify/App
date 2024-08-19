@@ -2,6 +2,8 @@ import React, {memo, useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
@@ -12,7 +14,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const initUrl = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl) {
+        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
             return;
         }
 
@@ -22,13 +24,13 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     }, [initUrl]);
 
     if (authenticated) {
-        const AuthScreens = require('./AuthScreens').default;
+        const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;
 
         // These are the protected screens and only accessible when an authToken is present
         return <AuthScreens />;
     }
 
-    const PublicScreens = require('./PublicScreens').default;
+    const PublicScreens = require<ReactComponentModule>('./PublicScreens').default;
 
     return <PublicScreens />;
 }

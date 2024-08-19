@@ -4,6 +4,7 @@ import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
@@ -101,7 +102,12 @@ export default {
         const plainTextPerson = person?.map((f) => f.text).join() ?? '';
 
         // Specifically target the comment part of the message
-        const plainTextMessage = message?.find((f) => f?.type === 'COMMENT')?.text ?? '';
+        let plainTextMessage = '';
+        if (Array.isArray(message)) {
+            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
+        } else {
+            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
+        }
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);

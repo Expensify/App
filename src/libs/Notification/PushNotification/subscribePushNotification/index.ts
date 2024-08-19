@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -6,7 +7,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
+import * as ReportConnection from '@libs/ReportConnection';
+import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -56,7 +58,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         previousUpdateID,
         updates: [
             {
-                eventType: 'eventType',
+                eventType: '', // This is only needed for Pusher events
                 data: onyxData,
             },
         ],
@@ -74,7 +76,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = getReport(reportID.toString());
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
@@ -84,6 +86,10 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
             // The attachment modal remains open when navigating to the report so we need to close it
             Modal.close(() => {
                 try {
+                    // Get rid of the transition screen, if it is on the top of the stack
+                    if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+                        Navigation.goBack();
+                    }
                     // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
                     if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                         Navigation.goBack();

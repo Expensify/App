@@ -1,6 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {Str, Url} from 'expensify-common';
-import isDate from 'lodash/isDate';
+import {PUBLIC_DOMAINS, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -10,7 +9,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
-import type {MaybePhraseKey} from './Localize';
+import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -89,7 +88,7 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
         return !StringUtils.isEmptyString(value);
     }
 
-    if (isDate(value)) {
+    if (DateUtils.isDate(value)) {
         return isValidDate(value);
     }
     if (Array.isArray(value) || isObject(value)) {
@@ -111,7 +110,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
             return;
         }
 
-        errors[fieldKey] = 'common.error.fieldRequired';
+        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
     });
 
     return errors;
@@ -190,12 +189,12 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): MaybePhraseKey {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -206,10 +205,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)}];
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
 
-    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)}];
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
 /**
@@ -221,14 +220,14 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     return '';
@@ -241,6 +240,11 @@ function getDatePassedError(inputDate: string): string {
 function isValidWebsite(url: string): boolean {
     const isLowerCase = url === url.toLowerCase();
     return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+}
+
+/** Checks if the domain is public */
+function isPublicDomain(domain: string): boolean {
+    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -336,7 +340,7 @@ function isValidCompanyName(name: string) {
 }
 
 function isValidReportName(name: string) {
-    return name.trim().length <= CONST.REPORT_NAME_LIMIT;
+    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
@@ -350,8 +354,7 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    const hasAccentedChars = !!name.match(CONST.REGEX.ACCENT_LATIN_CHARS);
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**
@@ -408,7 +411,7 @@ function isNumeric(value: string): boolean {
     if (typeof value !== 'string') {
         return false;
     }
-    return /^\d*$/.test(value);
+    return CONST.REGEX.NUMBER.test(value);
 }
 
 /**
@@ -479,6 +482,11 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
     return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
 }
 
+function isExistingTaxCode(taxCode: string, taxRates: TaxRates): boolean {
+    const trimmedTaxCode = taxCode.trim();
+    return !!Object.keys(taxRates).find((taxID) => taxID === trimmedTaxCode);
+}
+
 /**
  * Validates the given value if it is correct subscription size.
  */
@@ -529,4 +537,6 @@ export {
     isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
+    isExistingTaxCode,
+    isPublicDomain,
 };

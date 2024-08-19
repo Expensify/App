@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -40,7 +41,7 @@ type IOURequestStepDescriptionOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
@@ -74,7 +75,7 @@ function IOURequestStepDescription({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment.comment ?? '' : transaction?.comment.comment ?? '';
+    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -94,18 +95,22 @@ function IOURequestStepDescription({
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
+            const errors = {};
 
-        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
-            ]);
-        }
+            if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'moneyRequestComment',
+                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
+                );
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -143,7 +148,7 @@ function IOURequestStepDescription({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -173,8 +178,10 @@ function IOURequestStepDescription({
                             if (!el) {
                                 return;
                             }
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(el);
+                            }
                             inputRef.current = el;
-                            updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

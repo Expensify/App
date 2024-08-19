@@ -9,20 +9,20 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
-type Item = {
-    key: string;
+type Item<TKey extends string> = {
+    key: TKey;
     label: TranslationPaths;
 };
 
-type SingleOptionSelectorProps = {
+type SingleOptionSelectorProps<TKey extends string> = {
     /** Array of options for the selector, key is a unique identifier, label is a localize key that will be translated and displayed */
-    options?: Item[];
+    options?: Array<Item<TKey>>;
 
     /** Key of the option that is currently selected */
-    selectedOptionKey?: string;
+    selectedOptionKey?: TKey;
 
     /** Function to be called when an option is selected */
-    onSelectOption?: (item: Item) => void;
+    onSelectOption?: (item: Item<TKey>) => void;
 
     /** Styles for the option row element */
     optionRowStyles?: StyleProp<ViewStyle>;
@@ -31,7 +31,7 @@ type SingleOptionSelectorProps = {
     selectCircleStyles?: StyleProp<ViewStyle>;
 };
 
-function SingleOptionSelector({options = [], selectedOptionKey, onSelectOption = () => {}, optionRowStyles, selectCircleStyles}: SingleOptionSelectorProps) {
+function SingleOptionSelector<TKey extends string>({options = [], selectedOptionKey, onSelectOption = () => {}, optionRowStyles, selectCircleStyles}: SingleOptionSelectorProps<TKey>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (

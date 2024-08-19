@@ -12,7 +12,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
         const {adaptedState} = getAdaptedStateFromPath(...args);
 
         // ResultState | undefined is the type this function expect.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return adaptedState;
     },
     subscribe,

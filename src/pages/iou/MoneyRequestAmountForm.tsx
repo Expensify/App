@@ -13,11 +13,10 @@ import SettlementButton from '@components/SettlementButton';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -71,8 +70,8 @@ type MoneyRequestAmountFormProps = {
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
+const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -97,13 +96,13 @@ function MoneyRequestAmountForm(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
-    const [formError, setFormError] = useState<MaybePhraseKey>('');
+    const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const isFocused = useIsFocused();
@@ -149,14 +148,17 @@ function MoneyRequestAmountForm(
         });
     }, [isFocused, wasFocused]);
 
-    const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
-        moneyRequestAmountInput.current?.changeAmount(frontendAmount);
-        moneyRequestAmountInput.current?.changeSelection({
-            start: frontendAmount.length,
-            end: frontendAmount.length,
-        });
-    }, []);
+    const initializeAmount = useCallback(
+        (newAmount: number) => {
+            const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, currency) : '';
+            moneyRequestAmountInput.current?.changeAmount(frontendAmount);
+            moneyRequestAmountInput.current?.changeSelection({
+                start: frontendAmount.length,
+                end: frontendAmount.length,
+            });
+        },
+        [currency],
+    );
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {
@@ -164,7 +166,7 @@ function MoneyRequestAmountForm(
         }
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
 
     /**
@@ -215,18 +217,18 @@ function MoneyRequestAmountForm(
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
-                setFormError('iou.error.invalidAmount');
+                setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-                setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
+            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
+                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
                 return;
             }
 
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {

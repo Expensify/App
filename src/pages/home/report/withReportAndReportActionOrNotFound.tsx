@@ -52,11 +52,11 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 ): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
-            let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
+            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
-                reportAction = props?.parentReportAction ?? {};
+                reportAction = props?.parentReportAction ?? undefined;
             }
 
             return reportAction;
@@ -71,7 +71,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 return;
             }
             Report.openReport(props.route.params.reportID);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
         // Perform all the loading checks

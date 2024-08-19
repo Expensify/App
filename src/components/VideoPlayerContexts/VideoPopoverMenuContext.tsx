@@ -4,7 +4,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -37,8 +36,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
-        fileDownload(sourceURI);
+        fileDownload(source.uri);
     }, [videoPopoverMenuPlayerRef]);
 
     const menuItems = useMemo(() => {
@@ -64,14 +62,15 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
                     updatePlaybackSpeed(speed);
                 },
                 shouldPutLeftPaddingWhenNoIcon: true,
+                isSelected: currentPlaybackSpeed === speed,
             })),
         });
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
-        () => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
-        [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed],
+        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
+        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }

@@ -5,9 +5,9 @@ import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -47,7 +47,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const styles = useThemeStyles();
     const {html = '', text} = fragment ?? {};
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
@@ -58,7 +58,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
-        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
+        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
@@ -91,7 +91,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     style,
                     styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                     styleAsMuted ? styles.colorMuted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                    !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                 ]}
             >
                 {convertToLTR(message ?? '')}

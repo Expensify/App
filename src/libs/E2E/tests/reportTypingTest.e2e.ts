@@ -46,7 +46,7 @@ const test = (config: NativeConfig) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Message sent',
-                    duration: entry.duration,
+                    metric: entry.duration,
                 }).then(messageSentResolve);
                 return;
             }
@@ -77,7 +77,8 @@ const test = (config: NativeConfig) => {
                                     E2EClient.submitTestResults({
                                         branch: Config.E2E_BRANCH,
                                         name: 'Composer typing rerender count',
-                                        renderCount: rerenderCount,
+                                        metric: rerenderCount,
+                                        unit: 'renders',
                                     })
                                         .then(renderTimesResolve)
                                         .then(resolve);

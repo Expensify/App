@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, SetStateAction} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
@@ -8,6 +8,7 @@ import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
+import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
@@ -41,24 +42,21 @@ type AttachmentCarouselPagerProps = {
         >,
     ) => void;
 
-    /**
-     * A callback that can be used to toggle the attachment carousel arrows, when the scale of the image changes.
-     * @param showArrows If set, it will show/hide the arrows. If not set, it will toggle the arrows.
-     */
-    onRequestToggleArrows: (showArrows?: boolean) => void;
-
     /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
+
+    /** Sets the visibility of the arrows. */
+    setShouldShowArrows: (show?: SetStateAction<boolean>) => void;
 };
 
 function AttachmentCarouselPager(
-    {items, activeSource, initialPage, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps,
+    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
+    const {handleTap, handleScaleChange} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
-    const scale = useRef(1);
     const isPagerScrolling = useSharedValue(false);
     const isScrollEnabled = useSharedValue(true);
 
@@ -68,6 +66,7 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
+        // eslint-disable-next-line react-compiler/react-compiler
         activePage.value = e.position;
         isPagerScrolling.value = e.offset !== 0;
     }, []);
@@ -78,43 +77,10 @@ function AttachmentCarouselPager(
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
-    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageIndex})), [activePageIndex, items]);
-
-    /**
-     * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
-     * It is used to react to zooming/pinching and (mostly) enabling/disabling scrolling on the pager,
-     * as well as enabling/disabling the carousel buttons.
-     */
-    const handleScaleChange = useCallback(
-        (newScale: number) => {
-            if (newScale === scale.current) {
-                return;
-            }
-
-            scale.current = newScale;
-
-            const newIsScrollEnabled = newScale === 1;
-            if (isScrollEnabled.value === newIsScrollEnabled) {
-                return;
-            }
-
-            isScrollEnabled.value = newIsScrollEnabled;
-            onRequestToggleArrows(newIsScrollEnabled);
-        },
-        [isScrollEnabled, onRequestToggleArrows],
+    const pagerItems = useMemo(
+        () => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex})),
+        [activePageIndex, items],
     );
-
-    /**
-     * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
-     * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
-     */
-    const handleTap = useCallback(() => {
-        if (!isScrollEnabled.value) {
-            return;
-        }
-
-        onRequestToggleArrows();
-    }, [isScrollEnabled.value, onRequestToggleArrows]);
 
     const extractItemKey = useCallback(
         (item: Attachment, index: number) =>

@@ -7,6 +7,7 @@ import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -32,6 +33,7 @@ type ReservationViewProps = {
 function ReservationView({reservation}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
@@ -125,7 +127,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
-            iconStyles={[styles.tripReservationIconContainer, styles.mr3]}
+            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
             hoverAndPressStyle={styles.hoveredComponentBG}
         />

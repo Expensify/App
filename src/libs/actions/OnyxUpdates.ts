@@ -23,6 +23,8 @@ Onyx.connect({
 // even when such events are received over multiple separate pusher updates.
 let pusherEventsPromise = Promise.resolve();
 
+let airshipEventsPromise = Promise.resolve();
+
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -33,7 +35,6 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
-
     return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)
@@ -69,6 +70,20 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
         });
 
     return pusherEventsPromise;
+}
+
+function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
+    airshipEventsPromise = airshipEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying Airship updates');
+    });
+
+    airshipEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+        });
+
+    return airshipEventsPromise;
 }
 
 /**
@@ -108,8 +123,11 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         return applyHTTPSOnyxUpdates(request, response);
     }
-    if ((type === CONST.ONYX_UPDATE_TYPES.PUSHER || type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && updates) {
+    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
         return applyPusherOnyxUpdates(updates);
+    }
+    if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
+        return applyAirshipOnyxUpdates(updates);
     }
 }
 
@@ -144,10 +162,15 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
+        Log.info('We do not have lastUpdateIDFromClient, client needs updating');
+        return true;
+    }
+    if (lastUpdateIDFromClient < previousUpdateID) {
+        Log.info('lastUpdateIDFromClient is less than the previousUpdateID received, client needs updating', false, {lastUpdateIDFromClient, previousUpdateID});
         return true;
     }
 
-    return lastUpdateIDFromClient < previousUpdateID;
+    return false;
 }
 
 // eslint-disable-next-line import/prefer-default-export

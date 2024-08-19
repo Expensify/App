@@ -4,6 +4,7 @@ import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type {PopoverProps} from './types';
 
@@ -26,6 +27,7 @@ function Popover(props: PopoverProps) {
         anchorRef = () => {},
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
+        shouldCloseWhenBrowserNavigationChanged = true,
     } = props;
 
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -35,23 +37,26 @@ function Popover(props: PopoverProps) {
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.
     React.useEffect(() => {
+        if (!shouldCloseWhenBrowserNavigationChanged) {
+            return;
+        }
         const listener = () => {
             if (!isVisible) {
                 return;
             }
-
             onClose();
         };
         window.addEventListener('popstate', listener);
         return () => {
             window.removeEventListener('popstate', listener);
         };
-    }, [onClose, isVisible]);
+    }, [onClose, isVisible, shouldCloseWhenBrowserNavigationChanged]);
 
     const onCloseWithPopoverContext = () => {
         if (popover && 'current' in anchorRef) {
             close(anchorRef);
         }
+        TooltipRefManager.hideTooltip();
         onClose();
     };
 

@@ -2,16 +2,16 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
-import type {ModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<PolicyTagList> = {};
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -23,6 +23,13 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
+
+/**
+ * Utility to get message based on boolean literal value.
+ */
+function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
+    return value === 'true' ? truthyMessage : falsyMessage;
+}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -105,12 +112,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): string {
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+    if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction?.originalMessage as ModifiedExpense | undefined;
-    const policyID = getReportPolicyID(reportID) ?? '-1';
+    const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -253,6 +260,19 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
+            Localize.translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
+    const hasModifiedReimbursable = reportActionOriginalMessage && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
+    if (hasModifiedReimbursable) {
+        buildMessageFragmentForValue(
+            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
+            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, Localize.translateLocal('iou.reimbursable'), Localize.translateLocal('iou.nonReimbursable')),
             Localize.translateLocal('iou.expense'),
             true,
             setFragments,

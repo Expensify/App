@@ -42,7 +42,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM;
+    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
@@ -54,7 +55,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route, isLoadingApp = true} = props;
+        const {report = {reportID: ''}, route, isLoadingApp = true, reportDraft} = props;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
@@ -62,13 +63,11 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-
             ReportActions.openReport(route.params.reportID);
-
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {

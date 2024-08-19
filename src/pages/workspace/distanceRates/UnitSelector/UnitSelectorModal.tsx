@@ -13,7 +13,7 @@ type UnitSelectorModalProps = {
     isVisible: boolean;
 
     /** Selected unit  */
-    currentUnit: Unit;
+    currentUnit?: Unit;
 
     /** Function to call when the user selects a unit */
     onUnitSelected: (value: UnitItemType) => void;

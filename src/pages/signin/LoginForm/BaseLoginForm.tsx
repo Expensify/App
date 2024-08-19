@@ -35,7 +35,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
-import type {Account, Credentials} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
@@ -47,19 +47,15 @@ type BaseLoginFormOnyxProps = {
 
     /** Message to display when user successfully closed their account */
     closeAccount: OnyxEntry<CloseAccountForm>;
-
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
 };
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
 
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
     const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
@@ -101,7 +97,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
      */
     const onTextInput = useCallback(
         (text: string) => {
-            setLogin(text);
+            onLoginChanged(text);
             if (firstBlurred.current) {
                 validate(text);
             }
@@ -115,7 +111,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 CloseAccount.setDefaultData();
             }
         },
-        [account, closeAccount, input, setLogin, validate],
+        [account, closeAccount, input, onLoginChanged, validate],
     );
 
     function getSignInWithStyles() {
@@ -174,7 +170,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -268,9 +264,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoFocus
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formError}
+                    errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
@@ -281,7 +276,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? [closeAccount.success, {isTranslated: true}] : account?.message || ''}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : account?.message || ''}}
                 />
             )}
             {
@@ -339,7 +334,6 @@ BaseLoginForm.displayName = 'BaseLoginForm';
 export default withToggleVisibilityView(
     withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
         account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     })(forwardRef(BaseLoginForm)),
 );

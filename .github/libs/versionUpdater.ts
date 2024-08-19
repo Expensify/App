@@ -1,11 +1,18 @@
+import type {ValueOf} from 'type-fest';
+
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
     PATCH: 'PATCH',
     BUILD: 'BUILD',
 } as const;
+type SemverLevel = ValueOf<typeof SEMANTIC_VERSION_LEVELS>;
 
-const MAX_INCREMENTS = 99 as const;
+const MAX_INCREMENTS = 99;
+
+function isValidSemverLevel(str: string): str is SemverLevel {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
+}
 
 /**
  * Transforms a versions string into a number
@@ -46,7 +53,7 @@ const incrementPatch = (major: number, minor: number, patch: number): string => 
 /**
  * Increments a build version
  */
-const incrementVersion = (version: string, level: string): string => {
+const incrementVersion = (version: string, level: SemverLevel): string => {
     const [major, minor, patch, build] = getVersionNumberFromString(version);
 
     // Majors will always be incremented
@@ -99,7 +106,9 @@ function getPreviousVersion(currentVersion: string, level: string): string {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
+export type {SemverLevel};
 export {
+    isValidSemverLevel,
     getVersionNumberFromString,
     getVersionStringFromNumber,
     incrementVersion,

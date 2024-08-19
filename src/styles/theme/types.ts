@@ -84,6 +84,8 @@ type ThemeColors = {
     mentionBG: Color;
     ourMentionText: Color;
     ourMentionBG: Color;
+    tooltipHighlightBG: Color;
+    tooltipHighlightText: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     trialBannerBackgroundColor: Color;
@@ -95,6 +97,8 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
+    emptyFolderBG: Color;
+    travelBG: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

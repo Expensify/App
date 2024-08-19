@@ -2,6 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -19,13 +21,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {parseHtmlToText} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -36,6 +40,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -77,7 +84,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = OptionsListUtils.shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
@@ -120,12 +127,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const report = ReportUtils.getReport(optionItem.reportID ?? '-1');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '-1') : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback
@@ -223,6 +229,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 ReportUtils.isSystemChat(report)
                                             }
                                         />
+                                        {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
+                                            <Badge
+                                                success
+                                                text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                                badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]}
+                                            />
+                                        )}
                                         {isStatusVisible && (
                                             <Tooltip
                                                 text={statusContent}
@@ -238,7 +251,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {parseHtmlToText(optionItem.alternateText)}
+                                            {Parser.htmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>

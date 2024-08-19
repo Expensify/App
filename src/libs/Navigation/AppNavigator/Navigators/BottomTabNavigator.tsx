@@ -7,10 +7,10 @@ import type {BottomTabNavigatorParamList, CentralPaneName, NavigationPartialRout
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
-import ActiveRouteContext from './ActiveRouteContext';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import ActiveCentralPaneRouteContext from './ActiveCentralPaneRouteContext';
 
-const loadInitialSettingsPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
-
+const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
 const screenOptions: StackNavigationOptions = {
@@ -20,9 +20,8 @@ const screenOptions: StackNavigationOptions = {
 
 function BottomTabNavigator() {
     const activeRoute = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-
     return (
-        <ActiveRouteContext.Provider value={activeRoute}>
+        <ActiveCentralPaneRouteContext.Provider value={activeRoute}>
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen
                     name={SCREENS.HOME}
@@ -37,7 +36,7 @@ function BottomTabNavigator() {
                     getComponent={loadInitialSettingsPage}
                 />
             </Tab.Navigator>
-        </ActiveRouteContext.Provider>
+        </ActiveCentralPaneRouteContext.Provider>
     );
 }
 

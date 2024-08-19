@@ -3,7 +3,6 @@ import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
@@ -41,7 +40,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     style?: StyleProp<ViewStyle>;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Value for checkbox. This prop is intended to be set by FormProvider only */
     value?: boolean;

@@ -40,9 +40,9 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
 
         if (values[dobInputID]) {
             if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
-                errors[dobInputID] = 'bankAccount.error.dob';
+                errors[dobInputID] = translate('bankAccount.error.dob');
             } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[dobInputID])) {
-                errors[dobInputID] = 'bankAccount.error.age';
+                errors[dobInputID] = translate('bankAccount.error.age');
             }
         }
 

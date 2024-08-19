@@ -77,6 +77,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
 
+        /** Whether the report has a child task that is awaiting action from the current user */
+        hasOutstandingChildTask?: boolean;
+
         /** List of icons for report participants */
         icons?: OnyxCommon.Icon[];
 
@@ -286,6 +289,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
+
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;

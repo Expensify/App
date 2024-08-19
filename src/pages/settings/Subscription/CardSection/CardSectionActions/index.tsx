@@ -4,9 +4,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import Navigation from '@navigation/Navigation';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -14,7 +16,7 @@ const anchorAlignment = {
 };
 
 function CardSectionActions() {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -24,19 +26,19 @@ function CardSectionActions() {
             {
                 icon: Expensicons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => {}, // TODO: update with navigation to "add card" screen (https://github.com/Expensify/App/issues/38621)
+                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
             },
             {
                 icon: Expensicons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => {}, // TODO: update with navigation to "change currency" screen (https://github.com/Expensify/App/issues/38621)
+                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
             },
         ],
         [translate],
     );
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             return;
         }
         threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -45,7 +47,7 @@ function CardSectionActions() {
                 vertical: y + height,
             });
         });
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     return (
         <View ref={threeDotsMenuContainerRef}>

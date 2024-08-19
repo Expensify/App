@@ -1,11 +1,16 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -139,6 +144,42 @@ function hasDetectedFraud(cardList: Record<string, Card>): boolean {
     return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
+function getMCardNumberString(cardNumber: string): string {
+    return cardNumber.replace(/\s/g, '');
+}
+
+function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.card.issueNewCard.smartLimit';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+            return 'workspace.card.issueNewCard.fixedAmount';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.card.issueNewCard.monthly';
+        default:
+            return '';
+    }
+}
+
+function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+}
+
+function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+    return Object.values(cardsList ?? {}).sort((cardA: Card, cardB: Card) => {
+        const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
+        const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
+
+        const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
+        const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
+
+        return localeCompare(aName, bName);
+    });
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -150,4 +191,8 @@ export {
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,
+    getMCardNumberString,
+    getTranslationKeyForLimitType,
+    getEligibleBankAccountsForCard,
+    sortCardsByCardholderName,
 };

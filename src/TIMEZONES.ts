@@ -551,6 +551,17 @@ const timezoneBackwardMap: Record<string, TupleToUnion<typeof TIMEZONES>> = {
     'US/Pacific': 'America/Los_Angeles',
     'US/Samoa': 'Pacific/Pago_Pago',
     'W-SU': 'Europe/Moscow',
+    CET: 'Europe/Paris',
+    CST6CDT: 'America/Chicago',
+    EET: 'Europe/Sofia',
+    EST: 'America/Cancun',
+    EST5EDT: 'America/New_York',
+    HST: 'Pacific/Honolulu',
+    MET: 'Europe/Paris',
+    MST: 'America/Phoenix',
+    MST7MDT: 'America/Denver',
+    PST8PDT: 'America/Los_Angeles',
+    WET: 'Europe/Lisbon',
 };
 
 export {timezoneBackwardMap};

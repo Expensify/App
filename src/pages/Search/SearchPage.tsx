@@ -1,65 +1,53 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
+    const {policyIDs, q, isCustomQuery} = route.params;
 
-    const {query: rawQuery, policyIDs, sortBy, sortOrder} = route?.params ?? {};
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q, policyIDs), [q, policyIDs]);
 
-    const query = rawQuery as SearchQuery;
-    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
-
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
-        all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
-        shared: {icon: Illustrations.SendMoney, title: translate('common.shared')},
-        drafts: {icon: Illustrations.Pencil, title: translate('common.drafts')},
-        finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
-    };
-
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return null;
     }
 
     return (
-        <ScreenWrapper testID={Search.displayName}>
+        <ScreenWrapper
+            testID={Search.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+        >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!isValidQuery}
+                shouldShow={!queryJSON}
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <HeaderWithBackButton
-                    title={headerContent[query]?.title}
-                    icon={headerContent[query]?.icon}
-                    shouldShowBackButton={false}
-                />
-                <Search
-                    policyIDs={policyIDs}
-                    query={query}
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                />
+                {queryJSON && (
+                    <Search
+                        isCustomQuery={isCustomQuery}
+                        queryJSON={queryJSON}
+                        policyIDs={policyIDs}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
