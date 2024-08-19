@@ -5,6 +5,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -255,6 +256,7 @@ export default {
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
+            pleaseSelectOne: 'Seleccione una de las opciones.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -447,6 +449,26 @@ export default {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
+    },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Presentar un gasto',
+            subtitleText1: 'Presente un gasto a alguien y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Dividir un gasto',
+            subtitleText1: 'Divide con un amigo y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pagar a alguien',
+            subtitleText1: 'Paga a quien quieras y ',
+            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
+            subtitleText3: ' cuando se convierta en client.',
+        },
     },
     videoChatButtonAndMenu: {
         tooltip: 'Programar una llamada',
@@ -1319,6 +1341,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -1326,10 +1352,15 @@ export default {
         monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCreateApprovalsPage: {
-        title: 'Añadir flujo de aprobación',
+        title: 'Confirmar',
+        header: 'Agrega más aprobadores y confirma.',
+        additionalApprover: 'Añadir aprobador',
+        submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {
         title: 'Edicion flujo de aprobación',
+        deleteTitle: 'Eliminar flujo de trabajo de aprobación',
+        deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
@@ -2772,8 +2803,8 @@ export default {
             requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
-            cashBack: 'Reembolso',
-            cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            earnedCashback: 'Reembolso',
+            earnedCashbackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
             issueNewCard: 'Emitir nueva tarjeta',
             finishSetup: 'Terminar configuración',
             chooseBankAccount: 'Elegir cuenta bancaria',
@@ -3370,6 +3401,10 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviar desde',
+            invoicingDetails: 'Detalles de facturación',
+            invoicingDetailsDescription: 'Esta información aparecerá en tus facturas.',
+            companyName: 'Nombre de la empresa',
+            companyWebsite: 'Sitio web de la empresa',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Empresas',
@@ -3654,7 +3689,6 @@ export default {
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
-        shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor, introduce un título',
         pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },

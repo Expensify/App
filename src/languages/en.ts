@@ -7,6 +7,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -265,6 +266,7 @@ export default {
             enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
+            pleaseSelectOne: 'Please select an option above.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -456,6 +458,26 @@ export default {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+    },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Submit an expense',
+            subtitleText1: 'Submit to someone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Split an expense',
+            subtitleText1: 'Split with a friend and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pay someone',
+            subtitleText1: 'Pay anyone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
     },
     videoChatButtonAndMenu: {
         tooltip: 'Book a call',
@@ -1310,6 +1332,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
@@ -1317,10 +1343,15 @@ export default {
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {
-        title: 'Add approval workflow',
+        title: 'Confirm',
+        header: 'Add more approvers and confirm.',
+        additionalApprover: 'Additional approver',
+        submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
+        deleteTitle: 'Delete approval workflow',
+        deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -2722,8 +2753,8 @@ export default {
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
-            cashBack: 'Cash back',
-            cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            earnedCashback: 'Cash back',
+            earnedCashbackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
             issueNewCard: 'Issue new card',
             finishSetup: 'Finish setup',
             chooseBankAccount: 'Choose bank account',
@@ -3319,6 +3350,10 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            invoicingDetails: 'Invoicing details',
+            invoicingDetailsDescription: 'This info will appear on your invoices.',
+            companyName: 'Company name',
+            companyWebsite: 'Company website',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Business',
@@ -3600,7 +3635,6 @@ export default {
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination.',
         descriptionOptional: 'Description (optional)',
-        shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
         pleaseEnterTaskDestination: 'Please select where you want to share this task.',
     },

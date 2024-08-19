@@ -269,10 +269,10 @@ Onyx.connect({
     },
 });
 
-let primaryPolicyID: OnyxEntry<string>;
+let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (primaryPolicyID = value),
+    callback: (value) => (activePolicyID = value),
 });
 
 /**
@@ -2291,6 +2291,9 @@ function getTrackExpenseInformation(
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (!filename) {
+        filename = existingTransaction?.filename;
+    }
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -2521,11 +2524,13 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
-    if (!hasPendingWaypoints) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -2803,7 +2808,7 @@ function getUpdateTrackExpenseParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, false),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2827,11 +2832,13 @@ function getUpdateTrackExpenseParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy);
-    if (!hasPendingWaypoints) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -3141,9 +3148,9 @@ function updateMoneyRequestDistanceRate(
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
-    if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
+    if (ReportUtils.isTrackExpenseReport(transactionThreadReport) && ReportUtils.isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
@@ -3811,10 +3818,10 @@ function trackExpense(
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
-    const existingChatReportID = existingSplitChatReportID ?? participants[0].reportID ?? '';
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
 
     // Check if the report is available locally if we do have one
-    let existingSplitChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    let existingSplitChatReport = existingChatReportID ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`] : null;
 
     const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
     if (!existingSplitChatReport) {
@@ -5059,6 +5066,8 @@ function createDistanceRequest(
             report?.reportID ?? '',
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
+            taxCode,
+            taxAmount,
         );
         onyxData = splitOnyxData;
 
@@ -6544,8 +6553,8 @@ function getPayMoneyRequestParams(
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
     let chatReport = initialChatReport;
 
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', primaryPolicyID);
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }
@@ -6591,10 +6600,10 @@ function getPayMoneyRequestParams(
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
     };
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
         optimisticChatReport.invoiceReceiver = {
             type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-            policyID: primaryPolicyID,
+            policyID: activePolicyID,
         };
     }
 

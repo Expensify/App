@@ -175,10 +175,9 @@ function MoneyRequestView({
     const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const isPaidReport = ReportActionsUtils.isPayAction(parentReportAction);
     const taxRates = policy?.taxRates;
-
     const formattedTaxAmount = updatedTransaction?.taxAmount
-        ? CurrencyUtils.convertToDisplayString(updatedTransaction?.taxAmount, transactionCurrency)
-        : CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
+        ? CurrencyUtils.convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
+        : CurrencyUtils.convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? TransactionUtils.getTaxName(policy, updatedTransaction) : TransactionUtils.getTaxName(policy, transaction);

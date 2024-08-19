@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
-const INPUT_IDS = {
+const FILTER_KEYS = {
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     CURRENCY: 'currency',
@@ -17,9 +17,11 @@ const INPUT_IDS = {
     EXPENSE_TYPE: 'expenseType',
     TAG: 'tag',
     KEYWORD: 'keyword',
+    FROM: 'from',
+    TO: 'to',
 } as const;
 
-type InputID = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof FILTER_KEYS>;
 
 type SearchAdvancedFiltersForm = Form<
     InputID,
@@ -39,8 +41,10 @@ type SearchAdvancedFiltersForm = Form<
         [INPUT_IDS.TAX_RATE]: string[];
         [INPUT_IDS.EXPENSE_TYPE]: string[];
         [INPUT_IDS.TAG]: string[];
+        [FILTER_KEYS.FROM]: string[];
+        [FILTER_KEYS.TO]: string[];
     }
 >;
 
 export type {SearchAdvancedFiltersForm};
-export default INPUT_IDS;
+export default FILTER_KEYS;

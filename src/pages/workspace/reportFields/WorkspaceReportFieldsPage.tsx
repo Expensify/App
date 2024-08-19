@@ -86,6 +86,8 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
+    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     useFocusEffect(fetchReportFields);
 
     useEffect(() => {
@@ -273,7 +275,7 @@ function WorkspaceReportFieldsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
