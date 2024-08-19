@@ -3585,7 +3585,7 @@ export default {
         rules: {
             individualExpenseRules: {
                 title: 'Expenses',
-                subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for categories and tags.',
+                subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
             },
             expenseReportRules: {
                 title: 'Expense reports',

@@ -3638,7 +3638,7 @@ export default {
         rules: {
             individualExpenseRules: {
                 title: 'Gastos',
-                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para categorías y etiquetas.',
+                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
             },
             expenseReportRules: {
                 title: 'Informes de gastos',
