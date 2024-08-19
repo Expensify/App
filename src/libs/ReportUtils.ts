@@ -4392,6 +4392,12 @@ function getIOUForwardedMessage(reportID: string) {
     return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
 }
 
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
+    return message;
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -7789,6 +7795,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
