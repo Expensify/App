@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -332,6 +332,15 @@ function MagicCodeInput(
             }
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
+        } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
+            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
+                setInputAndIndex(newFocusedIndex);
+                inputRefs.current?.focus();
+                if (event?.preventDefault) {
+                    event.preventDefault();
+                }
+            }
         }
     };
 
