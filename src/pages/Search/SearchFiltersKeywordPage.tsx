@@ -16,14 +16,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersKeywordPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const keyword = searchAdvancedFiltersForm?.[INPUT_IDS.KEYWORD];
+    const keyword = searchAdvancedFiltersForm?.[FILTER_KEYS.KEYWORD];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateKeywordFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -54,8 +54,8 @@ function SearchFiltersKeywordPage() {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.KEYWORD}
-                            name={INPUT_IDS.KEYWORD}
+                            inputID={FILTER_KEYS.KEYWORD}
+                            name={FILTER_KEYS.KEYWORD}
                             defaultValue={keyword}
                             label={translate('search.filters.keyword')}
                             accessibilityLabel={translate('search.filters.keyword')}

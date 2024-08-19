@@ -49,6 +49,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
     SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
+    SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
+    SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
+
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
@@ -524,7 +527,7 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
@@ -632,12 +635,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'settings/workspaces/:policyID/workflows/approvals/expenses-from',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number) =>
-            `settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const,
+        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
@@ -678,6 +681,14 @@ const ROUTES = {
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
+    },
+    WORKSPACE_INVOICES_COMPANY_NAME: {
+        route: 'settings/workspaces/:policyID/invoices/company-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-name` as const,
+    },
+    WORKSPACE_INVOICES_COMPANY_WEBSITE: {
+        route: 'settings/workspaces/:policyID/invoices/company-website',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
     },
     WORKSPACE_TRAVEL: {
         route: 'settings/workspaces/:policyID/travel',

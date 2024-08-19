@@ -29,24 +29,16 @@ function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode,
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
-        if (canSelectMultiple) {
-            filteredCurrencies.sort((currencyA, currencyB) => {
-                if (currencyA.isSelected === currencyB.isSelected) {
-                    return 0;
-                }
+        let computedSections: Array<{data: CurrencyListItem[]}> = [];
 
-                return currencyA.isSelected ? -1 : 1;
-            });
+        if (!isEmpty) {
+            computedSections = canSelectMultiple
+                ? [{data: filteredCurrencies.filter((currency) => currency.isSelected)}, {data: filteredCurrencies.filter((currency) => !currency.isSelected)}]
+                : [{data: filteredCurrencies}];
         }
 
         return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCurrencies,
-                      },
-                  ],
+            sections: computedSections,
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
         };
     }, [currencyList, searchValue, canSelectMultiple, translate, initiallySelectedCurrencyCode, selectedCurrencies]);

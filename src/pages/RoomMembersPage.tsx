@@ -20,7 +20,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -170,23 +169,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
+        const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
 
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
-            // When adding a new member to a room (whose personal detail does not exist in Onyx), an optimistic personal detail
-            // is created. However, when the real personal detail is returned from the backend, a duplicate member may appear
-            // briefly before the optimistic personal detail is deleted. To address this, we filter out the optimistically created
-            // member here.
-            const isDuplicateOptimisticDetail = details?.isOptimisticPersonalDetail && participants.some((accID) => accID !== accountID && details.login === personalDetails[accID]?.login);
-
-            if (!details || isDuplicateOptimisticDetail) {
-                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                return;
-            }
 
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+            if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
