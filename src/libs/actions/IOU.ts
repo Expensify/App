@@ -6551,7 +6551,7 @@ function getPayMoneyRequestParams(
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
-    const primaryPolicy = PolicyUtils.getPolicy(primaryPolicyID);
+    const activePolicy = PolicyUtils.getPolicy(activePolicyID);
     let payerPolicyID = activePolicyID;
     let chatReport = initialChatReport;
     let policyParams = {};
@@ -6559,7 +6559,7 @@ function getPayMoneyRequestParams(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && (!primaryPolicy || !PolicyUtils.isPolicyAdmin(primaryPolicy) || !PolicyUtils.isPaidGroupPolicy(primaryPolicy))) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && (!activePolicy || !PolicyUtils.isPolicyAdmin(activePolicy) || !PolicyUtils.isPaidGroupPolicy(activePolicy))) {
         payerPolicyID = Policy.generatePolicyID();
         const {
             optimisticData: policyOptimisticData,
