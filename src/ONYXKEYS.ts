@@ -327,6 +327,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding customized choices to display to the user based on their profile when signing up */
+    ONBOARDING_CUSTOM_CHOICES: 'onboardingCustomChoices',
+
     /** Onboarding error message to be displayed to the user */
     ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
 
@@ -859,6 +862,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: string[];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
