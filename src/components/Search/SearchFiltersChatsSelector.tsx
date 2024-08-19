@@ -60,12 +60,11 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
 
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterOptions(defaultOptions, cleanSearchTerm, {
-            betas,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [defaultOptions, cleanSearchTerm, betas, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const sections = useMemo(() => {
         const newSections: OptionsListUtils.CategorySection[] = [];
