@@ -140,6 +140,10 @@ function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
+function setOnboardingCustomChoices(value: string[]) {
+    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
+}
+
 function setOnboardingErrorMessage(value: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
@@ -219,6 +223,7 @@ export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     setOnboardingPurposeSelected,
+    setOnboardingCustomChoices,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,

@@ -35,6 +35,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import * as Welcome from '@libs/actions/Welcome';
 import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
@@ -252,14 +253,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         if (signupQualifier) {
             if (signupQualifier === 'individual') {
-                Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [
+                Welcome.setOnboardingCustomChoices([
                     CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                     CONST.ONBOARDING_CHOICES.EMPLOYER,
                     CONST.ONBOARDING_CHOICES.CHAT_SPLIT
                 ])
             }
             if (signupQualifier === 'vsb') {
-                Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
             }
         }
 
