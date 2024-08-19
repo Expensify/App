@@ -3341,6 +3341,57 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
 }
 
+function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
+    const policy = getPolicy(policyID);
+
+    const originalMaxExpenseAmount = policy?.maxExpenseAmount;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmount,
+                    pendingFields: {
+                        maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmount: originalMaxExpenseAmount,
+                    pendingFields: {maxExpenseAmount: null},
+                    errorFields: {maxExpenseAmount: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAmount,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
+}
+
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     const policy = getPolicy(policyID);
 
@@ -3485,6 +3536,7 @@ export {
     hasInvoicingDetails,
     enablePolicyRules,
     setPolicyMaxExpenseAmountNoReceipt,
+    setPolicyMaxExpenseAmount,
     setPolicyBillableMode,
 };
 

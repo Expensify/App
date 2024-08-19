@@ -41,12 +41,20 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
-        if (policy?.maxExpenseAmountNoReceipt === CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT || !policy?.maxExpenseAmountNoReceipt) {
+        if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt) {
             return '';
         }
 
         return `${(policy.maxExpenseAmountNoReceipt / 100).toFixed(2)} ${policyCurrency}`;
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+
+    const maxExpenseAmountText = useMemo(() => {
+        if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount) {
+            return '';
+        }
+
+        return `${(policy.maxExpenseAmount / 100).toFixed(2)} ${policyCurrency}`;
+    }, [policy?.maxExpenseAmount, policyCurrency]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
@@ -88,7 +96,17 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     numberOfLinesTitle={2}
                 />
-
+                <MenuItemWithTopDescription
+                    key={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
+                    shouldShowRightIcon
+                    title={maxExpenseAmountText}
+                    description={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID));
+                    }}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    numberOfLinesTitle={2}
+                />
                 <MenuItemWithTopDescription
                     key={translate('workspace.rules.individualExpenseRules.billableDefault')}
                     shouldShowRightIcon
