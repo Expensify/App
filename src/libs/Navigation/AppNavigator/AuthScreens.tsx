@@ -244,6 +244,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
+        const signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
