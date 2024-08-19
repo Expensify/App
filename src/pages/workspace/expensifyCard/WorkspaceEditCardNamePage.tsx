@@ -15,6 +15,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,9 +35,8 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID];
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407832
+        Card.updateExpensifyCardTitle(workspaceAccountID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
         Navigation.goBack();
     };
 
@@ -74,6 +74,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                         aria-label={translate('workspace.card.issueNewCard.cardName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={card?.nameValuePairs?.cardTitle}
+                        maxLength={CONST.EXPENSIFY_CARD.CARD_TITLE_INPUT_LIMIT}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>
