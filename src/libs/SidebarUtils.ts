@@ -102,7 +102,7 @@ function getOrderedReportIDs(
         }
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
@@ -111,7 +111,7 @@ function getOrderedReportIDs(
         let doesTransactionThreadReportHasViolations = false;
         if (oneTransactionThreadReportID) {
             const transactionReport = ReportUtils.getReport(oneTransactionThreadReportID);
-            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
+            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, transactionViolations);
         }
         const hasErrorsOtherThanFailedReceipt =
             doesTransactionThreadReportHasViolations ||
@@ -395,8 +395,7 @@ function getOptionData({
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
-            const newName = ReportActionsUtils.getOriginalMessage(lastAction)?.newName ?? '';
-            result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+            result.alternateText = ReportActionsUtils.getRenamedAction(lastAction);
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
         } else if (ReportActionsUtils.isInviteOrRemovedAction(lastAction)) {
@@ -416,7 +415,7 @@ function getOptionData({
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                         ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
                         : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
-                result.alternateText += ReportUtils.formatReportLastMessageText(`${preposition} ${roomName}`);
+                result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
             result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
