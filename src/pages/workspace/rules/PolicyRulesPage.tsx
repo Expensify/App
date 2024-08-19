@@ -24,7 +24,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <WorkspacePageWithSections
                 testID={PolicyRulesPage.displayName}

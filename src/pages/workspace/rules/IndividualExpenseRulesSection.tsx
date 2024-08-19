@@ -2,12 +2,15 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Link from '@userActions/Link';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -57,6 +60,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     }, [policy?.maxExpenseAmount, policyCurrency]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+
+    const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
     return (
         <Section
@@ -118,6 +123,27 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     numberOfLinesTitle={2}
                 />
+                <View style={[styles.mt3]}>
+                    <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
+                        <Switch
+                            isOn={areEReceiptsEnabled}
+                            accessibilityLabel={translate('workspace.categories.enableCategory')}
+                            onToggle={() => Policy.setPolicyEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                            disabled={policyCurrency !== CONST.CURRENCY.USD}
+                        />
+                    </View>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
+                        <TextLink
+                            style={[styles.textLabel, styles.link]}
+                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_ERECEIPTS)}
+                        >
+                            {translate('workspace.rules.individualExpenseRules.eReceiptsHintLink')}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
             </View>
         </Section>
     );
