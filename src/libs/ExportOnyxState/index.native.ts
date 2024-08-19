@@ -12,8 +12,13 @@ const readFromOnyxDatabase = () =>
         db.executeAsync(query, []).then(({rows}) => {
             // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-unsafe-member-access
             const result = rows?._array.map((row) => ({[row?.record_key]: JSON.parse(row?.valueJSON as string) as unknown}));
+            const resultObject = result?.reduce((acc: Record<string, unknown>, item: Record<string, unknown>) => {
+                const key = Object.keys(item)[0];
+                acc[key] = item[key];
+                return acc;
+            }, {} as Record<string, unknown>);
 
-            resolve(result);
+            resolve(resultObject);
         });
     });
 

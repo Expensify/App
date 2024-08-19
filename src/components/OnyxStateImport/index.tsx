@@ -17,17 +17,14 @@ function transformNumericKeysToArray(obj) {
         return obj;
     }
 
-    // Check if all keys are numeric and sequential starting from 0
     const keys = Object.keys(obj);
     const allKeysAreNumeric = keys.every((key) => !Number.isNaN(key));
     const keysAreSequential = keys.every((key, index) => parseInt(key) === index);
 
     if (allKeysAreNumeric && keysAreSequential) {
-        // Convert object to array
         return keys.map((key) => transformNumericKeysToArray(obj[key]));
     }
 
-    // Recursively apply transformation to each property
     for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
             obj[key] = transformNumericKeysToArray(obj[key]);
