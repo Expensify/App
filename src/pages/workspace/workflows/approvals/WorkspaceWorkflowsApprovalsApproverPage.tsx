@@ -188,7 +188,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID), CONST.NAVIGATION.TYPE.UP);
         } else {
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
     }, [approvalWorkflow, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
 
@@ -242,7 +242,9 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         title={translate('workflowsPage.approver')}
                         onBackButtonPress={goBack}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    )}
                     <SelectionList
                         sections={sections}
                         ListItem={InviteMemberListItem}
