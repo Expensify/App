@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Welcome from '@libs/actions/Welcome';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -35,7 +36,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
-import * as Welcome from '@libs/actions/Welcome';
 import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
@@ -253,14 +253,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         if (signupQualifier) {
             if (signupQualifier === 'individual') {
-                Welcome.setOnboardingCustomChoices([
-                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-                    CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT
-                ])
+                Welcome.setOnboardingCustomChoices([CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
             }
             if (signupQualifier === 'vsb') {
-                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+                Welcome.setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             }
         }
 
