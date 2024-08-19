@@ -42,7 +42,7 @@ function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
             if (!value) {
                 amountBackend = CONST.DISABLED_MAX_EXPENSE_VALUE;
             }
-            amountBackend = CurrencyUtils.convertToBackendAmount(+values[INPUT_IDS.MAX_EXPENSE_AMOUNT]);
+            amountBackend = CurrencyUtils.convertToBackendAmount(parseFloat(values[INPUT_IDS.MAX_EXPENSE_AMOUNT]));
             Policy.setPolicyMaxExpenseAmount(route.params.policyID, amountBackend);
             Navigation.goBack();
         },
@@ -70,7 +70,6 @@ function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     onSubmit={submit}
-                    // validate={validate}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
@@ -82,8 +81,6 @@ function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            // @TODO Replace it when maxLength of this field is known
-                            amountMaxLength={20}
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.maxExpenseAmountDescription')}</Text>

@@ -42,19 +42,12 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
             if (!value) {
                 amountBackend = CONST.DISABLED_MAX_EXPENSE_VALUE;
             }
-            amountBackend = CurrencyUtils.convertToBackendAmount(+values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT]);
+            amountBackend = CurrencyUtils.convertToBackendAmount(parseFloat(values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT]));
             Policy.setPolicyMaxExpenseAmountNoReceipt(route.params.policyID, amountBackend);
             Navigation.goBack();
         },
         [route.params.policyID],
     );
-
-    // const validate = useCallback(
-    //     (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
-    //         return {};
-    //     },
-    //     [],
-    // );
 
     return (
         <AccessOrNotFoundWrapper
@@ -77,7 +70,6 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     onSubmit={submit}
-                    // validate={validate}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
@@ -89,8 +81,6 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            // @TODO Replace it when maxLength of this field is known
-                            amountMaxLength={20}
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.receiptRequiredAmountDescription')}</Text>
