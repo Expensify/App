@@ -256,7 +256,7 @@ describe('OnyxUpdateManager', () => {
         });
     });
 
-    it('should only fetch missing updates that are not stale', () => {
+    it('should only fetch missing updates that are not outdated (older than already locally applied update)', () => {
         OnyxUpdateManager.handleOnyxUpdateGap(offsetedMockUpdate3);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
 
