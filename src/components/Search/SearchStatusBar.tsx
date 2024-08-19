@@ -129,13 +129,15 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
 
     return (
         <ScrollView
-            style={[styles.flexRow, styles.mh5, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
+            style={[styles.flexRow, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
             horizontal
             showsHorizontalScrollIndicator={false}
         >
-            {options.map((item) => {
+            {options.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
                 const isActive = status === item.key;
+                const isFirstItem = index === 0;
+                const isLastItem = index === options.length - 1;
 
                 return (
                     <Button
@@ -149,6 +151,8 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
                         hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
                         textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
                         textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                        // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
+                        style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
                         medium
                     />
                 );
