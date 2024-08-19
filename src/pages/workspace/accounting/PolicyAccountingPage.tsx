@@ -30,7 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -218,12 +218,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {canUseWorkspaceFeeds} = usePermissions();
 
-    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
-    const isSyncInProgress =
-        !!connectionSyncProgress?.stageInProgress &&
-        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy.connections?.[connectionSyncProgress.connectionName]) &&
-        isValid(lastSyncProgressDate) &&
-        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;

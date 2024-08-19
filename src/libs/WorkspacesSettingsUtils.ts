@@ -5,7 +5,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
+import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -100,7 +101,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
-function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConnectionProgresses: OnyxCollection<PolicyConnectionSyncProgress>) {
     // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
     // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
@@ -110,7 +111,11 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanPolicies).some(hasEmployeeListError),
-        () => Object.values(cleanPolicies).some(hasSyncError),
+        () =>
+            Object.values(cleanPolicies).some(
+                (cleanPolicy) =>
+                    hasSyncError(cleanPolicy) && !isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+            ),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 

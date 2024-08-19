@@ -1,3 +1,4 @@
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -9,7 +10,7 @@ import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
@@ -431,6 +432,20 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
+function isConnectionInProgress(connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean | undefined {
+    if (!policy || !connectionSyncProgress) {
+        return false;
+    }
+
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    return (
+        !!connectionSyncProgress?.stageInProgress &&
+        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
+    );
+}
+
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,
@@ -440,4 +455,5 @@ export {
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
+    isConnectionInProgress,
 };
