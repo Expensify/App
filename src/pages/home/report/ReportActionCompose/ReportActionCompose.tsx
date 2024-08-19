@@ -321,9 +321,6 @@ function ReportActionCompose({
         [onSubmit, reportID],
     );
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    onSubmitAction = submitForm;
-
     const onTriggerAttachmentPicker = useCallback(() => {
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
@@ -398,6 +395,9 @@ function ReportActionCompose({
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
     }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    onSubmitAction = handleSendMessage;
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
