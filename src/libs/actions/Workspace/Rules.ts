@@ -1,10 +1,17 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SetPolicyAutomaticApprovalLimitParams, SetPolicyAutoReimbursementLimitParams, SetPolicyDefaultReportTitleParams, SetPolicyPreventSelfApprovalParams} from '@libs/API/parameters';
+import type {
+    EnablePolicyAutoReimbursementLimitParams,
+    SetPolicyAutomaticApprovalLimitParams,
+    SetPolicyAutoReimbursementLimitParams,
+    SetPolicyDefaultReportTitleParams,
+    SetPolicyPreventSelfApprovalParams,
+} from '@libs/API/parameters';
 import type SetPolicyAutomaticApprovalAuditRateParams from '@libs/API/parameters/SetPolicyAutomaticApprovalAuditRate';
 import type SetPolicyPreventMemberCreatedTitleParams from '@libs/API/parameters/SetPolicyPreventMemberCreatedTitleParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -259,7 +266,6 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string
  * @param policyID - id of the policy to apply the limit to
  */
 function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
-    console.log('LIMIT ', limit);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -303,6 +309,51 @@ function setPolicyAutoReimbursementLimit(limit: number, policyID: string) {
     });
 }
 
+/**
+ * Call the API to deactivate the card and request a new one
+ * @param enabled - whether auto-payment for the reports is enabled in the given policy
+ * @param policyID - id of the policy to apply the limit to
+ */
+function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) {
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowAutoReimbursementLimitOption: enabled,
+                autoReimbursement: {
+                    limit: enabled ? policy?.autoReimbursement?.limit : 10000,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowAutoReimbursementLimitOption: !enabled,
+                autoReimbursement: {
+                    limit: policy?.autoReimbursement?.limit,
+                },
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyAutoReimbursementLimitParams = {
+        enabled,
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 export {
     modifyPolicyDefaultReportTitle,
     setPolicyPreventMemberCreatedTitle,
@@ -310,4 +361,5 @@ export {
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalAuditRate,
     setPolicyAutoReimbursementLimit,
+    enablePolicyAutoReimbursementLimit,
 };

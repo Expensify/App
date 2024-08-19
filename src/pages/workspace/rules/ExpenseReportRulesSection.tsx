@@ -1,5 +1,5 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {OnyxKey, useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -86,10 +86,12 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 ? translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLockedSubtitle')
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
-            onToggle: (isEnabled: boolean) => {},
+            onToggle: (isEnabled: boolean) => {
+                WorkspaceRulesActions.enablePolicyAutoReimbursementLimit(isEnabled, policyID);
+            },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
-            // isActive: true,
+            isActive: policy?.shouldShowAutoReimbursementLimitOption,
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -110,7 +112,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
         >
-            {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled}, index) => {
+            {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle}, index) => {
                 const showBorderBottom = index !== optionItems.length - 1;
 
                 return (
@@ -126,7 +128,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         showLockIcon={showLockIcon}
                         disabled={disabled}
                         subMenuItems={subMenuItems}
-                        onToggle={() => {}}
+                        onToggle={onToggle}
                     />
                 );
             })}

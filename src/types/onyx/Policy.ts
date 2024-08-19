@@ -1407,8 +1407,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-        /** The maximum report total allowed to trigger auto reimbursement. */
-        autoReimbursementLimit?: number;
+        /** Detailed settings for the autoReimbursement */
+        autoReimbursement: {
+            /**
+             * The maximum report total allowed to trigger auto reimbursement.
+             */
+            limit: number;
+        };
 
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
@@ -1539,6 +1544,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
+
+        /** Is the auto-pay option for the policy enabled  */
+        shouldShowAutoReimbursementLimitOption?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
