@@ -52,6 +52,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
+    SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',

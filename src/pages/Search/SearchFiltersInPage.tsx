@@ -1,42 +1,48 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersParticipantsSelector';
+import SearchFiltersChatsSelector from '@components/Search/SearchFIltersChatsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function SearchFiltersStatusPage() {
+function SearchFiltersInPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const handleScreenTransitionEnd = () => {
+        setIsScreenTransitionEnd(true);
+    };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersStatusPage.displayName}
+            testID={SearchFiltersInPage.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            onEntryTransitionEnd={handleScreenTransitionEnd}
         >
-            <HeaderWithBackButton title={translate('common.from')} />
+            <HeaderWithBackButton title={translate('common.in')} />
             <View style={[styles.flex1]}>
-                <SearchFiltersParticipantsSelector
-                    initialAccountIDs={searchAdvancedFiltersForm?.from ?? []}
+                <SearchFiltersChatsSelector
+                    isScreenTransitionEnd={isScreenTransitionEnd}
                     onFiltersUpdate={(selectedAccountIDs) => {
                         SearchActions.updateAdvancedFilters({
-                            from: selectedAccountIDs,
+                            in: selectedAccountIDs,
                         });
                     }}
+                    initialAccountIDs={searchAdvancedFiltersForm?.in ?? []}
                 />
             </View>
         </ScreenWrapper>
     );
 }
 
-SearchFiltersStatusPage.displayName = 'SearchFiltersStatusPage';
+SearchFiltersInPage.displayName = 'SearchFiltersStatusPage';
 
-export default SearchFiltersStatusPage;
+export default SearchFiltersInPage;

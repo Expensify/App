@@ -146,6 +146,7 @@ export default {
         center: 'Center',
         from: 'From',
         to: 'To',
+        in: 'In',
         optional: 'Optional',
         new: 'New',
         search: 'Search',

@@ -192,8 +192,8 @@ function AdvancedSearchFilters() {
             },
             {
                 title: getFilterParticipantDisplayTitle(searchAdvancedFilters.in ?? [], personalDetails),
-                description: 'common.to' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+                description: 'common.in' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
             },
         ],
         [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],

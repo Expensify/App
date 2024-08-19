@@ -467,7 +467,8 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
-                    filterKey === FILTER_KEYS.TO) &&
+                    filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.IN) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
