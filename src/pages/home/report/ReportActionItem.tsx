@@ -58,6 +58,7 @@ import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
+import * as Transaction from '@userActions/Transaction';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -655,6 +656,12 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getWorkspaceNameUpdatedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action)} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
@@ -662,11 +669,7 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
-            const initialMessage = ReportActionsUtils.getOriginalMessage(action);
-            const message = translate('newRoomPage.renamedRoomAction', {
-                oldName: initialMessage?.oldName ?? '',
-                newName: initialMessage?.newName ?? '',
-            });
+            const message = ReportActionsUtils.getRenamedAction(action);
             children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
@@ -927,7 +930,13 @@ function ReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
+                                onClose={() => {
+                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+                                    if (transactionID) {
+                                        Transaction.clearError(transactionID);
+                                    }
+                                    ReportActions.clearAllRelatedReportActionErrors(report.reportID, action);
+                                }}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)

@@ -2,7 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -31,7 +31,7 @@ import withNavigationFallback from './withNavigationFallback';
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
-        paddingBottom?: DimensionValue;
+        paddingBottom?: ViewStyle['paddingBottom'];
     };
     didScreenTransitionEnd: boolean;
 };

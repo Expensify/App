@@ -1667,14 +1667,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (isIOUReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID && currentUserAccountID !== moneyRequestReport?.ownerAccountID) {
-        return false;
-    }
-
-    if (isExpenseReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID) {
-        return false;
-    }
-
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -5779,6 +5771,11 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
     return true;
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function isReportNotFound(report: OnyxEntry<Report>): boolean {
+    return !!report?.errorFields?.notFound;
+}
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
@@ -6230,7 +6227,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
     const pathSegments = parsingRoute.split('/');
 
     const reportIDSegment = pathSegments[1];
-    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
+    const hasRouteReportActionID = !Number.isNaN(Number(pathSegments[2]));
 
     // Check for "undefined" or any other unwanted string values
     if (!reportIDSegment || reportIDSegment === 'undefined') {
@@ -7739,6 +7736,7 @@ export {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAccessReport,
+    isReportNotFound,
     canAddTransaction,
     canDeleteTransaction,
     canBeAutoReimbursed,
