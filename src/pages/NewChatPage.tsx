@@ -85,17 +85,15 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
-
-    const headerMessage = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                options.personalDetails.length + options.recentReports.length !== 0,
-                !!options.userToInvite,
-                debouncedSearchTerm.trim(),
-                selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
-            ),
-        [debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions],
-    );
+    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
+    const headerMessage = useMemo(() => {
+        return OptionsListUtils.getHeaderMessage(
+            options.personalDetails.length + options.recentReports.length !== 0,
+            !!options.userToInvite,
+            debouncedSearchTerm.trim(),
+            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+        );
+    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -118,7 +116,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             if (!participantOption) {
                 participantOption = OptionsListUtils.getUserToInviteOption({
                     searchValue: participant.login,
-                    betas,
                 });
             }
             if (!participantOption) {
@@ -130,7 +127,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
 
     return {
         ...options,
@@ -319,6 +316,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             <KeyboardAvoidingView
                 style={styles.flex1}
@@ -337,7 +336,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
