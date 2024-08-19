@@ -393,7 +393,7 @@ function getOriginalAmount(transaction: Transaction): number {
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -753,7 +753,9 @@ function calculateAmountForUpdatedWaypointOrRate(
     policy: OnyxInputOrEntry<Policy>,
     isFromExpenseReport: boolean,
 ) {
-    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
+    const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
+    const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
+    if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
