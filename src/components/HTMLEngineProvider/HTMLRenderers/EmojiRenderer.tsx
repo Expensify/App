@@ -11,8 +11,7 @@ function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
         }
 
         if ('ismedium' in tnode.attributes) {
-            // TODO: Think about other approaches to align text selection {lineHeight: 22, marginTop: -2}
-            return [styles.emojisWithTextFontSize, styles.verticalAlignMiddle, {lineHeight: 22, marginTop: -2}];
+            return [styles.emojisWithTextFontSize, styles.verticalAlignTopText];
         }
 
         return null;
