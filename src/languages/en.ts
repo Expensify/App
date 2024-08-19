@@ -3189,9 +3189,9 @@ export default {
                         : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectPrompt: (integrationToConnect?: ConnectionName): string =>
+            connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `Are you sure you want to connect ${
-                    integrationToConnect ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'this accounting integration'
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
                 }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {

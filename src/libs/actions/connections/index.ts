@@ -432,7 +432,7 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
-function isConnectionInProgress(connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean | undefined {
+function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean | undefined {
     if (!policy || !connectionSyncProgress) {
         return false;
     }

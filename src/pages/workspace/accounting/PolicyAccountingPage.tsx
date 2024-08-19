@@ -405,9 +405,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress?.stageInProgress)
-                    : translate('workspace.accounting.lastSync', datetimeToRelative),
+                description:
+                    isSyncInProgress && connectionSyncProgress?.stageInProgress
+                        ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                        : translate('workspace.accounting.lastSync', datetimeToRelative),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
