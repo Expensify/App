@@ -33,37 +33,54 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
     for (const [index, update] of updateValues.entries()) {
         const isFirst = index === 0;
 
+        const lastUpdateID = Number(update.lastUpdateID);
+        const previousUpdateID = Number(update.previousUpdateID);
+
+        // If an update is older than the last update that was applied to the client, we can skip it
+        // This should already be handled before, but we'll keep this as a safeguard.
+        if (lastUpdateID <= lastUpdateIDFromClient) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+
         // If any update's previousUpdateID doesn't match the lastUpdateID from the previous update, the deferred updates aren't chained and there's a gap.
         // For the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient.
         // For any other updates, we need to check if the previousUpdateID of the current update is found in the deferred updates.
         // If an update is chained, we can add it to the applicable updates.
-        const isChained = isFirst ? update.previousUpdateID === lastUpdateIDFromClient : !!updates[Number(update.previousUpdateID)];
+        const isChained = isFirst ? previousUpdateID === lastUpdateIDFromClient : !!updates[Number(update.previousUpdateID)];
         if (isChained) {
             // If a gap exists already, we will not add any more updates to the applicable updates.
             // Instead, once there are two chained updates again, we can set "firstUpdateAfterGaps" to the first update after the current gap.
             if (gapExists) {
                 // If "firstUpdateAfterGaps" hasn't been set yet and there was a gap, we need to set it to the first update after all gaps.
                 if (!firstUpdateAfterGaps) {
-                    firstUpdateAfterGaps = Number(update.previousUpdateID);
+                    firstUpdateAfterGaps = previousUpdateID;
                 }
             } else {
                 // If no gap exists yet, we can add the update to the applicable updates
-                applicableUpdates[Number(update.lastUpdateID)] = update;
+                applicableUpdates[lastUpdateID] = update;
             }
         } else {
+            // If the previousUpdateID of the update after the gap is older than the lastUpdateIDFromClient,
+            // we don't want to detect a missing update, since this would cause a recursion loop in "validateAndApplyDeferredUpdates".
+            if (previousUpdateID <= lastUpdateIDFromClient) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
             // When we find a (new) gap, we need to set "gapExists" to true and reset the "firstUpdateAfterGaps" variable,
             // so that we can continue searching for the next update after all gaps
             gapExists = true;
             firstUpdateAfterGaps = undefined;
 
             // If there is a gap, it means the previous update is the latest missing update.
-            latestMissingUpdateID = Number(update.previousUpdateID);
+            latestMissingUpdateID = previousUpdateID;
         }
     }
 
     // When "firstUpdateAfterGaps" is not set yet, we need to set it to the last update in the list,
     // because we will fetch all missing updates up to the previous one and can then always apply the last update in the deferred updates.
-    const firstUpdateAfterGapWithFallback = firstUpdateAfterGaps ?? Number(updateValues[updateValues.length - 1].lastUpdateID);
+    const firstUpdateAfterGapWithFallback = Math.max(firstUpdateAfterGaps ?? Number(updateValues[updateValues.length - 1].lastUpdateID), lastUpdateIDFromClient);
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists) {
@@ -99,8 +116,8 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
     const {applicableUpdates, updatesAfterGaps, latestMissingUpdateID} = detectGapsAndSplit(pendingDeferredUpdates, lastUpdateIDFromClient);
 
-    // If we detected a gap in the deferred updates, only apply the deferred updates before the gap,
-    // re-fetch the missing updates and then apply the remaining deferred updates after the gap
+    // If newer updates got applied in the meantime, we don't need to refetch for missing updates
+    // and can just re-trigger the "validateAndApplyDeferredUpdates" process
     if (latestMissingUpdateID) {
         Log.info('[DeferredUpdates] Gap detected in deferred updates', false, {lastUpdateIDFromClient, latestMissingUpdateID});
 
