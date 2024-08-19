@@ -1,8 +1,11 @@
+import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -46,6 +49,9 @@ type FormAlertWithSubmitButtonProps = {
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
+    /** React ref being forwarded to the submit button */
+    buttonRef?: Ref<View>;
+
     /** Text for the button */
     buttonText: string;
 
@@ -70,6 +76,7 @@ function FormAlertWithSubmitButton({
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
     footerContent,
+    buttonRef,
     buttonStyles,
     buttonText,
     isAlertVisible = false,
@@ -81,6 +88,12 @@ function FormAlertWithSubmitButton({
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
+
+    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
+    // where pressing Enter saves the form instead of adding a new line in multiline input.
+    // More details: https://github.com/Expensify/App/issues/46644
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const pressOnEnter = isAndroidNative ? false : !disablePressOnEnter;
 
     return (
         <FormAlertWrapper
@@ -105,8 +118,9 @@ function FormAlertWithSubmitButton({
                         />
                     ) : (
                         <Button
+                            ref={buttonRef}
                             success
-                            pressOnEnter={!disablePressOnEnter}
+                            pressOnEnter={pressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}

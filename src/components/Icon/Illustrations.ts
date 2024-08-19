@@ -34,6 +34,8 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -56,6 +58,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -119,6 +122,7 @@ export {
     EmailAddress,
     EmptyCardState,
     EmptyStateExpenses,
+    EnvelopeReceipt,
     FolderOpen,
     HandCard,
     HotDogStand,
@@ -144,6 +148,7 @@ export {
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,
+    ToddWithPhones,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,
@@ -211,5 +216,6 @@ export {
     FolderWithPapers,
     VirtualCard,
     Tire,
+    BigVault,
     Filters,
 };

@@ -27,11 +27,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchQueryJSON, SearchStatus} from './types';
+import type {SearchQueryJSON} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
     subtitleStyles?: StyleProp<TextStyle>;
@@ -100,12 +100,22 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
-    all: {icon: Illustrations.MoneyReceipts, titleTx: 'common.expenses'},
-    shared: {icon: Illustrations.SendMoney, titleTx: 'common.shared'},
-    drafts: {icon: Illustrations.Pencil, titleTx: 'common.drafts'},
-    finished: {icon: Illustrations.CheckmarkCircle, titleTx: 'common.finished'},
+type HeaderContent = {
+    icon: IconAsset;
+    titleText: TranslationPaths;
 };
+
+function getHeaderContent(type: SearchDataTypes): HeaderContent {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        default:
+            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
+    }
+}
 
 function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
@@ -131,10 +141,10 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 .map((item) => item.reportID),
         [data, selectedTransactions],
     );
-    const {status} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
+    const {status, type} = queryJSON;
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
+    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
 
     const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 

@@ -25,11 +25,12 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -46,6 +47,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,6 +83,7 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
 };
+
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
@@ -103,7 +106,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -184,7 +187,7 @@ function accountingIntegrationData(
                         ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
                         : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
                 ],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)),
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
@@ -213,6 +216,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const {canUseWorkspaceFeeds} = usePermissions();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -225,7 +229,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const policyID = policy?.id ?? '-1';
-    const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
+    // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
+    const successfulDate = getIntegrationLastSuccessfulDate(
+        connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
+        connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
+    );
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -241,7 +249,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
+                onSelected: () => Modal.close(() => setIsDisconnectModalOpen(true)),
             },
         ],
         [translate, policyID, isOffline, connectedIntegration],
@@ -303,7 +311,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     : {
                           description: translate('workspace.intacct.entity'),
                           iconRight: Expensicons.ArrowRight,
-                          title: getCurrentSageIntacctEntityName(policy),
+                          title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: true,
@@ -341,10 +349,57 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
+        const synchronizationError = getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+        const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+        const configurationOptions = [
+            {
+                icon: Expensicons.Pencil,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.import'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onImportPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+            },
+            {
+                icon: Expensicons.Send,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.export'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onExportPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
+            },
+            {
+                icon: Expensicons.ExpensifyCard,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.cardReconciliation'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onCardReconciliationPagePress,
+            },
+            {
+                icon: Expensicons.Gear,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.advanced'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onAdvancedPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+            },
+        ];
+
+        if (!canUseWorkspaceFeeds || !policy?.areExpensifyCardsEnabled) {
+            configurationOptions.splice(2, 1);
+        }
+
         return [
             {
                 ...iconProps,
@@ -352,7 +407,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: isSyncInProgress
@@ -382,55 +437,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions
-                ? []
-                : [
-                      {
-                          icon: Expensicons.Pencil,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.import'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onImportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
-                      },
-                      {
-                          icon: Expensicons.Send,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.export'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
-                      },
-                      {
-                          icon: Expensicons.ExpensifyCard,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.cardReconciliation'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onCardReconciliationPagePress,
-                      },
-
-                      {
-                          icon: Expensicons.Gear,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.advanced'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                      },
-                  ]),
+            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions ? [] : configurationOptions),
         ];
     }, [
         policy,
@@ -442,6 +449,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
+        canUseWorkspaceFeeds,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
         theme.spinner,

@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -51,7 +52,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
@@ -69,6 +70,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             return;
         }
         setSelectedTags({});
+
+        return () => {
+            setSelectedTags({});
+            turnOffMobileSelectionMode();
+        };
     }, [isFocused]);
 
     const tagList = useMemo<TagListItem[]>(
@@ -79,14 +85,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     value: tag.name,
                     text: PolicyUtils.getCleanedTagName(tag.name),
                     keyForList: tag.name,
-                    isSelected: selectedTags[tag.name],
+                    isSelected: selectedTags[tag.name] && canSelectMultiple,
                     pendingAction: tag.pendingAction,
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [currentPolicyTag, selectedTags, translate],
+        [currentPolicyTag, selectedTags, canSelectMultiple, translate],
     );
 
     const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
@@ -220,6 +226,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedTagsArray.length}
             />
         );
     };

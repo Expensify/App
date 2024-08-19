@@ -9,7 +9,7 @@ const intlPolyfill: IntlPolyfill = () => {
     // not yet implemented in hermes.
     // see support: https://hermesengine.dev/docs/intl/
 
-    require('@formatjs/intl-locale/polyfill');
+    require('@formatjs/intl-locale/polyfill-force');
 
     polyfillListFormat();
 };

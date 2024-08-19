@@ -41,7 +41,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
-import type {ScreenShareRequest, Session} from './types/onyx';
+import type {ScreenShareRequest} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -57,9 +57,6 @@ Onyx.registerLogger(({level, message}) => {
 type ExpensifyOnyxProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
 
     /** Whether a new update is available and ready to install. */
     updateAvailable: OnyxEntry<boolean>;
@@ -91,7 +88,6 @@ const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextT
 
 function Expensify({
     isCheckingPublicRoom = true,
-    session,
     updateAvailable,
     isSidebarLoaded = false,
     screenShareRequest,
@@ -106,6 +102,7 @@ function Expensify({
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -300,6 +297,7 @@ function Expensify({
                         authenticated={isAuthenticated}
                         lastVisitedPath={lastVisitedPath as Route}
                         initialUrl={initialUrl}
+                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
@@ -315,9 +313,6 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {
         key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
         initWithStoredValues: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,

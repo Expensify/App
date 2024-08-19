@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,14 +15,15 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -84,24 +86,24 @@ function ReportFieldsListValuesPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
     const listValuesSections = useMemo(() => {
-        const data = listValues.map<ValueListItem>((value, index) => ({
-            value,
-            index,
-            text: value,
-            keyForList: value,
-            isSelected: selectedValues[value],
-            enabled: !disabledListValues[index] ?? true,
-            pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
-            rightElement: (
-                <ListItemRightCaretWithLabel
-                    shouldShowCaret={false}
-                    labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                />
-            ),
-        }));
-
+        const data = listValues
+            .map<ValueListItem>((value, index) => ({
+                value,
+                index,
+                text: value,
+                keyForList: value,
+                isSelected: selectedValues[value] && canSelectMultiple,
+                enabled: !disabledListValues[index] ?? true,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        shouldShowCaret={false}
+                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    />
+                ),
+            }))
+            .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
+    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -174,7 +176,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if ((isSmallScreenWidth && selectionMode?.isEnabled) ?? selectedValuesArray.length > 0) {
+        if ((isSmallScreenWidth ? selectionMode?.isEnabled : true) && selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -257,6 +259,7 @@ function ReportFieldsListValuesPage({
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    isDisabled={!selectedValuesArray.length}
                 />
             );
         }
@@ -305,11 +308,14 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <WorkspaceEmptyStateSection
-                        containerStyle={[styles.bgTransparent, styles.mtAuto, styles.mbAuto]}
+                    <EmptyStateComponent
                         title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                        icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                        SkeletonComponent={TableListItemSkeleton}
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                        headerMedia={Illustrations.EmptyStateExpenses}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (
@@ -320,7 +326,6 @@ function ReportFieldsListValuesPage({
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
-                        shouldDebounceRowSelect={false}
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

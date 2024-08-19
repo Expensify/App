@@ -126,10 +126,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    if (Array.isArray(reportAction?.message)) {
-        return reportAction?.message?.[0];
-    }
-    return reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message[0] : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -141,9 +138,6 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
 }
 
 function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    if (isEmptyObject(reportAction)) {
-        return false;
-    }
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -189,7 +183,16 @@ function isActionOfType<T extends ReportActionName[]>(
 ): action is {
     [K in keyof T]: ReportAction<T[K]>;
 }[number] {
-    return actionNames.includes(action?.actionName as T[number]);
+    const actionName = action?.actionName as T[number];
+
+    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
+    for (const i of actionNames) {
+        if (i === actionName) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -383,14 +386,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     });
 
     return sortedActions;
-}
-
-/**
- * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
- * Separated it from getCombinedReportActions, so it can be reused
- */
-function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
-    return reportActions.filter((action) => !isSentMoneyReportAction(action));
 }
 
 /**
@@ -1599,6 +1594,60 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
+}
+
+function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
+        return '';
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.addEmployee', email, role);
+}
+
+function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
+}
+
+function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const newRole = originalMessage?.newValue ?? '';
+    const oldRole = originalMessage?.oldValue ?? '';
+    return Localize.translateLocal('report.actions.type.updateRole', email, oldRole, newRole);
+}
+
+function isPolicyChangeLogDeleteMemberMessage(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
+}
+
+function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.removeMember', email, role);
+}
+
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+    const initialMessage = getOriginalMessage(reportAction);
+    return Localize.translateLocal('newRoomPage.renamedRoomAction', {
+        oldName: initialMessage?.oldName ?? '',
+        newName: initialMessage?.newName ?? '',
+    });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1606,7 +1655,6 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
-    getFilteredForOneTransactionView,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
@@ -1694,6 +1742,10 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
+    getPolicyChangeLogAddEmployeeMessage,
+    getPolicyChangeLogChangeRoleMessage,
+    getPolicyChangeLogDeleteMemberMessage,
+    getRenamedAction,
 };
 
 export type {LastVisibleMessage};

@@ -57,31 +57,34 @@ type Attributes = {
 };
 
 /** Policy custom unit */
-type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Custom unit name */
-    name: string;
+type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Custom unit name */
+        name: string;
 
-    /** ID that identifies this custom unit */
-    customUnitID: string;
+        /** ID that identifies this custom unit */
+        customUnitID: string;
 
-    /** Contains custom attributes like unit, for this custom unit */
-    attributes: Attributes;
+        /** Contains custom attributes like unit, for this custom unit */
+        attributes: Attributes;
 
-    /** Distance rates using this custom unit */
-    rates: Record<string, Rate>;
+        /** Distance rates using this custom unit */
+        rates: Record<string, Rate>;
 
-    /** The default category in which this custom unit is used */
-    defaultCategory?: string;
+        /** The default category in which this custom unit is used */
+        defaultCategory?: string;
 
-    /** Whether this custom unit is enabled */
-    enabled?: boolean;
+        /** Whether this custom unit is enabled */
+        enabled?: boolean;
 
-    /** Error messages to show in UI */
-    errors?: OnyxCommon.Errors;
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
 
-    /** Form fields that triggered errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Form fields that triggered errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof Attributes
+>;
 
 /** Policy company address data */
 type CompanyAddress = {
@@ -177,6 +180,12 @@ type ConnectionLastSync = {
 
     /** Date when the connection's last failed sync occurred */
     errorDate?: string;
+
+    /** Error message when the connection's last sync failed */
+    errorMessage?: string;
+
+    /** If the connection's last sync failed due to authentication error */
+    isAuthenticationError: boolean;
 
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
@@ -1202,16 +1211,16 @@ type Connection<ConnectionData, ConnectionConfig> = {
 /** Available integration connections */
 type Connections = {
     /** QuickBooks integration connection */
-    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
-    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.XERO]: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** NetSuite integration connection */
-    netsuite: NetSuiteConnection;
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1267,6 +1276,9 @@ type PolicyReportField = {
     /** Value of the field */
     value?: string | null;
 
+    /** Value of the target */
+    target?: 'expense' | 'invoice' | 'paycheck';
+
     /** Options to select from if field is of type dropdown */
     values: string[];
 
@@ -1291,6 +1303,15 @@ type PolicyReportField = {
     /** This is indicates which default value we should use. It was preferred using this over having defaultValue (which we have anyway for historical reasons), since the values are not unique we can't determine which key the defaultValue is referring too. It was also preferred over having defaultKey since the keys are user editable and can be changed. The externalIDs work effectively as an ID, which never changes even after changing the key, value or position of the option. */
     defaultExternalID?: string | null;
 };
+
+/** Policy invoicing details */
+type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Stripe Connect company name */
+    companyName?: string;
+
+    /** Stripe Connect company website */
+    companyWebsite?: string;
+}>;
 
 /** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
@@ -1447,6 +1468,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isTaxTrackingEnabled?: boolean;
 
+        /** Policy invoicing details */
+        invoice?: PolicyInvoicingDetails;
+
         /** Tax data */
         tax?: {
             /** Whether or not the policy has tax tracking enabled */
@@ -1492,6 +1516,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
+        /** Whether the Invoices feature is enabled */
+        areInvoicesEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -1524,8 +1551,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
+
+        /** Workspace account ID configured for Expensify Card */
+        workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'generalSettings' | 'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */
