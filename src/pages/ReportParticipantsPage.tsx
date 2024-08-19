@@ -70,7 +70,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     }, [isFocused]);
 
     useEffect(() => {
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
         const shouldShowInput = chatParticipants.length > CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
 
         if (shouldShowTextInput !== shouldShowInput) {
@@ -90,7 +90,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             const details = personalDetails?.[accountID];
 
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+            if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
 
