@@ -1667,14 +1667,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (isIOUReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID && currentUserAccountID !== moneyRequestReport?.ownerAccountID) {
-        return false;
-    }
-
-    if (isExpenseReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID) {
-        return false;
-    }
-
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
