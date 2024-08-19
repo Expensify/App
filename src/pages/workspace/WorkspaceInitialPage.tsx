@@ -135,18 +135,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
-        const policyDraftId = policyDraft?.id;
-
-        if (!policyDraftId) {
-            return;
-        }
-
-        App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
-        // We only care when the component renders the first time
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
             return;
         }
