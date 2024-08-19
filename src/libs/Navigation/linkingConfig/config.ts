@@ -475,6 +475,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
                         },
+                        [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
+                            path: ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
+                            path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
@@ -519,6 +525,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
+                            parse: {
+                                firstApproverEmail: (firstApproverEmail: string) => decodeURIComponent(firstApproverEmail),
+                            },
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.route,

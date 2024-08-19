@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function SearchFiltersStatusPage() {
+function SearchFiltersFromPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -17,7 +17,7 @@ function SearchFiltersStatusPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersStatusPage.displayName}
+            testID={SearchFiltersFromPage.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -37,6 +37,6 @@ function SearchFiltersStatusPage() {
     );
 }
 
-SearchFiltersStatusPage.displayName = 'SearchFiltersStatusPage';
+SearchFiltersFromPage.displayName = 'SearchFiltersFromPage';
 
-export default SearchFiltersStatusPage;
+export default SearchFiltersFromPage;
