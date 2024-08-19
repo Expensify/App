@@ -135,9 +135,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         if (report) {
             Report.removeFromRoom(report.reportID, selectedMembers);
         }
+        setSearchValue('');
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
-        setSearchValue('');
     };
 
     /**
@@ -283,6 +283,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
+                        isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
                         isDisabled={!selectedMembers.length}
                     />
@@ -376,7 +377,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9]}
+                        listHeaderWrapperStyle={[styles.ph9, styles.mt4]}
                         ListItem={TableListItem}
                         onDismissError={dismissError}
                     />

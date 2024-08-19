@@ -25,6 +25,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -32,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
@@ -55,12 +57,33 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
+    const [searchValue, setSearchValue] = useState('');
+    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocused]);
+
     useEffect(() => {
         if (isFocused) {
             return;
         }
         setSelectedMembers([]);
     }, [isFocused]);
+
+    useEffect(() => {
+        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
+        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const shouldShowInput = chatParticipants.length > CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+
+        if (shouldShowTextInput !== shouldShowInput) {
+            setShouldShowTextInput(shouldShowInput);
+        }
+
+        if (!shouldShowInput) {
+            setSearchValue('');
+        }
+    }, [report, isGroupChat, isIOUReport, shouldShowTextInput]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
@@ -71,6 +94,11 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+                return;
+            }
+
+            // If search value is provided, filter out members that don't match the search value
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
                 return;
             }
 
@@ -107,7 +135,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport, canSelectMultiple]);
+    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -145,6 +173,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
+        setSearchValue('');
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
     }, [report]);
 
@@ -156,6 +185,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
+        setSearchValue('');
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -193,7 +223,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return;
         }
 
-        return <Text style={[styles.pl5, styles.mb4, styles.mt6, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
+        return <Text style={[styles.pl5, styles.mb4, styles.mt2, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
     }, [styles, translate, isGroupChat]);
 
     const customListHeader = useMemo(() => {
@@ -268,6 +298,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         customText={translate('workspace.common.selected', {selectedNumber: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
+                        isSplitButton={false}
                         options={bulkActionsButtonOptions}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
                         isDisabled={!selectedMembers.length}
@@ -314,6 +345,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
+    const headerMessage = searchValue.trim() && !participants.length ? translate('roomMembersPage.memberNotFound') : '';
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -331,6 +364,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         }
 
                         if (report) {
+                            setSearchValue('');
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                         }
                     }}
@@ -355,15 +389,23 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.flex1]}>
+                <View style={[styles.w100, styles.mt4, styles.flex1]}>
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isCurrentUserAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
+                        shouldShowTextInput={shouldShowTextInput}
+                        textInputLabel={translate('selectionList.findMember')}
+                        textInputValue={searchValue}
+                        onChangeText={(value) => {
+                            SearchInputManager.searchInput = value;
+                            setSearchValue(value);
+                        }}
+                        headerMessage={headerMessage}
+                        headerContent={!shouldShowTextInput ? headerContent : undefined}
                         ListItem={TableListItem}
-                        headerContent={headerContent}
                         onSelectRow={openMemberDetails}
                         shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item)}
@@ -371,7 +413,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         showScrollIndicator
                         textInputRef={textInputRef}
                         customListHeader={customListHeader}
-                        listHeaderWrapperStyle={[styles.ph9]}
+                        listHeaderWrapperStyle={[styles.ph9, styles.mt4]}
                     />
                 </View>
             </FullPageNotFoundView>
