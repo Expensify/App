@@ -911,6 +911,7 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
+            AUDITOR: 'auditor',
         },
         INVOICE_RECEIVER_TYPE: {
             INDIVIDUAL: 'individual',
@@ -2129,6 +2130,12 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+            },
+            ROUTE: {
+                QBO: 'quickbooks-online',
+                XERO: 'xero',
+                NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'sage-intacct',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
