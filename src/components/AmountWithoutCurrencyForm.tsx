@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
+import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -13,7 +14,10 @@ type AmountFormProps = {
     onInputChange?: (value: string) => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyForm({value: amount, onInputChange, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps) {
+function AmountWithoutCurrencyForm(
+    {value: amount, onInputChange, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const {toLocaleDigit} = useLocalize();
 
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
@@ -48,6 +52,7 @@ function AmountWithoutCurrencyForm({value: amount, onInputChange, inputID, name,
             defaultValue={defaultValue}
             accessibilityLabel={accessibilityLabel}
             role={role}
+            ref={ref}
             keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
@@ -57,4 +62,4 @@ function AmountWithoutCurrencyForm({value: amount, onInputChange, inputID, name,
 
 AmountWithoutCurrencyForm.displayName = 'AmountWithoutCurrencyForm';
 
-export default AmountWithoutCurrencyForm;
+export default React.forwardRef(AmountWithoutCurrencyForm);

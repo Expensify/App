@@ -60,6 +60,7 @@ function SearchFiltersAmountPage() {
                         label={translate('search.filters.amount.greaterThan')}
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
                         role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -71,7 +72,6 @@ function SearchFiltersAmountPage() {
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
