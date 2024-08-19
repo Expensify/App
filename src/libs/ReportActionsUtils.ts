@@ -126,10 +126,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
-    if (Array.isArray(reportAction?.message)) {
-        return reportAction?.message?.[0];
-    }
-    return reportAction?.message;
+    return Array.isArray(reportAction?.message) ? reportAction.message[0] : reportAction?.message;
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -141,9 +138,6 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
 }
 
 function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    if (isEmptyObject(reportAction)) {
-        return false;
-    }
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -1600,6 +1594,14 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+    const initialMessage = getOriginalMessage(reportAction);
+    return Localize.translateLocal('newRoomPage.renamedRoomAction', {
+        oldName: initialMessage?.oldName ?? '',
+        newName: initialMessage?.newName ?? '',
+    });
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -1694,6 +1696,7 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
+    getRenamedAction,
 };
 
 export type {LastVisibleMessage};
