@@ -12,7 +12,7 @@ function HybridAppTransitionPage({route}: HybridAppTransitionPageProps) {
 
     useEffect(() => {
         if (!shortLivedAuthToken || !email || !accountID) {
-            return;
+            throw new Error('shortLivedAuthToken, email and accountID params should always be provided when transitioning from OldDot');
         }
 
         signInOnHybridApp(shortLivedAuthToken, email, accountID);
