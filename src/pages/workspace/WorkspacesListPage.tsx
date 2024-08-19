@@ -42,7 +42,6 @@ import type {Policy as PolicyType, ReimbursementAccount, Report, Session as Sess
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesListRow from './WorkspacesListRow';
-import { isConnectionInProgress } from '@libs/actions/connections';
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
