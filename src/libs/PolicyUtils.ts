@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -249,7 +249,7 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -260,7 +260,7 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 /**
  * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
@@ -271,7 +271,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -284,7 +284,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<Pol
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
+function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -294,6 +294,17 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
             tags: {},
         }
     );
+}
+
+function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
+    const uniqueTagNames = new Set<string>();
+
+    for (const policyTagList of Object.values(policyTagLists ?? {})) {
+        for (const tag of Object.values(policyTagList.tags)) {
+            uniqueTagNames.add(getCleanedTagName(tag.name));
+        }
+    }
+    return Array.from(uniqueTagNames);
 }
 
 /**
@@ -320,7 +331,7 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
 /**
  * Whether the policy has multi-level tags
  */
-function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return Object.keys(policyTagList ?? {}).length > 1;
 }
 
@@ -417,6 +428,25 @@ function goBackFromInvalidPolicy() {
 /** Get a tax with given ID from policy */
 function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
     return policy?.taxRates?.taxes?.[taxID];
+}
+
+/** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
+ * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
+function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+    const allTaxRates: Record<string, string[]> = {};
+    Object.values(allPolicies ?? {})?.forEach((policy) => {
+        if (!policy?.taxRates?.taxes) {
+            return;
+        }
+        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+            if (!allTaxRates[taxRate.name]) {
+                allTaxRates[taxRate.name] = [taxRateKey];
+                return;
+            }
+            allTaxRates[taxRate.name].push(taxRateKey);
+        });
+    });
+    return allTaxRates;
 }
 
 /**
@@ -545,7 +575,7 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
-function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
@@ -570,15 +600,14 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
-function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
 
-    return (bankAccounts ?? []).map(({id, name}, index) => ({
+    return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+        isSelected: selectedBankAccountId === id,
     }));
 }
 
@@ -931,6 +960,15 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
+function getWorkspaceAccountID(policyID: string) {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return 0;
+    }
+    return policy.workspaceAccountID ?? 0;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -988,7 +1026,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
-    getXeroBankAccountsWithDefaultSelect,
+    getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
@@ -1033,6 +1071,9 @@ export {
     getSubmitToEmail,
     getForwardsToAccount,
     getSubmitToAccountID,
+    getWorkspaceAccountID,
+    getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getTagNamesFromTagsLists,
 };
 
 export type {MemberEmailsToAccountIDs};

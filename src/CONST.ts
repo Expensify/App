@@ -845,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
@@ -910,6 +911,7 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
+            AUDITOR: 'auditor',
         },
         INVOICE_RECEIVER_TYPE: {
             INDIVIDUAL: 'individual',
@@ -2081,6 +2083,7 @@ const CONST = {
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
+            ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },
         DEFAULT_CATEGORIES: [
@@ -2290,6 +2293,7 @@ const CONST = {
             DAILY: 'daily',
             MONTHLY: 'monthly',
         },
+        CARD_TITLE_INPUT_LIMIT: 255,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2310,7 +2314,6 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
-        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2323,6 +2326,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
+        DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -5251,6 +5255,8 @@ const CONST = {
             TRANSACTION: 'transaction',
             REPORT: 'report',
             EXPENSE: 'expense',
+            INVOICE: 'invoice',
+            TRIP: 'trip',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5280,9 +5286,18 @@ const CONST = {
                 DRAFTS: 'drafts',
                 FINISHED: 'finished',
             },
-        },
-        TYPE: {
-            EXPENSE: 'expense',
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
+            TRIP: {
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {
@@ -5381,7 +5396,7 @@ const CONST = {
     WORKSPACE_CARDS_LIST_LABEL_TYPE: {
         CURRENT_BALANCE: 'currentBalance',
         REMAINING_LIMIT: 'remainingLimit',
-        CASH_BACK: 'cashBack',
+        CASH_BACK: 'earnedCashback',
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
@@ -5464,6 +5479,18 @@ const CONST = {
 
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',
+    },
+
+    APPROVAL_WORKFLOW: {
+        ACTION: {
+            CREATE: 'create',
+            EDIT: 'edit',
+        },
+        TYPE: {
+            CREATE: 'create',
+            UPDATE: 'update',
+            REMOVE: 'remove',
+        },
     },
 } as const;
 

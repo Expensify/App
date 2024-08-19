@@ -23,7 +23,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -53,7 +52,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
-    const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
@@ -72,8 +70,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     }, [isFocused]);
 
     useEffect(() => {
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
         const shouldShowInput = chatParticipants.length > CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
 
         if (shouldShowTextInput !== shouldShowInput) {
@@ -83,19 +80,14 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         if (!shouldShowInput) {
             setSearchValue('');
         }
-    }, [report, isGroupChat, isIOUReport, shouldShowTextInput]);
+    }, [report, shouldShowTextInput]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
-            if (!details) {
-                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
-                return;
-            }
 
             // If search value is provided, filter out members that don't match the search value
             if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
@@ -135,7 +127,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport, canSelectMultiple]);
+    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -393,7 +385,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
                         shouldShowTextInput={shouldShowTextInput}

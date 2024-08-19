@@ -660,11 +660,7 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (ReportActionsUtils.isRenamedAction(action)) {
-            const initialMessage = ReportActionsUtils.getOriginalMessage(action);
-            const message = translate('newRoomPage.renamedRoomAction', {
-                oldName: initialMessage?.oldName ?? '',
-                newName: initialMessage?.newName ?? '',
-            });
+            const message = ReportActionsUtils.getRenamedAction(action);
             children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const hasBeenFlagged =
