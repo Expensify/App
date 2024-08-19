@@ -61,7 +61,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseRules} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -127,21 +127,30 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyWorkflows(policyID, isEnabled);
             },
         },
-        {
+    ];
+
+    // TODO remove this when feature will be fully done, and move manage item inside manageItems array
+    if (canUseRules) {
+        manageItems.splice(1, 0, {
             icon: Illustrations.Rules,
             titleTranslationKey: 'workspace.moreFeatures.rules.title',
             subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
             isActive: policy?.areRulesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areRulesEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
                 Policy.enablePolicyRules(policyID, isEnabled);
             },
-        },
-    ];
+        });
+    }
+
     const earnItems: Item[] = [
         {
             icon: Illustrations.InvoiceBlue,
