@@ -19,6 +19,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -558,6 +559,64 @@ function openCardDetailsPage(cardID: number) {
     API.read(READ_COMMANDS.OPEN_CARD_DETAILS_PAGE, parameters);
 }
 
+function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
+    const parameters = shouldUseContinuousReconciliation
+        ? {
+              workspaceAccountID,
+              shouldUseContinuousReconciliation,
+              expensifyCardContinuousReconciliationConnection: connectionName,
+          }
+        : {
+              workspaceAccountID,
+              shouldUseContinuousReconciliation,
+          };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: connectionName,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: connectionName,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: !shouldUseContinuousReconciliation,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: oldConnectionName ?? null,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -574,6 +633,7 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
 };
 export type {ReplacementReason};
