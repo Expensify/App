@@ -31,7 +31,7 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
     const policy = usePolicy(route.params.policyID);
 
     const defaultValue =
-        policy?.maxExpenseAmountNoReceipt === CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT || !policy?.maxExpenseAmountNoReceipt
+        policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt
             ? ''
             : CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
 
@@ -40,7 +40,7 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
             const value = values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT];
             let amountBackend;
             if (!value) {
-                amountBackend = CONST.DEFAULT_MAX_EXPENSE_AMOUNT_NO_RECEIPT;
+                amountBackend = CONST.DISABLED_MAX_EXPENSE_VALUE;
             }
             amountBackend = CurrencyUtils.convertToBackendAmount(+values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT]);
             Policy.setPolicyMaxExpenseAmountNoReceipt(route.params.policyID, amountBackend);
