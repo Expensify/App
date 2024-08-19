@@ -80,6 +80,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
 const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
@@ -342,6 +343,8 @@ function ReportActionItem({
                 return;
             }
 
+            ReportActionComposeFocusManager.composerRef?.current?.blur();
+            ReportActionComposeFocusManager.editComposerRef?.current?.blur();
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
