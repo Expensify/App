@@ -1150,7 +1150,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
-function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>) {
+function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     if (isAnnounceRoom(report)) {
         return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
@@ -1172,7 +1172,7 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>) {
 /**
  * Get the notification preference given a report
  */
-function getReportNotificationPreference(report: OnyxEntry<Report>) {
+function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     return report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report);
 }
 
