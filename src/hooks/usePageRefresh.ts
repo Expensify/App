@@ -17,7 +17,7 @@ function useDetectPageRefresh(): UseDetectPageRefreshProps {
                 .includes('reload');
             setWasPageRefreshed(isRefreshed);
 
-            // Function to reset the refresh status after any user interaction
+            // Function to reset the refresh status after user interaction
             const resetRefreshStatus = () => {
                 setWasPageRefreshed(false);
                 window.removeEventListener('click', resetRefreshStatus);
@@ -29,8 +29,14 @@ function useDetectPageRefresh(): UseDetectPageRefreshProps {
                 window.addEventListener('click', resetRefreshStatus);
                 window.addEventListener('keypress', resetRefreshStatus);
             }
+
+            // Cleanup event listeners on component unmount
+            return () => {
+                window.removeEventListener('click', resetRefreshStatus);
+                window.removeEventListener('keypress', resetRefreshStatus);
+            };
         } else {
-            // Always set false for non-web environments
+            // For non-web environments, always set refresh status to false
             setWasPageRefreshed(false);
         }
     }, []);

@@ -140,8 +140,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
+            // Reset reportActionID if it's invalid or if the page was just refreshed
             const reportActionID = route?.params?.reportActionID;
-            // Clear highlight if user has refreshed the page or if reportActionID is invalid
             const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
             if (reportActionID && (!isValidReportActionID || wasPageRefreshed)) {
                 navigation.setParams({reportActionID: ''});
@@ -159,7 +159,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
-        // Exclude wasPageRefreshed to avoid re-running this effect unnecessarily
+        // Exclude wasPageRefreshed to avoid unnecessary re-renders.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 

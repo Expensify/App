@@ -266,10 +266,9 @@ function ReportActionCompose({
     }, []);
 
     const onItemSelected = useCallback(() => {
-        Report.clearHighlightIfCurrentUserAction(currentUserPersonalDetails.accountID);
         isKeyboardVisibleWhenShowingModalRef.current = false;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+        Report.clearReportActionIDForCurrentUserAction(currentUserPersonalDetails.accountID);
+    }, [currentUserPersonalDetails.accountID]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -304,9 +303,9 @@ function ReportActionCompose({
     const submitForm = useCallback(
         (newComment: string) => {
             playSound(SOUNDS.DONE);
+            Report.clearReportActionIDForCurrentUserAction(currentUserPersonalDetails.accountID);
 
             const newCommentTrimmed = newComment.trim();
-            Report.clearHighlightIfCurrentUserAction(currentUserPersonalDetails.accountID);
 
             if (attachmentFileRef.current) {
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
@@ -315,8 +314,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [onSubmit, reportID],
+        [currentUserPersonalDetails.accountID, onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

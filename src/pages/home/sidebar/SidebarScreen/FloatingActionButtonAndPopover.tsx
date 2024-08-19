@@ -344,10 +344,10 @@ function FloatingActionButtonAndPopover(
         },
     }));
 
-    const handleMenuItemSelection = () => {
-        Report.clearHighlightIfCurrentUserAction(session?.accountID);
+    const handleMenuItemSelection = useCallback(() => {
         hideCreateMenu();
-    };
+        Report.clearReportActionIDForCurrentUserAction(session?.accountID);
+    }, [session?.accountID, hideCreateMenu]);
 
     const toggleCreateMenu = () => {
         if (isCreateMenuActive) {

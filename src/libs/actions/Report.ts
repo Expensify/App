@@ -437,8 +437,8 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
-/** Clears the highlight of a report action if it’s from the current user */
-function clearHighlightIfCurrentUserAction(accountID?: number) {
+/** Clears the reportActionID if the action is performed by the current user */
+function clearReportActionIDForCurrentUserAction(accountID?: number) {
     const isCurrentUserAction = accountID === currentUserAccountID;
     const state = navigationRef?.getState();
     const reportActionID = getTopmostReportActionID(state);
@@ -4160,7 +4160,7 @@ export {
     updateReportName,
     deleteReportField,
     clearReportFieldKeyErrors,
-    clearHighlightIfCurrentUserAction,
+    clearReportActionIDForCurrentUserAction,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     updateRoomVisibility,
