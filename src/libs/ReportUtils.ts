@@ -7328,9 +7328,6 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>): boolean {
-    console.log('existingIOUReport', existingIOUReport);
-    console.log('!existingIOUReport', !existingIOUReport);
-    console.log('!canAddTransaction', !canAddTransaction(existingIOUReport));
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport);
 }
 
