@@ -1,7 +1,5 @@
-import {PortalHost} from '@gorhom/portal';
-import noop from 'lodash/noop';
-import type {SyntheticEvent} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
@@ -323,6 +321,7 @@ function ReportActionCompose({
         [onSubmit, reportID],
     );
 
+    // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = submitForm;
 
     const onTriggerAttachmentPicker = useCallback(() => {
