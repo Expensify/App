@@ -245,6 +245,12 @@ type OriginalMessageChangeLog = {
     /** ID of the report */
     reportID?: number;
 
+    /** Old name of the workspace */
+    oldName?: string;
+
+    /** New name of the workspace */
+    newName?: string;
+
     /** Email of user */
     email?: string;
 
