@@ -4,7 +4,7 @@ import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
