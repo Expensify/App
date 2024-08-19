@@ -29,6 +29,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** The fill color to pass into the icon. */
     iconFill?: string;
 
+    /** The fill color to pass into the icon when the button is hovered. */
+    iconHoverFill?: string;
+
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
@@ -80,8 +83,14 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
+    /** Additional text styles when the button is hovered */
+    textHoverStyles?: StyleProp<TextStyle>;
+
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
+
+    /** Additional hover styles */
+    hoverStyles?: StyleProp<ViewStyle>;
 
     /** Whether we should use the success theme color */
     success?: boolean;
@@ -170,6 +179,7 @@ function Button(
 
         iconRight = Expensicons.ArrowRight,
         iconFill,
+        iconHoverFill,
         icon = null,
         iconStyles = [],
         iconRightStyles = [],
@@ -194,8 +204,10 @@ function Button(
         style = [],
         innerStyles = [],
         textStyles = [],
+        textHoverStyles = [],
 
         shouldUseDefaultHover = true,
+        hoverStyles = undefined,
         success = false,
         danger = false,
 
@@ -238,6 +250,7 @@ function Button(
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
                     textStyles,
+                    isHovered && textHoverStyles,
                     link && styles.link,
                     link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
                     link && styles.fontWeightNormal,
@@ -259,7 +272,7 @@ function Button(
                                 <Icon
                                     src={icon}
                                     hasText={!!text}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -273,14 +286,14 @@ function Button(
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={medium}
                                     medium={large}
                                 />
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -358,6 +371,7 @@ function Button(
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
                     success && !isDisabled ? styles.buttonSuccessHovered : undefined,
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                    hoverStyles,
                 ]}
                 id={id}
                 accessibilityLabel={accessibilityLabel}
