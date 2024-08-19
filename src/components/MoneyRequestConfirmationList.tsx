@@ -248,13 +248,34 @@ function MoneyRequestConfirmationList({
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+
+    const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
+    const previousTransactionModifiedCurrency = usePrevious(transaction?.modifiedCurrency);
+    const previousCustomUnitRateID = usePrevious(customUnitRateID);
+    useEffect(() => {
+        // previousTransaction is in the condition because if it is falsey, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
+        // tax even if the other parameters are the same against their previous values.
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxCode &&
+                previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID)
+        ) {
+            return;
+        }
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+        IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+    }, [customUnitRateID, policy, previousCustomUnitRateID, previousTransactionCurrency, previousTransactionModifiedCurrency, shouldShowTax, transaction, transactionID]);
 
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
@@ -269,9 +290,6 @@ function MoneyRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-
-    const previousTransactionAmount = usePrevious(transaction?.amount);
-    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
@@ -348,9 +366,19 @@ function MoneyRequestConfirmationList({
         }
     }, [shouldCalculateDistanceAmount, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
+    const previousTaxCode = usePrevious(transaction?.taxCode);
+
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        if (!shouldShowTax || (transaction?.taxAmount !== undefined && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency)) {
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxAmount !== undefined &&
+                previousTransactionAmount === transaction.amount &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID &&
+                previousTaxCode === transaction.taxCode)
+        ) {
             return;
         }
 
@@ -361,14 +389,25 @@ function MoneyRequestConfirmationList({
             taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
-            taxableAmount = transaction?.amount ?? 0;
-            taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+            taxableAmount = transaction.amount ?? 0;
+            taxCode = transaction.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
         }
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, currency);
+        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency, distance]);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+    }, [
+        policy,
+        shouldShowTax,
+        previousTransactionAmount,
+        previousTransactionCurrency,
+        transaction,
+        isDistanceRequest,
+        customUnitRateID,
+        previousCustomUnitRateID,
+        previousTaxCode,
+        distance,
+    ]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
