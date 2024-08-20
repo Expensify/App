@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -116,6 +117,8 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+    const ownerName = ownerDetails ? PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails) : '';
+    const processedOwnerName = EmojiUtils.splitTextWithEmojis(ownerName);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
@@ -221,7 +224,15 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                                 >
-                                    {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                    {processedOwnerName.length !== 0
+                                        ? processedOwnerName.map(({text, isEmoji}) =>
+                                              isEmoji ? (
+                                                  <Text style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}, styles.emojisWithTextFontFamily]}>{text}</Text>
+                                              ) : (
+                                                  text
+                                              ),
+                                          )
+                                        : ownerName}
                                 </Text>
                                 <Text
                                     numberOfLines={1}
