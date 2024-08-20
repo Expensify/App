@@ -1,8 +1,9 @@
 import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
@@ -101,10 +102,12 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                <AutoEmailLink
-                    style={[styles.textAlignCenter, subtitleStyle]}
-                    text={subtitle}
-                />
+                {subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}

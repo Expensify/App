@@ -43,8 +43,8 @@ function TransactionDuplicateReview() {
     };
 
     return (
-        <FullPageNotFoundView shouldShow={transactionID === '-1'}>
-            <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+        <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+            <FullPageNotFoundView shouldShow={transactionID === '-1'}>
                 <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
                 <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                     <Button
@@ -53,8 +53,8 @@ function TransactionDuplicateReview() {
                     />
                 </View>
                 <DuplicateTransactionsList transactions={transactions} />
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 

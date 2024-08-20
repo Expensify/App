@@ -57,7 +57,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(targetAttachments[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
 
     /** Updates the page state when the user navigates between attachments */
@@ -96,22 +96,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [autoHideArrows, page, updatePage],
     );
 
-    /**
-     * Toggles the arrows visibility
-     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
-     */
-    const toggleArrows = useCallback(
-        (showArrows?: boolean) => {
-            if (showArrows === undefined) {
-                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
-                return;
-            }
-
-            setShouldShowArrows(showArrows);
-        },
-        [setShouldShowArrows],
-    );
-
     const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
 
     if (page == null) {
@@ -147,7 +131,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         items={attachments}
                         initialPage={page}
                         activeSource={activeSource}
-                        onRequestToggleArrows={toggleArrows}
+                        setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}

@@ -97,6 +97,8 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
+    emptyFolderBG: Color;
+    travelBG: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

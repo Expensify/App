@@ -1,9 +1,8 @@
-import {ExpensiMark} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,11 +13,13 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -160,7 +161,7 @@ type MenuItemBaseProps = {
     errorTextStyle?: StyleProp<ViewStyle>;
 
     /** Hint to display at the bottom of the component */
-    hintText?: string;
+    hintText?: string | ReactNode;
 
     /** Should the error text red dot indicator be shown */
     shouldShowRedDotIndicator?: boolean;
@@ -242,6 +243,9 @@ type MenuItemBaseProps = {
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
+    /** Should we remove the background color of the menu item */
+    shouldRemoveBackground?: boolean;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -254,11 +258,23 @@ type MenuItemBaseProps = {
     /** Whether should render title as HTML or as Text */
     shouldParseTitle?: boolean;
 
+    /** Whether should render helper text as HTML or as Text */
+    shouldParseHelperText?: boolean;
+
+    /** Whether should render hint text as HTML or as Text */
+    shouldRenderHintAsHTML?: boolean;
+
+    /** Whether should render error text as HTML or as Text */
+    shouldRenderErrorAsHTML?: boolean;
+
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
 
     /** Text to display under the main item */
     furtherDetails?: string;
+
+    /** Render custom content under the main item */
+    furtherDetailsComponent?: ReactElement;
 
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
@@ -290,14 +306,22 @@ type MenuItemBaseProps = {
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
-    /** Whether to align the tooltip left */
-    shouldForceRenderingTooltipLeft?: boolean;
+    /** Anchor alignment of the tooltip */
+    tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Any additional amount to manually adjust the horizontal position of the tooltip */
+    tooltipShiftHorizontal?: number;
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip */
+    tooltipShiftVertical?: number;
+
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
+
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -335,6 +359,7 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
+        furtherDetailsComponent,
         description,
         helperText,
         helperTextStyle,
@@ -368,10 +393,15 @@ function MenuItem(
         shouldRenderAsHTML = false,
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
+        shouldRemoveBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
+        shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
         shouldBlockSelection = false,
         shouldParseTitle = false,
+        shouldParseHelperText = false,
+        shouldRenderHintAsHTML = false,
+        shouldRenderErrorAsHTML = false,
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
@@ -383,8 +413,10 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
-        shouldForceRenderingTooltipLeft = false,
+        tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
+        tooltipShiftHorizontal = 0,
+        tooltipShiftVertical = 0,
         renderTooltipContent,
     }: MenuItemProps,
     ref: PressableRef,
@@ -425,9 +457,15 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        const parser = new ExpensiMark();
-        return parser.replace(title, {shouldEscapeText});
+        return Parser.replace(title, {shouldEscapeText});
     }, [title, shouldParseTitle, shouldEscapeText]);
+
+    const helperHtml = useMemo(() => {
+        if (!helperText || !shouldParseHelperText) {
+            return '';
+        }
+        return Parser.replace(helperText, {shouldEscapeText});
+    }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -441,6 +479,16 @@ function MenuItem(
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+
+    const processedHelperText = useMemo(() => {
+        let textToWrap = '';
+
+        if (shouldParseHelperText) {
+            textToWrap = helperHtml;
+        }
+
+        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
+    }, [shouldParseHelperText, helperHtml]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
 
@@ -490,11 +538,12 @@ function MenuItem(
             )}
             <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
-                shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
+                anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
-                shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
-                shiftVertical={styles.popoverMenuItem.paddingVertical / 2}
+                shiftHorizontal={tooltipShiftHorizontal}
+                shiftVertical={tooltipShiftVertical}
+                shouldAutoDismiss
             >
                 <View>
                     <Hoverable>
@@ -510,11 +559,12 @@ function MenuItem(
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
-                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                        !shouldRemoveBackground &&
+                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         !focused && (isHovered || pressed) && hoverAndPressStyle,
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !pressed && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -555,26 +605,33 @@ function MenuItem(
                                                     )}
                                                     {icon && !Array.isArray(icon) && (
                                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
-                                                            {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
-                                                                <Icon
-                                                                    contentFit={contentFit}
-                                                                    hovered={isHovered}
-                                                                    pressed={pressed}
-                                                                    src={icon}
-                                                                    width={iconWidth}
-                                                                    height={iconHeight}
-                                                                    fill={
-                                                                        displayInDefaultIconColor
-                                                                            ? undefined
-                                                                            : iconFill ??
-                                                                              StyleUtils.getIconFillColor(
-                                                                                  getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                  true,
-                                                                                  isPaneMenu,
-                                                                              )
-                                                                    }
-                                                                />
-                                                            )}
+                                                            {typeof icon !== 'string' &&
+                                                                iconType === CONST.ICON_TYPE_ICON &&
+                                                                (!shouldShowLoadingSpinnerIcon ? (
+                                                                    <Icon
+                                                                        contentFit={contentFit}
+                                                                        hovered={isHovered}
+                                                                        pressed={pressed}
+                                                                        src={icon}
+                                                                        width={iconWidth}
+                                                                        height={iconHeight}
+                                                                        fill={
+                                                                            displayInDefaultIconColor
+                                                                                ? undefined
+                                                                                : iconFill ??
+                                                                                  StyleUtils.getIconFillColor(
+                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                      true,
+                                                                                      isPaneMenu,
+                                                                                  )
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    <ActivityIndicator
+                                                                        size="small"
+                                                                        color={theme.textSupporting}
+                                                                    />
+                                                                ))}
                                                             {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
                                                                     imageStyles={[styles.alignSelfCenter]}
@@ -629,7 +686,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
@@ -680,6 +737,7 @@ function MenuItem(
                                                                 </Text>
                                                             </View>
                                                         )}
+                                                        {!!furtherDetailsComponent && <View style={[styles.flexRow, styles.alignItemsCenter]}>{furtherDetailsComponent}</View>}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
@@ -752,6 +810,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
+                                                shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
                                         {!!hintText && (
@@ -760,6 +819,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
                                                 style={styles.menuItemError}
+                                                shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
                                     </View>
@@ -767,7 +827,14 @@ function MenuItem(
                             </PressableWithSecondaryInteraction>
                         )}
                     </Hoverable>
-                    {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
+                    {!!helperText &&
+                        (shouldParseHelperText ? (
+                            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}>
+                                <RenderHTML html={processedHelperText} />
+                            </View>
+                        ) : (
+                            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>
+                        ))}
                 </View>
             </EducationalTooltip>
         </View>

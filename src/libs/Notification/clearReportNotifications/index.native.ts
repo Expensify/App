@@ -8,7 +8,7 @@ import type ClearReportNotifications from './types';
 const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     let payload = pushPayload.extras.payload;
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as string;
     }
     const data = payload as PushNotificationData;
     return {
@@ -34,7 +34,7 @@ const clearReportNotifications: ClearReportNotifications = (reportID: string) =>
             Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
             reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
             Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
         });
 };

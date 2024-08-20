@@ -28,7 +28,7 @@ function ValidateLoginPage({
                 Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -26,9 +26,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
+import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
@@ -99,7 +99,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
 
     /** The report that has this attachment */
-    report?: OnyxEntry<OnyxTypes.Report> | EmptyObject;
+    report?: OnyxEntry<OnyxTypes.Report>;
 
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -195,6 +195,8 @@ function AttachmentModal({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
+
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
@@ -266,7 +268,7 @@ function AttachmentModal({
         }
 
         setIsModalOpen(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isModalOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
     /**
@@ -321,7 +323,7 @@ function AttachmentModal({
             }
             let fileObject = data;
             if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile();
+                fileObject = data.getAsFile() as FileObject;
             }
             if (!fileObject) {
                 return;
@@ -342,6 +344,7 @@ function AttachmentModal({
                     updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                 }
                 const inputSource = URL.createObjectURL(updatedFile);
+                updatedFile.uri = inputSource;
                 const inputModalType = getModalType(inputSource, updatedFile);
                 setIsModalOpen(true);
                 setSourceState(inputSource);
@@ -368,7 +371,7 @@ function AttachmentModal({
             onModalClose();
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [onModalClose]);
 
     /**
@@ -412,14 +415,20 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline && allowDownload) {
+        if (!isOffline && allowDownload && !isLocalSource) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt && !TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (
+            !TransactionUtils.hasEReceipt(transaction) &&
+            TransactionUtils.hasReceipt(transaction) &&
+            !TransactionUtils.isReceiptBeingScanned(transaction) &&
+            canEditReceipt &&
+            !TransactionUtils.hasMissingSmartscanFields(transaction)
+        ) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
@@ -429,7 +438,7 @@ function AttachmentModal({
             });
         }
         return menuItems;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
@@ -439,7 +448,7 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
@@ -455,6 +464,8 @@ function AttachmentModal({
         }),
         [closeModal, nope, sourceForAttachmentView],
     );
+
+    const submitRef = useRef<View | HTMLElement>(null);
 
     return (
         <>
@@ -472,6 +483,12 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
+                initialFocus={() => {
+                    if (!submitRef.current) {
+                        return false;
+                    }
+                    return submitRef.current;
+                }}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -530,6 +547,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            isUploaded={!isEmptyObject(report)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
@@ -541,6 +559,7 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
+                                        ref={viewRef(submitRef)}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}

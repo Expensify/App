@@ -9,7 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
@@ -61,20 +61,32 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {stateToRender, searchRoute} = useMemo(() => {
         const routes = reduceCentralPaneRoutes(state.routes);
 
-        // On narrow layout, if we are on /search route we want to hide the search central pane route.
         if (isSmallScreenWidth) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
             const lastRoute = routes[routes.length - 1];
             const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
             const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
+
+            // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
+            if (lastSearchCentralPane) {
+                return {
+                    stateToRender: {
+                        ...state,
+                        index: 0,
+                        routes: [filteredRoutes[0]],
+                    },
+                    searchRoute: lastSearchCentralPane,
+                };
+            }
+
             return {
                 stateToRender: {
                     ...state,
                     index: filteredRoutes.length - 1,
                     routes: filteredRoutes,
                 },
-                searchRoute: lastSearchCentralPane,
+                searchRoute: undefined,
             };
         }
 

@@ -13,6 +13,8 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -26,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
@@ -37,14 +38,14 @@ type ReportFooterProps = {
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
-    /** Additional report details */
-    reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
-
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
@@ -70,18 +71,20 @@ function ReportFooter({
     pendingAction,
     report = {reportID: '-1'},
     reportMetadata,
-    reportNameValuePairs,
     policy,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
+    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
@@ -99,19 +102,21 @@ function ReportFooter({
             }
         },
     });
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
 
-    const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const shouldHideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !shouldShowComposerOptimistically) || isBlockedFromChat;
+    const shouldHideComposer = (!ReportUtils.canUserPerformWriteAction(report) && !shouldShowComposerOptimistically) || isBlockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -137,18 +142,18 @@ function ReportFooter({
             const mention = match[1] ? match[1].trim() : undefined;
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
-            let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
+            let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
             if (mentionWithDomain) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
-                if (!Object.keys(assignee).length) {
+                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                if (!Object.keys(assignee ?? {}).length) {
                     const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
                     const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
                     assignee = optimisticDataForNewAssignee.assignee;
                     assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                 }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assigneeChatReport, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
@@ -162,7 +167,7 @@ function ReportFooter({
             }
             Report.addComment(report.reportID, text);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
     );
 
@@ -173,7 +178,7 @@ function ReportFooter({
                     style={[
                         styles.chatFooter,
                         isArchivedRoom || isAnonymousUser || !canWriteInReport || (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) ? styles.mt4 : {},
-                        isSmallScreenWidth ? styles.mb5 : null,
+                        shouldUseNarrowLayout ? styles.mb5 : null,
                     ]}
                 >
                     {isAnonymousUser && !isArchivedRoom && (
@@ -193,12 +198,12 @@ function ReportFooter({
                             shouldShowIcon
                         />
                     )}
-                    {!isSmallScreenWidth && (
+                    {!shouldUseNarrowLayout && (
                         <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -212,6 +217,7 @@ function ReportFooter({
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
+                            shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
                         />
                     </SwipeableView>
                 </View>
@@ -231,5 +237,6 @@ export default memo(
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
 );

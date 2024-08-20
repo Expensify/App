@@ -1,5 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
 type AddressLineParams = {
@@ -122,6 +123,8 @@ type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
 
+type ForwardedAmountParams = {amount: number | string};
+
 type ManagerApprovedParams = {manager: string};
 
 type ManagerApprovedAmountParams = {manager: string; amount: number | string};
@@ -222,6 +225,8 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
+type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
+
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
 type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
@@ -298,6 +303,61 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type ConfirmHoldExpenseParams = {transactionCount: number};
+
+type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
+
+type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+
+type ChangeTypeParams = {oldType: string; newType: string};
+
+type DelegateSubmitParams = {delegateUser: string; originalManager: string};
+
+type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
+
+type IntegrationsMessageParams = {
+    label: string;
+    result: {
+        code?: number;
+        messages?: string[];
+        title?: string;
+        link?: {
+            url: string;
+            text: string;
+        };
+    };
+};
+
+type MarkedReimbursedParams = {amount: string; currency: string};
+
+type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
+
+type ShareParams = {to: string};
+
+type UnshareParams = {to: string};
+
+type StripePaidParams = {amount: string; currency: string};
+
+type UnapprovedParams = {amount: string; currency: string};
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
+
+type DeleteExpenseTranslationParams = {
+    count: number;
+};
+
+type IssueVirtualCardParams = {
+    assignee: string;
+    link: string;
+};
+
+type ApprovalWorkflowErrorParams = {
+    name1: string;
+    name2: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -309,6 +369,7 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -321,10 +382,12 @@ export type {
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
+    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     HeldRequestParams,
     InstantSummaryParams,
+    IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -387,6 +450,7 @@ export type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -402,4 +466,19 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    ChangeFieldParams,
+    ChangePolicyParams,
+    ChangeTypeParams,
+    ExportedToIntegrationParams,
+    DelegateSubmitParams,
+    IntegrationsMessageParams,
+    MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
+    ShareParams,
+    UnshareParams,
+    StripePaidParams,
+    UnapprovedParams,
+    RemoveMembersWarningPrompt,
+    DeleteExpenseTranslationParams,
+    ApprovalWorkflowErrorParams,
 };

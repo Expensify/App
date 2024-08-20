@@ -30,6 +30,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
+import * as LinkActions from '@userActions/Link';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
 import * as ReportActions from '@userActions/Report';
 import * as SessionActions from '@userActions/Session';
@@ -39,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
@@ -47,7 +47,8 @@ type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREE
 /**
  * Gets the phone number to display for SMS logins
  */
-const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyObject): string | undefined => {
+const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
+    const {login = '', displayName = ''} = details ?? {};
     // If the user hasn't set a displayName, it is set to their phone number
     const parsedPhoneNumber = parsePhoneNumber(displayName);
 
@@ -79,34 +80,38 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => account?.guideCalendarLink,
+    });
 
+    const accountID = Number(route.params?.accountID ?? -1);
+    const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
-        const accountID = Number(route.params?.accountID ?? -1);
-        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
+        const reportID = isCurrentUser
+            ? ReportUtils.findSelfDMReportID()
+            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
 
-        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if (SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [reports, route.params?.accountID, session]);
+    }, [accountID, isCurrentUser, reports, session]);
     const [report] = useOnyx(reportKey);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params?.accountID ?? -1);
-    const isCurrentUser = session?.accountID === accountID;
 
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): PersonalDetails | EmptyObject => {
+    const details = useMemo((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
         if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID] ?? {};
+            return personalDetails?.[accountID] ?? undefined;
         }
         // Check if we have the login param
         if (!loginParams) {
-            return isValidAccountID ? {} : {accountID: 0};
+            return isValidAccountID ? undefined : {accountID: 0};
         }
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
@@ -139,7 +144,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasAvatar = !!details.avatar;
+    const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
@@ -169,11 +174,14 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.pin(report));
         }
 
-        if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
-            result.push(PromotedActions.message({accountID, login: loginParams}));
+        // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
+        if ((!isCurrentUser || report) && !SessionActions.isAnonymousUser()) {
+            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
+
+    const isConcierge = ReportUtils.isConciergeChatReport(report);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -196,7 +204,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     <Avatar
                                         containerStyles={[styles.avatarXLarge]}
                                         imageStyles={[styles.avatarXLarge]}
-                                        source={details.avatar}
+                                        source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.XLARGE}
@@ -238,8 +246,13 @@ function ProfilePage({route}: ProfilePageProps) {
                                         {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details.accountID}>
-                                            <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
+                                        <UserDetailsTooltip accountID={details?.accountID ?? -1}>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={styles.w100}
+                                            >
+                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                            </Text>
                                         </UserDetailsTooltip>
                                     </CommunicationsLink>
                                 </View>
@@ -274,6 +287,16 @@ function ProfilePage({route}: ProfilePageProps) {
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        )}
+                        {isConcierge && guideCalendarLink && (
+                            <MenuItem
+                                title={translate('videoChatButtonAndMenu.tooltip')}
+                                icon={Expensicons.Phone}
+                                isAnonymousAction={false}
+                                onPress={SessionActions.checkIfActionIsAllowed(() => {
+                                    LinkActions.openExternalLink(guideCalendarLink);
+                                })}
                             />
                         )}
                     </ScrollView>

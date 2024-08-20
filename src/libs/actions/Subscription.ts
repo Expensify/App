@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
@@ -231,4 +231,75 @@ function clearUpdateSubscriptionSizeError() {
     });
 }
 
-export {openSubscriptionPage, updateSubscriptionAutoRenew, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionSize, clearUpdateSubscriptionSizeError, updateSubscriptionType};
+function clearOutstandingBalance() {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: true,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: true,
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
+}
+
+function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, cancellationNote: string) {
+    const parameters: CancelBillingSubscriptionParams = {
+        cancellationReason,
+        cancellationNote,
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
+}
+
+function requestTaxExempt() {
+    API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
+}
+
+export {
+    openSubscriptionPage,
+    updateSubscriptionAutoRenew,
+    updateSubscriptionAddNewUsersAutomatically,
+    updateSubscriptionSize,
+    clearUpdateSubscriptionSizeError,
+    updateSubscriptionType,
+    clearOutstandingBalance,
+    cancelBillingSubscription,
+    requestTaxExempt,
+};

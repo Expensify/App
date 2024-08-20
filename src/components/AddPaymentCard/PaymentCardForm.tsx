@@ -2,14 +2,14 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CurrencySelector from '@components/CurrencySelector';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
@@ -23,8 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/AddDebitCardForm';
-import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
+import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -33,12 +32,14 @@ type PaymentCardFormProps = {
     showCurrencyField?: boolean;
     showStateSelector?: boolean;
     isDebitCard?: boolean;
-    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => void;
+    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>, currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
     submitButtonText: string;
     /** Custom content to display in the footer after card form */
     footerContent?: ReactNode;
     /** Custom content to display in the header before card form */
     headerContent?: ReactNode;
+    /** object to get currency route details from */
+    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY;
 };
 
 function IAcceptTheLabel() {
@@ -61,6 +62,7 @@ const REQUIRED_FIELDS = [
     INPUT_IDS.SECURITY_CODE,
     INPUT_IDS.ADDRESS_ZIP_CODE,
     INPUT_IDS.ADDRESS_STATE,
+    INPUT_IDS.CURRENCY,
 ];
 
 const CARD_TYPES = {
@@ -127,42 +129,44 @@ function PaymentCardForm({
     showStateSelector,
     footerContent,
     headerContent,
+    currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
+    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+
     const {translate} = useLocalize();
     const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
-    const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
-    const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
+    const [cardNumber, setCardNumber] = useState('');
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
-            errors.nameOnCard = translate('addDebitCardPage.error.invalidName');
+            errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
         if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = translate('addDebitCardPage.error.debitCardNumber');
+            errors.cardNumber = translate(label.error.cardNumber);
         }
 
         if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
-            errors.expirationDate = translate('addDebitCardPage.error.expirationDate');
+            errors.expirationDate = translate(label.error.expirationDate);
         }
 
         if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = translate('addDebitCardPage.error.securityCode');
+            errors.securityCode = translate(label.error.securityCode);
         }
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('addDebitCardPage.error.addressStreet');
+            errors.addressStreet = translate(label.error.addressStreet);
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate('addDebitCardPage.error.addressZipCode');
+            errors.addressZipCode = translate(label.error.addressZipCode);
         }
 
         if (!values.acceptTerms) {
@@ -172,13 +176,21 @@ function PaymentCardForm({
         return errors;
     };
 
-    const showCurrenciesModal = useCallback(() => {
-        setIsCurrencyModalVisible(true);
-    }, []);
+    const onChangeCardNumber = useCallback((newValue: string) => {
+        // replace all characters that are not spaces or digits
+        let validCardNumber = newValue.replace(/[^\d ]/g, '');
 
-    const changeCurrency = useCallback((newCurrency: keyof typeof CONST.CURRENCY) => {
-        setCurrency(newCurrency);
-        setIsCurrencyModalVisible(false);
+        // gets only the first 16 digits if the inputted number have more digits than that
+        validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
+
+        // add the spacing between every 4 digits
+        validCardNumber =
+            validCardNumber
+                .replace(/ /g, '')
+                .match(/.{1,4}/g)
+                ?.join(' ') ?? '';
+
+        setCardNumber(validCardNumber);
     }, []);
 
     if (!shouldShowPaymentCardForm) {
@@ -189,9 +201,9 @@ function PaymentCardForm({
         <>
             {headerContent}
             <FormProvider
-                formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
+                formID={ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM}
                 validate={validate}
-                onSubmit={(formData) => addPaymentCard(formData, currency)}
+                onSubmit={addPaymentCard}
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
@@ -199,15 +211,19 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_NUMBER}
+                    defaultValue={data?.cardNumber}
                     label={translate(label.defaults.cardNumber)}
                     aria-label={translate(label.defaults.cardNumber)}
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
+                    onChangeText={onChangeCardNumber}
+                    value={cardNumber}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME_ON_CARD}
+                    defaultValue={data?.nameOnCard}
                     label={translate(label.defaults.nameOnCard)}
                     aria-label={translate(label.defaults.nameOnCard)}
                     role={CONST.ROLE.PRESENTATION}
@@ -217,6 +233,7 @@ function PaymentCardForm({
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
                         <InputWrapper
+                            defaultValue={data?.expirationDate}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate(label.defaults.expiration)}
@@ -231,6 +248,7 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.SECURITY_CODE}
+                            defaultValue={data?.securityCode}
                             label={translate(label.defaults.securityCode)}
                             aria-label={translate(label.defaults.securityCode)}
                             role={CONST.ROLE.PRESENTATION}
@@ -242,6 +260,7 @@ function PaymentCardForm({
                 {!!showAddressField && (
                     <View>
                         <InputWrapper
+                            defaultValue={data?.addressStreet}
                             InputComponent={AddressSearch}
                             inputID={INPUT_IDS.ADDRESS_STREET}
                             label={translate(label.defaults.billingAddress)}
@@ -254,6 +273,7 @@ function PaymentCardForm({
                 )}
                 <InputWrapper
                     InputComponent={TextInput}
+                    defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
@@ -272,23 +292,14 @@ function PaymentCardForm({
                     </View>
                 )}
                 {!!showCurrencyField && (
-                    <Hoverable>
-                        {(isHovered) => (
-                            <TextInput
-                                label={translate('common.currency')}
-                                aria-label={translate('common.currency')}
-                                role={CONST.ROLE.COMBOBOX}
-                                icon={Expensicons.ArrowRight}
-                                onPress={showCurrenciesModal}
-                                value={currency}
-                                containerStyles={[styles.mt5]}
-                                inputStyle={isHovered && styles.cursorPointer}
-                                hideFocusedState
-                                caretHidden
-                                disableKeyboard
-                            />
-                        )}
-                    </Hoverable>
+                    <View style={[styles.mt4, styles.mhn5]}>
+                        <InputWrapper
+                            currencySelectorRoute={currencySelectorRoute}
+                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
+                            InputComponent={CurrencySelector}
+                            inputID={INPUT_IDS.CURRENCY}
+                        />
+                    </View>
                 )}
                 {!!showAcceptTerms && (
                     <View style={[styles.mt4, styles.ml1]}>
@@ -298,19 +309,11 @@ function PaymentCardForm({
                                 'common.privacyPolicy',
                             )}`}
                             inputID={INPUT_IDS.ACCEPT_TERMS}
-                            defaultValue={false}
+                            defaultValue={!!data?.acceptTerms}
                             LabelComponent={IAcceptTheLabel}
                         />
                     </View>
                 )}
-
-                <PaymentCardCurrencyModal
-                    isVisible={isCurrencyModalVisible}
-                    currencies={Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>}
-                    currentCurrency={currency}
-                    onCurrencyChange={changeCurrency}
-                    onClose={() => setIsCurrencyModalVisible(false)}
-                />
                 {footerContent}
             </FormProvider>
         </>

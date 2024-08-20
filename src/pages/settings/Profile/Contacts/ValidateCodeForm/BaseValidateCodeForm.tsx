@@ -118,7 +118,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         }
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
         // contactMethod is not added as a dependency since it does not change between renders
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -166,8 +166,8 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         }
 
         setFormError({});
-        User.validateSecondaryLogin(contactMethod, validateCode);
-    }, [validateCode, contactMethod]);
+        User.validateSecondaryLogin(loginList, contactMethod, validateCode);
+    }, [loginList, validateCode, contactMethod]);
 
     return (
         <>

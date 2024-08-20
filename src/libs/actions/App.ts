@@ -7,18 +7,9 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
-import type {
-    GetMissingOnyxMessagesParams,
-    HandleRestrictedEventParams,
-    OpenAppParams,
-    OpenOldDotLinkParams,
-    OpenProfileParams,
-    ReconnectAppParams,
-    UpdatePreferredLocaleParams,
-} from '@libs/API/parameters';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
-import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -32,7 +23,6 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy/Policy';
 import * as Session from './Session';
@@ -360,8 +350,9 @@ function endSignOnTransition() {
  * @param [policyName] Optional, custom policy name we will use for created workspace
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
     const policyID = Policy.generatePolicyID();
     Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
@@ -371,7 +362,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
 }
@@ -434,8 +425,6 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     if (!isLoggingInAsNewUser && exitTo) {
         Navigation.waitForProtectedRoutes()
             .then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -453,52 +442,6 @@ function redirectThirdPartyDesktopSignIn() {
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
-        });
-    }
-}
-
-function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
-    const oldTimezoneData = personalDetails.timezone ?? {};
-    let newTimezoneData = oldTimezoneData;
-
-    if (oldTimezoneData?.automatic ?? true) {
-        newTimezoneData = {
-            automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
-        };
-    }
-
-    newTimezoneData = DateUtils.formatToSupportedTimezone(newTimezoneData);
-
-    const parameters: OpenProfileParams = {
-        timezone: JSON.stringify(newTimezoneData),
-    };
-
-    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
-    if (typeof currentUserAccountID === 'number') {
-        API.write(WRITE_COMMANDS.OPEN_PROFILE, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: newTimezoneData,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: oldTimezoneData,
-                        },
-                    },
-                },
-            ],
         });
     }
 }
@@ -558,7 +501,6 @@ export {
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,

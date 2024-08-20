@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useLayoutEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -16,6 +16,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
@@ -41,6 +42,9 @@ type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'anim
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
+
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
@@ -80,6 +84,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
      * */
     shouldEnableNewFocusManagement?: boolean;
+
+    /** How to re-focus after the modal is dismissed */
+    restoreFocusType?: BaseModalProps['restoreFocusType'];
 };
 
 function PopoverMenu({
@@ -89,6 +96,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    onModalShow,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -102,26 +110,27 @@ function PopoverMenu({
     withoutOverlay = false,
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
+    restoreFocusType,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const selectedItemIndex = useRef<number | null>(null);
-
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
+    const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems[index];
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
-            setFocusedIndex(-1);
+            const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
+            setFocusedIndex(selectedSubMenuItemIndex);
         } else {
-            selectedItemIndex.current = index;
             onItemSelected(selectedItem, index);
+            selectedItem.onSelected?.();
         }
     };
 
@@ -156,10 +165,17 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    enteredSubMenuIndexes.splice(-1);
+                    setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
                 }}
             />
         );
+    };
+
+    const renderHeaderText = () => {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+            return;
+        }
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -176,17 +192,16 @@ function PopoverMenu({
 
     const onModalHide = () => {
         setFocusedIndex(-1);
-        if (selectedItemIndex.current !== null) {
-            currentMenuItems[selectedItemIndex.current].onSelected?.();
-            selectedItemIndex.current = null;
-        }
     };
 
-    useEffect(() => {
+    // When the menu items are changed, we want to reset the sub-menu to make sure
+    // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
+    // We use useLayoutEffect so the reset happens before the repaint
+    useLayoutEffect(() => {
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes([]);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
@@ -197,11 +212,12 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes([]);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
             onModalHide={onModalHide}
+            onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
@@ -210,10 +226,11 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
+                    {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
@@ -225,6 +242,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
+                            titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}
@@ -244,9 +262,13 @@ function PopoverMenu({
                             success={item.success}
                             containerStyle={item.containerStyle}
                             shouldRenderTooltip={item.shouldRenderTooltip}
-                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                            tooltipShiftVertical={item.tooltipShiftVertical}
                             tooltipWrapperStyle={item.tooltipWrapperStyle}
                             renderTooltipContent={item.renderTooltipContent}
+                            numberOfLinesTitle={item.numberOfLinesTitle}
+                            interactive={item.interactive}
                         />
                     ))}
                 </View>
@@ -260,7 +282,7 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.menuItems.length === nextProps.menuItems.length &&
         prevProps.isVisible === nextProps.isVisible &&
         lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&

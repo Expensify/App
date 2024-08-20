@@ -50,7 +50,7 @@ type LocaleContextProps = {
     toLocaleDigit: (digit: string) => string;
 
     /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number) => string;
+    toLocaleOrdinal: (number: number, returnWords?: boolean) => string;
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
@@ -72,7 +72,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
-function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
+function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, children}: LocaleContextProviderProps) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
@@ -101,7 +101,12 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 
-    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(() => (number) => LocaleDigitUtils.toLocaleOrdinal(locale, number), [locale]);
+    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
+        () =>
+            (number, writtenOrdinals = false) =>
+                LocaleDigitUtils.toLocaleOrdinal(locale, number, writtenOrdinals),
+        [locale],
+    );
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 

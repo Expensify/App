@@ -1,14 +1,13 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useMemo, useReducer, useState} from 'react';
+import React, {memo, useMemo, useReducer} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -29,7 +28,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
-import ConfirmModal from './ConfirmModal';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -118,7 +116,10 @@ type MoneyRequestConfirmationListFooterProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The policy tag lists */
-    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+
+    /** The policy tag lists */
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
 
     /** The rate of the transaction */
     rate: number | undefined;
@@ -193,6 +194,7 @@ function MoneyRequestConfirmationListFooter({
     isTypeInvoice,
     onToggleBillable,
     policy,
+    policyTags,
     policyTagLists,
     rate,
     receiptFilename,
@@ -214,18 +216,13 @@ function MoneyRequestConfirmationListFooter({
     const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseViolations} = usePermissions(iouType);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [invalidAttachmentPrompt, setInvalidAttachmentPrompt] = useState(translate('attachmentPicker.protectedPDFNotSupported'));
-
-    // A flag for showing the tags field
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -251,7 +248,8 @@ function MoneyRequestConfirmationListFooter({
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
@@ -431,14 +429,15 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired && canUseViolations ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
             isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
-        ...policyTagLists.map(({name, required}, index) => {
+        ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
+            const shouldShow = shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
             return {
                 item: (
                     <MenuItemWithTopDescription
@@ -455,10 +454,10 @@ function MoneyRequestConfirmationListFooter({
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
-                        rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
+                        rightLabel={isTagRequired ? translate('common.required') : ''}
                     />
                 ),
-                shouldShow: shouldShowTags,
+                shouldShow,
                 isSupplementary: !isTagRequired,
             };
         }),
@@ -540,16 +539,6 @@ function MoneyRequestConfirmationListFooter({
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
-                            // We don't support scanning password protected PDF receipt
-                            enabled={!isAttachmentInvalid}
-                            onPassword={() => {
-                                setIsAttachmentInvalid(true);
-                                setInvalidAttachmentPrompt(translate('attachmentPicker.protectedPDFNotSupported'));
-                            }}
-                            onLoadError={() => {
-                                setInvalidAttachmentPrompt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                setIsAttachmentInvalid(true);
-                            }}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -584,7 +573,6 @@ function MoneyRequestConfirmationListFooter({
             translate,
             shouldDisplayReceipt,
             resolvedReceiptImage,
-            isAttachmentInvalid,
             isThumbnail,
             resolvedThumbnail,
             receiptThumbnail,
@@ -594,10 +582,6 @@ function MoneyRequestConfirmationListFooter({
             transactionID,
         ],
     );
-
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    };
 
     return (
         <>
@@ -648,15 +632,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             )}
             <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
-            <ConfirmModal
-                title={translate('attachmentPicker.attachmentError')}
-                onConfirm={navigateBack}
-                onCancel={navigateBack}
-                isVisible={isAttachmentInvalid}
-                prompt={invalidAttachmentPrompt}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }
