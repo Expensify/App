@@ -19,14 +19,6 @@ type CheckingMethod = () => boolean;
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
 let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
 Onyx.connect({
