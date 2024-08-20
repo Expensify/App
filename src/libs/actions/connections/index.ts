@@ -388,6 +388,14 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 
+function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return false;
+    }
+    const connection = policy?.connections?.[connectionName];
+    return connection?.lastSync?.isAuthenticationError === true;
+}
+
 function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
     // A verified connection is one that has been successfully synced at least once
     // We'll always err on the side of considering a connection as verified connected even if we can't find a lastSync property saying as such
@@ -439,6 +447,7 @@ export {
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
     getSynchronizationErrorMessage,
+    isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
