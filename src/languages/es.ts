@@ -3268,6 +3268,12 @@ export default {
                             return 'Actualizando información de conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importando listas personalizado';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando subsidiarias';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'intacctCheckConnection':
