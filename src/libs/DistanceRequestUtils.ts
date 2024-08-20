@@ -131,7 +131,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
-
 function getRateForDisplay(
     unit: Unit | undefined,
     rate: number | undefined,
