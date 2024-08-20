@@ -84,7 +84,7 @@ function CurrencySelectionList({
         }
 
         return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, searchValue, canSelectMultiple, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, policyRecentlyUsedCurrencies]);
+    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, policyRecentlyUsedCurrencies]);
 
     return (
         <SelectionList
