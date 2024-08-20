@@ -2687,12 +2687,12 @@ export default {
                         },
                     },
                     customLists: {
-                        title: 'Listas personalizados',
-                        addText: 'Añadir lista personalizado',
+                        title: 'Listas personalizadas',
+                        addText: 'Añadir lista personalizada',
                         recordTitle: 'Lista personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
                         helpLinkText: 'Ver instrucciones detalladas',
-                        helpText: ' sobre cómo configurar listas personalizado.',
+                        helpText: ' sobre cómo configurar listas personalizada.',
                         emptyTitle: 'Añadir una lista personalizado',
                         fields: {
                             listName: 'Nombre',
@@ -3265,6 +3265,12 @@ export default {
                             return 'Actualizando información de conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importando listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando subsidiarias';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'intacctCheckConnection':
