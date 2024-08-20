@@ -25,17 +25,15 @@ type HybridAppSplashScreenProps = {
  */
 function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
     const {isSplashHidden, setIsSplashHidden} = useSplashScreen();
-    const [startedTransition, setStartedTransition] = useState(false);
-    const [finishedTransition, setFinishedTransition] = useState(false);
-
     const initialURL = useContext(InitialURLContext);
+    const {shouldHideHybridAppSplashScreen, setShouldHideHybridAppSplashScreen} = useContext(ShouldHideHybridAppSplashScreenContext);
+
     const exitToParam = useExitTo();
     const [exitTo, setExitTo] = useState<Route | HybridAppRoute | undefined>();
+    const [finishedTransition, setFinishedTransition] = useState(false);
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-
-    const {shouldHideHybridAppSplashScreen, setShouldHideHybridAppSplashScreen} = useContext(ShouldHideHybridAppSplashScreenContext);
 
     const maxTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -47,7 +45,6 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
 
         maxTimeoutRef.current = setTimeout(() => {
             Log.info('[HybridApp] Forcing transition due to unknown problem', true);
-            setStartedTransition(true);
             setExitTo(ROUTES.HOME);
         }, 3000);
     }, []);
@@ -65,7 +62,6 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
             Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
             setIsSplashHidden(false);
             setShouldHideHybridAppSplashScreen(false);
-            setStartedTransition(false);
             setFinishedTransition(false);
             setExitTo(undefined);
         });
@@ -83,45 +79,41 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
         }
 
         Log.info('[HybridApp] Saving `exitTo` for later', true, {exitTo: exitToParam});
-        setExitTo(exitToParam);
-
         Log.info(`[HybridApp] Started transition`, true);
-        setStartedTransition(true);
+        setExitTo(exitToParam);
     }, [exitTo, exitToParam]);
 
     useEffect(() => {
-        if (!startedTransition || finishedTransition) {
+        if (!exitTo) {
             return;
         }
 
-        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const transitionURL = `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}`;
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 
         // We need to wait with navigating to exitTo until all login-related actions are complete.
         if (!authenticated || isLoggingInAsNewUser || isAccountLoading) {
             return;
         }
 
-        if (exitTo) {
-            Navigation.isNavigationReady().then(() => {
-                // We need to remove /transition from route history.
-                // `useExitTo` returns undefined for routes other than /transition.
-                if (exitToParam) {
-                    Log.info('[HybridApp] Removing /transition route from history', true);
-                    Navigation.goBack();
-                }
+        Navigation.isNavigationReady().then(() => {
+            // We need to remove /transition from route history.
+            // `useExitTo` returns undefined for routes other than /transition.
+            if (exitToParam) {
+                Log.info('[HybridApp] Removing /transition route from history', true);
+                Navigation.goBack();
+            }
 
-                Log.info('[HybridApp] Navigating to `exitTo` route', true, {exitTo});
-                Navigation.navigate(Navigation.parseHybridAppUrl(exitTo));
-                setExitTo(undefined);
+            Log.info('[HybridApp] Navigating to `exitTo` route', true, {exitTo});
+            Navigation.navigate(Navigation.parseHybridAppUrl(exitTo));
+            setExitTo(undefined);
 
-                setTimeout(() => {
-                    Log.info('[HybridApp] Setting `finishedTransition` to true', true);
-                    setFinishedTransition(true);
-                }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
-            });
-        }
-    }, [authenticated, exitTo, exitToParam, finishedTransition, initialURL, isAccountLoading, sessionEmail, startedTransition]);
+            setTimeout(() => {
+                Log.info('[HybridApp] Setting `finishedTransition` to true', true);
+                setFinishedTransition(true);
+            }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+        });
+    }, [authenticated, exitTo, exitToParam, initialURL, isAccountLoading, sessionEmail]);
 
     useEffect(() => {
         if (!finishedTransition || shouldHideHybridAppSplashScreen || isSplashHidden) {

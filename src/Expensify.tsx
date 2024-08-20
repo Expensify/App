@@ -4,12 +4,12 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import * as Welcome from '@userActions/Welcome';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
+import HybridAppOnboarding from './components/HybridApp/HybridAppOnboarding';
 import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -20,6 +20,7 @@ import useLocalize from './hooks/useLocalize';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
+import * as Welcome from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import BootSplash from './libs/BootSplash';
 import FS from './libs/Fullstory';
@@ -87,9 +88,10 @@ const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextT
     setIsSplashHidden: () => {},
 });
 
-type ShouldHideHybridAppSplashScreenContextType = {shouldHideHybridAppSplashScreen?: boolean; setShouldHideHybridAppSplashScreen: React.Dispatch<React.SetStateAction<boolean>>};
+type ShouldHideHybridAppSplashScreenContextType = {shouldHideHybridAppSplashScreen: boolean; setShouldHideHybridAppSplashScreen: React.Dispatch<React.SetStateAction<boolean>>};
 
 const ShouldHideHybridAppSplashScreenContext = React.createContext<ShouldHideHybridAppSplashScreenContextType>({
+    shouldHideHybridAppSplashScreen: false,
     setShouldHideHybridAppSplashScreen: () => {},
 });
 
@@ -315,6 +317,7 @@ function Expensify({
             {hasAttemptedToOpenPublicRoom && (
                 <SplashScreenHiddenContext.Provider value={contextValue}>
                     <ShouldHideHybridAppSplashScreenContext.Provider value={shouldHideHybridAppSplashScreenContextValue}>
+                        <HybridAppOnboarding />
                         <NavigationRoot
                             onReady={setNavigationReady}
                             authenticated={isAuthenticated}
