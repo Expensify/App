@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -33,15 +34,13 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoReimbursement?.limit, policy?.outputCurrency);
 
-    // const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<'rulesAutoPayReportsUnderModalForm'>) => {
-    //     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
-    //     if (CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT) {
-    //         console.log('ERROR');
-    //         errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('common.error.fieldRequired');
-    //     }
-    //     console.log('ERRORS ', errors);
-    //     return errors;
-    // };
+    const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
+        if (CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS) {
+            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('common.error.invalidAmount');
+        }
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -61,7 +60,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
-                    // validate={validateLimit}
+                    validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
                         WorkspaceRulesActions.setPolicyAutoReimbursementLimit(maxExpenseAutoPayAmount, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
@@ -78,7 +77,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            amountMaxLength={7}
+                            // amountMaxLength={7}
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoPayReportsUnderDescription')}</Text>

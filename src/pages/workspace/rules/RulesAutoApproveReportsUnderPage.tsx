@@ -51,7 +51,6 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
-                    // validate={validator}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
                         WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(maxExpenseAutoApprovalAmount, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
