@@ -365,7 +365,6 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        outstanding: 'Pendiente',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -2128,7 +2127,6 @@ export default {
         viewTrip: 'Ver viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
-        trips: 'Viajes',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',

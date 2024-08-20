@@ -9,6 +9,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import SortableHeaderText from './SortableHeaderText';
 
 type SearchColumnConfig = {
@@ -85,6 +86,19 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
+function getSearchColumns(type: SearchDataTypes): SearchColumnConfig[] {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return expenseHeaders;
+        default:
+            return expenseHeaders;
+    }
+}
+
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
     metadata: OnyxTypes.SearchResults['search'];
@@ -101,15 +115,16 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+    const type = SearchUtils.getSearchType(metadata);
 
-    if (displayNarrowVersion) {
+    if (displayNarrowVersion || !type) {
         return;
     }
 
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {expenseHeaders.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {getSearchColumns(type).map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }
