@@ -3917,6 +3917,7 @@ const CONST = {
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
+        CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
@@ -5254,8 +5255,6 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
-            TRANSACTION: 'transaction',
-            REPORT: 'report',
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
@@ -5284,9 +5283,10 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
-                SHARED: 'shared',
                 DRAFTS: 'drafts',
-                FINISHED: 'finished',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
             },
             INVOICE: {
                 ALL: 'all',
@@ -5299,14 +5299,6 @@ const CONST = {
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
                 PAID: 'paid',
-            },
-        },
-        TAB: {
-            EXPENSE: {
-                ALL: 'type:expense status:all',
-                SHARED: 'type:expense status:shared',
-                DRAFTS: 'type:expense status:drafts',
-                FINISHED: 'type:expense status:finished',
             },
         },
         TABLE_COLUMNS: {
