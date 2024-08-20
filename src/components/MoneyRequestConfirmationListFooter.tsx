@@ -28,6 +28,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
+import {MentionReportContext} from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -296,23 +297,26 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.description')}
-                    shouldShowRightIcon={!isReadOnly}
-                    shouldParseTitle
-                    title={iouComment}
-                    description={translate('common.description')}
-                    onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    numberOfLinesTitle={2}
-                />
+                <MentionReportContext.Provider value={{currentReportID: reportID}}>
+                    <MenuItemWithTopDescription
+                        key={translate('common.description')}
+                        shouldShowRightIcon={!isReadOnly}
+                        shouldParseTitle
+                        excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                        title={iouComment}
+                        description={translate('common.description')}
+                        onPress={() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
+                            );
+                        }}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        numberOfLinesTitle={2}
+                    />
+                </MentionReportContext.Provider>
             ),
             shouldShow: true,
             isSupplementary: false,
