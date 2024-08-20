@@ -97,7 +97,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
                             }
                             shouldUseHapticsOnLongPress
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         >
                             {thumbnailImageComponent}

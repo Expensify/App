@@ -368,7 +368,7 @@ function AvatarWithImagePicker({
                                             >
                                                 <PressableWithoutFeedback
                                                     onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                                    accessibilityRole={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
