@@ -183,6 +183,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     />
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
+                        onCancel={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
                         title={translate('workspace.distanceRates.oopsNotSoFast')}
                         prompt={translate('workspace.distanceRates.workspaceNeeds')}
