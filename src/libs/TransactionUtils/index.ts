@@ -516,6 +516,10 @@ function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.managedCard;
 }
 
+function getCardName(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.cardName ?? '';
+}
+
 /**
  * Check if the transaction status is set to Pending.
  */
@@ -1111,6 +1115,7 @@ export {
     buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
+    getCardName,
 };
 
 export type {TransactionChanges};
