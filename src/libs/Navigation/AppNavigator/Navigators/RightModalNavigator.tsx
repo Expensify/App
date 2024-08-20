@@ -1,7 +1,7 @@
 import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,7 +62,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             ) {
                                 return;
                             }
-                            abandonReviewDuplicateTransactions();
+                            // Delay clearing review duplicate data till the RHP is completely closed
+                            // to avoid not found showing briefly in confirmation page when RHP is closing
+                            InteractionManager.runAfterInteractions(() => {
+                                abandonReviewDuplicateTransactions();
+                            });
                         },
                     }}
                     id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}

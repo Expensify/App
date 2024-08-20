@@ -14,7 +14,6 @@ import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {areSettingsInErrorFields, findSelectedInvoiceItemWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import {shouldShowInvoiceItemMenuItem} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -66,28 +65,29 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             displayName={NetSuiteInvoiceItemPreferenceSelectPage.displayName}
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldUseScrollView={false}
+			shouldUseScrollView={false}
             shouldIncludeSafeAreaPaddingBottom
-        >
-            <OfflineWithFeedback
-                pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
-                errorRowStyles={[styles.ph5, styles.pv3]}
-                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
-                style={[styles.flexGrow1, styles.flexShrink1]}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
-            >
-                <SelectionList
-                    onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
-                    sections={[{data}]}
-                    ListItem={RadioListItem}
-                    showScrollIndicator
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}
-                />
-            </OfflineWithFeedback>
-            {shouldShowInvoiceItemMenuItem(config) && (
-                <View style={[styles.flexGrow1, styles.flexShrink1]}>
+		>
+			<OfflineWithFeedback
+				pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}
+				errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+				errorRowStyles={[styles.ph5, styles.pv3]}
+				onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+				style={[styles.flexGrow1, styles.flexShrink1]}
+				contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
+			>
+				<SelectionList
+					onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
+					sections={[{data}]}
+					ListItem={RadioListItem}
+					showScrollIndicator
+					shouldUpdateFocusedIndex
+					initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+					containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1, styles.pb0]}
+				/>
+			</OfflineWithFeedback>
+			{config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
+				<View style={[styles.flexGrow1, styles.flexShrink1]}>
                     <OfflineWithFeedback
                         key={translate('workspace.netsuite.invoiceItem.label')}
                         pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}

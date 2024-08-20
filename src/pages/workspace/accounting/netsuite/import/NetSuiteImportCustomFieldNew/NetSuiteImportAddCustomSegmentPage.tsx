@@ -122,7 +122,10 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -212,6 +215,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         enabledWhenOffline
                         isSubmitDisabled={!!config?.pendingFields?.customSegments}
                         submitFlexEnabled={submitFlexAllowed}
+                        shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING}
                     >
                         {renderSubStepContent}
                     </FormProvider>

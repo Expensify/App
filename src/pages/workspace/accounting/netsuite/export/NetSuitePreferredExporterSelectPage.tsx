@@ -57,7 +57,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: config?.exporter === exporter.email,
+                isSelected: (config?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
