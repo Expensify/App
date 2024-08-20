@@ -221,7 +221,9 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const prevActionResolution = usePrevious(isActionableWhisper && originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null);
+    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
+    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
+    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney =
@@ -375,10 +377,10 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
+        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
             reportScrollManager.scrollToIndex(index);
         }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper]);
+    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji) => {
@@ -860,7 +862,7 @@ function ReportActionItem({
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
+    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 
