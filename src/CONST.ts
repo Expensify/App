@@ -2022,13 +2022,14 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
+        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT: 2000000,
-        DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
             IMMEDIATE: 'immediate',

@@ -32,9 +32,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.shouldShowCustomReportTitleOption,
             onToggle: (isEnabled: boolean) => WorkspaceRulesActions.enablePolicyDefaultReportTitle(isEnabled, policyID),
             subMenuItems: [
-                <MenuItem
-                    title={translate('workspace.rules.expenseReportRules.customNameTitle')}
-                    titleStyle={styles.textLabelSupportingEmptyValue}
+                <MenuItemWithTopDescription
+                    description={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                    title={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}

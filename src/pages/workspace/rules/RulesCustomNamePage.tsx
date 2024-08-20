@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,6 +25,7 @@ type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typ
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     const {policyID} = route.params;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -35,6 +37,8 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameReportIDExample'),
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
+
+    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue;
 
     return (
         <AccessOrNotFoundWrapper
@@ -67,18 +71,21 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     // validate={validator}
-                    onSubmit={({customName}) => WorkspaceRulesActions.modifyPolicyDefaultReportTitle(customName, policyID)}
+                    onSubmit={({customName}) => {
+                        WorkspaceRulesActions.setPolicyDefaultReportTitle(customName, policyID);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.CUSTOM_NAME}
+                        defaultValue={customNameDefaultValue}
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                     />
-
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
                         header="Examples:"

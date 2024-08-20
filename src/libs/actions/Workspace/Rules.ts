@@ -15,6 +15,7 @@ import type SetPolicyPreventMemberCreatedTitleParams from '@libs/API/parameters/
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {getPolicy} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -61,24 +62,18 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
  * @param customName - name pattern to be used for the reports
  * @param policyID - id of the policy to apply the naming pattern to
  */
-function modifyPolicyDefaultReportTitle(customName: string, policyID: string) {
+function setPolicyDefaultReportTitle(customName: string, policyID: string) {
+    const policy = getPolicy(policyID);
+    const previousFieldList = policy?.fieldList ?? {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
-            value: {
-                isLoading: false,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousFieldList, defaultValue: customName},
+                },
             },
         },
     ];
@@ -86,9 +81,11 @@ function modifyPolicyDefaultReportTitle(customName: string, policyID: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: false,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
+                },
             },
         },
     ];
@@ -98,11 +95,10 @@ function modifyPolicyDefaultReportTitle(customName: string, policyID: string) {
         policyID,
     };
 
-    // API.write(WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE, parameters, {
-    //     optimisticData,
-    //     successData,
-    //     failureData,
-    // });
+    API.write(WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE, parameters, {
+        optimisticData,
+        failureData,
+    });
 }
 
 /**
@@ -445,7 +441,7 @@ function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) 
 
 export {
     enablePolicyDefaultReportTitle,
-    modifyPolicyDefaultReportTitle,
+    setPolicyDefaultReportTitle,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
     setPolicyAutomaticApprovalLimit,
