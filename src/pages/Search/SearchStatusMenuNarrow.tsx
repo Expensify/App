@@ -10,15 +10,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
-import type {SearchTypeMenuItem} from './SearchTypeMenu';
+import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
-type SearchTypeMenuNarrowProps = {
-    typeMenuItems: SearchTypeMenuItem[];
+type SearchStatusMenuNarrowProps = {
+    statusMenuItems: SearchStatusMenuItem[];
     activeItemIndex: number;
     title?: string;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTypeMenuNarrowProps) {
+function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: SearchStatusMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -30,7 +30,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const popoverMenuItems = typeMenuItems.map((item, index) => {
+    const popoverMenuItems = statusMenuItems.map((item, index) => {
         const isSelected = title ? false : index === activeItemIndex;
 
         return {
@@ -105,6 +105,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
     );
 }
 
-SearchTypeMenuNarrow.displayName = 'SearchTypeMenuNarrow';
+SearchStatusMenuNarrow.displayName = 'SearchStatusMenuNarrow';
 
-export default SearchTypeMenuNarrow;
+export default SearchStatusMenuNarrow;
