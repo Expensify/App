@@ -2597,7 +2597,7 @@ export default {
                     },
                 },
                 customersOrJobs: {
-                    title: 'Clientes / proyectos',
+                    title: 'Clientes/proyectos',
                     subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
                     importCustomers: 'Importar clientes',
                     importJobs: 'Importar proyectos',
