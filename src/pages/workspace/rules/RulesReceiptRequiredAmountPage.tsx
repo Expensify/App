@@ -68,7 +68,6 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
-                    scrollContextEnabled
                     onSubmit={submit}
                     enabledWhenOffline
                 >

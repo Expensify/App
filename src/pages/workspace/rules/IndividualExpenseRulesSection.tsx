@@ -8,6 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy/Policy';
@@ -48,7 +49,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return `${(policy.maxExpenseAmountNoReceipt / 100).toFixed(2)} ${policyCurrency}`;
+        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
     }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
@@ -56,8 +57,16 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             return '';
         }
 
-        return `${(policy.maxExpenseAmount / 100).toFixed(2)} ${policyCurrency}`;
+        return CurrencyUtils.convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
     }, [policy?.maxExpenseAmount, policyCurrency]);
+
+    const maxExpenseAgeText = useMemo(() => {
+        if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge) {
+            return '';
+        }
+
+        return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', policy?.maxExpenseAge);
+    }, [policy?.maxExpenseAge, translate]);
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
@@ -108,6 +117,17 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     description={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
                     onPress={() => {
                         Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID));
+                    }}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    numberOfLinesTitle={2}
+                />
+                <MenuItemWithTopDescription
+                    key={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
+                    shouldShowRightIcon
+                    title={maxExpenseAgeText}
+                    description={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID));
                     }}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     numberOfLinesTitle={2}

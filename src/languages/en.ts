@@ -373,6 +373,7 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        days: 'days',
     },
     location: {
         useCurrent: 'Use current location',
@@ -3549,8 +3550,10 @@ export default {
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
                 maxExpenseAmount: 'Max expense amount',
                 maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
+                maxAge: 'Max age',
                 maxExpenseAge: 'Max expense age',
                 maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('day', 'days', age)}`,
                 billableDefault: 'Billable default',
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in tags.',
                 billable: 'Billable',

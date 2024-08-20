@@ -68,7 +68,6 @@ function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
-                    scrollContextEnabled
                     onSubmit={submit}
                     enabledWhenOffline
                 >
