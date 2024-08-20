@@ -32,13 +32,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
 
-    const areRequestsInTransactionsUnsubmitted = TransactionUtils.areRequestsInTransactionsUnsubmitted(selectedTransactionIDs);
-
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (areRequestsInTransactionsUnsubmitted) {
-            return;
-        }
-
         SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
         clearSelectedTransactions();
         Navigation.goBack();
@@ -52,15 +46,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 errors.comment = translate('common.error.fieldRequired');
             }
 
-            if (areRequestsInTransactionsUnsubmitted) {
-                const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModifiedSelected'));
-                FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
-            }
-
             return errors;
         },
-        [translate, areRequestsInTransactionsUnsubmitted],
+        [translate],
     );
 
     useEffect(() => {

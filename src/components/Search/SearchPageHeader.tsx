@@ -32,6 +32,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import type {SearchQueryJSON, SearchStatus} from './types';
+import * as TransactionUtils from '@libs/TransactionUtils';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
     subtitleStyles?: StyleProp<TextStyle>;
@@ -163,7 +164,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             },
         });
 
-        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && TransactionUtils.areRequestsInTransactionsUnsubmitted(selectedTransactionsKeys);
 
         if (shouldShowHoldOption) {
             options.push({
