@@ -51,6 +51,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(isEnabled, policyID),
             subMenuItems: [
                 <MenuItemWithTopDescription
+                    key="customName"
                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
                     title={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue}
                     shouldShowRightIcon
@@ -58,6 +59,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
                 />,
                 <ToggleSettingOptionRow
+                    key="preventMembersFromChangingCustomNames"
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
@@ -92,6 +94,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             },
             subMenuItems: [
                 <MenuItemWithTopDescription
+                    key="autoApproveReportsUnder"
                     description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
                     title={CurrencyUtils.convertToDisplayString(policy?.autoApproval?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                     shouldShowRightIcon
@@ -99,6 +102,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
                 />,
                 <MenuItemWithTopDescription
+                    key="randomReportAuditTitle"
                     description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
                     title={`${policy?.autoApproval?.auditRate ?? 0}%`}
                     shouldShowRightIcon
@@ -121,6 +125,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             subMenuItems: [
                 <MenuItemWithTopDescription
+                    key="autoPayReportsUnder"
                     description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
                     title={CurrencyUtils.convertToDisplayString(policy?.autoReimbursement?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                     shouldShowRightIcon
@@ -144,6 +149,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
 
                 return (
                     <ToggleSettingOptionRow
+                        key={title}
                         title={title}
                         subtitle={subtitle}
                         switchAccessibilityLabel={title}
