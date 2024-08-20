@@ -75,6 +75,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
+    const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
 
     const spendItems: Item[] = [
         {
@@ -122,6 +123,34 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
+            },
+        });
+        spendItems.splice(2, 0, {
+            icon: Illustrations.CompanyCard,
+            titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
+            isActive: policy?.areCompanyCardsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
+            disabled: !isEmptyObject(cardsList),
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled) {
+                    if (!isControlPolicy(policy)) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                        );
+                        return;
+                    }
+
+                    Policy.enableCompanyCards(policyID, true);
+                    return;
+                }
+                Policy.enableCompanyCards(policyID, isEnabled);
+            },
+            disabledAction: () => {
+                setIsDisableCompanyCardsWarningModalOpen(true);
             },
         });
     }
@@ -412,6 +441,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
                     confirmText={translate('workspace.moreFeatures.expensifyCard.disableCardButton')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.companyCards.disableCardTitle')}
+                    isVisible={isDisableCompanyCardsWarningModalOpen}
+                    onConfirm={() => {
+                        setIsDisableCompanyCardsWarningModalOpen(false);
+                        Report.navigateToConciergeChat(true);
+                    }}
+                    onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
+                    confirmText={translate('workspace.moreFeatures.companyCards.disableCardButton')}
                     cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
