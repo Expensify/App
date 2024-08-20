@@ -3966,11 +3966,15 @@ function createSplitsAndOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: {
                 ...splitChatReport,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: splitChatReportNotificationPreference,
-                    },
-                },
+                participants: Object.fromEntries(
+                    Object.entries(splitChatReport.participants ?? {}).map(([accountID, participantData]) => [
+                        accountID,
+                        {
+                            ...participantData,
+                            notificationPreference: splitChatReportNotificationPreference,
+                        },
+                    ]),
+                ),
             },
         },
         {
