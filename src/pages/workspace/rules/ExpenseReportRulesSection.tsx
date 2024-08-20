@@ -1,6 +1,5 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -42,14 +41,10 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, {marginTop: 24}]}
-                    titleStyle={{paddingVertical: 10}}
-                    // titleStyle={styles.pv2}
-                    // subtitleStyle={styles.pt1}
-                    isActive={false}
-                    onToggle={(isOn) => WorkspaceRulesActions.setPolicyPreventMemberCreatedTitle(!isOn, policyID)}
-                    //             disabled={!!policy?.fieldList?.deletable}
-                    //             isOn={false}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                    titleStyle={styles.pv2}
+                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
+                    onToggle={(isEnabled) => WorkspaceRulesActions.setPolicyPreventMemberCreatedTitle(isEnabled, policyID)}
                 />,
             ],
         },
