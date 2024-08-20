@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -81,7 +81,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     validate={validateCustomName}
                     onSubmit={({customName}) => {
-                        WorkspaceRulesActions.setPolicyDefaultReportTitle(customName, policyID);
+                        PolicyActions.setPolicyDefaultReportTitle(customName, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

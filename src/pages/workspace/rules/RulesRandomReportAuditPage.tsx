@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -51,7 +51,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
-                        WorkspaceRulesActions.setPolicyAutomaticApprovalAuditRate(auditRatePercentage, policyID);
+                        PolicyActions.setPolicyAutomaticApprovalAuditRate(auditRatePercentage, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

@@ -274,6 +274,7 @@ export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefa
 export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApproval';
 export type {default as SetPolicyAutomaticApprovalLimitParams} from './SetPolicyAutomaticApprovalLimit';
 export type {default as SetPolicyAutomaticApprovalAuditRateParams} from './SetPolicyAutomaticApprovalAuditRate';
+export type {default as SetPolicyPreventMemberCreatedTitleParams} from './SetPolicyPreventMemberCreatedTitleParams';
 export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';

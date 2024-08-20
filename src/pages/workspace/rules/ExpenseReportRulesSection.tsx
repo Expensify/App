@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as WorkspaceRulesActions from '@userActions/Workspace/Rules';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,7 +48,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             subtitle: translate('workspace.rules.expenseReportRules.customReportNamesSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
             isActive: policy?.shouldShowCustomReportTitleOption,
-            onToggle: (isEnabled: boolean) => WorkspaceRulesActions.enablePolicyDefaultReportTitle(isEnabled, policyID),
+            onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(isEnabled, policyID),
             subMenuItems: [
                 <MenuItemWithTopDescription
                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
@@ -63,7 +63,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                     titleStyle={styles.pv2}
                     isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
-                    onToggle={(isEnabled) => WorkspaceRulesActions.setPolicyPreventMemberCreatedTitle(isEnabled, policyID)}
+                    onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(isEnabled, policyID)}
                 />,
             ],
         },
@@ -76,7 +76,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable,
             showLockIcon: workflowApprovalsUnavailable,
-            onToggle: (isEnabled: boolean) => WorkspaceRulesActions.setPolicyPreventSelfApproval(isEnabled, policyID),
+            onToggle: (isEnabled: boolean) => PolicyActions.setPolicyPreventSelfApproval(isEnabled, policyID),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -88,7 +88,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: workflowApprovalsUnavailable,
             showLockIcon: workflowApprovalsUnavailable,
             onToggle: (isEnabled: boolean) => {
-                WorkspaceRulesActions.enableAutoApprovalOptions(isEnabled, policyID);
+                PolicyActions.enableAutoApprovalOptions(isEnabled, policyID);
             },
             subMenuItems: [
                 <MenuItemWithTopDescription
@@ -114,7 +114,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
-                WorkspaceRulesActions.enablePolicyAutoReimbursementLimit(isEnabled, policyID);
+                PolicyActions.enablePolicyAutoReimbursementLimit(isEnabled, policyID);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
