@@ -29,7 +29,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
     const {translate} = useLocalize();
 
     // Check if country is valid
-    const {street, street2} = address ?? {};
+    const {street} = address ?? {};
+    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -95,7 +96,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
                     country={currentCountry}
                     onAddressChanged={handleAddressChange}
                     state={state}
-                    street1={street}
+                    street1={street1}
                     street2={street2}
                     zip={zipcode}
                 />
