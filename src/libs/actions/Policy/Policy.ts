@@ -34,8 +34,8 @@ import type {
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
     RequestExpensifyCardLimitIncreaseParams,
-    SetPolicyAutomaticApprovalAuditRateParams,
     SetPolicyAutomaticApprovalLimitParams,
+    SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
     SetPolicyDefaultReportTitleParams,
     SetPolicyPreventMemberCreatedTitleParams,
@@ -3585,7 +3585,7 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
  * @param auditRate - percentage of the reports to be qualified for a random audit
  * @param policyID - id of the policy to apply the limit to
  */
-function setPolicyAutomaticApprovalAuditRate(auditRate: string, policyID: string) {
+function setPolicyAutomaticApprovalRate(auditRate: string, policyID: string) {
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10);
     const policy = getPolicy(policyID);
@@ -3614,12 +3614,12 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: string, policyID: string
         },
     ];
 
-    const parameters: SetPolicyAutomaticApprovalAuditRateParams = {
+    const parameters: SetPolicyAutomaticApprovalRateParams = {
         auditRate: parsedAuditRate,
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_AUDIT_RATE, parameters, {
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE, parameters, {
         optimisticData,
         failureData,
     });
@@ -3858,7 +3858,7 @@ export {
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
     setPolicyAutomaticApprovalLimit,
-    setPolicyAutomaticApprovalAuditRate,
+    setPolicyAutomaticApprovalRate,
     setPolicyAutoReimbursementLimit,
     enablePolicyDefaultReportTitle,
     enablePolicyAutoReimbursementLimit,
