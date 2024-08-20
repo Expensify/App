@@ -4686,6 +4686,7 @@ export default {
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
+        normal: 'Normal',
     },
     exitSurvey: {
         header: 'Antes de irte',
