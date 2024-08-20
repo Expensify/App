@@ -134,6 +134,7 @@ export default {
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
+        attachments: 'Archivos adjuntos',
         from: 'De',
         to: 'A',
         optional: 'Opcional',
@@ -366,6 +367,10 @@ export default {
         network: 'La red',
         reportID: 'ID del informe',
         outstanding: 'Pendiente',
+        chats: 'Chats',
+        unread: 'No leído',
+        sent: 'Enviado',
+        links: 'Enlaces',
     },
     connectionComplete: {
         title: 'Conexión completa',

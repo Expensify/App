@@ -32,6 +32,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                     buttonAction: () => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS),
                 };
+            case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:

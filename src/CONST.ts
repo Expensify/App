@@ -5253,6 +5253,7 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5294,6 +5295,14 @@ const CONST = {
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
                 PAID: 'paid',
+            },
+            CHAT: {
+                ALL: 'all',
+                UNREAD: 'unread',
+                DRAFTS: 'drafts',
+                SENT: 'sent',
+                ATTACHMENTS: 'attachments',
+                LINKS: 'links',
             },
         },
         TABLE_COLUMNS: {

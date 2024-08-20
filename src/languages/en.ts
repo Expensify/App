@@ -144,6 +144,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        attachments: 'Attachments',
         center: 'Center',
         from: 'From',
         to: 'To',
@@ -376,6 +377,10 @@ export default {
         network: 'Network',
         reportID: 'Report ID',
         outstanding: 'Outstanding',
+        chats: 'Chats',
+        unread: 'Unread',
+        sent: 'Sent',
+        links: 'Links',
     },
     location: {
         useCurrent: 'Use current location',

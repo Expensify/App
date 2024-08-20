@@ -54,8 +54,13 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
 
     SEARCH_REPORT: {
-        route: 'search/view/:reportID',
-        getRoute: (reportID: string) => `search/view/${reportID}` as const,
+        route: 'search/view/:reportID/:reportActionID?',
+        getRoute: (reportID: string, reportActionID?: string) => {
+            if (reportActionID) {
+                return `search/view/${reportID}/${reportActionID}` as const;
+            }
+            return `search/view/${reportID}` as const;
+        },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
