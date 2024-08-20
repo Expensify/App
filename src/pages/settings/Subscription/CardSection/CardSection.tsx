@@ -17,6 +17,7 @@ import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -148,7 +149,7 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}

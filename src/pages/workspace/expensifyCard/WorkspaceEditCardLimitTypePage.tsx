@@ -17,6 +17,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Card from '@userActions/Card';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,8 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)), [policyID, cardID]);
+
     const fetchCardLimitTypeData = useCallback(() => {
         Policy.openPolicyEditCardLimitTypePage(policyID, Number(cardID));
     }, [policyID, cardID]);
@@ -55,7 +58,11 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     useFocusEffect(fetchCardLimitTypeData);
 
     const updateCardLimitType = () => {
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407833
+        setIsConfirmModalVisible(false);
+
+        Card.updateExpensifyCardLimitType(workspaceAccountID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
+
+        goBack();
     };
 
     const submit = () => {
@@ -146,7 +153,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.card.issueNewCard.limitType')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                    onBackButtonPress={goBack}
                 />
                 <FullPageOfflineBlockingView>
                     <SelectionList
