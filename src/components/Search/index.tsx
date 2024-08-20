@@ -11,6 +11,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -30,7 +31,8 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
-import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+import SearchStatusBar from './SearchStatusBar';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -42,22 +44,23 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
+const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.EXPENSE.ALL];
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
 }
 
-function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions) {
-    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected};
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+    return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions) {
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
     return SearchUtils.isTransactionListItemType(item)
-        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
         : {
               ...item,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions)),
-              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
+              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple)),
+              isSelected: item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -86,9 +89,11 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {sortBy, sortOrder, hash} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -118,7 +123,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     }, [isOffline, offset, queryJSON]);
 
     const handleOnCancelConfirmModal = () => {
-        setSelectedTransactionsToDelete([]);
         setDeleteExpensesConfirmModalVisible(false);
     };
 
@@ -173,9 +177,62 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
-    const isDataLoaded = searchResults?.data !== undefined;
+    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
+    // we also need to check that the searchResults matches the type and status of the current search
+    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
+    const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
+
+    useEffect(() => {
+        if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
+            return;
+        }
+        turnOffMobileSelectionMode();
+    }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
+
+    if (shouldShowLoadingState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <SearchRowSkeleton shouldAnimate />
+            </>
+        );
+    }
+
+    if (searchResults === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(status);
+    const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);
+    const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
+
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    isCustomQuery={isCustomQuery}
+                    queryJSON={queryJSON}
+                    hash={hash}
+                />
+                <SearchStatusBar
+                    type={type}
+                    status={status}
+                />
+                <EmptySearchView type={type} />
+            </>
+        );
+    }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
         if (SearchUtils.isTransactionListItemType(item)) {
@@ -204,36 +261,8 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         });
     };
 
-    if (shouldShowLoadingState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
-    }
-
-    const shouldShowEmptyState = !isDataLoaded || SearchUtils.isSearchResultsEmpty(searchResults);
-
-    if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                <EmptySearchView />
-            </>
-        );
-    }
-
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
-        let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+        let reportID = SearchUtils.isTransactionListItemType(item) && !item.isFromOneTransactionReport ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
             return;
@@ -255,20 +284,8 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
     };
 
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (type === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return null;
-    }
-
-    const ListItem = SearchUtils.getListItem(type);
-
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
-    const sortedSelectedData = data.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions));
-
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
+        const areItemsOfReportType = status !== CONST.SEARCH.STATUS.EXPENSE.ALL;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -292,8 +309,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     };
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
-
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const shouldShowSorting = sortableSearchStatuses.includes(status);
 
     return (
         <>
@@ -306,7 +322,10 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-
+            <SearchStatusBar
+                type={type}
+                status={status}
+            />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
@@ -322,6 +341,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                             sortOrder={sortOrder}
                             sortBy={sortBy}
                             shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
                         />
                     )
                 }
@@ -341,7 +361,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 ListItem={ListItem}
                 onSelectRow={openReport}
                 getItemHeight={getItemHeightMemoized}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
                 containerStyle={[styles.pv0]}
@@ -361,6 +381,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
                 onCancel={handleOnCancelConfirmModal}
+                onModalHide={() => setSelectedTransactionsToDelete([])}
                 title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
                 prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
                 confirmText={translate('common.delete')}

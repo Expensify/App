@@ -9,16 +9,19 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as AccountingUtils from '@libs/AccountingUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
 
@@ -26,38 +29,40 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${policy?.id}`);
-    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${policy?.id}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.id}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? -1;
+    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const policyID = policy?.id ?? '-1';
     const {connection} = route.params;
-    const autoSync = !!policy?.connections?.[connection]?.config?.autoSync?.enabled;
+    const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
+    const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    const toggleContinuousReconciliation = () => {
-        if (!isContinuousReconciliationOn) {
+    const toggleContinuousReconciliation = (value: boolean) => {
+        Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
+        if (value) {
             Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection));
         }
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407834
     };
 
     const navigateToAdvancedSettings = useCallback(() => {
         switch (connection) {
-            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
                 Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
                 break;
-            case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
                 break;
             default:
@@ -98,10 +103,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             >
                                 {translate('workspace.accounting.autoSync').toLowerCase()}
                             </TextLink>{' '}
-                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]}
+                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
                         </Text>
                     )}
-                    {!!reconciliationConnection && (
+                    {!!paymentBankAccountID && isContinuousReconciliationOn && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}
