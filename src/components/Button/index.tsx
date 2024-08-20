@@ -264,6 +264,8 @@ function Button(
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
+            const fill = isHovered && iconHoverFill ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)
+
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
@@ -272,7 +274,7 @@ function Button(
                                 <Icon
                                     src={icon}
                                     hasText={!!text}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={fill}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -286,14 +288,14 @@ function Button(
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={fill}
                                     small={medium}
                                     medium={large}
                                 />
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={fill}
                                     small={small}
                                     medium={medium}
                                     large={large}
