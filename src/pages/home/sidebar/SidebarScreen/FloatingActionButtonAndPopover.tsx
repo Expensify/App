@@ -459,7 +459,7 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
+                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies, true)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
