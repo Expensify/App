@@ -67,7 +67,7 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to set default report title pattern for the given policy
  * @param customName - name pattern to be used for the reports
  * @param policyID - id of the policy to apply the naming pattern to
  */
@@ -111,7 +111,7 @@ function setPolicyDefaultReportTitle(customName: string, policyID: string) {
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to enable or disable enforcing the naming pattern for the reports
  * @param enforced - flag whether to enforce policy name
  * @param policyID - id of the policy to apply the naming pattern to
  */
@@ -155,7 +155,7 @@ function setPolicyPreventMemberCreatedTitle(enforced: boolean, policyID: string)
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to enable or disable self approvals for the reports
  * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
  * @param policyID - id of the policy to apply the naming pattern to
  */
@@ -194,7 +194,7 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to apply automatic approval limit for the given policy
  * @param limit - max amount for auto-approval of the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
  */
@@ -239,7 +239,7 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to set the audit rate for the given policy
  * @param auditRate - percentage of the reports to be qualified for a random audit
  * @param policyID - id of the policy to apply the limit to
  */
@@ -321,7 +321,7 @@ function enableAutoApprovalOptions(enabled: boolean, policyID: string) {
 }
 
 /**
- * Call the API to deactivate the card and request a new one
+ * Call the API to set the limit for auto-payments in the given policy
  * @param limit - max amount for auto-payment for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
  */
