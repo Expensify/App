@@ -832,9 +832,7 @@ function areRequestsInTransactionsUnsubmitted(transactionIDs: string[]): boolean
     });
 
     return reports.some((report) => {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-
-        return ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && ReportUtils.isReportInGroupPolicy(report);
+        return ReportUtils.isReportUnsubmitted(report);
     });
 }
 

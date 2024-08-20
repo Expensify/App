@@ -2695,6 +2695,21 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
+ * Check if Report is unsubmitted in a workspace with delayed submission enabled 
+ */
+function isReportUnsubmitted(report: OnyxEntry<Report>): boolean {
+    // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
+    // For personal requests, we need to allow both users to put the request on hold
+    const isWorkspaceRequest = isReportInGroupPolicy(report);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+
+    // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+    // as we do not allow requestee to edit fields like description and amount.
+    // But, we still want the requestee to be able to put the request on hold
+    return ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction) && isWorkspaceRequest;
+}
+
+/**
  * Given a report field, check if the field can be edited or not.
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
@@ -7845,6 +7860,7 @@ export {
     isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
+    isReportUnsubmitted,
     isIOUOwnedByCurrentUser,
     isIOUReport,
     isIOUReportUsingReport,
