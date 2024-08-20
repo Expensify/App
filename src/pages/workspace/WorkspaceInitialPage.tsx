@@ -163,7 +163,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
-        !isEmptyObject(policy?.errorFields?.name ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) || !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) || !isEmptyObject(policy?.errorFields?.address ?? {});
+        !isEmptyObject(policy?.errorFields?.name ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.address ?? {});
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
