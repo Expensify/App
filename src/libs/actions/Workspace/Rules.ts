@@ -151,23 +151,14 @@ function setPolicyPreventMemberCreatedTitle(enforced: boolean, policyID: string)
  * @param policyID - id of the policy to apply the naming pattern to
  */
 function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: string) {
+    const policy = getPolicy(policyID);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
-            value: {
-                isLoading: false,
+                preventSelfApproval,
             },
         },
     ];
@@ -175,9 +166,9 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: false,
+                preventSelfApproval: policy?.preventSelfApproval,
             },
         },
     ];
@@ -189,7 +180,6 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
 
     API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL, parameters, {
         optimisticData,
-        successData,
         failureData,
     });
 }

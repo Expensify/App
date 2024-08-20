@@ -21,6 +21,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
+    const preventSelfApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || policy?.errorFields?.approvalMode;
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const optionItems = [
@@ -52,6 +53,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
+            isActive: policy?.preventSelfApproval,
+            disabled: preventSelfApprovalsUnavailable,
+            showLockIcon: preventSelfApprovalsUnavailable,
             onToggle: (isEnabled: boolean) => WorkspaceRulesActions.setPolicyPreventSelfApproval(isEnabled, policyID),
         },
         {
