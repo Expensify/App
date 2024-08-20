@@ -2957,7 +2957,7 @@ export default {
             },
             rules: {
                 title: 'Reglas',
-                subtitle: 'Configura cuándo se requieren recibos, marca gastos altos y más.',
+                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
             },
         },
         reportFields: {
@@ -3601,7 +3601,7 @@ export default {
             },
             rules: {
                 title: 'Reglas',
-                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de gastos como recibos y descripciones, establece límites y valores predeterminados, y automatiza aprobaciones y pagos, todo en un solo lugar.`,
+                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
                 onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
             },
             note: {
@@ -3642,7 +3642,7 @@ export default {
             },
             expenseReportRules: {
                 title: 'Informes de gastos',
-                subtitle: 'Automatiza el cumplimiento de los informes de gastos, las aprobaciones y el pago.',
+                subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
             },
         },
     },
