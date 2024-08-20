@@ -1399,10 +1399,27 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the user can only comment in the provided report (auditor role)
+ */
+
+function isOnlyAllowedToComment(report: OnyxEntry<Report>): boolean {
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR);
+    }
+
+    if (report?.policyID) {
+        const policy = getPolicy(report.policyID);
+        return PolicyUtils.isPolicyAuditor(policy);
+    }
+
+    return false;
+}
+
+/**
  * Checks if the user can write in the provided report
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
-    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0 && !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
     }
 
@@ -1413,6 +1430,10 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+    if (isOnlyAllowedToComment(report)) {
+        return true;
+    }
+
     if (!canWriteInReport(report)) {
         return false;
     }
@@ -7985,6 +8006,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    isOnlyAllowedToComment,
 };
 
 export type {

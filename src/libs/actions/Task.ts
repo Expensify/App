@@ -1122,7 +1122,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(taskReport)) {
+    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isOnlyAllowedToComment(taskReport)) {
         return false;
     }
 
