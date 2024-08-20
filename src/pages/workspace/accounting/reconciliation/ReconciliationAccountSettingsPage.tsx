@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as AccountingUtils from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -26,6 +27,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const {translate} = useLocalize();
 
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -58,7 +60,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1, styles.pb2]}
-            connectionName={connection}
+            connectionName={connectionName}
             shouldUseScrollView={false}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
