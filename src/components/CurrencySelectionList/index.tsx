@@ -52,19 +52,10 @@ function CurrencySelectionList({
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
         const shouldDisplayRecentlyOptions = !isEmptyObject(policyRecentlyUsedCurrencyOptions) && !searchValue;
-        const selectedOptions = currencyOptions.filter((option) => option.isSelected);
-        const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0 && !searchValue;
+        const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);
+        const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0;
+        const unselectedOptions = getUnselectedOptions(filteredCurrencies);
         const result = [];
-
-        if (canSelectMultiple) {
-            filteredCurrencies.sort((currencyA, currencyB) => {
-                if (currencyA.isSelected === currencyB.isSelected) {
-                    return 0;
-                }
-
-                return currencyA.isSelected ? -1 : 1;
-            });
-        }
 
         if (shouldDisplaySelectedOptionOnTop) {
             result.push({
@@ -83,12 +74,12 @@ function CurrencySelectionList({
                         data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(cutPolicyRecentlyUsedCurrencyOptions) : cutPolicyRecentlyUsedCurrencyOptions,
                         shouldShow: shouldDisplayRecentlyOptions,
                     },
-                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? getUnselectedOptions(filteredCurrencies) : filteredCurrencies},
+                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies},
                 );
             }
         } else if (!isEmpty) {
             result.push({
-                data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(filteredCurrencies) : filteredCurrencies,
+                data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : filteredCurrencies,
             });
         }
 

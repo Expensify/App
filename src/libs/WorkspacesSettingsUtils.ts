@@ -9,7 +9,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
+import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
@@ -110,6 +110,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanPolicies).some(hasEmployeeListError),
+        () => Object.values(cleanPolicies).some(hasSyncError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 
