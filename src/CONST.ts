@@ -5250,6 +5250,8 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
+            TRANSACTION: 'transaction',
+            REPORT: 'report',
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
@@ -5278,10 +5280,9 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                SHARED: 'shared',
                 DRAFTS: 'drafts',
-                OUTSTANDING: 'outstanding',
-                APPROVED: 'approved',
-                PAID: 'paid',
+                FINISHED: 'finished',
             },
             INVOICE: {
                 ALL: 'all',
@@ -5294,6 +5295,14 @@ const CONST = {
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
                 PAID: 'paid',
+            },
+        },
+        TAB: {
+            EXPENSE: {
+                ALL: 'type:expense status:all',
+                SHARED: 'type:expense status:shared',
+                DRAFTS: 'type:expense status:drafts',
+                FINISHED: 'type:expense status:finished',
             },
         },
         TABLE_COLUMNS: {
