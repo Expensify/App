@@ -363,6 +363,7 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        days: 'días',
     },
     connectionComplete: {
         title: 'Conexión completa',

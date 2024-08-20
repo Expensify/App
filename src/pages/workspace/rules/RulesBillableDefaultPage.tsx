@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type RulesBillableDefaultPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
@@ -46,6 +48,15 @@ function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
         Navigation.goBack();
     };
 
+    const handleOnPressTagsLink = () => {
+        if (policy?.areTagsEnabled) {
+            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(route.params.policyID));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(route.params.policyID));
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID ?? '-1'}
@@ -61,7 +72,16 @@ function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
                     title={translate('workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <Text style={[styles.mh5, styles.mv3]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>
+                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv3, styles.mh5]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>{' '}
+                    <TextLink
+                        style={styles.link}
+                        onPress={handleOnPressTagsLink}
+                    >
+                        {translate('workspace.common.tags').toLowerCase()}
+                    </TextLink>
+                    .
+                </Text>
                 <SelectionList
                     sections={[{data: billableModes}]}
                     ListItem={RadioListItem}

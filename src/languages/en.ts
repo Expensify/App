@@ -3555,7 +3555,7 @@ export default {
                 maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
                 maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('day', 'days', age)}`,
                 billableDefault: 'Billable default',
-                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in tags.',
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',
                 nonBillable: 'Non-billable',
