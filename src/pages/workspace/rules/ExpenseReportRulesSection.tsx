@@ -29,8 +29,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             title: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
             subtitle: translate('workspace.rules.expenseReportRules.customReportNamesSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
-            isActive: false,
-            onToggle: (isEnabled: boolean) => {},
+            isActive: policy?.shouldShowCustomReportTitleOption,
+            onToggle: (isEnabled: boolean) => WorkspaceRulesActions.enablePolicyDefaultReportTitle(isEnabled, policyID),
             subMenuItems: [
                 <MenuItem
                     title={translate('workspace.rules.expenseReportRules.customNameTitle')}

@@ -277,3 +277,4 @@ export type {default as SetPolicyAutomaticApprovalAuditRateParams} from './SetPo
 export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
+export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePolicyDefaultReportTitle';

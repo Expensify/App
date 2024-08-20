@@ -22,6 +22,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_AUTO_REIMBURSEMENT_LIMIT: 'SetPolicyAutoReimbursementLimit',
     ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT: 'EnablePolicyAutoReimbursementLimit',
     ENABLE_POLICY_AUTO_APPROVAL_OPTIONS: 'EnablePolicyAutoApprovalOptions',
+    ENABLE_POLICY_DEFAULT_REPORT_TITLE: 'EnablePolicyDefaultReportTitle',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     OPEN_APP: 'OpenApp',
@@ -523,6 +524,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_AUTO_REIMBURSEMENT_LIMIT]: Parameters.SetPolicyAutoReimbursementLimitParams;
     [WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT]: Parameters.EnablePolicyAutoReimbursementLimitParams;
     [WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS]: Parameters.EnablePolicyAutoApprovalOptionsParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE]: Parameters.EnablePolicyDefaultReportTitleParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
     [WRITE_COMMANDS.TRACK_EXPENSE]: Parameters.TrackExpenseParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;

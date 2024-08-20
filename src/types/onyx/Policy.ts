@@ -1432,6 +1432,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             auditRate?: number;
         };
 
+        /**
+         * Whether the custom report name options are enabled in the policy rules
+         */
+        shouldShowCustomReportTitleOption?: boolean;
+
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
 

@@ -2028,6 +2028,7 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT: 2000000,
+        DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
             IMMEDIATE: 'immediate',

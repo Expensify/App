@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
+    EnablePolicyDefaultReportTitleParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutoReimbursementLimitParams,
     SetPolicyDefaultReportTitleParams,
@@ -15,6 +16,45 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {getPolicy} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+/**
+ * Call the API to enable custom report title for the reports in the given policy
+ * @param enabled - whether custom report title for the reports is enabled in the given policy
+ * @param policyID - id of the policy to apply the limit to
+ */
+function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowCustomReportTitleOption: enabled,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
+            },
+        },
+    ];
+
+    const parameters: EnablePolicyDefaultReportTitleParams = {
+        enable: enabled,
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
 
 /**
  * Call the API to deactivate the card and request a new one
@@ -404,6 +444,7 @@ function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) 
 }
 
 export {
+    enablePolicyDefaultReportTitle,
     modifyPolicyDefaultReportTitle,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
