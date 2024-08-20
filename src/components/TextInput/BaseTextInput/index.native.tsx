@@ -179,9 +179,10 @@ function BaseTextInput(
             }
 
             const layout = event.nativeEvent.layout;
+            const HEIGHT_TO_FIT_EMOJIS = 1;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
+            setHeight((prevHeight: number) => (!multiline ? layout.height + HEIGHT_TO_FIT_EMOJIS : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
