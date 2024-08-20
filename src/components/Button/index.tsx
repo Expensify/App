@@ -263,6 +263,7 @@ function Button(
         );
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const defaultFill = success || danger ? theme.textLight : theme.icon;
         if (icon || shouldShowRightIcon) {
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
@@ -272,7 +273,7 @@ function Button(
                                 <Icon
                                     src={icon}
                                     hasText={!!text}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -286,14 +287,14 @@ function Button(
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={medium}
                                     medium={large}
                                 />
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
