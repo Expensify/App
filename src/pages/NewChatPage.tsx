@@ -226,7 +226,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     );
 
     const itemRightSideComponent = useCallback(
-        (item: ListItem & OptionsListUtils.Option) => {
+        (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
             if (item.isSelfDM) {
                 return null;
             }
@@ -263,12 +263,13 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     </PressableWithFeedback>
                 );
             }
-
+            const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
             return (
                 <Button
                     onPress={() => toggleOption(item)}
                     style={[styles.pl2]}
                     text={translate('newChatPage.addToGroup')}
+                    innerStyles={buttonInnerStyles}
                     small
                 />
             );
