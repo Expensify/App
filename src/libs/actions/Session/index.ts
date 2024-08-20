@@ -1001,6 +1001,7 @@ function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                Navigation.goBack();
                 Navigation.navigate(url);
             });
         });
