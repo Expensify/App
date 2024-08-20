@@ -2105,6 +2105,7 @@ export default {
         common: {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
+            companyCards: 'Company Cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2864,6 +2865,19 @@ export default {
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',
+                },
+            },
+            companyCards: {
+                title: 'Company Cards',
+                subtitle: 'Import spend from existing company cards',
+                feed: {
+                    title: 'Import company cards',
+                    features: {
+                        support: 'Support for all major card providers',
+                        assignCards: 'Assign cards to the entire team',
+                        automaticImport: 'Automatic transaction import',
+                    },
+                    ctaTitle: 'Add company cards',
                 },
             },
             workflows: {
