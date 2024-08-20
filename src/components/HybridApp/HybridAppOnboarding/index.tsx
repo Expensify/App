@@ -24,7 +24,12 @@ function HybridAppOnboarding() {
      * We propagate it from OldDot to NewDot with native method due to limitations of old app.
      */
     useEffect(() => {
-        if (completedHybridAppOnboarding === undefined || !NativeModules.HybridAppModule) {
+        if (completedHybridAppOnboarding === undefined) {
+            return;
+        }
+
+        if (!NativeModules.HybridAppModule) {
+            Log.hmmm(`[HybridApp] Onboarding status has changed, but the HybridAppModule is not defined`);
             return;
         }
 

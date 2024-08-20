@@ -4,12 +4,11 @@ import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import useExitTo from '@hooks/useExitTo';
 import useSplashScreen from '@hooks/useSplashScreen';
-import BootSplash from '@libs/BootSplash';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import {ShouldHideHybridAppSplashScreenContext} from '@src/Expensify';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +23,7 @@ type HybridAppSplashScreenProps = {
  * The middleware assumes that the entry point for HybridApp is the /transition route.
  */
 function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
-    const {isSplashHidden, setIsSplashHidden} = useSplashScreen();
+    const {isSplashHidden} = useSplashScreen();
     const [startedTransition, setStartedTransition] = useState(false);
     const [finishedTransition, setFinishedTransition] = useState(false);
 
@@ -34,6 +33,8 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+
+    const {shouldHideHybridAppSplashScreen, setShouldHideHybridAppSplashScreen} = useContext(ShouldHideHybridAppSplashScreenContext);
 
     const maxTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -101,19 +102,11 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
     }, [authenticated, exitTo, exitToParam, finishedTransition, initialURL, isAccountLoading, sessionEmail, startedTransition]);
 
     useEffect(() => {
-        if (!finishedTransition || isSplashHidden) {
+        if (!finishedTransition || shouldHideHybridAppSplashScreen || isSplashHidden) {
             return;
         }
-
-        Log.info('[HybridApp] Finished transition, hiding BootSplash', true);
-        BootSplash.hide().then(() => {
-            setIsSplashHidden(true);
-            if (authenticated) {
-                Log.info('[HybridApp] Handling onboarding flow', true);
-                Welcome.handleHybridAppOnboarding();
-            }
-        });
-    }, [authenticated, finishedTransition, isSplashHidden, setIsSplashHidden]);
+        setShouldHideHybridAppSplashScreen(true);
+    }, [finishedTransition, isSplashHidden, setShouldHideHybridAppSplashScreen, shouldHideHybridAppSplashScreen]);
 
     return null;
 }
