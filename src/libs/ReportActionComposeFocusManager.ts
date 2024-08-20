@@ -9,7 +9,7 @@ import navigationRef from './Navigation/navigationRef';
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
-const editComposerRef = React.createRef<TextInput>();
+const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
 let focusCallback: FocusCallback | null = null;

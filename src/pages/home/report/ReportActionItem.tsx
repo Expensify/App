@@ -47,6 +47,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -80,7 +81,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
 const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
@@ -343,8 +343,8 @@ function ReportActionItem({
                 return;
             }
 
-            ReportActionComposeFocusManager.composerRef?.current?.blur();
-            ReportActionComposeFocusManager.editComposerRef?.current?.blur();
+            ReportActionComposeFocusManager.composerRef.current?.blur();
+            ReportActionComposeFocusManager.editComposerRef.current?.blur();
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
