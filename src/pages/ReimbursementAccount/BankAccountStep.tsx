@@ -14,16 +14,14 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import ValidateAccountMessage from '@components/ValidateAccountMessage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,9 +36,6 @@ type BankAccountStepOnyxProps = {
 
     /** If the plaid button has been disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
-
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<OnyxTypes.LoginList>;
 };
 
 type BankAccountStepProps = BankAccountStepOnyxProps & {
@@ -73,7 +68,6 @@ function BankAccountStep({
     receivedRedirectURI,
     reimbursementAccount,
     onBackButtonPress,
-    loginList,
     isPlaidDisabled = false,
 }: BankAccountStepProps) {
     const theme = useTheme();
@@ -86,7 +80,6 @@ function BankAccountStep({
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
-    const loginNames = Object.keys(loginList ?? {});
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -168,35 +161,7 @@ function BankAccountStep({
                             />
                         </View>
                     </Section>
-                    {!user?.validated && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                            <Icon
-                                src={Expensicons.Exclamation}
-                                fill={theme.danger}
-                            />
-
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
-                                {translate('bankAccount.validateAccountError.phrase1')}
-                                <TextLink
-                                    fontSize={variables.fontSizeLabel}
-                                    onPress={() => Session.signOutAndRedirectToSignIn()}
-                                >
-                                    {translate('bankAccount.validateAccountError.phrase2')}
-                                </TextLink>
-                                {translate('bankAccount.validateAccountError.phrase3')}
-                                <TextLink
-                                    fontSize={variables.fontSizeLabel}
-                                    onPress={() => {
-                                        const login = loginList?.[loginNames?.[0]] ?? {};
-                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
-                                    }}
-                                >
-                                    {translate('bankAccount.validateAccountError.phrase4')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    )}
+                    {!user?.validated && <ValidateAccountMessage />}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
@@ -229,8 +194,5 @@ export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
     },
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
     },
 })(BankAccountStep);

@@ -44,11 +44,9 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    // We will try to get the chatName from the report or draft depending on what flow we are in
-    const draftParticipantAccountIDs = useMemo(() => (groupChatDraft?.participants ?? []).map((participant) => participant.accountID), [groupChatDraft?.participants]);
     const existingReportName = useMemo(
-        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(draftParticipantAccountIDs)),
-        [draftParticipantAccountIDs, report],
+        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(groupChatDraft?.participants)),
+        [groupChatDraft?.participants, report],
     );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
