@@ -1,8 +1,10 @@
 import {useContext, useEffect, useRef, useState} from 'react';
-import {NativeModules} from 'react-native';
+import {NativeEventEmitter, NativeModules} from 'react-native';
+import type {NativeModule} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import useExitTo from '@hooks/useExitTo';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -15,6 +17,8 @@ import ROUTES from '@src/ROUTES';
 type HybridAppSplashScreenProps = {
     authenticated: boolean;
 };
+
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /*
  * HybridAppMiddleware is responsible for handling BootSplash visibility correctly.
@@ -44,6 +48,26 @@ function HybridAppSplashScreen({authenticated}: HybridAppSplashScreenProps) {
             setExitTo(ROUTES.HOME);
             setSplashScreenState(CONST.BOOT_SPLASH_STATE.STARTED_TRANSITION);
         }, 3000);
+    }, [setSplashScreenState]);
+
+    // In iOS, the HybridApp defines the `onReturnToOldDot` event.
+    // If we frequently transition from OldDot to NewDot during a single app lifecycle,
+    // we need to artificially display the bootsplash since the app is booted only once.
+    // Therefore, isSplashHidden needs to be updated at the appropriate time.
+    useEffect(() => {
+        if (!NativeModules.HybridAppModule && !isIOSNative) {
+            return;
+        }
+        const HybridAppEvents = new NativeEventEmitter(NativeModules.HybridAppModule as unknown as NativeModule);
+        const listener = HybridAppEvents.addListener(CONST.EVENTS.ON_RETURN_TO_OLD_DOT, () => {
+            Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.OPENED);
+            setExitTo(undefined);
+        });
+
+        return () => {
+            listener.remove();
+        };
     }, [setSplashScreenState]);
 
     // Save `exitTo` when we reach /transition route.

@@ -1,10 +1,10 @@
 import {useEffect} from 'react';
 import {NativeModules} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
-import {useOnyx} from '../../../../__mocks__/react-native-onyx';
 
 const onboardingStatusSelector = (tryNewDot: OnyxEntry<TryNewDot>) => {
     let completedHybridAppOnboarding = tryNewDot?.classicRedirect?.completedHybridAppOnboarding;
