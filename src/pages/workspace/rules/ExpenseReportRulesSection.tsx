@@ -2,6 +2,8 @@ import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -21,8 +23,24 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const preventSelfApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || policy?.errorFields?.approvalMode;
+    // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
+    const workflowApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || !!policy?.errorFields?.approvalMode;
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    const renderFallbackSubtitle = (featureName: string) => {
+        return (
+            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureGoToSubtitle')}</Text>{' '}
+                <TextLink
+                    style={styles.link}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                >
+                    {translate('workspace.common.moreFeatures').toLowerCase()}
+                </TextLink>{' '}
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', featureName)}</Text>
+            </Text>
+        );
+    };
 
     const optionItems = [
         {
@@ -51,18 +69,24 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         },
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
-            subtitle: translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
+            subtitle: workflowApprovalsUnavailable
+                ? renderFallbackSubtitle(translate('common.approvals').toLowerCase())
+                : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
-            isActive: policy?.preventSelfApproval,
-            disabled: preventSelfApprovalsUnavailable,
-            showLockIcon: preventSelfApprovalsUnavailable,
+            isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable,
+            showLockIcon: workflowApprovalsUnavailable,
             onToggle: (isEnabled: boolean) => WorkspaceRulesActions.setPolicyPreventSelfApproval(isEnabled, policyID),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            subtitle: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
+            subtitle: workflowApprovalsUnavailable
+                ? renderFallbackSubtitle(translate('common.approvals').toLowerCase())
+                : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: policy?.shouldShowAutoApprovalOptions,
+            isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable,
+            showLockIcon: workflowApprovalsUnavailable,
             onToggle: (isEnabled: boolean) => {
                 WorkspaceRulesActions.enableAutoApprovalOptions(isEnabled, policyID);
             },
@@ -86,7 +110,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         {
             title: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             subtitle: autoPayApprovedReportsUnavailable
-                ? translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLockedSubtitle')
+                ? renderFallbackSubtitle(translate('common.payments').toLowerCase())
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
@@ -94,7 +118,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
-            isActive: policy?.shouldShowAutoReimbursementLimitOption,
+            isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             subMenuItems: [
                 <MenuItemWithTopDescription
                     description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
