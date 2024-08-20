@@ -163,7 +163,6 @@ function MoneyRequestView({
         tag: transactionTag,
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
-        cardID: transactionCardID,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
