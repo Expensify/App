@@ -4,6 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -81,18 +82,14 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-// HybridApp needs access to SetStateAction in order to properly hide SplashScreen when React Native was booted before.
-type SplashScreenHiddenContextType = {isSplashHidden?: boolean; setIsSplashHidden: React.Dispatch<React.SetStateAction<boolean>>};
+type SplashScreenStateContextType = {
+    splashScreenState: ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
+    setSplashScreenState: React.Dispatch<React.SetStateAction<ValueOf<typeof CONST.BOOT_SPLASH_STATE>>>;
+};
 
-const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({
-    setIsSplashHidden: () => {},
-});
-
-type ShouldHideHybridAppSplashScreenContextType = {shouldHideHybridAppSplashScreen: boolean; setShouldHideHybridAppSplashScreen: React.Dispatch<React.SetStateAction<boolean>>};
-
-const ShouldHideHybridAppSplashScreenContext = React.createContext<ShouldHideHybridAppSplashScreenContextType>({
-    shouldHideHybridAppSplashScreen: false,
-    setShouldHideHybridAppSplashScreen: () => {},
+const SplashScreenStateContext = React.createContext<SplashScreenStateContextType>({
+    splashScreenState: CONST.BOOT_SPLASH_STATE.OPENED,
+    setSplashScreenState: () => {},
 });
 
 function Expensify({
@@ -107,8 +104,7 @@ function Expensify({
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const [isSplashHidden, setIsSplashHidden] = useState(false);
-    const [shouldHideHybridAppSplashScreen, setShouldHideHybridAppSplashScreen] = useState(false);
+    const [splashScreenState, setSplashScreenState] = useState<ValueOf<typeof CONST.BOOT_SPLASH_STATE>>(CONST.BOOT_SPLASH_STATE.OPENED);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -135,7 +131,8 @@ function Expensify({
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash = shouldInit && NativeModules.HybridAppModule ? shouldHideHybridAppSplashScreen : !isSplashHidden;
+    const shouldHideSplash =
+        shouldInit && (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.FINISHED_TRANSITION : splashScreenState === CONST.BOOT_SPLASH_STATE.OPENED);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -153,9 +150,8 @@ function Expensify({
     }, []);
 
     const onSplashHide = useCallback(() => {
-        setIsSplashHidden(true);
+        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         if (NativeModules.HybridAppModule) {
-            setShouldHideHybridAppSplashScreen(false);
             if (isAuthenticated) {
                 Log.info('[HybridApp] Handling onboarding flow', true);
                 Welcome.handleHybridAppOnboarding();
@@ -164,19 +160,12 @@ function Expensify({
         Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, [isAuthenticated]);
 
-    const contextValue = useMemo(
+    const splashScreenStateContextValue = useMemo(
         () => ({
-            isSplashHidden,
-            setIsSplashHidden,
+            splashScreenState,
+            setSplashScreenState,
         }),
-        [isSplashHidden, setIsSplashHidden],
-    );
-    const shouldHideHybridAppSplashScreenContextValue = useMemo(
-        () => ({
-            shouldHideHybridAppSplashScreen,
-            setShouldHideHybridAppSplashScreen,
-        }),
-        [shouldHideHybridAppSplashScreen],
+        [splashScreenState],
     );
 
     useLayoutEffect(() => {
@@ -315,18 +304,16 @@ function Expensify({
 
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
-                <SplashScreenHiddenContext.Provider value={contextValue}>
-                    <ShouldHideHybridAppSplashScreenContext.Provider value={shouldHideHybridAppSplashScreenContextValue}>
-                        <HybridAppOnboarding />
-                        <NavigationRoot
-                            onReady={setNavigationReady}
-                            authenticated={isAuthenticated}
-                            lastVisitedPath={lastVisitedPath as Route}
-                            initialUrl={initialUrl}
-                            shouldShowRequire2FAModal={shouldShowRequire2FAModal}
-                        />
-                    </ShouldHideHybridAppSplashScreenContext.Provider>
-                </SplashScreenHiddenContext.Provider>
+                <SplashScreenStateContext.Provider value={splashScreenStateContextValue}>
+                    <HybridAppOnboarding />
+                    <NavigationRoot
+                        onReady={setNavigationReady}
+                        authenticated={isAuthenticated}
+                        lastVisitedPath={lastVisitedPath as Route}
+                        initialUrl={initialUrl}
+                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
+                    />
+                </SplashScreenStateContext.Provider>
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
@@ -363,4 +350,4 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     },
 })(Expensify);
 
-export {SplashScreenHiddenContext, ShouldHideHybridAppSplashScreenContext};
+export {SplashScreenStateContext};

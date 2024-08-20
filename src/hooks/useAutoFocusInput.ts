@@ -15,13 +15,13 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
-    const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
+    const {splashScreenState} = useContext(Expensify.SplashScreenStateContext);
 
     const inputRef = useRef<TextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -32,7 +32,7 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
+    }, [isScreenTransitionEnded, isInputInitialized, splashScreenState]);
 
     useFocusEffect(
         useCallback(() => {
