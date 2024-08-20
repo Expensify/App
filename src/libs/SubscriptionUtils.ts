@@ -174,7 +174,7 @@ function hasAmountOwed(): boolean {
  * @returns Whether there is a card authentication error.
  */
 function hasCardAuthenticatedError() {
-    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
+    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
 /**
@@ -457,6 +457,7 @@ export {
     getAmountOwed,
     getOverdueGracePeriodDate,
     getCardForSubscriptionBilling,
+    hasCardAuthenticatedError,
     hasSubscriptionGreenDotInfo,
     hasRetryBillingError,
     PAYMENT_STATUS,
