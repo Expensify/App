@@ -190,7 +190,8 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
  * @param policyID - id of the policy to apply the limit to
  */
 function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
-    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(limit));
+    const fallbackLimit = limit === '' ? '0' : limit;
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -234,7 +235,8 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
  * @param policyID - id of the policy to apply the limit to
  */
 function setPolicyAutomaticApprovalAuditRate(auditRate: string, policyID: string) {
-    const parsedAuditRate = parseInt(auditRate, 10);
+    const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
+    const parsedAuditRate = parseInt(fallbackAuditRate, 10);
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -316,7 +318,8 @@ function enableAutoApprovalOptions(enabled: boolean, policyID: string) {
  */
 function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
     const policy = getPolicy(policyID);
-    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(limit));
+    const fallbackLimit = limit === '' ? '0' : limit;
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
     const optimisticData: OnyxUpdate[] = [
         {
