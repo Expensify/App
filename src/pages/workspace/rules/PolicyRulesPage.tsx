@@ -26,7 +26,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {canUseRules} = usePermissions();
+    const {canWorkspaceRules} = usePermissions();
 
     const handleOnPressCategoriesLink = () => {
         if (policy?.areCategoriesEnabled) {
@@ -60,7 +60,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 icon={Illustrations.Rules}
-                shouldShowNotFoundPage={!canUseRules}
+                shouldShowNotFoundPage={!canWorkspaceRules}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
