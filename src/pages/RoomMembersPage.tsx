@@ -339,7 +339,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                 />
-                <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data, isDisabled: false}]}
@@ -360,7 +360,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.mt4]}
+                        listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
                         ListItem={TableListItem}
                         onDismissError={dismissError}
                     />

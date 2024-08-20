@@ -373,7 +373,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
@@ -396,7 +396,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         showScrollIndicator
                         textInputRef={textInputRef}
                         customListHeader={customListHeader}
-                        listHeaderWrapperStyle={[styles.ph9, styles.mt4]}
+                        listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
                     />
                 </View>
             </FullPageNotFoundView>
