@@ -112,7 +112,7 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     /**
      * Errors for the workflow
      */
-    errors?: Record<string, TranslationPaths> | null;
+    errors?: Record<string, TranslationPaths>;
 };
 
 export default ApprovalWorkflow;

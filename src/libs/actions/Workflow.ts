@@ -1,6 +1,6 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import lodashMapKeys from 'lodash/mapKeys';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
@@ -327,7 +327,7 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
-function setApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx) {
+function setApprovalWorkflow(approvalWorkflow: OnyxMergeInput<typeof ONYXKEYS.APPROVAL_WORKFLOW>) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
