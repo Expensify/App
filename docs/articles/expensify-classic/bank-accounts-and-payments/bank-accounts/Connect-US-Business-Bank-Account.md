@@ -145,7 +145,25 @@ To pay employees from a business deposit account, click **Verify** next to the b
 There are a few reasons why you might not have received a reimbursement:  
 - The estimated deposit date on the report has not arrived yet.
 - The bank account information is incorrect. If you believe you may have entered the wrong account, contact the Concierge and provide the Report ID for the missing reimbursement.
-- Your account wasn’t set up for Direct Deposit/ACH. You can contact your bank to confirm.
+- Your account wasn’t set up for Direct Deposit/ACH. Please contact your bank to confirm.
+
+**Are there certain industries or businesses for which Expensify cannot process payments?**
+
+- There are! If your business is associated with one of the following industries, you won't be able to connect your business bank account to process payments:
+- Security Brokers & Dealers
+- Dating & Escort Services
+- Massage Parlors
+- Casinos & Gambling/Betting Services
+- Non-FI, Money Orders
+- Wires, Money Orders
+- Government Owned Lotteries
+- Government Licensed Online Casinos (Online Gambling)
+- Government Licensed Horse/Dog Racing
+- Crypto-currency businesses
+- Internet gambling
+- Marijuana-related businesses
+- Firearm-related businesses (manufacturing and selling)
+- NFT (non-fungible token) services
 
 {% include faq-end.md %}
 
