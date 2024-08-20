@@ -221,7 +221,9 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const prevActionResolution = usePrevious(isActionableWhisper && originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null);
+    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
+    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
+    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney =
@@ -375,10 +377,10 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
+        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
             reportScrollManager.scrollToIndex(index);
         }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper]);
+    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji) => {
@@ -654,6 +656,14 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getWorkspaceNameUpdatedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action)} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
         ) {
@@ -852,7 +862,7 @@ function ReportActionItem({
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
+    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 

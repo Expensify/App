@@ -956,11 +956,6 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
     }
 
-    // Helper function to check if all comments exist
-    function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => !!item?.comment?.comment === !!firstTransaction?.comment?.comment);
-    }
-
     // Helper function to check if all fields are equal for a given key
     function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
         const firstTransaction = transactions[0];
@@ -983,10 +978,9 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsExist = doAllCommentsExist(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
-                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);

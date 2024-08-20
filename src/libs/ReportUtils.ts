@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {isEmpty} from 'lodash';
+import {isEmpty, isNumber} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
@@ -2083,7 +2083,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
         });
     }
 
-    return participantsEntries.map(([accountID]) => Number(accountID));
+    return participantsEntries.map(([accountID]) => Number(accountID)).filter((accountID) => isNumber(accountID));
 }
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
@@ -4390,6 +4390,12 @@ function getIOUApprovedMessage(reportID: string) {
 
 function getIOUForwardedMessage(reportID: string) {
     return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+}
+
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
+    return message;
 }
 
 /**
@@ -7789,6 +7795,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
