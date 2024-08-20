@@ -57,7 +57,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
-                text: speed === 1 ? CONST.VIDEO_PLAYER.NORMAL_SPEED : speed.toString(),
+                text: speed === 1 ? translate('videoPlayer.normal') : speed.toString(),
                 onSelected: () => {
                     updatePlaybackSpeed(speed);
                 },
