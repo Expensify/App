@@ -16,12 +16,11 @@ import ROUTES from '@src/ROUTES';
 import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = (config: NativeConfig) => {
-    const message = `Measure_performance#${Math.floor(Math.random() * 1000000)}`;
-
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for typing');
 
     const reportID = getConfigValueOrThrow('reportID', config);
+    const message = getConfigValueOrThrow('message', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {

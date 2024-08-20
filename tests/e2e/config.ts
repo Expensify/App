@@ -83,6 +83,7 @@ export default {
             },
             // Crowded Policy (Do Not Delete) Report, has a input bar available:
             reportID: '8268282951170052',
+            message: `Measure_performance#${Math.floor(Math.random() * 1000000)}`,
         },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
