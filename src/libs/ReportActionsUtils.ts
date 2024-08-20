@@ -221,7 +221,7 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return [];
     }
 
-    if (!Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
+    if (message !== null && !Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
         return message?.whisperedTo ?? [];
     }
 
