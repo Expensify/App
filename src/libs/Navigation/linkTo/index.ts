@@ -23,7 +23,7 @@ import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFr
 import getMatchingBottomTabRouteForState from '@navigation/linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from '@navigation/linkingConfig/getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from '@navigation/linkingConfig/replacePathInNestedState';
-import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
+import type {NavigationActionType, NavigationRoot, NavigationType, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -32,7 +32,7 @@ import getActionForBottomTabNavigator from './getActionForBottomTabNavigator';
 import getMinimalAction from './getMinimalAction';
 import type {ActionPayloadParams} from './types';
 
-export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: NavigationActionType | NavigationType, isActiveRoute?: boolean) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }

@@ -2,6 +2,7 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -26,7 +27,7 @@ import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
-import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationActionType, NavigationStateRoute, NavigationType, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -174,7 +175,7 @@ function isActiveRoute(routePath: Route): boolean {
  * Main navigation method for redirecting to a route.
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
-function navigate(route: Route = ROUTES.HOME, type?: string) {
+function navigate(route: Route = ROUTES.HOME, type?: NavigationActionType | NavigationType) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready

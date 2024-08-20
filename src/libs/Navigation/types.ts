@@ -29,8 +29,11 @@ type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
 type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
 type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
 
+type NavigationActionType = ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
+type NavigationType = ValueOf<typeof CONST.NAVIGATION.TYPE>;
+
 type ActionNavigate = {
-    type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
+    type: NavigationActionType;
     payload: {
         name?: string;
         key?: string;
@@ -1331,6 +1334,8 @@ type SwitchPolicyIDParams = {
 };
 
 export type {
+    NavigationActionType,
+    NavigationType,
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
     CentralPaneScreensParamList,
