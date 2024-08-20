@@ -620,11 +620,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -1293,6 +1293,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
+            readonly?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
