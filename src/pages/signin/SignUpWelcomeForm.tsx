@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
-import redirectToSignIn from '@userActions/SignInRedirect';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -38,11 +37,7 @@ function SignUpWelcomeForm({account}: SignUpWelcomeFormProps) {
                     pressOnEnter
                     style={[styles.mb2]}
                 />
-                <ChangeExpensifyLoginLink
-                    onPress={() => {
-                        redirectToSignIn();
-                    }}
-                />
+                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />

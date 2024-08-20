@@ -117,6 +117,8 @@ function PolicyDistanceRatesPage({
                         value.pendingFields?.rate ??
                         value.pendingFields?.enabled ??
                         value.pendingFields?.currency ??
+                        value.pendingFields?.taxRateExternalID ??
+                        value.pendingFields?.taxClaimablePercentage ??
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
