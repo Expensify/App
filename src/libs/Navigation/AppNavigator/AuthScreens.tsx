@@ -249,8 +249,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
-        
-        let signupQualifier
+
+        let signupQualifier;
         if (currentUrl.includes('signupQualifier')) {
             signupQualifier = currentUrl.split('signupQualifier=')[1].split('&')[0];
         }
