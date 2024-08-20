@@ -422,7 +422,13 @@ function AttachmentModal({
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt && !TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (
+            !TransactionUtils.hasEReceipt(transaction) &&
+            TransactionUtils.hasReceipt(transaction) &&
+            !TransactionUtils.isReceiptBeingScanned(transaction) &&
+            canEditReceipt &&
+            !TransactionUtils.hasMissingSmartscanFields(transaction)
+        ) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
