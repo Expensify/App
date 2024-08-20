@@ -1426,6 +1426,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
              * The maximum report total allowed to trigger auto approval.
              */
             limit?: number;
+            /**
+             * Percentage of the reports that should be selected for a random audit
+             */
+            auditRate?: number;
         };
 
         /** Whether to leave the calling account as an admin on the policy */

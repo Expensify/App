@@ -76,8 +76,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
                 />,
                 <MenuItemWithTopDescription
-                    title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                    titleStyle={styles.textLabelSupportingEmptyValue}
+                    description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
+                    title={`${policy?.autoApproval?.auditRate ?? 0}%`}
                     shouldShowRightIcon
                     style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                     onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}

@@ -171,24 +171,16 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
  */
 function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(limit));
+    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM,
-            value: {
-                isLoading: false,
+                autoApproval: {
+                    limit: parsedLimit,
+                },
             },
         },
     ];
@@ -196,9 +188,11 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: false,
+                autoApproval: {
+                    limit: policy?.autoApproval?.limit,
+                },
             },
         },
     ];
@@ -210,7 +204,6 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
 
     API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT, parameters, {
         optimisticData,
-        successData,
         failureData,
     });
 }
@@ -220,24 +213,18 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
  * @param auditRate - percentage of the reports to be qualified for a random audit
  * @param policyID - id of the policy to apply the limit to
  */
-function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string) {
+function setPolicyAutomaticApprovalAuditRate(auditRate: string, policyID: string) {
+    const parsedAuditRate = parseInt(auditRate, 10);
+    const policy = getPolicy(policyID);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
-            value: {
-                isLoading: false,
+                autoApproval: {
+                    auditRate: parsedAuditRate,
+                },
             },
         },
     ];
@@ -245,21 +232,22 @@ function setPolicyAutomaticApprovalAuditRate(auditRate: number, policyID: string
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                isLoading: false,
+                autoApproval: {
+                    auditRate: policy?.autoApproval?.auditRate,
+                },
             },
         },
     ];
 
     const parameters: SetPolicyAutomaticApprovalAuditRateParams = {
-        auditRate,
+        auditRate: parsedAuditRate,
         policyID,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_AUDIT_RATE, parameters, {
         optimisticData,
-        successData,
         failureData,
     });
 }
@@ -354,7 +342,6 @@ function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReimbursement: policy?.autoReimbursement,
-                errors,
             },
         },
     ];

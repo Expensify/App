@@ -53,7 +53,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     // validate={validator}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
-                        WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(parseInt(maxExpenseAutoApprovalAmount, 10), policyID);
+                        WorkspaceRulesActions.setPolicyAutomaticApprovalLimit(maxExpenseAutoApprovalAmount, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

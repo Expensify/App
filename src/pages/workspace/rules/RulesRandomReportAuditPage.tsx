@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,12 +24,13 @@ type RulesRandomReportAuditPageProps = StackScreenProps<SettingsNavigatorParamLi
 
 function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const {policyID} = route.params;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
+    const defaultValue = policy?.autoApproval?.auditRate ?? 0;
 
     return (
         <AccessOrNotFoundWrapper
@@ -48,8 +50,10 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
-                    // validate={validator}
-                    onSubmit={({auditRatePercentage}) => WorkspaceRulesActions.setPolicyAutomaticApprovalAuditRate(parseInt(auditRatePercentage, 10), policyID)}
+                    onSubmit={({auditRatePercentage}) => {
+                        WorkspaceRulesActions.setPolicyAutomaticApprovalAuditRate(auditRatePercentage, policyID);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -57,6 +61,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                         <InputWrapper
                             label={translate('common.percentage')}
                             InputComponent={PercentageForm}
+                            defaultValue={defaultValue.toString()}
                             inputID={INPUT_IDS.AUDIT_RATE_PERCENTAGE}
                             ref={inputCallbackRef}
                         />
