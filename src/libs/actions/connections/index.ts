@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -12,6 +13,10 @@ import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types
 import type Policy from '@src/types/onyx/Policy';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
+
+type Nullable<T> = {
+    [P in keyof T]: T[P] | null;
+};
 
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
@@ -73,6 +78,7 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
     connectionName: TConnectionName,
     settingName: TSettingName,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+    oldSettingValue?: Nullable<Partial<Connections[TConnectionName]['config'][TSettingName]>>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -100,7 +106,7 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue ?? null,
+                            [settingName]: oldSettingValue ?? null,
                             pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
                         },
@@ -118,7 +124,6 @@ function updatePolicyXeroConnectionConfig<TConnectionName extends ConnectionName
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue ?? null,
                             pendingFields: createPendingFields(settingName, settingValue, null),
                             errorFields: createErrorFields(settingName, settingValue, null),
                         },
@@ -363,12 +368,24 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
+function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): string | undefined {
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return !isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate;
+        if (
+            !isSyncInProgress &&
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
+        ) {
+            return syncError;
+        }
+        return;
     }
-    return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
+
+    const connection = policy?.connections?.[connectionName];
+    if (isSyncInProgress || connection?.lastSync?.isSuccessful) {
+        return;
+    }
+    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
 }
 
 function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
@@ -421,7 +438,7 @@ export {
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-    hasSynchronizationError,
+    getSynchronizationErrorMessage,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,

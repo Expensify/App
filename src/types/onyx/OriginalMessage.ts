@@ -244,6 +244,27 @@ type OriginalMessageChangeLog = {
 
     /** ID of the report */
     reportID?: number;
+
+    /** Old name of the workspace */
+    oldName?: string;
+
+    /** New name of the workspace */
+    newName?: string;
+
+    /** Email of user */
+    email?: string;
+
+    /** Role of user */
+    role?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
+
+    /** New role of user */
+    newValue?: string;
+
+    /** Old role of user */
+    oldValue?: string;
 };
 
 /** Model of `join policy changelog` report action */
@@ -411,6 +432,18 @@ type OriginalMessageApproved = {
     expenseReportID: string;
 };
 
+/** Model of `forwarded` report action */
+type OriginalMessageForwarded = {
+    /** Forwarded expense amount */
+    amount: number;
+
+    /** Currency of the forwarded expense amount */
+    currency: string;
+
+    /** Report ID of the expense */
+    expenseReportID: string;
+};
+
 /**
  *
  */
@@ -500,7 +533,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     /** */

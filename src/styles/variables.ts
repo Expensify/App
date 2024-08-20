@@ -48,6 +48,8 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    fontSizeOnlyEmojis: 30,
+    fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
@@ -85,6 +87,8 @@ export default {
     sidebarAvatarSize: 28,
     iconHeader: 48,
     iconSection: 68,
+    emojiSize: 20,
+    emojiLineHeight: 28,
     iouAmountTextSize: 40,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
@@ -110,9 +114,6 @@ export default {
     lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
-    lineHeightComment: 24,
-    lineHeightDisplayName: 25,
-    lineHeightMarkdownEnabledInput: 18,
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
@@ -128,10 +129,13 @@ export default {
     borderTopWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
+    emptySelectionListIconWidth: 120,
+    emptySelectionListIconHeight: 125,
     emptyListIconWidth: 136,
     emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    modalTopMediumIconHeight: 203,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 37,
@@ -212,21 +216,6 @@ export default {
     welcomeVideoDelay: 1000,
     explanationModalDelay: 2000,
 
-    // Emoji related variables
-    emojiSize: 20,
-    emojiSizeSmall: 12,
-    emojiLineHeight: 28,
-    fontSizeOnlyEmojis: 30,
-    fontSizeOnlyEmojisHeight: 35,
-    fontSizeEmojisWithinText: 19,
-    fontSizeEmojisOnlyComposer: 27,
-    fontSizeUsernameEmoji: 25,
-    lineHeightEmojisOnlyComposer: 32,
-    lineHeightEmojisWithTextComposer: 22,
-    emojiOnlyMarginTop: 5,
-    emojiOnlyComposerPaddingBottom: 0,
-    emojiOnlyComposerPaddingTop: 7,
-
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
@@ -260,9 +249,14 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    composerTooltipShiftHorizontal: 10,
+    composerTooltipShiftVertical: -10,
+
     h20: 20,
     h28: 28,
     h36: 36,
+    h112: 112,
+    h172: 172,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -272,4 +266,6 @@ export default {
     w80: 80,
     w92: 92,
     w96: 96,
+    w184: 184,
+    w191: 191,
 } as const;

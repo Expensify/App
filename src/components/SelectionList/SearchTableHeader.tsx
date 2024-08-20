@@ -18,7 +18,7 @@ type SearchColumnConfig = {
     shouldShow: (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 };
 
-const SearchColumns: SearchColumnConfig[] = [
+const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -90,12 +90,12 @@ type SearchTableHeaderProps = {
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
-    isSortingAllowed: boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
+    shouldShowSorting: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -109,14 +109,14 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {expenseHeaders.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }
 
+                    const isSortable = shouldShowSorting && isColumnSortable;
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
-                    const isSortable = isSortingAllowed && isColumnSortable;
 
                     return (
                         <SortableHeaderText

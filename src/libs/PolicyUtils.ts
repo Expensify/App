@@ -1,14 +1,14 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Except, LiteralUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -22,12 +22,14 @@ import type {
     NetSuiteCustomSegment,
     NetSuiteTaxAccount,
     NetSuiteVendor,
+    PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getSynchronizationErrorMessage} from './actions/connections';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -44,8 +46,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-type XeroSettings = Array<LiteralUnion<ValueOf<Except<typeof CONST.XERO_CONFIG, 'INVOICE_STATUS' | 'TRACKING_CATEGORY_FIELDS' | 'TRACKING_CATEGORY_OPTIONS'>>, string>>;
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -84,6 +84,13 @@ function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
     return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
+}
+
+/**
+ * Checks if the policy had a sync error.
+ */
+function hasSyncError(policy: OnyxEntry<Policy>): boolean {
+    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, false));
 }
 
 /**
@@ -146,7 +153,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -242,7 +249,7 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -253,7 +260,7 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 /**
  * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
@@ -264,7 +271,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -277,7 +284,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<Pol
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
+function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -289,11 +296,22 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
     );
 }
 
+function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
+    const uniqueTagNames = new Set<string>();
+
+    for (const policyTagList of Object.values(policyTagLists ?? {})) {
+        for (const tag of Object.values(policyTagList.tags)) {
+            uniqueTagNames.add(getCleanedTagName(tag.name));
+        }
+    }
+    return Array.from(uniqueTagNames);
+}
+
 /**
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+    return tag?.replace(/\\:/g, CONST.COLON);
 }
 
 /**
@@ -313,7 +331,7 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
 /**
  * Whether the policy has multi-level tags
  */
-function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return Object.keys(policyTagList ?? {}).length > 1;
 }
 
@@ -376,6 +394,10 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
@@ -408,16 +430,38 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+/** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
+ * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
+function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+    const allTaxRates: Record<string, string[]> = {};
+    Object.values(allPolicies ?? {})?.forEach((policy) => {
+        if (!policy?.taxRates?.taxes) {
+            return;
+        }
+        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+            if (!allTaxRates[taxRate.name]) {
+                allTaxRates[taxRate.name] = [taxRateKey];
+                return;
+            }
+            allTaxRates[taxRate.name].push(taxRateKey);
+        });
+    });
+    return allTaxRates;
+}
+
 /**
  * Whether the tax rate can be deleted and disabled
  */
 function canEditTaxRate(policy: Policy, taxID: string): boolean {
-    return policy.taxRates?.defaultExternalID !== taxID;
+    return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
+        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
     }
 
     return !!policy?.[featureName];
@@ -453,6 +497,32 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     }
 
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
+    }
+    return employee.forwardsTo ?? '';
 }
 
 /**
@@ -492,12 +562,20 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Poli
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
+/** Whether the user can send invoice from the workspace */
+function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
+    const policy = getPolicy(policyID);
+    return policy?.areInvoicesEnabled ?? false;
+}
+
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+    // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
-function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
@@ -522,19 +600,18 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
-function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
 
-    return (bankAccounts ?? []).map(({id, name}, index) => ({
+    return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+        isSelected: selectedBankAccountId === id,
     }));
 }
 
-function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: ErrorFields) {
+function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
@@ -543,7 +620,7 @@ function areXeroSettingsInErrorFields(settings?: XeroSettings, errorFields?: Err
     return settings.some((setting) => keys.includes(setting));
 }
 
-function xeroSettingsPendingAction(settings?: XeroSettings, pendingFields?: PendingFields<string>): PendingAction | undefined {
+function settingsPendingAction(settings?: string[], pendingFields?: PendingFields<string>): PendingAction | undefined {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
@@ -746,18 +823,33 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 
-function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
+function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections], connectionSyncProgress?: PolicyConnectionSyncProgress) {
+    let syncSuccessfulDate;
     if (!connection) {
         return undefined;
     }
     if ((connection as NetSuiteConnection)?.lastSyncDate) {
-        return (connection as NetSuiteConnection)?.lastSyncDate;
+        syncSuccessfulDate = (connection as NetSuiteConnection)?.lastSyncDate;
+    } else {
+        syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
-    return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+
+    if (
+        connectionSyncProgress &&
+        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        syncSuccessfulDate &&
+        connectionSyncProgress.timestamp > syncSuccessfulDate
+    ) {
+        syncSuccessfulDate = connectionSyncProgress.timestamp;
+    }
+    return syncSuccessfulDate;
 }
 
-function getCurrentSageIntacctEntityName(policy?: Policy): string | undefined {
+function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
+    if (!currentEntityID) {
+        return defaultNameIfNoEntity;
+    }
     const entities = policy?.connections?.intacct?.data?.entities;
     return entities?.find((entity) => entity.id === currentEntityID)?.name;
 }
@@ -868,6 +960,15 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
+function getWorkspaceAccountID(policyID: string) {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return 0;
+    }
+    return policy.workspaceAccountID ?? 0;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -887,7 +988,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
@@ -895,6 +995,7 @@ export {
     getUnitRateValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
+    hasSyncError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
@@ -902,6 +1003,7 @@ export {
     hasPolicyError,
     hasPolicyErrorFields,
     hasTaxRateError,
+    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isFreeGroupPolicy,
@@ -918,12 +1020,13 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    canSendInvoiceFromWorkspace,
     canSendInvoice,
     hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
-    getXeroBankAccountsWithDefaultSelect,
+    getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
@@ -953,6 +1056,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
@@ -961,8 +1066,14 @@ export {
     getCurrentSageIntacctEntityName,
     hasNoPolicyOtherThanPersonalType,
     getCurrentTaxID,
-    areXeroSettingsInErrorFields,
-    xeroSettingsPendingAction,
+    areSettingsInErrorFields,
+    settingsPendingAction,
+    getSubmitToEmail,
+    getForwardsToAccount,
+    getSubmitToAccountID,
+    getWorkspaceAccountID,
+    getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getTagNamesFromTagsLists,
 };
 
-export type {MemberEmailsToAccountIDs, XeroSettings};
+export type {MemberEmailsToAccountIDs};

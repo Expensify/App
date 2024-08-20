@@ -1303,7 +1303,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.12.2):
+  - react-native-keyboard-controller (1.13.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1871,7 +1871,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.107):
+  - RNLiveMarkdown (0.1.112):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1889,9 +1889,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.107)
+    - RNLiveMarkdown/common (= 0.1.112)
     - Yoga
-  - RNLiveMarkdown/common (0.1.107):
+  - RNLiveMarkdown/common (0.1.112):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2565,7 +2565,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 580c86eb531c0aaf7a14bc76fd2983ce47ca58aa
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 28ccfa09520e7d7e30739480dea4df003493bfe8
-  react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
+  react-native-keyboard-controller: a8cbf848d0bc0e1976a07948f1c53b8432c1246c
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
   react-native-pager-view: ccd4bbf9fc7effaf8f91f8dae43389844d9ef9fa
@@ -2614,7 +2614,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f0c641a0bcf5fdea3ec1bb52a64b30ff88d25c1f
+  RNLiveMarkdown: baf79849de6b7fd648cc2b3878d7b4e2c65d6721
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: d2392b754e67bc14491f5b12588bef2864e783f3
@@ -2633,6 +2633,6 @@ SPEC CHECKSUMS:
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
-PODFILE CHECKSUM: d5e281e5370cb0211a104efd90eb5fa7af936e14
+PODFILE CHECKSUM: 12949aadf6042925ca96a70eb9d0c591688d973c
 
 COCOAPODS: 1.15.2

@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -26,7 +27,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {config} = policy?.connections?.intacct ?? {};
-    const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
+    const {export: exportConfig, pendingFields} = policy?.connections?.intacct?.config ?? {};
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.sageIntacct.exportDate.values.${dateType}.label`),
@@ -47,7 +48,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== exportConfig?.exportDate) {
-                updateSageIntacctExportDate(policyID, row.value);
+                updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
@@ -68,7 +69,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            pendingAction={config?.pendingFields?.exportDate}
+            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE], pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}

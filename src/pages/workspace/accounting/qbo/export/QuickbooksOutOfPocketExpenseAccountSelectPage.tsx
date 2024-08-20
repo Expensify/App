@@ -9,7 +9,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -82,7 +82,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== reimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
+                QuickbooksOnline.updateQuickbooksOnlineReimbursableExpensesAccount(policyID, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
@@ -116,7 +116,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                     sections={data.length ? [{data}] : []}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     listEmptyContent={listEmptyContent}
                 />
