@@ -362,9 +362,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
         verticalAlignTopText: {
             verticalAlign: 'top-text',
         },
