@@ -210,14 +210,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         [selectedMembers, addUser, removeUser, currentUserAccountID],
     );
 
-    const headerContent = useMemo(() => {
-        if (!isGroupChat) {
-            return;
-        }
-
-        return <Text style={[styles.pl5, styles.mb4, styles.mt2, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
-    }, [styles, translate, isGroupChat]);
-
     const customListHeader = useMemo(() => {
         if (!isGroupChat) {
             return;
@@ -396,7 +388,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                             setSearchValue(value);
                         }}
                         headerMessage={headerMessage}
-                        headerContent={!shouldShowTextInput ? headerContent : undefined}
                         ListItem={TableListItem}
                         onSelectRow={openMemberDetails}
                         shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}

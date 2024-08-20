@@ -1470,7 +1470,6 @@ export default {
         groupName: 'Group name',
     },
     groupChat: {
-        groupMembersListTitle: 'Directory of all group members.',
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
@@ -3623,7 +3622,6 @@ export default {
         },
     },
     roomMembersPage: {
-        roomMembersListTitle: 'Directory of all room members.',
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
         notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',

@@ -16,7 +16,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -300,10 +299,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     );
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
-    const headerContent = useMemo(() => {
-        return <Text style={[styles.pl5, styles.mb4, styles.mt2, styles.textSupporting]}>{translate('roomMembersPage.roomMembersListTitle')}</Text>;
-    }, [styles, translate]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -347,7 +342,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        headerContent={!shouldShowTextInput ? headerContent : undefined}
                         sections={[{data, isDisabled: false}]}
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
