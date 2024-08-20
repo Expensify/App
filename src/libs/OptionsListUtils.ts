@@ -221,6 +221,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'> & {
     preferChatroomsOverThreads?: boolean;
     includeChatRoomsByParticipants?: boolean;
+    preferPolicyExpenseChat?: boolean;
 };
 
 type HasText = {
@@ -356,6 +357,12 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportsDraft = value),
+});
+
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
 });
 
 /**
@@ -1616,11 +1623,15 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false} = {}) {
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false} = {}) {
     return lodashOrderBy(
         options,
         [
             (option) => {
+                if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
+                    return 0;
+                }
+
                 if (option.isSelfDM) {
                     return 0;
                 }
@@ -2058,11 +2069,14 @@ function getOptions(
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (sortByReportTypeInSearch && searchValue !== '') {
+    if (sortByReportTypeInSearch && (searchValue !== '' || !!action)) {
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
-        recentReportOptions.push(...personalDetailsOptions);
-        personalDetailsOptions = [];
-        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
+        // If we're in money request flow, we only order the recent report option.
+        if (!action) {
+            recentReportOptions.push(...personalDetailsOptions);
+            personalDetailsOptions = [];
+        }
+        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true, preferPolicyExpenseChat: !!action});
     }
 
     return {
@@ -2171,6 +2185,7 @@ function getFilteredOptions(
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
+    sortByReportTypeInSearch = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2199,6 +2214,7 @@ function getFilteredOptions(
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
             action,
+            sortByReportTypeInSearch,
         },
     );
 }
@@ -2423,6 +2439,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         excludeLogins = [],
         preferChatroomsOverThreads = false,
         includeChatRoomsByParticipants = false,
+        preferPolicyExpenseChat = false,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
@@ -2535,7 +2552,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     return {
         personalDetails,
-        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads}),
+        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],

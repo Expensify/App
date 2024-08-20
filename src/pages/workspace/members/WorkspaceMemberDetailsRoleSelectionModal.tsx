@@ -57,6 +57,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                         sections={[{data: items}]}
                         ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
+                        isAlternateTextMultilineSupported
                         shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                     />
