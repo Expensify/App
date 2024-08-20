@@ -2030,6 +2030,8 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
+        AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
+
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
             IMMEDIATE: 'immediate',

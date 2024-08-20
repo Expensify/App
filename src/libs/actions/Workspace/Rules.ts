@@ -25,6 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
     const policy = getPolicy(policyID);
+    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
+
+    const titleFieldValues = enabled ? previousFieldList : {...previousFieldList, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -32,6 +35,9 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowCustomReportTitleOption: enabled,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: titleFieldValues,
+                },
             },
         },
     ];
@@ -42,6 +48,9 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
+                },
             },
         },
     ];
@@ -64,7 +73,7 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
  */
 function setPolicyDefaultReportTitle(customName: string, policyID: string) {
     const policy = getPolicy(policyID);
-    const previousFieldList = policy?.fieldList ?? {};
+    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -108,7 +117,7 @@ function setPolicyDefaultReportTitle(customName: string, policyID: string) {
  */
 function setPolicyPreventMemberCreatedTitle(enforced: boolean, policyID: string) {
     const policy = getPolicy(policyID);
-    const previousFieldList = policy?.fieldList ?? {};
+    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -396,7 +405,7 @@ function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) 
             value: {
                 shouldShowAutoReimbursementLimitOption: enabled,
                 autoReimbursement: {
-                    limit: enabled ? policy?.autoReimbursement?.limit : 10000,
+                    limit: enabled ? policy?.autoReimbursement?.limit : CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
                 },
             },
         },
@@ -427,13 +436,13 @@ function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) 
 }
 
 export {
-    enablePolicyDefaultReportTitle,
     setPolicyDefaultReportTitle,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalAuditRate,
     setPolicyAutoReimbursementLimit,
+    enablePolicyDefaultReportTitle,
     enablePolicyAutoReimbursementLimit,
     enableAutoApprovalOptions,
 };
