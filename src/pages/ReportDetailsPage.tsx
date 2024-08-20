@@ -223,12 +223,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const leaveChat = useCallback(() => {
         Navigation.dismissModal();
-        if (isRootGroupChat) {
-            Report.leaveGroupChat(report.reportID);
-            return;
-        }
-        const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-        Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        Navigation.isNavigationReady().then(() => {
+            if (isRootGroupChat) {
+                Report.leaveGroupChat(report.reportID);
+                return;
+            }
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
