@@ -268,10 +268,7 @@ function FloatingActionButtonAndPopover(
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                selectOption(
-                    () => Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? -1, true),
-                    false,
-                );
+                selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);

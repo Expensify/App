@@ -1667,14 +1667,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (isIOUReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID && currentUserAccountID !== moneyRequestReport?.ownerAccountID) {
-        return false;
-    }
-
-    if (isExpenseReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID) {
-        return false;
-    }
-
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -4398,6 +4390,12 @@ function getIOUApprovedMessage(reportID: string) {
 
 function getIOUForwardedMessage(reportID: string) {
     return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+}
+
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
+    return message;
 }
 
 /**
@@ -7797,6 +7795,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
