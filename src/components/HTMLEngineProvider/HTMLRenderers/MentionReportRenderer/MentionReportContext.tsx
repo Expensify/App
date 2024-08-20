@@ -8,4 +8,4 @@ const MentionReportContext = createContext<MentionReportContextProps>({
     currentReportID: '',
 });
 
-export {MentionReportContext};
+export default MentionReportContext;

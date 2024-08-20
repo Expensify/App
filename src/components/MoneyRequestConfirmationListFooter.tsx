@@ -28,7 +28,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
-import {MentionReportContext} from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -267,6 +267,8 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
+
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
@@ -297,7 +299,7 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <MentionReportContext.Provider value={{currentReportID: reportID}}>
+                <MentionReportContext.Provider value={mentionReportContextValue}>
                     <MenuItemWithTopDescription
                         key={translate('common.description')}
                         shouldShowRightIcon={!isReadOnly}

@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {MentionReportContext} from './MentionReportContext';
+import MentionReportContext from './MentionReportContext';
 
 type MentionReportOnyxProps = {
     /** All reports shared with the user */
