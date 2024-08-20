@@ -424,7 +424,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
                             ))}

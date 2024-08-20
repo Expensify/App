@@ -129,7 +129,6 @@ function ReservationView({reservation}: ReservationViewProps) {
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
-            hoverAndPressStyle={styles.hoveredComponentBG}
         />
     );
 }
