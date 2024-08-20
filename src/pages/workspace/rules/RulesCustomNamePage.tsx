@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -40,6 +41,14 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].defaultValue;
 
+    const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
+        if (!customName) {
+            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID ?? '-1'}
@@ -70,7 +79,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
-                    // validate={validator}
+                    validate={validateCustomName}
                     onSubmit={({customName}) => {
                         WorkspaceRulesActions.setPolicyDefaultReportTitle(customName, policyID);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
