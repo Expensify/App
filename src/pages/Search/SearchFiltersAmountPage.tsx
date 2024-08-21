@@ -11,7 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import {convertToBackendAmount, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,9 +24,9 @@ function SearchFiltersAmountPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const greaterThan = searchAdvancedFiltersForm?.[INPUT_IDS.GREATER_THAN];
-    const greaterThanFormattedAmount = greaterThan !== undefined ? convertToDisplayStringWithoutCurrency(Number(greaterThan)) : undefined;
+    const greaterThanFormattedAmount = greaterThan !== undefined ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
     const lessThan = searchAdvancedFiltersForm?.[INPUT_IDS.LESS_THAN];
-    const lessThanFormattedAmount = lessThan !== undefined ? convertToDisplayStringWithoutCurrency(Number(lessThan)) : undefined;
+    const lessThanFormattedAmount = lessThan !== undefined ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateAmountFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
