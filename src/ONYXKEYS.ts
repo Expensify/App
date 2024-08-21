@@ -571,6 +571,10 @@ const ONYXKEYS = {
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
         PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountDraft',
+        DISABLE_AUTO_RENEW_SURVEY_FORM: 'disableAutoRenewSurveyForm',
+        DISABLE_AUTO_RENEW_SURVEY_FORM_DRAFT: 'disableAutoRenewSurveyFormDraft',
+        REQUEST_EARLY_CANCELLATION_FORM: 'requestEarlyCancellationForm',
+        REQUEST_EARLY_CANCELLATION_FORM_DRAFT: 'requestEarlyCancellationFormDraft',
         EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
@@ -647,6 +651,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.RoomSettingsForm;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.NewTaskForm;
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.EditTaskForm;
+    [ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM]: FormTypes.FeedbackSurveyForm;
+    [ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM]: FormTypes.FeedbackSurveyForm;
     [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: FormTypes.ExitSurveyReasonForm;
     [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: FormTypes.ExitSurveyResponseForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.MoneyRequestDescriptionForm;

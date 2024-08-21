@@ -4,6 +4,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -87,6 +89,12 @@ function FormAlertWithSubmitButton({
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
+    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
+    // where pressing Enter saves the form instead of adding a new line in multiline input.
+    // More details: https://github.com/Expensify/App/issues/46644
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const pressOnEnter = isAndroidNative ? false : !disablePressOnEnter;
+
     return (
         <FormAlertWrapper
             containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
@@ -112,7 +120,7 @@ function FormAlertWithSubmitButton({
                         <Button
                             ref={buttonRef}
                             success
-                            pressOnEnter={!disablePressOnEnter}
+                            pressOnEnter={pressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
