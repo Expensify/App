@@ -23,8 +23,11 @@ import INPUT_IDS from '@src/types/form/RulesRequiredReceiptAmountForm';
 
 type RulesReceiptRequiredAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT>;
 
-function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageProps) {
-    const {policyID} = route.params;
+function RulesReceiptRequiredAmountPage({
+    route: {
+        params: {policyID},
+    },
+}: RulesReceiptRequiredAmountPageProps) {
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -38,7 +41,7 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? '-1'}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >

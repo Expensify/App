@@ -20,8 +20,11 @@ import type SCREENS from '@src/SCREENS';
 
 type RulesBillableDefaultPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
-function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
-    const {policyID} = route.params;
+function RulesBillableDefaultPage({
+    route: {
+        params: {policyID},
+    },
+}: RulesBillableDefaultPageProps) {
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
@@ -47,22 +50,22 @@ function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
     ];
 
     const handleOnSubmit = () => {
-        Policy.setPolicyBillableMode(route.params.policyID, defaultBillable);
+        Policy.setPolicyBillableMode(policyID, defaultBillable);
         Navigation.goBack();
     };
 
     const handleOnPressTagsLink = () => {
         if (policy?.areTagsEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(route.params.policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
     };
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? '-1'}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >

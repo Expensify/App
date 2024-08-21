@@ -23,8 +23,11 @@ import INPUT_IDS from '@src/types/form/RulesMaxExpenseAmountForm';
 
 type RulesMaxExpenseAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT>;
 
-function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
-    const {policyID} = route.params;
+function RulesMaxExpenseAmountPage({
+    route: {
+        params: {policyID},
+    },
+}: RulesMaxExpenseAmountPageProps) {
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -38,7 +41,7 @@ function RulesMaxExpenseAmountPage({route}: RulesMaxExpenseAmountPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? '-1'}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
