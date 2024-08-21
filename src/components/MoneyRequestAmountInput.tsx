@@ -21,6 +21,7 @@ type MoneyRequestAmountInputRef = {
     changeAmount: (newAmount: string) => void;
     getAmount: () => string;
     getSelection: () => Selection;
+    getCurrency: () => string;
 };
 
 type MoneyRequestAmountInputProps = {
@@ -37,7 +38,7 @@ type MoneyRequestAmountInputProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
+    onCurrencyButtonPress?: (updateCurrency?: string) => void;
 
     /** Function to call when the amount changes */
     onAmountChange?: (amount: string) => void;
@@ -139,6 +140,7 @@ function MoneyRequestAmountInput(
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
+    const [currentCurrency, setCurrentCurrency] = useState(currency);
 
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
@@ -158,14 +160,30 @@ function MoneyRequestAmountInput(
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-            const finalAmount = newAmountWithoutSpaces.includes('.')
-                ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
-                : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
-                setSelection((prevSelection) => ({...prevSelection}));
-                return;
+            let finalAmount: string;
+            const exactAmountWithCurrency = MoneyRequestUtils.validateAmountWithCurrency(newAmount);
+            if (exactAmountWithCurrency) {
+                const {currency: updateCurrency, amount: updateAmount} = exactAmountWithCurrency;
+                const updateDecimals = CurrencyUtils.getCurrencyDecimals(updateCurrency);
+                finalAmount = updateAmount.includes('.') ? MoneyRequestUtils.stripCommaFromAmount(updateAmount) : MoneyRequestUtils.replaceCommasWithPeriod(updateAmount);
+                // Use a shallow copy of selection to trigger setSelection
+                // More info: https://github.com/Expensify/App/issues/16385
+                if (!MoneyRequestUtils.validateAmount(finalAmount, updateDecimals)) {
+                    setSelection((prevSelection) => ({...prevSelection}));
+                    return;
+                }
+                setCurrentCurrency(updateCurrency);
+                // onPasteAmountWithCurrency?.(updateCurrency);
+            } else {
+                finalAmount = newAmountWithoutSpaces.includes('.')
+                    ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
+                    : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+                // Use a shallow copy of selection to trigger setSelection
+                // More info: https://github.com/Expensify/App/issues/16385
+                if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
+                    setSelection((prevSelection) => ({...prevSelection}));
+                    return;
+                }
             }
 
             // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
@@ -203,6 +221,9 @@ function MoneyRequestAmountInput(
         getSelection() {
             return selection;
         },
+        getCurrency() {
+            return currentCurrency;
+        },
     }));
 
     useEffect(() => {
@@ -224,6 +245,10 @@ function MoneyRequestAmountInput(
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
+
+    useEffect(() => {
+        setCurrentCurrency(currency);
+    }, [currency]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
@@ -289,7 +314,9 @@ function MoneyRequestAmountInput(
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
-            onCurrencyButtonPress={onCurrencyButtonPress}
+            onCurrencyButtonPress={() => {
+                onCurrencyButtonPress?.(currentCurrency);
+            }}
             onBlur={formatAmount}
             placeholder={numberFormat(0)}
             ref={(ref) => {
@@ -302,7 +329,7 @@ function MoneyRequestAmountInput(
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = ref;
             }}
-            selectedCurrencyCode={currency}
+            selectedCurrencyCode={currentCurrency}
             selection={selection}
             onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
                 if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {

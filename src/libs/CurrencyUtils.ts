@@ -197,6 +197,10 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
+function getCurrencyCode(currencySymbol: string): string | undefined {
+    return Object.keys(currencyList ?? {}).find((currencyCode) => currencyList?.[currencyCode]?.symbol === currencySymbol);
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
@@ -211,4 +215,5 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
+    getCurrencyCode,
 };

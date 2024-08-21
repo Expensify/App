@@ -57,7 +57,7 @@ type MoneyRequestAmountFormProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
+    onCurrencyButtonPress?: (updateCurrency?: string) => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
@@ -216,19 +216,20 @@ function MoneyRequestAmountForm(
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
+            const currentCurrency = moneyRequestAmountInput.current?.getCurrency() ?? CONST.CURRENCY.USD;
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
+            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currentCurrency)) {
                 setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency: currentCurrency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {

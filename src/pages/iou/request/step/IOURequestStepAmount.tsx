@@ -30,6 +30,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type AmountParams = {
     amount: string;
     paymentMethod?: PaymentMethodType;
+    currency: string;
 };
 
 type IOURequestStepAmountOnyxProps = {
@@ -132,9 +133,17 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
-    const navigateToCurrencySelectionPage = () => {
+    const navigateToCurrencySelectionPage = (updateCurrency?: string) => {
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                updateCurrency ?? currency,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
@@ -164,12 +173,12 @@ function IOURequestStepAmount({
         }
     };
 
-    const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
+    const navigateToNextPage = ({amount, paymentMethod, currency: updateCurrency}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
+        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, updateCurrency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
         // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
         // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
@@ -265,22 +274,22 @@ function IOURequestStepAmount({
         navigateToParticipantPage();
     };
 
-    const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
+    const saveAmountAndCurrency = ({amount, paymentMethod, currency: newCurrency}: AmountParams) => {
         const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
-            IOU.resetSplitShares(transaction, newAmount, currency);
+            IOU.resetSplitShares(transaction, newAmount, newCurrency);
         }
 
         if (!isEditing) {
-            navigateToNextPage({amount, paymentMethod});
+            navigateToNextPage({amount, paymentMethod, currency: newCurrency});
             return;
         }
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
-        if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
+        if (newAmount === TransactionUtils.getAmount(currentTransaction) && newCurrency === transactionCurrency) {
             navigateBack();
             return;
         }
@@ -290,15 +299,15 @@ function IOURequestStepAmount({
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency ?? CONST.CURRENCY.USD));
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, newCurrency ?? CONST.CURRENCY.USD));
 
         if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency: newCurrency, taxCode, taxAmount});
             navigateBack();
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency: newCurrency, amount: newAmount, taxAmount, policy, taxCode});
         navigateBack();
     };
 

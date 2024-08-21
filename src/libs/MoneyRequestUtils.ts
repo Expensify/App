@@ -2,6 +2,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {SelectedTabRequest} from '@src/types/onyx';
+import {getCurrencyCode} from './CurrencyUtils';
+
+type ExactAmountWithCurrency = {
+    currency: string;
+    amount: string;
+};
 
 /**
  * Strip comma from the amount
@@ -50,6 +56,27 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
 }
 
 /**
+ *
+ */
+function validateAmountWithCurrency(amountWithCurreny: string): ExactAmountWithCurrency | undefined {
+    const regex = /^(\p{Sc})?(\d+)$/u;
+
+    const match = amountWithCurreny.match(regex);
+
+    if (match) {
+        const currencySymbol = match[1];
+        const amount = match[2];
+        const currency = getCurrencyCode(currencySymbol);
+        if (!currency) {
+            return undefined;
+        }
+        return {currency, amount};
+    }
+
+    return undefined;
+}
+
+/**
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
  */
@@ -80,4 +107,15 @@ function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};
+export {
+    addLeadingZero,
+    isDistanceRequest,
+    isScanRequest,
+    replaceAllDigits,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    replaceCommasWithPeriod,
+    validateAmount,
+    validateAmountWithCurrency,
+};
