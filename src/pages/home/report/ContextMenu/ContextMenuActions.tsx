@@ -637,7 +637,6 @@ const ContextMenuActions: ContextMenuAction[] = [
 ];
 
 const restrictedReadOnlyActions: TranslationPaths[] = [
-    'common.download',
     'reportActionContextMenu.replyInThread',
     'reportActionContextMenu.editAction',
     'reportActionContextMenu.joinThread',
