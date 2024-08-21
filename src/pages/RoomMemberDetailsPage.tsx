@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -16,35 +15,29 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
+import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
-import type {RoomMembersDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
-type RoomMembersDetailsPageOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
+type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
-type RoomMembersDetailsPagePageProps = WithReportOrNotFoundProps &
-    StackScreenProps<RoomMembersDetailsNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_DETAILS_ROOT> &
-    RoomMembersDetailsPageOnyxProps;
-
-function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDetailsPagePageProps) {
+function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
-    const accountID = Number(route.params.accountID);
+    const accountID = Number(route.params?.accountID ?? -1);
     const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1');
 
     const member = report?.participants?.[accountID];
@@ -67,7 +60,7 @@ function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDet
     }
 
     return (
-        <ScreenWrapper testID={RoomMembersDetailsPage.displayName}>
+        <ScreenWrapper testID={RoomMemberDetailsPage.displayName}>
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -93,7 +86,7 @@ function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDet
                     )}
                     <>
                         <Button
-                            text={translate('workspace.people.removeMemberRoomButtonTitle')}
+                            text={translate('workspace.people.removeRoomMemberButtonTitle')}
                             onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                             medium
                             isDisabled={isSelectedMemberCurrentUser}
@@ -103,7 +96,7 @@ function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDet
                         />
                         <ConfirmModal
                             danger
-                            title={translate('workspace.people.removeMemberRoomButtonTitle')}
+                            title={translate('workspace.people.removeRoomMemberButtonTitle')}
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
                             onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
@@ -126,12 +119,6 @@ function RoomMembersDetailsPage({personalDetails, report, route}: RoomMembersDet
     );
 }
 
-RoomMembersDetailsPage.displayName = 'RoomMembersDetailsPage';
+RoomMemberDetailsPage.displayName = 'RoomMemberDetailsPage';
 
-export default withReportOrNotFound()(
-    withOnyx<RoomMembersDetailsPagePageProps, RoomMembersDetailsPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(RoomMembersDetailsPage),
-);
+export default withReportOrNotFound()(RoomMemberDetailsPage);

@@ -108,14 +108,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.RoomMembersModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_INVITE}
-                        component={ModalStackNavigators.RoomInviteModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_MEMBERS_DETAILS}
-                        component={ModalStackNavigators.RoomMembersDetailsModalStackNavigator}
-                    />
-                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />

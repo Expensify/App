@@ -38,7 +38,7 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
         | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>
         | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>
         | RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>
-        | RouteProp<RoomMembersDetailsNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_DETAILS_ROOT>;
+        | RouteProp<RoomMembersDetailsNavigatorParamList, typeof SCREENS.ROOM_MEMBER_DETAILS_ROOT>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;

@@ -3085,9 +3085,9 @@ export default {
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobación por el propietario del espacio de trabajo, ${ownerName}`,
             removeMembersTitle: 'Eliminar miembros',
-            removeMemberButtonTitle: 'Eliminar del espacio de trabajo',
-            removeMemberGroupButtonTitle: 'Eliminar del grupo',
-            removeMemberRoomButtonTitle: 'Eliminar de la sala',
+            removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
+            removeGroupMemberButtonTitle: 'Eliminar del grupo',
+            removeRoomMemberButtonTitle: 'Eliminar de la sala',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',

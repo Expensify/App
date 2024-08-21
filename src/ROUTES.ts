@@ -347,7 +347,7 @@ const ROUTES = {
         route: 'r/:reportID/members',
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
-    ROOM_MEMBERS_DETAILS: {
+    ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
         getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/members/${accountID}` as const,
     },

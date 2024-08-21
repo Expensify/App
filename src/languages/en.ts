@@ -3033,9 +3033,9 @@ export default {
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
             removeMembersTitle: 'Remove members',
-            removeMemberButtonTitle: 'Remove from workspace',
-            removeMemberGroupButtonTitle: 'Remove from group',
-            removeMemberRoomButtonTitle: 'Remove from room',
+            removeWorkspaceMemberButtonTitle: 'Remove from workspace',
+            removeGroupMemberButtonTitle: 'Remove from group',
+            removeRoomMemberButtonTitle: 'Remove from room',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',

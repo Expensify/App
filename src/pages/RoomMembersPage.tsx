@@ -49,7 +49,7 @@ type RoomMembersPageOnyxProps = {
 type RoomMembersPageProps = WithReportOrNotFoundProps &
     WithCurrentUserPersonalDetailsProps &
     RoomMembersPageOnyxProps &
-    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
+    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
@@ -293,7 +293,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
-            Navigation.navigate(ROUTES.ROOM_MEMBERS_DETAILS.getRoute(report.reportID, item?.accountID ?? -1));
+            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1));
         },
         [report],
     );

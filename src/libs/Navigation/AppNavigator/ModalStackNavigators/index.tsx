@@ -18,7 +18,6 @@ import type {
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
-    RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
@@ -149,16 +148,11 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator<Particip
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
-    [SCREENS.ROOM_MEMBERS_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS.ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS.INVITE]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
+    [SCREENS.ROOM_MEMBERS.DETAILS]: () => require<ReactComponentModule>('../../../../pages/RoomMemberDetailsPage').default,
 });
 
-const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNavigatorParamList>({
-    [SCREENS.ROOM_INVITE_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
-});
-
-const RoomMembersDetailsModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
-    [SCREENS.ROOM_MEMBERS_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersDetailsPage').default,
-});
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require<ReactComponentModule>('../../../../pages/NewChatSelectorPage').default,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/NewChatConfirmPage').default,
@@ -555,9 +549,7 @@ export {
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
-    RoomMembersDetailsModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     CategoriesModalStackNavigator,

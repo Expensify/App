@@ -767,18 +767,12 @@ type ParticipantsNavigatorParamList = {
 };
 
 type RoomMembersNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS_ROOT]: undefined;
-};
-
-type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: {
+    [SCREENS.ROOM_MEMBERS.ROOT]: {reportID: string};
+    [SCREENS.ROOM_MEMBERS.INVITE]: {
         reportID: string;
         role?: 'accountant';
     };
-};
-
-type RoomMembersDetailsNavigatorParamList = {
-    [SCREENS.ROOM_MEMBERS_DETAILS_ROOT]: {
+    [SCREENS.ROOM_MEMBERS.DETAILS]: {
         reportID: string;
         accountID: string;
     };
@@ -1086,8 +1080,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.ROOM_MEMBERS_DETAILS]: NavigatorScreenParams<RoomMembersDetailsNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
@@ -1373,9 +1365,7 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RightModalNavigatorParamList,
-    RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
-    RoomMembersDetailsNavigatorParamList,
     RootStackParamList,
     SearchNavigatorParamList,
     SettingsNavigatorParamList,
