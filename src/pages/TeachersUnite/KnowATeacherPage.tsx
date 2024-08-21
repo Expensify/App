@@ -58,11 +58,11 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
             const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
             const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
 
-            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+            if (!values.firstName || !ValidationUtils.isValidDisplayName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             }
-            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
+            if (!values.lastName || !ValidationUtils.isValidDisplayName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             }
             if (!values.partnerUserID) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));

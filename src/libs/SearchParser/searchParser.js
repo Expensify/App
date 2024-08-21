@@ -203,7 +203,7 @@ function peg$parse(input, options) {
 
   var peg$r0 = /^[:=]/;
   var peg$r1 = /^[^"\r\n]/;
-  var peg$r2 = /^[A-Za-z0-9_@.\/#&+\-\\',]/;
+  var peg$r2 = /^[A-Za-z0-9_@.\/#&+\-\\',;]/;
   var peg$r3 = /^[ \t\r\n]/;
 
   var peg$e0 = peg$classExpectation([":", "="], false, false);
@@ -233,7 +233,7 @@ function peg$parse(input, options) {
   var peg$e24 = peg$literalExpectation("sortOrder", false);
   var peg$e25 = peg$literalExpectation("\"", false);
   var peg$e26 = peg$classExpectation(["\"", "\r", "\n"], true, false);
-  var peg$e27 = peg$classExpectation([["A", "Z"], ["a", "z"], ["0", "9"], "_", "@", ".", "/", "#", "&", "+", "-", "\\", "'", ","], false, false);
+  var peg$e27 = peg$classExpectation([["A", "Z"], ["a", "z"], ["0", "9"], "_", "@", ".", "/", "#", "&", "+", "-", "\\", "'", ",", ";"], false, false);
   var peg$e28 = peg$otherExpectation("whitespace");
   var peg$e29 = peg$classExpectation([" ", "\t", "\r", "\n"], false, false);
 
@@ -243,6 +243,18 @@ function peg$parse(input, options) {
       if (!allFilters.length) {
       	return null;
       }
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
+     const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+     if(!nonKeywords.length){
+     	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
+     }
+     if(!keywords.length){
+     	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
+     }
+      
+     return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
+      
+      
       return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     };
   var peg$f2 = function(field, op, value) {
