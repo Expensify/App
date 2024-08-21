@@ -35,7 +35,7 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-function parseMessage(messages: Message[] | undefined) {
+function parseMessage(messages: Message[] | undefined, title: string | undefined) {
     let nextStepHTML = '';
 
     messages?.forEach((part) => {
@@ -48,8 +48,7 @@ function parseMessage(messages: Message[] | undefined) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
-
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
+        nextStepHTML += `<${tagType}>${[title, content].join(' ')}</${tagType}>`;
     });
 
     const formattedHtml = nextStepHTML

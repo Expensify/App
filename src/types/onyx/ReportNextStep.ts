@@ -55,6 +55,9 @@ type ReportNextStep = {
     /** The message parts of the next step */
     message?: Message[];
 
+    /** The tile the next step */
+    title?: string;
+
     /** The icon for the next step */
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
