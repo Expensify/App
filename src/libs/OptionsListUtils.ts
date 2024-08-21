@@ -2375,11 +2375,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          const isUser = participant.accountID && participant.accountID !== 0;
-                          const nonExpenseChat = isUser ? getParticipantsOption(participant, personalDetails) : participant;
-                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : nonExpenseChat;
-
-                          //   return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,

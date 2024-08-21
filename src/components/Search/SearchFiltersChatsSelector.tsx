@@ -91,20 +91,20 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
         if (chatOptions.currentUserOption && !isCurrentUserSelected) {
             const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
             newSections.push({
-                title: 'idk',
+                title: '',
                 data: [{...chatOptions.currentUserOption, text: formattedName}],
                 shouldShow: true,
             });
         }
 
         newSections.push({
-            title: 'recent',
+            title: '',
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
         newSections.push({
-            title: 'chat',
+            title: '',
             data: chatOptions.personalDetails,
             shouldShow: chatOptions.personalDetails.length > 0,
         });
