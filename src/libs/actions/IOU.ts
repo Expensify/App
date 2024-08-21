@@ -7617,7 +7617,9 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
     const currentTime = DateUtils.getDBTime();
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
-
+    const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const updatedViolations = [...transactionViolations, newViolation];
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7636,6 +7638,11 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
                     hold: createdReportAction.reportActionID,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
         },
     ];
 
