@@ -98,7 +98,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
             const focusedRoute = findFocusedRoute(stateFromPath);
             const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDFromQuery);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID ?? policyIDFromQuery);
             const isOpeningSearch = matchingBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB;
             const isNewPolicyID =
                 ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
