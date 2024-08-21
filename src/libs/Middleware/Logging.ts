@@ -7,27 +7,43 @@ import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
 
+type Serializable =
+    | Primitive
+    | Date
+    | RegExp
+    | Error
+    | {[K in string | number | symbol]: Serializable}
+    | (Record<string, never> | Map<Serializable, Serializable>)
+    | (Record<string, never> | Set<Serializable>)
+    | (Record<string, never> | Serializable[]);
+
 function serializeValue(data: unknown) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const seen = new WeakMap<any, boolean>();
-    function serialize(item: unknown): string | Record<string, unknown> | Primitive | Map<unknown, unknown> | Set<unknown> {
+    const seen = new Set<any>();
+    function serialize(item: unknown): Serializable {
         if (seen.has(item)) {
             return '"[Circular]"';
         }
 
-        if (['undefined', 'null', 'number', 'boolean', 'string', 'bigint', 'symbol'].includes(typeof item) || item instanceof Date || item instanceof RegExp || item instanceof Error) {
-            return item as Primitive;
+        if (
+            ['undefined', 'number', 'boolean', 'string', 'bigint', 'symbol'].includes(typeof item) ||
+            item instanceof Date ||
+            item instanceof RegExp ||
+            item instanceof Error ||
+            item === null
+        ) {
+            return item as Primitive | Date | RegExp | Error;
         }
 
         if (item instanceof Map) {
-            seen.set(item, true);
+            seen.add(item);
             const serializedMap = new Map(Array.from(item.entries()).map(([key, value]) => [serialize(key), serialize(value)]));
             seen.delete(item);
             return serializedMap;
         }
 
         if (item instanceof Set) {
-            seen.set(item, true);
+            seen.add(item);
             const serializedSet = new Set(Array.from(item.values()).map((v) => serialize(v)));
             seen.delete(item);
             return serializedSet;
@@ -43,20 +59,20 @@ function serializeValue(data: unknown) {
         }
 
         if (Array.isArray(item)) {
-            seen.set(item, true);
+            seen.add(item);
             const serializedArray = item.map(serialize);
             seen.delete(item);
-            return `[${serializedArray.join(',')}]`;
+            return serializedArray;
         }
 
         if (typeof item === 'object') {
             const itemAsObject = item as Record<string, unknown>;
-            seen.set(item, true);
-            const serializedObj: Record<string, unknown> = {};
+            seen.add(itemAsObject);
+            const serializedObj: Record<string, Serializable> = {};
             Object.keys(itemAsObject).forEach((key) => {
                 serializedObj[key] = serialize(itemAsObject[key]);
             });
-            seen.delete(item);
+            seen.delete(itemAsObject);
             return serializedObj;
         }
 
@@ -64,7 +80,12 @@ function serializeValue(data: unknown) {
         return `"[Not serializable: ${type}]"`;
     }
 
-    return serialize(data);
+    try {
+        const serializedData = serialize(data);
+        return serializedData;
+    } catch (error) {
+        return '[Not serializable - errors happening during serialization]';
+    }
 }
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
