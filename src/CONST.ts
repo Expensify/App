@@ -2131,6 +2131,12 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
             },
+            ROUTE: {
+                QBO: 'quickbooks-online',
+                XERO: 'xero',
+                NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'sage-intacct',
+            },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
@@ -2181,7 +2187,10 @@ const CONST = {
                 NETSUITE_SYNC_ACCOUNTS: 'netSuiteSyncAccounts',
                 NETSUITE_SYNC_CURRENCIES: 'netSuiteSyncCurrencies',
                 NETSUITE_SYNC_CATEGORIES: 'netSuiteSyncCategories',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS: 'netSuiteSyncImportCustomLists',
                 NETSUITE_SYNC_IMPORT_EMPLOYEES: 'netSuiteSyncImportEmployees',
+                NETSUITE_SYNC_IMPORT_SUBSIDIARIES: 'netSuiteSyncImportSubsidiaries',
+                NETSUITE_SYNC_IMPORT_VENDORS: 'netSuiteSyncImportVendors',
                 NETSUITE_SYNC_REPORT_FIELDS: 'netSuiteSyncReportFields',
                 NETSUITE_SYNC_TAGS: 'netSuiteSyncTags',
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
@@ -3907,6 +3916,7 @@ const CONST = {
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
+        CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
