@@ -154,7 +154,7 @@ function BaseReportActionContextMenu({
         }
 
         Report.openReport(childReport?.reportID ?? '-1');
-    }, [hasNewestReportAction]);
+    }, [hasNewestReportAction, childReport?.reportID]);
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', paginatedReportActions ?? [], isOffline),
