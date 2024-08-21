@@ -2911,6 +2911,10 @@ export default {
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
             },
+            companyCards: {
+                addCompanyCards: 'Agregar tarjetas de empresa',
+                selectCardFeed: 'Seleccionar feed de tarjetas',
+            },
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
