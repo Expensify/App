@@ -21,6 +21,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
@@ -72,7 +73,6 @@ function Composer(
             end: 0,
         },
         isReportActionCompose = false,
-        isFullComposerAvailable = false,
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
@@ -102,6 +102,7 @@ function Composer(
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState<ViewStyle['width']>('');
+    const [hasMultipleLines, setHasMultipleLines] = useState(false);
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
@@ -380,10 +381,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
-            textContainsOnlyEmojis && isFullComposerAvailable ? styles.onlyEmojisTextLineHeight : {},
+            textContainsOnlyEmojis && hasMultipleLines ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, isFullComposerAvailable, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, hasMultipleLines, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
@@ -403,6 +404,7 @@ function Composer(
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
                 onContentSizeChange={(e) => {
+                    setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
                     setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
                     updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
                 }}
