@@ -1,8 +1,9 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {TextInput} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -19,8 +20,8 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-        shouldClear = false,
-        onClear = () => {},
+        onClear: onClearProp = () => {},
+        onPasteFile = () => {},
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -64,13 +65,26 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
+    const onClear = useCallback(
+        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            onClearProp(nativeEvent.text);
+        },
+        [onClearProp],
+    );
+
+    const pasteFile = useCallback(
+        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
+            const clipboardContent = e.nativeEvent.items[0];
+            if (clipboardContent.type === 'text/plain') {
+                return;
+            }
+            const fileURI = clipboardContent.data;
+            const fileName = fileURI.split('/').pop();
+            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            onPasteFile(file);
+        },
+        [onPasteFile],
+    );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
@@ -92,6 +106,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onPaste={pasteFile}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler
@@ -99,6 +114,7 @@ function Composer(
                 }
                 props?.onBlur?.(e);
             }}
+            onClear={onClear}
         />
     );
 }

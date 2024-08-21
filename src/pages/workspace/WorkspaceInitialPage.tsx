@@ -31,6 +31,7 @@ import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -92,6 +93,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const hasSyncError = PolicyUtils.hasSyncError(policy);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
@@ -299,8 +301,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
+            brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
@@ -393,7 +394,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.resetToHome();
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
+                        } else {
+                            Navigation.dismissModal();
+                        }
+                    }}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />

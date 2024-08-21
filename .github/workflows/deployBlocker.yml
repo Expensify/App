@@ -39,7 +39,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ github.event.issue.html_url }}|${{ env.GH_ISSUE_TITLE }}>'
+                text: '💥 New Deploy Blocker: <${{ github.event.issue.html_url }}|${{ env.GH_ISSUE_TITLE }}>. If you have any idea which PR could be causing this, please comment in the issue.'
               }]
             }
         env:

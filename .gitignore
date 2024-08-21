@@ -110,10 +110,6 @@ tsconfig.tsbuildinfo
 # Mock-github
 /repo/
 
-# Workflow test logs
-/workflow_tests/logs/
-/workflow_tests/repo/
-
 # Yalc
 .yalc
 yalc.lock

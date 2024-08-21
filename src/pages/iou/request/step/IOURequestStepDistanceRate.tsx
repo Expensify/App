@@ -32,7 +32,7 @@ type IOURequestStepDistanceRateOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to the policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** Mileage rates */
     rates: Record<string, MileageRate>;
@@ -119,7 +119,7 @@ function IOURequestStepDistanceRate({
                 sections={[{data: sections}]}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>

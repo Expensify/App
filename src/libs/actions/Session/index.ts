@@ -206,7 +206,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
         if (NativeModules.HybridAppModule && killHybridApp) {
-            NativeModules.HybridAppModule.closeReactNativeApp();
+            NativeModules.HybridAppModule.closeReactNativeApp(true);
             return;
         }
         // We'll only call signOut if we're not stashing the session and this is not a supportal session,
@@ -677,7 +677,7 @@ function clearSignInData() {
  */
 function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState().routes;
+        const routes = navigationRef.current?.getState()?.routes;
         const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
 
         const emptyParams: Record<string, undefined> = {};

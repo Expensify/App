@@ -54,8 +54,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -184,7 +183,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && bundle exec pod install --verbose
+          command: scripts/pod-install.sh
 
       - name: Decrypt AdHoc profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg

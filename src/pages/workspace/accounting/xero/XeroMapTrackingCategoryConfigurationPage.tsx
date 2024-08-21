@@ -22,8 +22,6 @@ type RouteParams = {
     categoryName?: string;
 };
 
-const TRACKING_CATEGORIES_KEY = 'trackingCategory_';
-
 function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const route = useRoute();
@@ -37,7 +35,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? '' : '';
+    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '' : '';
 
     const optionsList = useMemo(
         () =>
@@ -67,11 +65,12 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.MAPPINGS,
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
+                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, policyID],
+        [categoryId, categoryName, currentTrackingCategoryValue, policyID],
     );
 
     return (
@@ -92,7 +91,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
         />
     );
 }
