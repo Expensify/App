@@ -33,9 +33,9 @@ function RulesMaxExpenseAgePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
+    const maxExpenseAgeDefaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
-    const [maxExpenseAgeValue, setMaxExpenseAgeValue] = useState(defaultValue);
+    const [maxExpenseAgeValue, setMaxExpenseAgeValue] = useState(maxExpenseAgeDefaultValue);
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
