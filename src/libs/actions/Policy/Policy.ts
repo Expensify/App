@@ -3291,6 +3291,11 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Call the API to set the receipt required amount for the given policy
+ * @param policyID - id of the policy to set the receipt required amount
+ * @param maxExpenseAmountNoReceipt - new value of the receipt required amount
+ */
 function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: string) {
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAmountNoReceipt = maxExpenseAmountNoReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
@@ -3340,6 +3345,11 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
 }
 
+/**
+ * Call the API to set the max expense amount for the given policy
+ * @param policyID - id of the policy to set the max expense amount
+ * @param maxExpenseAmount - new value of the max expense amount
+ */
 function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
@@ -3389,6 +3399,11 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
 }
 
+/**
+ * Call the API to set the max expense age for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param maxExpenseAge - the max expense age value given in days
+ */
 function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
     const policy = getPolicy(policyID);
     const parsedMaxExpenseAge = maxExpenseAge === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : parseInt(maxExpenseAge, 10);
@@ -3439,6 +3454,11 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);
 }
 
+/**
+ * Call the API to enable or disable the billable mode for the given policy
+ * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param defaultBillable - whether the billable mode is enabled in the given policy
+ */
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     const policy = getPolicy(policyID);
 
