@@ -470,6 +470,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(reportAction));
+                } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+                    const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
+                    setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', label, errorMessage));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
