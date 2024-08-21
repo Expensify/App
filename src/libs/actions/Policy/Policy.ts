@@ -3518,7 +3518,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function setPolicyEReceiptsEnabled(policyID: string, eReceipts: boolean) {
+function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     const policy = getPolicy(policyID);
 
     const originalEReceipts = policy?.eReceipts;
@@ -3566,7 +3566,7 @@ function setPolicyEReceiptsEnabled(policyID: string, eReceipts: boolean) {
         eReceipts,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_ERECEIPTS_ENABLED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
 }
 
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
@@ -3657,7 +3657,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     setPolicyBillableMode,
-    setPolicyEReceiptsEnabled,
+    setWorkspaceEReceiptsEnabled,
 };
 
 export type {NewCustomUnit};

@@ -275,4 +275,4 @@ export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExp
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as SetPolicyBillableMode} from './SetPolicyBillableMode';
-export type {default as SetPolicyEReceiptsEnabled} from './SetPolicyEReceiptsEnabled';
+export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';

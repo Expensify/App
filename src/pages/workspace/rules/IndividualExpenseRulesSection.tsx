@@ -149,7 +149,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <Switch
                             isOn={areEReceiptsEnabled}
                             accessibilityLabel={translate('workspace.categories.enableCategory')}
-                            onToggle={() => Policy.setPolicyEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                            onToggle={() => Policy.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
                             disabled={policyCurrency !== CONST.CURRENCY.USD}
                         />
                     </View>
