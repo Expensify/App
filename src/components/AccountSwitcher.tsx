@@ -21,6 +21,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
+import type {MenuItemWithLink} from './MenuItemList';
 import Popover from './Popover';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
@@ -43,7 +44,7 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps = {}): MenuItemProps => {
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps = {}): MenuItemWithLink => {
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: personalDetails?.login,
@@ -66,6 +67,7 @@ function AccountSwitcher() {
             shouldShowRightIcon: true,
             iconRight: Expensicons.Checkmark,
             success: true,
+            key: `${currentUserPersonalDetails?.login}-current`,
         });
 
         if (isActingAsDelegate) {
@@ -81,12 +83,13 @@ function AccountSwitcher() {
                         }
                         disconnect();
                     },
+                    key: `${delegateEmail}-delegate`,
                 }),
                 currentUserMenuItem,
             ];
         }
 
-        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}) => {
+        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}, index) => {
             const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
             return createBaseMenuItem(personalDetails, error, {
                 badgeText: translate('delegate.role', role),
@@ -97,6 +100,7 @@ function AccountSwitcher() {
                     }
                     connect(email);
                 },
+                key: `${email}-${index}`,
             });
         });
 
