@@ -1,10 +1,10 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
-const createOnyxMockUpdate = (lastUpdateID: number, successData: OnyxUpdate[] = []): OnyxUpdatesFromServer => ({
+const createOnyxMockUpdate = (lastUpdateID: number, successData: OnyxUpdate[] = [], previousUpdateIDOffset = 1): OnyxUpdatesFromServer => ({
     type: 'https',
     lastUpdateID,
-    previousUpdateID: lastUpdateID - 1,
+    previousUpdateID: lastUpdateID - previousUpdateIDOffset,
     request: {
         command: 'TestCommand',
         successData,
@@ -15,7 +15,7 @@ const createOnyxMockUpdate = (lastUpdateID: number, successData: OnyxUpdate[] = 
     response: {
         jsonCode: 200,
         lastUpdateID,
-        previousUpdateID: lastUpdateID - 1,
+        previousUpdateID: lastUpdateID - previousUpdateIDOffset,
         onyxData: successData,
     },
 });

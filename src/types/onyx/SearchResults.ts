@@ -66,18 +66,6 @@ type SearchPersonalDetails = {
     login?: string;
 };
 
-/** Model of policy details search result */
-type SearchPolicyDetails = {
-    /** ID of the policy */
-    id: string;
-
-    /** Policy avatar URL */
-    avatarURL: string;
-
-    /** Policy name */
-    name: string;
-};
-
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
@@ -220,10 +208,10 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
-};
 
-/** Model of account details search result */
-type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
+    /** Whether the transaction report has only a single transaction */
+    isFromOneTransactionReport?: boolean;
+};
 
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
@@ -234,7 +222,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
-    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchReport>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -242,16 +230,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {
-    ListItemType,
-    ListItemDataType,
-    SearchTransaction,
-    SearchTransactionType,
-    SearchTransactionAction,
-    SearchPersonalDetails,
-    SearchPolicyDetails,
-    SearchAccountDetails,
-    SearchDataTypes,
-    SearchReport,
-    SectionsType,
-};
+export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport, SectionsType};

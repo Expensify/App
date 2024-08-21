@@ -63,12 +63,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID || !!reportDraft) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-
             ReportActions.openReport(route.params.reportID);
-
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 

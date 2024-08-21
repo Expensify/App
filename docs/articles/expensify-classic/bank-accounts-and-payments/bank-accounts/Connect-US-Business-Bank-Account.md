@@ -96,7 +96,7 @@ If you do not see these test transactions after two business days, click the gre
 
 {% include faq-begin.md %}
 
-**I received a “something’s gone wrong” error while trying to add my ID to Onfido.**
+### I received a “something’s gone wrong” error while trying to add my ID to Onfido.
 
 If you receive an error message during this process, check all of the following:
 - Ensure you are using either the Safari (on iPhone) or Chrome (on Android) browser.
@@ -108,17 +108,17 @@ If you receive an error message during this process, check all of the following:
 
 If the issue persists, follow these steps on a different device, if possible. Contact your Account Manager or Concierge for further troubleshooting assistance.
 
-**Should I add a Beneficial Owner if our business is owned by another company?**
+### Should I add a Beneficial Owner if our business is owned by another company?
 
 No, you should only indicate that you have a Beneficial Owner if an individual owns 25% or more of the business.
 
-**Why can’t I input my address or upload my ID?**
+### Why can’t I input my address or upload my ID?
 
 Ensure that the address you’re entering is in the United States. When adding a verified business bank account in Expensify, the individual adding the account and any beneficial owners are required to have a U.S. address, photo ID, and SSN. 
 
 If you do not meet these requirements, you’ll need to have another admin add the bank account and share access with you once the account is verified.
 
-**Why am I being asked for documentation when adding my bank account?**
+### Why am I being asked for documentation when adding my bank account?
 
 When a bank account is added to Expensify, we conduct a series of checks to comply with both our sponsor bank’s requirements and federal government regulations for the Bank Secrecy Act (BSA), Anti-Money Laundering (AML) laws, and anti-fraud. 
 
@@ -126,26 +126,44 @@ If automatic verification fails, we may request manual verification, which could
 
 If you have any questions regarding the documentation request you received, contact Concierge for additional assistance.
 
-**I don’t see all three microtransactions I need to validate my bank account.** 
+### What should I do if I don’t see all three microtransactions needed to validate my bank account?
 
 If you do not see the three microtransactions by the end of the second business day, contact your bank and ask them to whitelist Expensify’s ACH IDs 1270239450 and 4270239450. Expensify’s ACH Originator Name is “Expensify.”
 
 Once you are whitelisted, contact your Account Manager or Concierge, and our team will re-trigger the three transactions.
 
-**What happens if my bank requires an additional security check before adding it to a third party?**
+### What happens if my bank requires an additional security check before adding it to a third party?
 
 If your bank account has two-factor authentication (2FA) or another security step enabled, you should be prompted to complete this authentication step when connecting the account to Expensify. However, if you encounter an error during this process, you can close the pop-up window and select Connect Manually to add the account manually.
 
-**I added a business deposit account. Can I also pay employees from this account?** 
+### I added a business deposit account. Can I also pay employees from this account?
 
 To pay employees from a business deposit account, click **Verify** next to the bank account. This will take you through the additional verification steps required to make this account a verified business bank account that you can use to issue payments.
 
-**I connected my business deposit account. Why haven’t I received my reimbursement?**
+### I connected my business deposit account. Why haven’t I received my reimbursement?
 
 There are a few reasons why you might not have received a reimbursement:  
 - The estimated deposit date on the report has not arrived yet.
 - The bank account information is incorrect. If you believe you may have entered the wrong account, contact the Concierge and provide the Report ID for the missing reimbursement.
-- Your account wasn’t set up for Direct Deposit/ACH. You can contact your bank to confirm.
+- Your account wasn’t set up for Direct Deposit/ACH. Please contact your bank to confirm.
+
+### Are there certain industries or businesses for which Expensify cannot process payments?
+
+There are! If your business is associated with one of the following industries, you won't be able to connect your business bank account to process payments:
+- Security Brokers & Dealers
+- Dating & Escort Services
+- Massage Parlors
+- Casinos & Gambling/Betting Services
+- Non-FI, Money Orders
+- Wires, Money Orders
+- Government Owned Lotteries
+- Government Licensed Online Casinos (Online Gambling)
+- Government Licensed Horse/Dog Racing
+- Crypto-currency businesses
+- Internet gambling
+- Marijuana-related businesses
+- Firearm-related businesses (manufacturing and selling)
+- NFT (non-fungible token) services
 
 {% include faq-end.md %}
 
