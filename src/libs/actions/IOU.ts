@@ -3848,7 +3848,6 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
-        console.debug('Created a new group chat report', splitChatReport);
         return {existingSplitChatReport: null, splitChatReport};
     }
 
