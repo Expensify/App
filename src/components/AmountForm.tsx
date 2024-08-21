@@ -43,8 +43,10 @@ type AmountFormProps = {
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
+    /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus' | 'hasError'>;
