@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -32,10 +32,11 @@ function AmountWithoutCurrencyForm(
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-            if (!validateAmount(replacedCommasAmount, 2)) {
+            const withLeadingZero = addLeadingZero(replacedCommasAmount);
+            if (!validateAmount(withLeadingZero, 2)) {
                 return;
             }
-            onInputChange?.(replacedCommasAmount);
+            onInputChange?.(withLeadingZero);
         },
         [onInputChange],
     );
