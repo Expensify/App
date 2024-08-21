@@ -16,7 +16,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -25,29 +25,17 @@ import INPUT_IDS from '@src/types/form/RulesRequiredReceiptAmountForm';
 type RulesReceiptRequiredAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT>;
 
 function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageProps) {
+    const {policyID} = route.params;
+    const policy = usePolicy(policyID);
+
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const policy = usePolicy(route.params.policyID);
 
     const defaultValue =
         policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt
             ? ''
             : CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
-
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>) => {
-            const value = values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT];
-            let amountBackend;
-            if (!value) {
-                amountBackend = CONST.DISABLED_MAX_EXPENSE_VALUE;
-            }
-            amountBackend = CurrencyUtils.convertToBackendAmount(parseFloat(values[INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT]));
-            Policy.setPolicyMaxExpenseAmountNoReceipt(route.params.policyID, amountBackend);
-            Navigation.goBack();
-        },
-        [route.params.policyID],
-    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -67,8 +55,11 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                 <FormProvider
                     style={[styles.flexGrow1, styles.pt3, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
+                    onSubmit={({maxExpenseAmountNoReceipt}) => {
+                        PolicyActions.setPolicyMaxExpenseAmount(policyID, maxExpenseAmountNoReceipt);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('workspace.editor.save')}
-                    onSubmit={submit}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>

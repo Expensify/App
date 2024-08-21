@@ -44,6 +44,7 @@ import type {
 import type SetPolicyRulesEnabledParams from '@libs/API/parameters/SetPolicyRulesEnabledParams';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -3290,9 +3291,9 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
-function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: number) {
+function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: string) {
     const policy = getPolicy(policyID);
-
+    const parsedMaxExpenseAmountNoReceipt = maxExpenseAmountNoReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
     const originalMaxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
 
     const onyxData: OnyxData = {
@@ -3301,7 +3302,7 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    maxExpenseAmountNoReceipt,
+                    maxExpenseAmountNoReceipt: parsedMaxExpenseAmountNoReceipt,
                     pendingFields: {
                         maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -3333,15 +3334,15 @@ function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNo
 
     const parameters = {
         policyID,
-        maxExpenseAmountNoReceipt,
+        maxExpenseAmountNoReceipt: parsedMaxExpenseAmountNoReceipt,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
 }
 
-function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
+function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
     const policy = getPolicy(policyID);
-
+    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
     const originalMaxExpenseAmount = policy?.maxExpenseAmount;
 
     const onyxData: OnyxData = {
@@ -3350,7 +3351,7 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    maxExpenseAmount,
+                    maxExpenseAmount: parsedMaxExpenseAmount,
                     pendingFields: {
                         maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -3382,15 +3383,15 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: number) {
 
     const parameters = {
         policyID,
-        maxExpenseAmount,
+        maxExpenseAmount: parsedMaxExpenseAmount,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
 }
 
-function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: number) {
+function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
     const policy = getPolicy(policyID);
-
+    const parsedMaxExpenseAge = maxExpenseAge === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : parseInt(maxExpenseAge, 10);
     const originalMaxExpenseAge = policy?.maxExpenseAge;
 
     const onyxData: OnyxData = {
@@ -3399,7 +3400,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: number) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    maxExpenseAge,
+                    maxExpenseAge: parsedMaxExpenseAge,
                     pendingFields: {
                         maxExpenseAge: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -3432,7 +3433,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: number) {
 
     const parameters = {
         policyID,
-        maxExpenseAge,
+        maxExpenseAge: parsedMaxExpenseAge,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);

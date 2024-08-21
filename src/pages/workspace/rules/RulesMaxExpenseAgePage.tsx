@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -23,24 +23,16 @@ import INPUT_IDS from '@src/types/form/RulesMaxExpenseAgeForm';
 type RulesMaxExpenseAgePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE>;
 
 function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
+    const {policyID} = route.params;
+    const policy = usePolicy(policyID);
+
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const policy = usePolicy(route.params.policyID);
 
     const defaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
     const [maxExpenseAge, setMaxExpenseAge] = useState(defaultValue);
-
-    const submit = useCallback(() => {
-        let age;
-        if (!maxExpenseAge) {
-            age = CONST.DISABLED_MAX_EXPENSE_VALUE;
-        }
-        age = parseInt(maxExpenseAge, 10);
-        Policy.setPolicyMaxExpenseAge(route.params.policyID, age);
-        Navigation.goBack();
-    }, [maxExpenseAge, route.params.policyID]);
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
@@ -66,7 +58,10 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.pt3, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
-                    onSubmit={submit}
+                    onSubmit={() => {
+                        PolicyActions.setPolicyMaxExpenseAge(policyID, maxExpenseAge);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                 >

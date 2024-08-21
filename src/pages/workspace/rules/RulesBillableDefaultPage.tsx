@@ -21,9 +21,12 @@ import type SCREENS from '@src/SCREENS';
 type RulesBillableDefaultPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
 function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
+    const {policyID} = route.params;
+    const policy = usePolicy(policyID);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policy = usePolicy(route.params.policyID);
+
     const [defaultBillable, setDefaultBillable] = useState(policy?.defaultBillable ?? false);
 
     const billableModes = [
