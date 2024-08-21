@@ -32,12 +32,12 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
 
     const defaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
-    const [maxExpenseAge, setMaxExpenseAge] = useState(defaultValue);
+    const [maxExpenseAgeValue, setMaxExpenseAgeValue] = useState(defaultValue);
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
         const validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
-        setMaxExpenseAge(validMaxExpenseAge);
+        setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);
 
     return (
@@ -58,7 +58,7 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.pt3, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
-                    onSubmit={() => {
+                    onSubmit={({maxExpenseAge}) => {
                         PolicyActions.setPolicyMaxExpenseAge(policyID, maxExpenseAge);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
@@ -74,7 +74,7 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
                             suffixStyle={styles.colorMuted}
                             role={CONST.ROLE.PRESENTATION}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
-                            value={maxExpenseAge}
+                            value={maxExpenseAgeValue}
                             onChangeText={onChangeMaxExpenseAge}
                             ref={inputCallbackRef}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
