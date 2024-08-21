@@ -24,23 +24,22 @@ function execPolicyWriteCommand<TCommand extends WriteCommand>(commandName: TCom
     const optimisticData = onyxData.optimisticData ?? [];
     const failureData = onyxData.failureData ?? [];
 
-
-    if(currentPolicyLastModified) {
+    if (currentPolicyLastModified) {
         extendedParams.lastModified = currentTs;
         optimisticData.push({
             key: `${ONYXKEYS.COLLECTION.POLICY}${respectivePolicyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                lastModified: currentTs.toString()
-            }
-        })
+                lastModified: currentTs.toString(),
+            },
+        });
         failureData.push({
             key: `${ONYXKEYS.COLLECTION.POLICY}${respectivePolicyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 lastModified: currentPolicyLastModified,
-            }
-        })
+            },
+        });
     }
 
     API.write(commandName, extendedParams, {

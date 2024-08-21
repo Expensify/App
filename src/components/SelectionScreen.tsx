@@ -85,11 +85,14 @@ type SelectionScreenProps<T = string> = {
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execute `onRowSelect` - this prevents bugs related to double interactions */
+    shouldSingleExecuteRowSelect?: boolean;
 
     /** Used for dynamic header title translation with parameters */
     headerTitleAlreadyTranslated?: string;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 };
 
 function SelectionScreen<T = string>({
@@ -112,8 +115,9 @@ function SelectionScreen<T = string>({
     errors,
     errorRowStyles,
     onClose,
-    shouldDebounceRowSelect,
+    shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
+    shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,8 +155,9 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
-                        shouldDebounceRowSelect={shouldDebounceRowSelect}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     >
                         <ErrorMessageRow
                             errors={errors}

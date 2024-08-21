@@ -10,7 +10,6 @@ import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -71,16 +70,10 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** There an error when loading newer report actions */
     hasLoadingNewerReportActionsError?: boolean;
 
-    /** Whether the report is ready for comment linking */
-    isReadyForCommentLinking?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 };
-
-const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
-const SPACER = 16;
 
 let listOldID = Math.round(Math.random() * 100);
 
@@ -96,13 +89,13 @@ function ReportActionsView({
     hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
-    isReadyForCommentLinking = false,
     transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
+    const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -114,7 +107,6 @@ function ReportActionsView({
     const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
-    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
@@ -122,7 +114,6 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
-    const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
         if (!shouldFetchReport(report)) {
@@ -146,7 +137,7 @@ function ReportActionsView({
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID) {
+        if (!reportActionID && !prevReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -156,7 +147,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions, reportActionID]);
+    }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -215,8 +206,7 @@ function ReportActionsView({
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
-        // moneyRequestActions.length === 1 indicates that we have one-transaction report and we don't want to display additonal IOU action
-        return moneyRequestActions.length === 1 ? ReportActionsUtils.getFilteredForOneTransactionView([...actions, createdAction]) : [...actions, createdAction];
+        return [...actions, createdAction];
     }, [allReportActions, report, transactionThreadReport]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
@@ -245,7 +235,7 @@ function ReportActionsView({
         if (!reportActionID) {
             return combinedReportActions;
         }
-        if (isLoading || indexOfLinkedAction === -1) {
+        if (indexOfLinkedAction === -1) {
             return [];
         }
 
@@ -257,7 +247,7 @@ function ReportActionsView({
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+    }, [reportActionID, combinedReportActions, indexOfLinkedAction, currentReportActionID]);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions.map((action) => action.reportActionID);
@@ -295,21 +285,6 @@ function ReportActionsView({
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
-    const handleReportActionPagination = useCallback(
-        ({firstReportActionID}: {firstReportActionID: string}) => {
-            // This function is a placeholder as the actual pagination is handled by visibleReportActions
-            if (!hasMoreCached) {
-                isFirstLinkedActionRender.current = false;
-                fetchNewerAction(newestReportAction);
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            setCurrentReportActionID(firstReportActionID);
-        },
-        [fetchNewerAction, hasMoreCached, newestReportAction],
-    );
-
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
@@ -342,7 +317,20 @@ function ReportActionsView({
         contentListHeight.current = h;
     }, []);
 
-    const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
+    const handleReportActionPagination = useCallback(
+        ({firstReportActionID}: {firstReportActionID: string}) => {
+            // This function is a placeholder as the actual pagination is handled by visibleReportActions
+            if (!hasMoreCached && !hasNewestReportAction) {
+                isFirstLinkedActionRender.current = false;
+                fetchNewerAction(newestReportAction);
+            }
+            if (isFirstLinkedActionRender.current) {
+                isFirstLinkedActionRender.current = false;
+            }
+            setCurrentReportActionID(firstReportActionID);
+        },
+        [fetchNewerAction, hasMoreCached, newestReportAction, hasNewestReportAction],
+    );
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -397,15 +385,11 @@ function ReportActionsView({
 
     const loadNewerChats = useCallback(
         (force = false) => {
-            // Determines if loading older reports is necessary when the content is smaller than the list
-            // and there are fewer than 23 items, indicating we've reached the oldest message.
-            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
-
             if (
                 !force &&
                 (!reportActionID ||
                     !isFocused ||
-                    isLoadingInitialReportActions ||
+                    (isLoadingInitialReportActions && !hasMoreCached) ||
                     isLoadingNewerReportActions ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
@@ -417,18 +401,16 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
         [
             isLoadingInitialReportActions,
             isLoadingNewerReportActions,
-            checkIfContentSmallerThanList,
             reportActionID,
             indexOfLinkedAction,
             handleReportActionPagination,
-            reportActions.length,
             newestReportAction,
             isFocused,
             hasLoadingNewerReportActionsError,
@@ -449,12 +431,13 @@ function ReportActionsView({
         if (!ReportActionsView.initMeasured) {
             Performance.markEnd(CONST.TIMING.OPEN_REPORT);
             Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
     }, [hasCachedActionOnFirstRender]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -486,6 +469,7 @@ function ReportActionsView({
     if (!reportActions.length) {
         return null;
     }
+
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
     return (
@@ -524,9 +508,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
-    if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
-        return false;
-    }
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }

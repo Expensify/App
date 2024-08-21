@@ -75,6 +75,8 @@ const loadReportAttachments = () => require<ReactComponentModule>('../../../page
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
+const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
@@ -89,7 +91,7 @@ function shouldOpenOnAdminRoom() {
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString()};
+        return {q: buildSearchQueryString(), isCustomQuery: false};
     }
 
     if (screenName === SCREENS.REPORT) {
@@ -180,6 +182,9 @@ const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true);
     },
+    blur: () => {
+        Modal.setModalVisibility(false);
+    },
     beforeRemove: () => {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
@@ -222,7 +227,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         if (!initialReportID) {
-            initialReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID)?.reportID;
+            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+            initialReportID = initialReport?.reportID ?? '';
         }
 
         isInitialRender.current = false;
@@ -378,6 +384,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadConciergePage}
                     />
                     <RootStack.Screen
+                        name={SCREENS.TRACK_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadTrackExpensePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SUBMIT_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadSubmitExpensePage}
+                    />
+                    <RootStack.Screen
                         name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
@@ -460,6 +476,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={onboardingScreenOptions}
                         component={OnboardingModalNavigator}
+                        listeners={{
+                            focus: () => {
+                                Modal.setDisableDismissOnEscape(true);
+                            },
+                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                        }}
                     />
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}

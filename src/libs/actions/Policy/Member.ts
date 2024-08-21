@@ -105,6 +105,9 @@ Onyx.connect({
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
     const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
@@ -292,7 +295,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: optimisticMembersState},
+            value: {employeeList: optimisticMembersState, approver: emailList.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver},
         },
     ];
     optimisticData.push(...announceRoomMembers.onyxOptimisticData);
@@ -310,7 +313,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: failureMembersState},
+            value: {employeeList: failureMembersState, approver: policy?.approver},
         },
     ];
     failureData.push(...announceRoomMembers.onyxFailureData);

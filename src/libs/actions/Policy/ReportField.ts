@@ -391,6 +391,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
         }
     });
 
+    // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -398,39 +399,13 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: {pendingAction: null},
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: {...reportField, pendingAction: null},
-                    },
-                    errorFields: {
-                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [fieldKey]: updatedReportField,
                     },
                 },
             },
         ],
     };
+
     const parameters: EnableWorkspaceReportFieldListValueParams = {
         policyID,
         reportFields: JSON.stringify([updatedReportField]),
@@ -451,6 +426,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
     updatedReportField.values.push(valueName);
     updatedReportField.disabledOptions.push(false);
 
+    // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -458,37 +434,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {
-                            ...updatedReportField,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {pendingAction: null},
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {...reportField, pendingAction: null},
-                    },
-                    errorFields: {
-                        [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [reportFieldKey]: updatedReportField,
                     },
                 },
             },
@@ -525,6 +471,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
             updatedReportField.disabledOptions.splice(valueIndex, 1);
         });
 
+    // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -532,37 +479,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {
-                            ...updatedReportField,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {pendingAction: null},
-                    },
-                    errorFields: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [reportFieldKey]: {...reportField, pendingAction: null},
-                    },
-                    errorFields: {
-                        [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [reportFieldKey]: updatedReportField,
                     },
                 },
             },

@@ -54,8 +54,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -173,19 +172,18 @@ jobs:
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-          restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
         run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
-        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
         if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && bundle exec pod install --verbose
+          command: scripts/pod-install.sh
 
       - name: Decrypt AdHoc profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg

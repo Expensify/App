@@ -20,25 +20,31 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
-        if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
-            return;
-        }
+    const onModalClose = useCallback(() => {
+        setIsVisible(false);
         PaymentMethods.clearPaymentCard3dsVerification();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-    }, [privateStripeCustomerID]);
+    }, []);
+
+    useEffect(() => {
+        if (!authenticationLink) {
+            return;
+        }
+        setIsVisible(!!authenticationLink);
+    }, [authenticationLink]);
 
     const handleGBPAuthentication = useCallback(
         (event: MessageEvent<string>) => {
             const message = event.data;
             if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
                 PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                onModalClose();
             }
         },
-        [session?.accountID],
+        [onModalClose, session?.accountID],
     );
 
     useEffect(() => {
@@ -48,14 +54,10 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
         };
     }, [handleGBPAuthentication]);
 
-    const onModalClose = () => {
-        PaymentMethods.clearPaymentCard3dsVerification();
-    };
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            isVisible={!!authenticationLink}
+            isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
         >

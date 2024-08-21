@@ -1,5 +1,5 @@
 import type React from 'react';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {NativeEventEmitter, NativeModules} from 'react-native';
 import type {NativeModule} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +15,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 
 type HybridAppMiddlewareProps = {
@@ -50,6 +51,20 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [completedHybridAppOnboarding] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {selector: onboardingStatusSelector});
 
+    const maxTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // We need to ensure that the BootSplash is always hidden after a certain period.
+    useEffect(() => {
+        if (!NativeModules.HybridAppModule) {
+            return;
+        }
+
+        maxTimeoutRef.current = setTimeout(() => {
+            Log.info('[HybridApp] Forcing transition due to unknown problem', true);
+            setStartedTransition(true);
+            setExitTo(ROUTES.HOME);
+        }, 3000);
+    }, []);
     /**
      * This useEffect tracks changes of `nvp_tryNewDot` value.
      * We propagate it from OldDot to NewDot with native method due to limitations of old app.

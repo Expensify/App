@@ -1,7 +1,6 @@
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -175,7 +174,7 @@ function hasAmountOwed(): boolean {
  * @returns Whether there is a card authentication error.
  */
 function hasCardAuthenticatedError() {
-    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
+    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
 /**
@@ -396,7 +395,7 @@ function hasUserFreeTrialEnded(): boolean {
     }
 
     const currentDate = new Date();
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, lastDayFreeTrialDate);
 }
@@ -458,6 +457,7 @@ export {
     getAmountOwed,
     getOverdueGracePeriodDate,
     getCardForSubscriptionBilling,
+    hasCardAuthenticatedError,
     hasSubscriptionGreenDotInfo,
     hasRetryBillingError,
     PAYMENT_STATUS,

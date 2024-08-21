@@ -13,6 +13,7 @@ import type {Unit} from './types/onyx/Policy';
 type RateAndUnit = {
     unit: Unit;
     rate: number;
+    currency: string;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
 
@@ -74,6 +75,12 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    HEIC_SIGNATURES: [
+        '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
+        '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
+        '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
+        '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
+    ],
     RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
@@ -102,6 +109,7 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
+    MAX_IMAGE_CANVAS_AREA: 16777216,
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
@@ -142,6 +150,8 @@ const CONST = {
     AVATAR_MAX_HEIGHT_PX: 4096,
 
     LOGO_MAX_SCALE: 1.5,
+
+    MAX_IMAGE_DIMENSION: 2400,
 
     BREADCRUMB_TYPE: {
         ROOT: 'root',
@@ -363,9 +373,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
-        VIOLATIONS: 'violations',
         DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_ADVANCED_APPROVAL: 'workflowsAdvancedApproval',
@@ -373,7 +381,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -682,6 +689,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
+                CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
+                CARD_ISSUED: 'CARDISSUED',
+                CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
@@ -835,6 +845,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
         MESSAGE: {
             TYPE: {
@@ -900,6 +911,7 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
+            AUDITOR: 'auditor',
         },
         INVOICE_RECEIVER_TYPE: {
             INDIVIDUAL: 'individual',
@@ -960,6 +972,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
+        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
+        SWITCH_REPORT_THREAD: 'switch_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -973,6 +987,7 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_FILTER_OPTIONS: 'search_filter_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1118,6 +1133,11 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    // More info https://github.com/Expensify/App/issues/8007
+    EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
+
     VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
@@ -1189,9 +1209,8 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    // This is a placeholder for attachment which is uploading
-    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -1408,6 +1427,7 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
+        DIMENSION_PREFIX: 'dimension_',
     },
 
     SAGE_INTACCT: {
@@ -2060,6 +2080,7 @@ const CONST = {
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
+            ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },
         DEFAULT_CATEGORIES: [
@@ -2109,6 +2130,12 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+            },
+            ROUTE: {
+                QBO: 'quickbooks-online',
+                XERO: 'xero',
+                NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'sage-intacct',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -2160,7 +2187,10 @@ const CONST = {
                 NETSUITE_SYNC_ACCOUNTS: 'netSuiteSyncAccounts',
                 NETSUITE_SYNC_CURRENCIES: 'netSuiteSyncCurrencies',
                 NETSUITE_SYNC_CATEGORIES: 'netSuiteSyncCategories',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS: 'netSuiteSyncImportCustomLists',
                 NETSUITE_SYNC_IMPORT_EMPLOYEES: 'netSuiteSyncImportEmployees',
+                NETSUITE_SYNC_IMPORT_SUBSIDIARIES: 'netSuiteSyncImportSubsidiaries',
+                NETSUITE_SYNC_IMPORT_VENDORS: 'netSuiteSyncImportVendors',
                 NETSUITE_SYNC_REPORT_FIELDS: 'netSuiteSyncReportFields',
                 NETSUITE_SYNC_TAGS: 'netSuiteSyncTags',
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
@@ -2269,6 +2299,7 @@ const CONST = {
             DAILY: 'daily',
             MONTHLY: 'monthly',
         },
+        CARD_TITLE_INPUT_LIMIT: 255,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2289,7 +2320,6 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
-        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2302,11 +2332,12 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
+        DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -2506,6 +2537,7 @@ const CONST = {
         CATEGORY: 'category',
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
+        DISTANCE_RATE: 'distanceRate',
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
@@ -3884,6 +3916,7 @@ const CONST = {
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
+        CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
@@ -5223,6 +5256,9 @@ const CONST = {
         DATA_TYPES: {
             TRANSACTION: 'transaction',
             REPORT: 'report',
+            EXPENSE: 'expense',
+            INVOICE: 'invoice',
+            TRIP: 'trip',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5246,10 +5282,24 @@ const CONST = {
             DESC: 'desc',
         },
         STATUS: {
-            ALL: 'all',
-            SHARED: 'shared',
-            DRAFTS: 'drafts',
-            FINISHED: 'finished',
+            EXPENSE: {
+                ALL: 'all',
+                SHARED: 'shared',
+                DRAFTS: 'drafts',
+                FINISHED: 'finished',
+            },
+            INVOICE: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                PAID: 'paid',
+            },
+            TRIP: {
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                PAID: 'paid',
+            },
         },
         TAB: {
             EXPENSE: {
@@ -5348,7 +5398,7 @@ const CONST = {
     WORKSPACE_CARDS_LIST_LABEL_TYPE: {
         CURRENT_BALANCE: 'currentBalance',
         REMAINING_LIMIT: 'remainingLimit',
-        CASH_BACK: 'cashBack',
+        CASH_BACK: 'earnedCashback',
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
@@ -5389,6 +5439,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}.description` as const,
                 icon: 'IntacctSquare',
             },
+            approvals: {
+                id: 'approvals' as const,
+                alias: 'approvals' as const,
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
             glCodes: {
                 id: 'glCodes' as const,
                 alias: 'gl-codes',
@@ -5405,6 +5463,14 @@ const CONST = {
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
             },
+            taxCodes: {
+                id: 'taxCodes' as const,
+                alias: 'tax-codes',
+                name: 'Tax codes',
+                title: 'workspace.upgrade.taxCodes.title' as const,
+                description: 'workspace.upgrade.taxCodes.description' as const,
+                icon: 'Coins',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -5415,6 +5481,18 @@ const CONST = {
 
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',
+    },
+
+    APPROVAL_WORKFLOW: {
+        ACTION: {
+            CREATE: 'create',
+            EDIT: 'edit',
+        },
+        TYPE: {
+            CREATE: 'create',
+            UPDATE: 'update',
+            REMOVE: 'remove',
+        },
     },
 } as const;
 
