@@ -355,6 +355,7 @@ const CONST = {
             OPEN: 'OPEN',
         },
         MAX_LENGTH: {
+            FULL_SSN: 9,
             SSN: 4,
             ZIP_CODE: 10,
         },

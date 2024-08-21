@@ -72,7 +72,7 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
                         containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
-                        maxLength={shouldAskForFullSSN ? 9 : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
