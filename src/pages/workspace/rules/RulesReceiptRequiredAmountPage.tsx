@@ -65,9 +65,9 @@ function RulesReceiptRequiredAmountPage({route}: RulesReceiptRequiredAmountPageP
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
+                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     submitButtonText={translate('workspace.editor.save')}
-                    style={[styles.flexGrow1, styles.ph5]}
                     onSubmit={submit}
                     enabledWhenOffline
                 >

@@ -64,10 +64,10 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
+                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
-                    submitButtonText={translate('workspace.editor.save')}
-                    style={[styles.flexGrow1, styles.ph5]}
                     onSubmit={submit}
+                    submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>

@@ -72,7 +72,7 @@ function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
                     title={translate('workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv3, styles.mh5]}>
+                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>{' '}
                     <TextLink
                         style={styles.link}
@@ -87,6 +87,7 @@ function RulesBillableDefaultPage({route}: RulesBillableDefaultPageProps) {
                     ListItem={RadioListItem}
                     onSelectRow={(item) => setDefaultBillable(item.value)}
                     shouldSingleExecuteRowSelect
+                    containerStyle={[styles.pt3]}
                 />
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.save')}
