@@ -172,7 +172,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         setFormError({});
         User.validateSecondaryLogin(loginList, contactMethod, validateCode);
     }, [loginList, validateCode, contactMethod]);
-    
+
     return (
         <>
             <MagicCodeInput
