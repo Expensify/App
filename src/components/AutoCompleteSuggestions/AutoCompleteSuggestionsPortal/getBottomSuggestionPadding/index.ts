@@ -1,5 +1,5 @@
 function getBottomSuggestionPadding(): number {
-    return 6;
+    return 8;
 }
 
 export default getBottomSuggestionPadding;
