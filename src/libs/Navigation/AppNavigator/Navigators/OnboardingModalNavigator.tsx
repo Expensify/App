@@ -30,7 +30,7 @@ function OnboardingModalNavigator() {
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
@@ -40,7 +40,7 @@ function OnboardingModalNavigator() {
             // On small screens, pop all navigation states and go back to HOME.
             // On large screens, need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            if (isSmallScreenWidth) {
+            if (shouldUseNarrowLayout) {
                 Navigation.setShouldPopAllStateOnUP(true);
                 Navigation.goBack(ROUTES.HOME, true, true);
             } else {
@@ -48,7 +48,7 @@ function OnboardingModalNavigator() {
                 Report.navigateToConciergeChat();
             }
         });
-    }, [hasCompletedGuidedSetupFlow, isSmallScreenWidth]);
+    }, [hasCompletedGuidedSetupFlow, shouldUseNarrowLayout]);
 
     const outerViewRef = React.useRef<View>(null);
 

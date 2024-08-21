@@ -40,6 +40,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();

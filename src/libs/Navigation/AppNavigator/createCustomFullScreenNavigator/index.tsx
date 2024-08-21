@@ -21,7 +21,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!navigationRef.isReady()) {
@@ -30,7 +30,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         // We need to separately reset state of this navigator to trigger getRehydratedState.
         navigation.reset(navigation.getState());
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     return (
         <NavigationContent>

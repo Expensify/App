@@ -58,7 +58,7 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
@@ -66,7 +66,7 @@ function ReportFieldsListValuesPage({
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !hasAccountingConnections && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -176,7 +176,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if ((isSmallScreenWidth ? selectionMode?.isEnabled : true) && selectedValuesArray.length > 0) {
+        if ((shouldUseNarrowLayout ? selectionMode?.isEnabled : true) && selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -258,7 +258,7 @@ function ReportFieldsListValuesPage({
                     customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedValuesArray.length}
                 />
             );
@@ -266,7 +266,7 @@ function ReportFieldsListValuesPage({
 
         return (
             <Button
-                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 medium
                 success
                 icon={Expensicons.Plus}
@@ -276,7 +276,7 @@ function ReportFieldsListValuesPage({
         );
     };
 
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
         <AccessOrNotFoundWrapper
@@ -301,9 +301,9 @@ function ReportFieldsListValuesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
+                    {!shouldUseNarrowLayout && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>

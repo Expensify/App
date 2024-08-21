@@ -24,13 +24,13 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems = sections[0].data.filter((item) => item.isSelected);
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -39,10 +39,10 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth]);
+    }, [sections, selectionMode, shouldUseNarrowLayout]);
 
     const handleLongPressRow = (item: TItem) => {
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth) {
+        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout) {
             return;
         }
         setLongPressedItem(item);

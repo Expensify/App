@@ -38,12 +38,12 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 function FullScreenNavigator() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
 
     return (
         <FocusTrapForScreens>
-            <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator screenOptions={screenOptions.centralPaneNavigator}>
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE.INITIAL}

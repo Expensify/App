@@ -42,7 +42,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
@@ -51,7 +51,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const cellWidth = useMemo(
         () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
         [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],

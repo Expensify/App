@@ -82,7 +82,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 
@@ -146,8 +146,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(!isSmallScreenWidth);
-    }, [isSmallScreenWidth]);
+        Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
+    }, [shouldUseNarrowLayout]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {

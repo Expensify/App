@@ -21,18 +21,18 @@ const Stack = createStackNavigator<LeftModalNavigatorParamList>();
 
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles, 'horizontal-inverted'), [styles]);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && (
+            {!shouldUseNarrowLayout && (
                 <Overlay
                     isModalOnTheLeft
                     onPress={navigation.goBack}
                 />
             )}
-            <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
+            <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
                 <Stack.Navigator
                     screenOptions={screenOptions}
                     id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}

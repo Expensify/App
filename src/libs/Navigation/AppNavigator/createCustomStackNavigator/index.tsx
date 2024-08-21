@@ -36,7 +36,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
 }
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
@@ -56,12 +56,12 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             return;
         }
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     const {stateToRender, searchRoute} = useMemo(() => {
         const routes = reduceCentralPaneRoutes(state.routes);
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
             const lastRoute = routes[routes.length - 1];
@@ -98,7 +98,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             },
             searchRoute: undefined,
         };
-    }, [state, isSmallScreenWidth]);
+    }, [state, shouldUseNarrowLayout]);
 
     return (
         <NavigationContent>

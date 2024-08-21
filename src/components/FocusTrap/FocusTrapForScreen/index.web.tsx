@@ -13,7 +13,7 @@ import type FocusTrapProps from './FocusTrapProps';
 function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isActive = useMemo(() => {
         if (typeof focusTrapSettings?.active !== 'undefined') {
@@ -30,11 +30,11 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         }
 
         // Focus trap can't be active on these screens if the layout is wide because they may be displayed side by side.
-        if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !isSmallScreenWidth) {
+        if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) {
             return false;
         }
         return true;
-    }, [isFocused, isSmallScreenWidth, route.name, focusTrapSettings?.active]);
+    }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
     return (
         <FocusTrap

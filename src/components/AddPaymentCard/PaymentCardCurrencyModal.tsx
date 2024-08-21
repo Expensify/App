@@ -28,7 +28,7 @@ type PaymentCardCurrencyModalProps = {
 };
 
 function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {sections} = useMemo(
@@ -54,7 +54,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onClose={() => onClose?.()}
             onModalHide={onClose}
             hideModalContentWhileAnimating
-            innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
+            innerContainerStyle={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}
             useNativeDriver
         >
             <ScreenWrapper

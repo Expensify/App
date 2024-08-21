@@ -86,7 +86,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
@@ -242,14 +241,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.dismissHoldUseExplanation();
@@ -410,7 +409,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 danger
                 shouldEnableNewFocusManagement
             />
-            {isSmallScreenWidth && shouldShowHoldMenu && (
+            {shouldUseNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}

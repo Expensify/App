@@ -59,7 +59,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
@@ -108,14 +107,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
             return;
         }
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.dismissHoldUseExplanation();
@@ -191,7 +190,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     </View>
                 )}
             </View>
-            {isSmallScreenWidth && shouldShowHoldMenu && (
+            {shouldUseNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
