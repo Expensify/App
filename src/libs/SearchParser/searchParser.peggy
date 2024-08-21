@@ -14,6 +14,12 @@
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator
 // whitespace: rule to match whitespaces
 
+{{
+function buildFilter(operator, left, right) {
+  return { operator, left, right };
+}
+}}
+
 {
   const defaultValues = {
     "type": "expense",
@@ -21,10 +27,6 @@
     "sortBy": "date",
     "sortOrder": "desc",
   };
-
-  function buildFilter(operator, left, right) {
-    return { operator, left, right };
-  }
 
   function applyDefaults(filters) {
     return {
@@ -36,10 +38,6 @@
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
-
-  function isDefaultField(field) {
-    return defaultValues.hasOwnProperty(field);
-  }
 }
 
 query
@@ -47,81 +45,94 @@ query
 
 filterList
   = head:filter tail:(logicalAnd filter)* {
-      const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null);
-      if (!allFilters.length) {
-      	return null;
-      }
-     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
-     const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
-     if(!nonKeywords.length){
-     	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
-     }
-     if(!keywords.length){
-     	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
-     }
-      
-     return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
-      
-      
-      return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
-    }
+  const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null).filter(Boolean);
+  if (!allFilters.length) {
+    return null;
+  }
 
+  const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
+  const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+
+  if(!nonKeywords.length){
+  return keywords.reduce((result, filter) => buildFilter("or", result, filter))
+  }
+  if(!keywords.length){
+  return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
+  }
+
+  return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
+
+  return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
+}
+    
 filter
-  = _ field:key? _ op:operator? _ value:identifier {
-      if (isDefaultField(field)) {
-        updateDefaultValues(field, value.trim());
-        return null;
-      }
+= @(standardFilter / defaultFilter / multiSelectFilter / freeTextFilter )
 
-      if (!field && !op) {
-        return buildFilter('eq', 'keyword', value.trim());
-      }
+defaultFilter
+= _ key:defaultKey _ op:operator _ value:identifier {
+	updateDefaultValues(key, value.trim());
+}
 
-      const values = value.split(',');
-      const operatorValue = op ?? 'eq';
+freeTextFilter
+= _ value:identifier _ {
+	return buildFilter('eq', 'keyword', value.trim());
+}
 
-      return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter(operatorValue, field, val.trim())), buildFilter(operatorValue, field, values[0]));
-    }
+multiSelectFilter
+= _ field:multiselectKey _ op:operator _ value:identifier {
+  return buildFilter(op, field, value)
+}
+
+standardFilter
+= _ field:key _ op:operator _ value:identifier {
+	
+	const values = value.split(',');
+    return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter(op, field, val.trim())), buildFilter(op, field, values[0]));
+}
 
 operator
   = (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
-  / ">" { return "gt"; }
   / ">=" { return "gte"; }
-  / "<" { return "lt"; }
+  / ">" { return "gt"; }
   / "<=" { return "lte"; }
+  / "<" { return "lt"; }
 
-key
-  = "type" { return "type"; }
-  / "status" { return "status"; }
-  / "date" { return "date"; }
-  / "amount" { return "amount"; }
-  / "expenseType" { return "expenseType"; }
-  / "in" { return "in"; }
-  / "currency" { return "currency"; }
-  / "merchant" { return "merchant"; }
-  / "description" { return "description"; }
-  / "from" { return "from"; }
-  / "to" { return "to"; }
-  / "category" { return "category"; }
-  / "tag" { return "tag"; }
-  / "taxRate" { return "taxRate"; }
-  / "cardID" { return "cardID"; }
-  / "reportID" { return "reportID"; }
-  / "keyword" { return "keyword"; }
-  / "sortBy" { return "sortBy"; }
-  / "sortOrder" { return "sortOrder"; }
+key "key"
+  = @("date" 
+  / "amount" 
+  / "expenseType"
+  / "merchant" 
+  / "description" 
+  / "reportID"
+  / "keyword")
+  
+defaultKey "default key"
+= @("type"
+  / "status"
+  / "sortBy"
+  / "sortOrder")
+  
+multiselectKey "multiselect key"
+= @("in"
+  / "currency"
+  / "tag"
+  / "category"
+  / "to"
+  / "taxRate"
+  / "cardID"
+  / "from")
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
 
-quotedString
+quotedString "quote"
   = '"' chars:[^"\r\n]* '"' { return chars.join(''); }
 
-alphanumeric
+alphanumeric "word"
   = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(''); }
 
-logicalAnd
+logicalAnd "and"
   = _ { return "and"; }
 
 _ "whitespace"
