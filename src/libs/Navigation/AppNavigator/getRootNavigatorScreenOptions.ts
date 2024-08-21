@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
-import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
@@ -61,8 +60,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 width: '100%',
                 top: 0,
                 left: 0,
-                // We need to guarantee that it covers BottomTabBar on web, but fixed position is not supported in react native.
-                position: 'fixed' as ViewStyle['position'],
+                position: 'fixed',
             },
         }),
         leftModalNavigator: {
@@ -107,6 +105,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 // This is necessary to cover whole screen. Including translated sidebar.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
+
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animationEnabled: isSmallScreenWidth,
         },
 
         centralPaneNavigator: {

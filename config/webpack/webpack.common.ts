@@ -4,14 +4,24 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
-import type {Configuration} from 'webpack';
+import type {Class} from 'type-fest';
+import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
-// require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
-const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
+type Options = {
+    rel: string;
+    as: string;
+    fileWhitelist: RegExp[];
+    include: string;
+};
+
+type PreloadWebpackPluginClass = Class<WebpackPluginInstance, [Options]>;
+
+// require is necessary, importing anything from @vue/preload-webpack-plugin causes an error
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin') as PreloadWebpackPluginClass;
 
 const includeModules = [
     'react-native-animatable',
@@ -98,7 +108,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'web/gtm.js'},
+                {from: 'web/thirdPartyScripts.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},

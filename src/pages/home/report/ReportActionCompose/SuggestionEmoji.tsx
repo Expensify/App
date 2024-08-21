@@ -1,6 +1,5 @@
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -55,12 +54,14 @@ function SuggestionEmoji(
         updateComment,
         isAutoSuggestionPickerLarge,
         resetKeyboardInput,
-        measureParentContainer,
+        measureParentContainerAndReportCursor,
         isComposerFocused,
     }: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    suggestionValuesRef.current = suggestionValues;
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
 
@@ -118,10 +119,6 @@ function SuggestionEmoji(
         });
     }, []);
 
-    const updateShouldShowSuggestionMenuAfterScrolling = useCallback(() => {
-        setSuggestionValues((prevState) => ({...prevState, shouldShowSuggestionMenu: !!prevState.suggestedEmojis.length}));
-    }, []);
-
     /**
      * Listens for keyboard shortcuts and applies the action
      */
@@ -154,15 +151,15 @@ function SuggestionEmoji(
      * Calculates and cares about the content of an Emoji Suggester
      */
     const calculateEmojiSuggestion = useCallback(
-        (selectionEnd: number) => {
-            if (shouldBlockCalc.current || !value) {
+        (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
-            const leftString = value.substring(0, selectionEnd);
+            const leftString = newValue.substring(0, selectionEnd);
             const colonIndex = leftString.lastIndexOf(':');
-            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selectionEnd);
+            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(newValue, selectionEnd);
 
             const nextState: SuggestionsValue = {
                 suggestedEmojis: [],
@@ -176,30 +173,25 @@ function SuggestionEmoji(
                 nextState.shouldShowSuggestionMenu = !isEmptyObject(newSuggestedEmojis);
             }
 
+            // Early return if there is no update
+            const currentState = suggestionValuesRef.current;
+            if (nextState.suggestedEmojis.length === 0 && currentState.suggestedEmojis.length === 0) {
+                return;
+            }
+
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
             setHighlightedEmojiIndex(0);
         },
-        [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
+        [preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
     useEffect(() => {
         if (!isComposerFocused) {
             return;
         }
-        calculateEmojiSuggestion(selection.end);
-    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
-    const onSelectionChange = useCallback(
-        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            /**
-             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-             * because in other case calculateEmojiSuggestion will have an old calculation value
-             * of suggestion instead of current one
-             */
-            calculateEmojiSuggestion(e.nativeEvent.selection.end);
-        },
-        [calculateEmojiSuggestion],
-    );
+        calculateEmojiSuggestion(value, selection.start, selection.end);
+    }, [value, selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
@@ -210,26 +202,19 @@ function SuggestionEmoji(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+
     useImperativeHandle(
         ref,
         () => ({
             resetSuggestions,
-            onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
-            updateShouldShowSuggestionMenuAfterScrolling,
+            getIsSuggestionsMenuVisible,
         }),
-        [
-            onSelectionChange,
-            resetSuggestions,
-            setShouldBlockSuggestionCalc,
-            triggerHotkeyActions,
-            updateShouldShowSuggestionMenuToFalse,
-            getSuggestions,
-            updateShouldShowSuggestionMenuAfterScrolling,
-        ],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -244,7 +229,8 @@ function SuggestionEmoji(
             onSelect={insertSelectedEmoji}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

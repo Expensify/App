@@ -1,28 +1,28 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,13 +36,30 @@ type CategorySettingsPageOnyxProps = {
 
 type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
-function CategorySettingsPage({route, policyCategories}: CategorySettingsPageProps) {
+function CategorySettingsPage({route, policyCategories, navigation}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const backTo = route.params?.backTo;
+    const policy = usePolicy(route.params.policyID);
 
-    const policyCategory = policyCategories?.[route.params.categoryName];
+    const policyCategory =
+        policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
+
+    const navigateBack = () => {
+        if (backTo) {
+            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
+            return;
+        }
+        Navigation.goBack();
+    };
+
+    useEffect(() => {
+        if (policyCategory?.name === route.params.categoryName || !policyCategory) {
+            return;
+        }
+        navigation.setParams({categoryName: policyCategory?.name});
+    }, [route.params.categoryName, navigation, policyCategory]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -53,82 +70,122 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     };
 
     const navigateToEditCategory = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
     const deleteCategory = () => {
-        Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
-        Navigation.dismissModal();
+        navigateBack();
     };
 
-    const threeDotsMenuItems = [
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.categories.deleteCategory'),
-            onSelected: () => setDeleteCategoryConfirmModalVisible(true),
-        },
-    ];
+    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={CategorySettingsPage.displayName}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={CategorySettingsPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={route.params.categoryName}
+                    onBackButtonPress={navigateBack}
+                />
+                <ConfirmModal
+                    isVisible={deleteCategoryConfirmModalVisible}
+                    onConfirm={deleteCategory}
+                    onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
+                    title={translate('workspace.categories.deleteCategory')}
+                    prompt={translate('workspace.categories.deleteCategoryPrompt')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <View style={styles.flexGrow1}>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
+                        pendingAction={policyCategory?.pendingFields?.enabled}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => Category.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
                     >
-                        <HeaderWithBackButton
-                            shouldShowThreeDotsButton
-                            title={route.params.categoryName}
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                            threeDotsMenuItems={threeDotsMenuItems}
-                        />
-                        <ConfirmModal
-                            isVisible={deleteCategoryConfirmModalVisible}
-                            onConfirm={deleteCategory}
-                            onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
-                            title={translate('workspace.categories.deleteCategory')}
-                            prompt={translate('workspace.categories.deleteCategoryPrompt')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                        <View style={styles.flexGrow1}>
-                            <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
-                                pendingAction={policyCategory?.pendingFields?.enabled}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
-                            >
-                                <View style={[styles.mt2, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
-                                        <Switch
-                                            isOn={policyCategory.enabled}
-                                            accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                            onToggle={updateWorkspaceRequiresCategory}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory.name}
-                                    description={translate(`workspace.categories.categoryName`)}
-                                    onPress={navigateToEditCategory}
-                                    shouldShowRightIcon
+                        <View style={[styles.mt2, styles.mh5]}>
+                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
+                                <Switch
+                                    isOn={policyCategory.enabled}
+                                    accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    onToggle={updateWorkspaceRequiresCategory}
                                 />
-                            </OfflineWithFeedback>
+                            </View>
                         </View>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory.name}
+                            description={translate(`common.name`)}
+                            onPress={navigateToEditCategory}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['GL Code']}
+                            description={translate(`workspace.categories.glCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['Payroll Code']}
+                            description={translate(`workspace.categories.payrollCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                        />
+                    )}
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

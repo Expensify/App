@@ -1,5 +1,4 @@
-import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +21,14 @@ function getPhoneNumberWithoutSpecialChars(phone: string): string {
  * Append user country code to the phone number
  */
 function appendCountryCode(phone: string): string {
-    return phone.startsWith('+') ? phone : `+${countryCodeByIP}${phone}`;
+    if (phone.startsWith('+')) {
+        return phone;
+    }
+    const phoneWithCountryCode = `+${countryCodeByIP}${phone}`;
+    if (parsePhoneNumber(phoneWithCountryCode).possible) {
+        return phoneWithCountryCode;
+    }
+    return `+${phone}`;
 }
 
 /**

@@ -9,7 +9,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -47,11 +47,11 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
         if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street])) {
-            errors[inputKeys.street] = 'bankAccount.error.addressStreet';
+            errors[inputKeys.street] = translate('bankAccount.error.addressStreet');
         }
 
         if (values[inputKeys.zipCode] && !ValidationUtils.isValidZipCode(values[inputKeys.zipCode])) {
-            errors[inputKeys.zipCode] = 'bankAccount.error.zipCode';
+            errors[inputKeys.zipCode] = translate('bankAccount.error.zipCode');
         }
 
         return errors;
@@ -74,7 +74,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
             <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
-            <AddressForm
+            <AddressFormFields
                 inputKeys={inputKeys}
                 shouldSaveDraft={!isEditing}
                 defaultValues={defaultValues}

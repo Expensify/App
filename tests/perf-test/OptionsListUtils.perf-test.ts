@@ -64,13 +64,13 @@ const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_
 const mockedBetas = Object.values(CONST.BETAS);
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
         }),
-    } as typeof NativeNavigation;
+    };
 });
 
 const options = OptionsListUtils.createOptionList(personalDetails, reports);
@@ -164,7 +164,6 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
-                false,
                 mockedPersonalDetails,
                 true,
             ),
@@ -177,6 +176,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], true, mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
     });
 });

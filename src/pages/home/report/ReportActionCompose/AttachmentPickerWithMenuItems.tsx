@@ -12,22 +12,27 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import getIconForAction from '@libs/getIconForAction';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<IOUType, PopoverMenuItem>;
+type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsOnyxProps = {
     /** The policy tied to the report */
@@ -115,40 +120,54 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
-    const {canUseTrackExpense} = usePermissions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
+        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+            if (shouldRestrictAction && policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
+
+            onSelected();
+        };
+
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
-                icon: Expensicons.Receipt,
+                icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
-            [CONST.IOU.TYPE.REQUEST]: {
-                icon: Expensicons.MoneyCircle,
+            [CONST.IOU.TYPE.SUBMIT]: {
+                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
-            [CONST.IOU.TYPE.SEND]: {
-                icon: Expensicons.Send,
+            [CONST.IOU.TYPE.PAY]: {
+                icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false),
             },
-            [CONST.IOU.TYPE.TRACK_EXPENSE]: {
-                icon: Expensicons.DocumentPlus,
+            [CONST.IOU.TYPE.TRACK]: {
+                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                 text: translate('iou.trackExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
+            },
+            [CONST.IOU.TYPE.INVOICE]: {
+                icon: Expensicons.InvoiceGeneric,
+                text: translate('workspace.invoices.sendInvoice'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? '-1'), false),
             },
         };
 
-        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
+    }, [translate, report, policy, reportParticipantIDs]);
 
     /**
      * Determines if we can show the task option
@@ -206,12 +225,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
+                        onSelected: () =>
+                            Modal.close(() => {
+                                if (Browser.isSafari()) {
+                                    return;
+                                }
+                                triggerAttachmentPicker();
+                            }),
                     },
                 ];
                 return (
@@ -302,7 +322,7 @@ function AttachmentPickerWithMenuItems({
                                     triggerAttachmentPicker();
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay
@@ -320,5 +340,6 @@ AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
 })(AttachmentPickerWithMenuItems);

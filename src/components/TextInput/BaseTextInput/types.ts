@@ -1,6 +1,5 @@
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type CustomBaseTextInputProps = {
@@ -20,7 +19,7 @@ type CustomBaseTextInputProps = {
     placeholder?: string;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Icon to display in right side of text input */
     icon?: IconAsset | null;
@@ -59,11 +58,16 @@ type CustomBaseTextInputProps = {
      */
     autoGrowHeight?: boolean;
 
+    /**
+     * Maximum height for autoGrowHeight input
+     */
+    maxAutoGrowHeight?: number;
+
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 
     /** Hint text to display below the TextInput */
-    hint?: MaybePhraseKey;
+    hint?: string;
 
     /** Prefix character */
     prefixCharacter?: string;
@@ -107,6 +111,18 @@ type CustomBaseTextInputProps = {
 
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
+
+    /** Whether the clear button should be displayed */
+    shouldShowClearButton?: boolean;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the prefix container */
+    prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The width of inner content */
+    contentWidth?: number;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

@@ -1,150 +1,190 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import {NativeModules} from 'react-native';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type OnyxPolicy from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import ROUTES from '@src/ROUTES';
+import type Onboarding from '@src/types/onyx/Onboarding';
+import type TryNewDot from '@src/types/onyx/TryNewDot';
 
-let hasSelectedPurpose: boolean | undefined;
-let hasProvidedPersonalDetails: boolean | undefined;
-let isFirstTimeNewExpensifyUser: boolean | undefined;
-let hasDismissedModal: boolean | undefined;
+type OnboardingData = Onboarding | [] | undefined;
+
 let isLoadingReportData = true;
-
-type DetermineOnboardingStatusProps = {
-    onAble?: () => void;
-    onNotAble?: () => void;
-};
+let tryNewDotData: TryNewDot | undefined;
+let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
     onNotCompleted?: () => void;
 };
 
+type HasOpenedForTheFirstTimeFromHybridAppProps = {
+    onFirstTimeInHybridApp?: () => void;
+    onSubsequentRuns?: () => void;
+};
+
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
-const isServerDataReadyPromise = new Promise<void>((resolve) => {
+let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
-const isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+let resolveOnboardingFlowStatus: () => void;
+let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
+});
+
+let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
+const tryNewDotStatusPromise = new Promise<void>((resolve) => {
+    resolveTryNewDotStatus = resolve;
 });
 
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
-/**
- * Checks if Onyx keys required to determine the
- * onboarding flow status have been loaded (namely,
- * are not undefined).
- */
-function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboardingStatusProps) {
-    const hasRequiredOnyxKeysBeenLoaded = [hasProvidedPersonalDetails, hasSelectedPurpose].every((value) => value !== undefined);
-
-    if (hasRequiredOnyxKeysBeenLoaded) {
-        onAble?.();
-    } else {
-        onNotAble?.();
-    }
-}
-
-/**
- * A promise returning the onboarding flow status.
- * Returns true if user has completed the onboarding
- * flow, false otherwise.
- */
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        // Remove once Stage 1 Onboarding Flow is ready
-        if (!isFirstTimeNewExpensifyUser) {
+        if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             return;
         }
 
-        // Uncomment once Stage 1 Onboarding Flow is ready
-        //
-        // const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
-        //
-        const onboardingFlowCompleted = hasSelectedPurpose;
-
-        if (onboardingFlowCompleted) {
+        if (onboarding?.hasCompletedGuidedSetupFlow) {
             onCompleted?.();
         } else {
-            // Remove once Stage 1 Onboarding Flow is ready
-            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
-            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
-
             onNotCompleted?.();
         }
     });
 }
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
+ * Determines whether the application is being launched for the first time by a hybrid app user,
+ * and executes corresponding callback functions.
  */
-function checkOnReady() {
-    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasDismissedModal].every((value) => value !== undefined);
+function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRuns}: HasOpenedForTheFirstTimeFromHybridAppProps) {
+    tryNewDotStatusPromise.then(() => {
+        let completedHybridAppOnboarding = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
+        // Backend might return strings instead of booleans
+        if (typeof completedHybridAppOnboarding === 'string') {
+            completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
+        }
 
-    if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
+        if (NativeModules.HybridAppModule && !completedHybridAppOnboarding) {
+            onFirstTimeInHybridApp?.();
+            return;
+        }
+
+        onSubsequentRuns?.();
+    });
+}
+
+/**
+ * Handles HybridApp onboarding flow if it's possible and necessary.
+ */
+function handleHybridAppOnboarding() {
+    if (!NativeModules.HybridAppModule) {
+        return;
+    }
+
+    isFirstTimeHybridAppUser({
+        // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
+        onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
+        // In other scenarios we need to check if onboarding was completed.
+        onSubsequentRuns: () =>
+            isOnboardingFlowCompleted({
+                onNotCompleted: () =>
+                    setTimeout(() => {
+                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
+                    }, variables.explanationModalDelay),
+            }),
+    });
+}
+
+/**
+ * Check if report data are loaded
+ */
+function checkServerDataReady() {
+    if (isLoadingReportData) {
         return;
     }
 
     resolveIsReadyPromise?.();
 }
 
-function getPersonalDetails(accountID: number | undefined) {
-    Onyx.connect({
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        initWithStoredValues: true,
-        callback: (value) => {
-            if (!value || !accountID) {
-                return;
-            }
+/**
+ * Check if user completed HybridApp onboarding
+ */
+function checkTryNewDotDataReady() {
+    if (tryNewDotData === undefined) {
+        return;
+    }
 
-            hasProvidedPersonalDetails = !!value[accountID]?.firstName && !!value[accountID]?.lastName;
-            isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
-        },
-    });
+    resolveTryNewDotStatus?.();
+}
+
+/**
+ * Check if the onboarding data is loaded
+ */
+function checkOnboardingDataReady() {
+    if (onboarding === undefined) {
+        return;
+    }
+
+    resolveOnboardingFlowStatus();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
+function setOnboardingErrorMessage(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
+}
+
+function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
+}
+
+function setOnboardingPolicyID(policyID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function completeHybridAppOnboarding() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    completedHybridAppOnboarding: true,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    completedHybridAppOnboarding: false,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
+}
+
 Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    initWithStoredValues: false,
+    key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
-        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
-        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-
-        isFirstTimeNewExpensifyUser = value ?? undefined;
-
-        checkOnReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasSelectedPurpose = !!value;
-        isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasDismissedModal = value ?? false;
-
-        checkOnReady();
+        onboarding = value;
+        checkOnboardingDataReady();
     },
 });
 
@@ -153,36 +193,36 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkOnReady();
-    },
-});
-
-const allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = {...allPolicies[key], ...val};
+        checkServerDataReady();
     },
 });
 
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        getPersonalDetails(val.accountID);
+    key: ONYXKEYS.NVP_TRYNEWDOT,
+    callback: (value) => {
+        tryNewDotData = value;
+        checkTryNewDotDataReady();
     },
 });
 
-export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected};
+function resetAllChecks() {
+    isServerDataReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+        resolveOnboardingFlowStatus = resolve;
+    });
+    isLoadingReportData = true;
+}
+
+export {
+    onServerDataReady,
+    isOnboardingFlowCompleted,
+    setOnboardingPurposeSelected,
+    resetAllChecks,
+    setOnboardingAdminsChatReportID,
+    setOnboardingPolicyID,
+    completeHybridAppOnboarding,
+    handleHybridAppOnboarding,
+    setOnboardingErrorMessage,
+};

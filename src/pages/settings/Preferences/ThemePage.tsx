@@ -49,6 +49,7 @@ function ThemePage({preferredTheme}: ThemePageProps) {
                 sections={[{data: localesToThemes}]}
                 ListItem={RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
+                shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
             />
         </ScreenWrapper>

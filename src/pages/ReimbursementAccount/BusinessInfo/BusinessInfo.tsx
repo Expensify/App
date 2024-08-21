@@ -68,13 +68,13 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             BankAccounts.updateCompanyInformationForBankAccount(
-                Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+                Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),

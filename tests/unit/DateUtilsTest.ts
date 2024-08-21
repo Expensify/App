@@ -265,4 +265,18 @@ describe('DateUtils', () => {
             expect(lastBusinessDay).toEqual(expectedResult);
         });
     });
+
+    describe('isCardExpired', () => {
+        it('should return true when the card is expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() - 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(true);
+        });
+
+        it('should return false when the card is not expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() + 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(false);
+        });
+    });
 });

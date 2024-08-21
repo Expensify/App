@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
@@ -52,6 +53,9 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether we should display the receipt with initial object position */
+    shouldUseInitialObjectPosition?: boolean;
+
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
@@ -69,6 +73,12 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
+
+    /** The color of the fallback icon */
+    fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 };
 
 function ReceiptImage({
@@ -84,6 +94,9 @@ function ReceiptImage({
     iconSize,
     fallbackIcon,
     fallbackIconSize,
+    shouldUseInitialObjectPosition = false,
+    fallbackIconColor,
+    fallbackIconBackground,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -101,7 +114,7 @@ function ReceiptImage({
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? ''}
+                    transactionID={transactionID ?? '-1'}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -115,10 +128,13 @@ function ReceiptImage({
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
-                isAuthTokenRequired
+                isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
+                fallbackIconColor={fallbackIconColor}
+                fallbackIconBackground={fallbackIconBackground}
+                objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     }
@@ -126,7 +142,7 @@ function ReceiptImage({
     return (
         <Image
             source={{uri: source}}
-            style={style ?? [styles.w100, styles.h100]}
+            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
         />
     );

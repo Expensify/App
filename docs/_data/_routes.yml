@@ -54,6 +54,11 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
 
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
+
       - href: copilots-and-delegates
         title: Copilots & Delegates
         icon: /assets/images/envelope-receipt.svg
@@ -64,9 +69,9 @@ platforms:
         icon: /assets/images/handshake.svg
         description: Discover the benefits of becoming an Expensify Partner.
 
-      - href: integrations
-        title: Integrations
-        icon: /assets/images/workflow.svg
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
         description: Integrate with accounting or HR software to streamline expense approvals.
 
       - href: spending-insights
@@ -109,20 +114,25 @@ platforms:
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
       
-      - href: expenses
-        title: Expenses
+      - href: expenses-&-payments
+        title: Expenses & Payments
         icon: /assets/images/money-into-wallet.svg
         description: Learn more about expense tracking and submission.
 
-      - href: bank-accounts-and-payments
-        title: Bank Accounts & Payments
-        icon: /assets/images/bank-card.svg
-        description: Send direct reimbursements, pay invoices, and receive payment.
-      
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
+      
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
+
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
+        description: Connect to accounting software to streamline expense approvals.
 
       - href: settings
         title: Settings

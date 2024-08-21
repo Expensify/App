@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
@@ -10,10 +10,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -48,7 +48,6 @@ describe('Sidebar', () => {
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
-        cleanup();
         Onyx.clear();
     });
 
@@ -63,33 +62,29 @@ describe('Sidebar', () => {
             expect(screen.toJSON()).toBe(null);
         });
 
-        it('is rendered with an empty list when personal details exist', () => {
-            // Given the sidebar is rendered with default props
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+        it('is rendered with an empty list when personal details exist', () =>
+            waitForBatchedUpdates()
+                // Given the sidebar is rendered with default props
+                .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
 
-            return (
-                waitForBatchedUpdates()
-                    // When Onyx is updated with some personal details
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
-                        }),
-                    )
+                // When Onyx is updated with some personal details
+                .then(() =>
+                    Onyx.multiSet({
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                        [ONYXKEYS.IS_LOADING_APP]: false,
+                    }),
+                )
 
-                    // Then the component should be rendered with an empty list since it will get past the early return
-                    .then(() => {
-                        expect(screen.toJSON()).not.toBe(null);
-                        const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
-                    })
-            );
-        });
+                // Then the component should be rendered with an empty list since it will get past the early return
+                .then(() => {
+                    expect(screen.toJSON()).not.toBe(null);
+                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
+                }));
 
         it('contains one report when a report is in Onyx', () => {
             // Given a single report
             const report = LHNTestUtils.getFakeReport([1, 2]);
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -97,6 +92,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -115,8 +112,6 @@ describe('Sidebar', () => {
         });
 
         it('orders items with most recently updated on top', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
@@ -135,6 +130,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -149,11 +146,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -174,8 +171,6 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report1.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -184,6 +179,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -204,16 +201,14 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
 
         it('reorders the reports to always have the most recently updated one on top', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
@@ -232,6 +227,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -255,9 +252,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -283,8 +280,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(taskReport.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -294,12 +289,14 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(taskReport.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -309,10 +306,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe(taskReportName);
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent(taskReportName);
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -347,8 +344,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -358,12 +353,14 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -373,10 +370,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -414,8 +411,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -425,12 +420,14 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
                             ...reportCollectionDataSet,
                         }),
@@ -441,10 +438,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Workspace owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Five');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Workspace owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Five');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -465,7 +462,6 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report2.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -475,6 +471,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -500,16 +498,14 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Three, Four');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
 
         it('removes the pencil icon when draft is removed', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given a single report
             // And the report has a draft
             const report: OnyxTypes.Report = {
@@ -522,6 +518,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -549,8 +547,6 @@ describe('Sidebar', () => {
         });
 
         it('removes the pin icon when chat is unpinned', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given a single report
             // And the report is pinned
             const report: OnyxTypes.Report = {
@@ -564,6 +560,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -625,8 +623,6 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -636,6 +632,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -657,9 +655,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -684,8 +682,6 @@ describe('Sidebar', () => {
                 isPinned: true,
             };
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -694,6 +690,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -709,9 +707,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -722,10 +720,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -746,8 +744,6 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport([7, 8], 0),
             };
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -762,6 +758,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -778,17 +776,19 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
                     .then(() =>
-                        Promise.all([
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4),
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`, 'report4 draft'),
-                        ]),
+                        Onyx.multiSet({
+                            ...reportDraftCommentCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
+                            ...reportCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                        }),
                     )
 
                     // Then they are still in alphabetical order
@@ -796,10 +796,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -811,6 +811,8 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
@@ -823,8 +825,6 @@ describe('Sidebar', () => {
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -833,6 +833,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -849,9 +851,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -859,12 +861,10 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('alphabetizes chats', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
-            const report1 = LHNTestUtils.getFakeReport([1, 2], 3, true);
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
-            const report4 = LHNTestUtils.getFakeReport([7, 8], 0, true);
+            const report1 = {...LHNTestUtils.getFakeReport([1, 2], 3, true), lastMessageText: 'test'};
+            const report2 = {...LHNTestUtils.getFakeReport([3, 4], 2, true), lastMessageText: 'test'};
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
+            const report4 = {...LHNTestUtils.getFakeReport([7, 8], 0, true), lastMessageText: 'test'};
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -874,12 +874,13 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, LHNTestUtils.fakePersonalDetails))
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // Given the sidebar is rendered in #focus mode (hides read chats)
                     // with all reports having unread comments
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
@@ -890,9 +891,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -903,10 +904,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -918,14 +919,18 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                lastMessageText: 'test',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2, true),
+                lastMessageText: 'test',
+            };
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -935,6 +940,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -951,9 +958,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -1059,8 +1066,6 @@ describe('Sidebar', () => {
 
             const currentlyLoggedInUserAccountID = 13;
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -1076,6 +1081,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -1092,11 +1098,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(displayNames[0].props.children[0]).toBe('Email Five owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Four owes $1,000.00');
-                        expect(displayNames[2].props.children[0]).toBe('Email Six owes $100.00');
-                        expect(displayNames[3].props.children[0]).toBe('Email Three owes $100.00');
-                        expect(displayNames[4].props.children[0]).toBe('Email Two owes $100.00');
+                        expect(displayNames[0]).toHaveTextContent('Email Five owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Four owes $1,000.00');
+                        expect(displayNames[2]).toHaveTextContent('Email Six owes $100.00');
+                        expect(displayNames[3]).toHaveTextContent('Email Three owes $100.00');
+                        expect(displayNames[4]).toHaveTextContent('Email Two owes $100.00');
                     })
             );
         });
@@ -1122,8 +1128,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -1132,6 +1136,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -1147,9 +1153,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });

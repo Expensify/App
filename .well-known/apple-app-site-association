@@ -53,6 +53,10 @@
                         "comment": "Split Expense"
                     },
                     {
+                        "/": "/submit/*",
+                        "comment": "Submit Expense"
+                    },
+                    {
                         "/": "/request/*",
                         "comment": "Submit Expense"
                     },
@@ -77,12 +81,24 @@
                         "comment": "Search"
                     },
                     {
+                        "/": "/pay/*",
+                        "comment": "Pay someone"
+                    },
+                    {
                         "/": "/send/*",
                         "comment": "Pay someone"
                     },
                     {
                         "/": "/money2020/*",
                         "comment": "Money 2020"
+                    },
+                    {
+                        "/": "/track-expense/*",
+                        "comment": "Track Expense"
+                    },
+                    {
+                        "/": "/submit-expense/*",
+                        "comment": "Submit Expense"
                     }
                 ]
             }

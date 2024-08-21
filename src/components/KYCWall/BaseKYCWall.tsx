@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,7 +69,7 @@ function KYCWall({
     walletTerms,
     shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
-    const anchorRef = useRef<HTMLDivElement | View | null>(null);
+    const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -127,7 +127,10 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && ReportUtils.isIOUReport(iouReport)) {
-                    const policyID = Policy.createWorkspaceFromIOUPayment(iouReport);
+                    const {policyID, workspaceChatReportID, reportPreviewReportActionID} = Policy.createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    if (workspaceChatReportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
+                    }
 
                     // Navigate to the bank account set up flow for this specific policy
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
@@ -166,7 +169,7 @@ function KYCWall({
 
             transferBalanceButtonRef.current = targetElement;
 
-            const isExpenseReport = ReportUtils.isExpenseReport(iouReport ?? null);
+            const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
             const paymentCardList = fundList ?? {};
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't

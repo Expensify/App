@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of wallet Onfido flow */
 type WalletOnfido = {
     /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
     applicantID?: string;

@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -58,25 +58,25 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
             const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
             const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
 
-            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
+            if (!values.firstName || !ValidationUtils.isValidDisplayName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             }
-            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
+            if (!values.lastName || !ValidationUtils.isValidDisplayName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             }
             if (!values.partnerUserID) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterPhoneEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
             if (values.partnerUserID && props.loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
             if (values.partnerUserID && !(validateIfNumber || Str.isValidEmail(values.partnerUserID))) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'contacts.genericFailureMessages.invalidContactMethod');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
             return errors;
         },
-        [props.loginList],
+        [props.loginList, translate],
     );
 
     return (

@@ -57,6 +57,8 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
 
     // A reanimated memoized style, which updates when the image's size or scale changes.
     const imageStyle = useAnimatedStyle(() => {
+        'worklet';
+
         const height = originalImageHeight.value;
         const width = originalImageWidth.value;
         const aspectRatio = height > width ? height / width : width / height;
@@ -86,6 +88,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
                         // fill={theme.iconReversed}
                         width={containerSize}
                         height={containerSize}
+                        key={containerSize}
                     />
                 </View>
             </Animated.View>

@@ -1,5 +1,6 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
+import type {ComponentType} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -11,7 +12,6 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {MaybePhraseKey} from '@libs/Localize';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -36,29 +36,17 @@ type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
 
 const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
 
-/**
- * We use the Component Story Format for writing stories. Follow the docs here:
- *
- * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
- */
 const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        InputWrapper,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        TextInput,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        AddressSearch,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        CheckboxWithLabel,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        Picker,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        StateSelector,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        DatePicker,
+        InputWrapper: InputWrapper as ComponentType<unknown>,
+        TextInput: TextInput as ComponentType<unknown>,
+        AddressSearch: AddressSearch as ComponentType<unknown>,
+        CheckboxWithLabel: CheckboxWithLabel as ComponentType<unknown>,
+        Picker: Picker as ComponentType<unknown>,
+        StateSelector: StateSelector as ComponentType<unknown>,
+        DatePicker: DatePicker as ComponentType<unknown>,
     },
 };
 
@@ -69,7 +57,7 @@ function Template(props: FormProviderProps) {
     FormActions.setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+        FormActions.setErrors(props.formID, {error: props.formState.error as string});
     } else {
         FormActions.clearErrors(props.formID);
     }
@@ -183,7 +171,7 @@ function WithNativeEventHandler(props: FormProviderProps) {
     FormActions.setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+        FormActions.setErrors(props.formID, {error: props.formState.error as string});
     } else {
         FormActions.clearErrors(props.formID);
     }

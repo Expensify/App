@@ -1,11 +1,11 @@
-import React, {useContext, useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItemGroup, {MenuItemGroupContext} from '@components/MenuItemGroup';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,20 +13,19 @@ import Section from '@components/Section';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -44,14 +43,16 @@ function ProfilePage({
         legalFirstName: '',
         legalLastName: '',
         dob: '',
-        address: {
-            street: '',
-            street2: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
+        addresses: [
+            {
+                street: '',
+                street2: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: '',
+            },
+        ],
     },
     currentUserPersonalDetails,
     isLoadingApp,
@@ -60,8 +61,7 @@ function ProfilePage({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -102,10 +102,6 @@ function ProfilePage({
         },
     ];
 
-    useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
-    }, [currentUserPersonalDetails]);
-
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
@@ -133,12 +129,12 @@ function ProfilePage({
             <HeaderWithBackButton
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
                 <MenuItemGroup>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('profilePage.publicSection.title')}
                             subtitle={translate('profilePage.publicSection.subtitle')}
@@ -180,7 +176,7 @@ function ProfilePage({
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={waitForNavigate ? waitForNavigate(() => Navigation.navigate(detail.pageRoute)) : () => Navigation.navigate(detail.pageRoute)}
+                                            onPress={() => Navigation.navigate(detail.pageRoute)}
                                         />
                                     ))}
                                 </>

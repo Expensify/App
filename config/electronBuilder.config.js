@@ -45,6 +45,12 @@ module.exports = {
         notarize: {
             teamId: '368M544MTT',
         },
+        target: [
+            {
+                target: 'default',
+                arch: ['universal'],
+            },
+        ],
     },
     dmg: {
         title: 'New Expensify',

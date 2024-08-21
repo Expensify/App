@@ -1,7 +1,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsSafari, OpenRouteInDesktopApp} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -58,6 +58,22 @@ const isMobileChrome: IsMobileChrome = () => {
     return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
 };
 
+/**
+ * Checks if the requesting user agent is a WebKit-based browser on an iOS mobile device.
+ */
+const isMobileWebKit: IsMobileWebKit = () => {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent);
+};
+
+/**
+ * Checks if the requesting user agent is a Chrome browser on an iOS mobile device.
+ */
+const isChromeIOS: IsChromeIOS = () => {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent) && /CriOS/i.test(userAgent);
+};
+
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
 /**
@@ -101,4 +117,4 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
     }
 };
 
-export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp};

@@ -30,4 +30,12 @@ declare module '*.lottie' {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface Window {
     setSupportToken: (token: string, email: string, accountID: number) => void;
+    markAllPolicyReportsAsRead: (policyID: string) => void;
+}
+
+// Allows to add generic type in require
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface NodeRequire {
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
+    <T = any>(id: string): T;
 }
