@@ -10,7 +10,6 @@ import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -76,9 +75,6 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     transactionThreadReportID?: string | null;
 };
 
-const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
-const SPACER = 16;
-
 let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
@@ -111,7 +107,6 @@ function ReportActionsView({
     const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
-    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
@@ -322,8 +317,6 @@ function ReportActionsView({
         contentListHeight.current = h;
     }, []);
 
-    const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
-
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
@@ -392,10 +385,6 @@ function ReportActionsView({
 
     const loadNewerChats = useCallback(
         (force = false) => {
-            // Determines if loading older reports is necessary when the content is smaller than the list
-            // and there are fewer than 23 items, indicating we've reached the oldest message.
-            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
-
             if (
                 !force &&
                 (!reportActionID ||
@@ -412,18 +401,16 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((reportActionID && indexOfLinkedAction > -1) || !reportActionID) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
         [
             isLoadingInitialReportActions,
             isLoadingNewerReportActions,
-            checkIfContentSmallerThanList,
             reportActionID,
             indexOfLinkedAction,
             handleReportActionPagination,
-            reportActions.length,
             newestReportAction,
             isFocused,
             hasLoadingNewerReportActionsError,
@@ -449,8 +436,8 @@ function ReportActionsView({
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
-        Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
-        Timing.end(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
+        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
     }, [hasCachedActionOnFirstRender]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -482,6 +469,7 @@ function ReportActionsView({
     if (!reportActions.length) {
         return null;
     }
+
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
     return (

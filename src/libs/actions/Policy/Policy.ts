@@ -450,7 +450,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
-    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+    const value = JSON.stringify({autoReportingOffset});
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -1685,6 +1685,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -1705,6 +1706,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 pendingAction: null,
                 pendingChatMembers: [],
+                isOptimisticReport: false,
             },
         },
         {
@@ -1724,6 +1726,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
