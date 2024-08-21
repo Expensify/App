@@ -372,7 +372,10 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (!isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate) {
+        if (
+            !isSyncInProgress &&
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
+        ) {
             return syncError;
         }
         return;
@@ -383,6 +386,14 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
         return;
     }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+}
+
+function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return false;
+    }
+    const connection = policy?.connections?.[connectionName];
+    return connection?.lastSync?.isAuthenticationError === true;
 }
 
 function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
@@ -436,6 +447,7 @@ export {
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
     getSynchronizationErrorMessage,
+    isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,

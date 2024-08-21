@@ -242,7 +242,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportIDRef.current = '-1';
         reportActionIDRef.current = '-1';
         originalReportIDRef.current = '-1';
-        setInstanceID('');
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);

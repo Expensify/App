@@ -476,6 +476,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={onboardingScreenOptions}
                         component={OnboardingModalNavigator}
+                        listeners={{
+                            focus: () => {
+                                Modal.setDisableDismissOnEscape(true);
+                            },
+                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                        }}
                     />
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
