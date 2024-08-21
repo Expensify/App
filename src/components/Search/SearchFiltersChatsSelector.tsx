@@ -4,7 +4,8 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+// import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -31,7 +32,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option): OptionData {
-    return {...option, selected: true, reportID: option.reportID ?? '-1'};
+    return {...option, isSelected: true, reportID: option.reportID ?? '-1'};
 }
 
 type SearchFiltersParticipantsSelectorProps = {
@@ -57,9 +58,7 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, '');
-        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, !!optionList.userToInvite, '');
-        return {...optionList, headerMessage: header};
+        return OptionsListUtils.getSearchOptions(options, '');
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
@@ -82,7 +81,7 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
-            true,
+            false,
         );
 
         const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
@@ -92,20 +91,20 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
         if (chatOptions.currentUserOption && !isCurrentUserSelected) {
             const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
             newSections.push({
-                title: '',
+                title: 'idk',
                 data: [{...chatOptions.currentUserOption, text: formattedName}],
                 shouldShow: true,
             });
         }
 
         newSections.push({
-            title: '',
+            title: 'recent',
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
         newSections.push({
-            title: '',
+            title: 'chat',
             data: chatOptions.personalDetails,
             shouldShow: chatOptions.personalDetails.length > 0,
         });
@@ -192,7 +191,7 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
         <SelectionList
             canSelectMultiple
             sections={sections}
-            ListItem={InviteMemberListItem}
+            ListItem={UserListItem}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             headerMessage={headerMessage}
             textInputValue={searchTerm}
