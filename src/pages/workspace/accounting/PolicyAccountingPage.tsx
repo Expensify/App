@@ -38,7 +38,6 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,8 +98,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
-						  shouldCallAfterModalHide: true,
-						  disabled: isOffline,
+                          shouldCallAfterModalHide: true,
+                          disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
                       },
