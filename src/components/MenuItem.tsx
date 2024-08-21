@@ -118,6 +118,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to pass to the icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Additional styles to pass to the icon itself */
+    additionalIconStyles?: StyleProp<ViewStyle>;
+
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: IconAsset;
 
@@ -418,6 +421,7 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        additionalIconStyles,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -625,6 +629,7 @@ function MenuItem(
                                                                                       isPaneMenu,
                                                                                   )
                                                                         }
+                                                                        additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
                                                                     <ActivityIndicator

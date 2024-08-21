@@ -55,6 +55,7 @@ function ExportWithDropdownMenu({
             icon: iconToDisplay,
             disabled: !canBeExported,
             displayInDefaultIconColor: true,
+            additionalIconStyles: styles.integrationIcon,
         };
         const options = [
             {

@@ -5152,6 +5152,11 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 19,
             backgroundColor: theme.border,
         },
+
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

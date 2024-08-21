@@ -240,6 +240,7 @@ function PopoverMenu({
                             iconWidth={item.iconWidth}
                             iconHeight={item.iconHeight}
                             iconFill={item.iconFill}
+                            additionalIconStyles={item.additionalIconStyles}
                             contentFit={item.contentFit}
                             title={item.text}
                             titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
