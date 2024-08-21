@@ -96,18 +96,20 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
                 onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
             />
-            <ToggleSettingOptionRow
-                wrapperStyle={[styles.mv3, styles.ph5]}
-                title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
-                switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                onToggle={(isEnabled: boolean) => {
-                    updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
-                }}
-                pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-            />
+            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
+                <ToggleSettingOptionRow
+                    wrapperStyle={[styles.mv3, styles.ph5]}
+                    title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                    }}
+                    pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                />
+            )}
 
             {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
                 <OfflineWithFeedback

@@ -2,21 +2,14 @@ import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
-import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
-import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
-import ConnectToSageIntacctButton from '@components/ConnectToSageIntacctButton';
-import ConnectToXeroButton from '@components/ConnectToXeroButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -30,7 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     canUseTaxNetSuite,
@@ -44,235 +37,16 @@ import {
 } from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
-import {
-    getImportCustomFieldsSettings,
-    shouldHideCustomFormIDOptions,
-    shouldHideExportForeignCurrencyAmount,
-    shouldHideExportJournalsTo,
-    shouldHideExportVendorBillsTo,
-    shouldHideJournalPostingPreference,
-    shouldHideNonReimbursableJournalPostingAccount,
-    shouldHideProvincialTaxPostingAccountSelect,
-    shouldHideReimbursableDefaultVendor,
-    shouldHideReimbursableJournalPostingAccount,
-    shouldHideReimbursedReportsSection,
-    shouldHideReportsExportTo,
-    shouldHideTaxPostingAccountSelect,
-    shouldShowInvoiceItemMenuItem,
-} from './netsuite/utils';
-
-type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
-
-type PolicyAccountingPageOnyxProps = {
-    connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
-};
-
-type PolicyAccountingPageProps = WithPolicyConnectionsProps &
-    PolicyAccountingPageOnyxProps & {
-        // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
-        policy: Policy;
-    };
-
-type AccountingIntegration = {
-    title: string;
-    icon: IconAsset;
-    setupConnectionButton: React.ReactNode;
-    onImportPagePress: () => void;
-    subscribedImportSettings?: string[];
-    onExportPagePress: () => void;
-    subscribedExportSettings?: string[];
-    onAdvancedPagePress: () => void;
-    subscribedAdvancedSettings?: string[];
-    onCardReconciliationPagePress: () => void;
-    pendingFields?: PendingFields<string>;
-    errorFields?: ErrorFields;
-};
-
-function accountingIntegrationData(
-    connectionName: PolicyConnectionName,
-    policyID: string,
-    translate: LocaleContextProps['translate'],
-    isConnectedToIntegration?: boolean,
-    integrationToDisconnect?: PolicyConnectionName,
-    policy?: Policy,
-    canUseNetSuiteUSATax?: boolean,
-): AccountingIntegration | undefined {
-    const netsuiteConfig = policy?.connections?.netsuite?.options.config;
-    const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
-
-    switch (connectionName) {
-        case CONST.POLICY.CONNECTIONS.NAME.QBO:
-            return {
-                title: translate('workspace.accounting.qbo'),
-                icon: Expensicons.QBOSquare,
-                setupConnectionButton: (
-                    <ConnectToQuickbooksOnlineButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBO)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
-            };
-        case CONST.POLICY.CONNECTIONS.NAME.XERO:
-            return {
-                title: translate('workspace.accounting.xero'),
-                icon: Expensicons.XeroSquare,
-                setupConnectionButton: (
-                    <ConnectToXeroButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
-                subscribedImportSettings: [
-                    CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
-                    CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
-                    CONST.XERO_CONFIG.IMPORT_CUSTOMERS,
-                    CONST.XERO_CONFIG.IMPORT_TAX_RATES,
-                    ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
-                ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [
-                    CONST.XERO_CONFIG.ENABLED,
-                    CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS,
-                    CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
-                    CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
-                ],
-                pendingFields: policy?.connections?.xero?.config?.pendingFields,
-                errorFields: policy?.connections?.xero?.config?.errorFields,
-            };
-        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-            return {
-                title: translate('workspace.accounting.netsuite'),
-                icon: Expensicons.NetSuiteSquare,
-                setupConnectionButton: (
-                    <ConnectToNetSuiteButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
-                subscribedImportSettings: [
-                    ...CONST.NETSUITE_CONFIG.IMPORT_FIELDS,
-                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
-                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
-                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
-                    ...(canUseTaxNetSuite(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary?.country) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX] : []),
-                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, netsuiteConfig),
-                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, netsuiteConfig),
-                ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [
-                    CONST.NETSUITE_CONFIG.EXPORTER,
-                    CONST.NETSUITE_CONFIG.EXPORT_DATE,
-                    CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
-                    ...(!shouldHideReimbursableDefaultVendor(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
-                    ...(!shouldHideNonReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
-                    ...(!shouldHideReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
-                    ...(!shouldHideJournalPostingPreference(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
-                    CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
-                    ...(!shouldHideReimbursableDefaultVendor(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
-                    ...(!shouldHideNonReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
-                    ...(!shouldHideReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
-                    ...(!shouldHideJournalPostingPreference(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
-                    CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT,
-                    CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE,
-                    ...(shouldShowInvoiceItemMenuItem(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : []),
-                    ...(!shouldHideProvincialTaxPostingAccountSelect(netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT] : []),
-                    ...(!shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT] : []),
-                    ...(!shouldHideExportForeignCurrencyAmount(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY] : []),
-                    CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
-                ],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [
-                    CONST.NETSUITE_CONFIG.AUTO_SYNC,
-                    ...(!shouldHideReimbursedReportsSection(netsuiteConfig)
-                        ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT]
-                        : []),
-                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE,
-                    CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES,
-                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES,
-                    ...(!shouldHideReportsExportTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO] : []),
-                    ...(!shouldHideExportVendorBillsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
-                    ...(!shouldHideExportJournalsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
-                    CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT,
-                    CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED,
-                    ...(!shouldHideCustomFormIDOptions(netsuiteConfig)
-                        ? [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE]
-                        : []),
-                ],
-                pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields},
-                errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields},
-            };
-        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-            return {
-                title: translate('workspace.accounting.intacct'),
-                icon: Expensicons.IntacctSquare,
-                setupConnectionButton: (
-                    <ConnectToSageIntacctButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
-                subscribedImportSettings: [
-                    CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS,
-                    ...Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS),
-                    CONST.SAGE_INTACCT_CONFIG.TAX,
-                    ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
-                ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [
-                    CONST.SAGE_INTACCT_CONFIG.EXPORTER,
-                    CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
-                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE,
-                    CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR,
-                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
-                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
-                    policy?.connections?.intacct?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                        ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
-                        : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
-                ],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [
-                    CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED,
-                    CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES,
-                    CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
-                    CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
-                    CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
-                ],
-                pendingFields: policy?.connections?.intacct?.config?.pendingFields,
-                errorFields: policy?.connections?.intacct?.config?.errorFields,
-            };
-        default:
-            return undefined;
-    }
-}
+import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import type {MenuItemData, PolicyAccountingPageProps} from './types';
+import {getAccountingIntegrationData} from './utils';
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
@@ -288,6 +62,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {canUseWorkspaceFeeds} = usePermissions();
+    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -298,6 +73,15 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+
+    // Enter credentials item shouldn't be shown for SageIntacct and NetSuite integrations
+    const shouldShowEnterCredentials =
+        connectedIntegration &&
+        !!synchronizationError &&
+        isAuthenticationError(policy, connectedIntegration) &&
+        connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT &&
+        connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
 
     const policyID = policy?.id ?? '-1';
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
@@ -311,19 +95,32 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
-            {
-                icon: Expensicons.Sync,
-                text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID, connectedIntegration),
-                disabled: isOffline,
-            },
+            ...(shouldShowEnterCredentials
+                ? [
+                      {
+                          icon: Expensicons.Key,
+                          text: translate('workspace.accounting.enterCredentials'),
+                          onSelected: () => Modal.close(() => startIntegrationFlow({name: connectedIntegration})),
+                          disabled: isOffline,
+                          iconRight: Expensicons.NewWindow,
+                          shouldShowRightIcon: true,
+                      },
+                  ]
+                : [
+                      {
+                          icon: Expensicons.Sync,
+                          text: translate('workspace.accounting.syncNow'),
+                          onSelected: () => syncConnection(policyID, connectedIntegration),
+                          disabled: isOffline,
+                      },
+                  ]),
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => Modal.close(() => setIsDisconnectModalOpen(true)),
             },
         ],
-        [translate, policyID, isOffline, connectedIntegration],
+        [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
 
     useEffect(() => {
@@ -404,7 +201,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const integrationData = accountingIntegrationData(integration, policyID, translate);
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
                 return {
                     ...iconProps,
@@ -412,7 +209,22 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     shouldShowRightComponent: true,
                     title: integrationData?.title,
-                    rightComponent: integrationData?.setupConnectionButton,
+                    rightComponent: (
+                        <Button
+                            onPress={() => startIntegrationFlow({name: integration})}
+                            text={translate('workspace.accounting.setup')}
+                            style={styles.justifyContentCenter}
+                            small
+                            isDisabled={isOffline}
+                            ref={(ref) => {
+                                if (!popoverAnchorRefs?.current) {
+                                    return;
+                                }
+                                // eslint-disable-next-line react-compiler/react-compiler
+                                popoverAnchorRefs.current[integration].current = ref;
+                            }}
+                        />
+                    ),
                 };
             });
         }
@@ -420,9 +232,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const synchronizationError = getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
@@ -514,6 +326,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         policy,
         isSyncInProgress,
         connectedIntegration,
+        synchronizationError,
         policyID,
         translate,
         styles.sectionMenuItemTopDescription,
@@ -521,6 +334,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.mt5,
         styles.popoverMenuIcon,
         canUseWorkspaceFeeds,
+        styles.justifyContentCenter,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
         theme.spinner,
@@ -528,6 +342,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         threeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
+        isOffline,
+        startIntegrationFlow,
+        popoverAnchorRefs,
         canUseNetSuiteUSATax,
     ]);
 
@@ -539,26 +356,50 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
         return otherIntegrations.map((integration) => {
-            const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
+            const integrationData = getAccountingIntegrationData(integration, policyID, translate);
             const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
             return {
                 ...iconProps,
                 title: integrationData?.title,
-                rightComponent: integrationData?.setupConnectionButton,
+                rightComponent: (
+                    <Button
+                        onPress={() =>
+                            startIntegrationFlow({
+                                name: integration,
+                                integrationToDisconnect: connectedIntegration,
+                                shouldDisconnectIntegrationBeforeConnecting: true,
+                            })
+                        }
+                        text={translate('workspace.accounting.setup')}
+                        style={styles.justifyContentCenter}
+                        small
+                        isDisabled={isOffline}
+                        ref={(r) => {
+                            if (!popoverAnchorRefs?.current) {
+                                return;
+                            }
+                            popoverAnchorRefs.current[integration].current = r;
+                        }}
+                    />
+                ),
                 interactive: false,
                 shouldShowRightComponent: true,
                 wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
     }, [
-        connectedIntegration,
-        connectionSyncProgress?.connectionName,
-        isSyncInProgress,
         policy?.connections,
-        policyID,
-        styles.sectionMenuItemTopDescription,
-        translate,
+        isSyncInProgress,
         accountingIntegrations,
+        connectionSyncProgress?.connectionName,
+        connectedIntegration,
+        policyID,
+        translate,
+        styles.justifyContentCenter,
+        styles.sectionMenuItemTopDescription,
+        isOffline,
+        startIntegrationFlow,
+        popoverAnchorRefs,
     ]);
 
     return (
@@ -637,6 +478,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 }
 
+function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
+    return (
+        <AccountingContextProvider policy={props.policy}>
+            <PolicyAccountingPage
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        </AccountingContextProvider>
+    );
+}
+
 PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicyConnections(PolicyAccountingPage);
+export default withPolicyConnections(PolicyAccountingPageWrapper);

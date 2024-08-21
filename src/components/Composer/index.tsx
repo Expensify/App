@@ -19,6 +19,7 @@ import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
@@ -413,7 +414,7 @@ function Composer(
                             return;
                         }
 
-                        textInput.current.focus();
+                        focusComposerWithDelay(textInput.current)(true);
                     });
 
                     props.onFocus?.(e);
