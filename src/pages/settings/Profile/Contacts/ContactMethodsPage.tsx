@@ -73,6 +73,13 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         const partnerUserID = login?.partnerUserID || loginName;
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
+        const NavigateToContactMethodDetails = () => {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID));
+            if (!login?.validatedDate) {
+                User.requestContactMethodValidateCode(loginName);
+            }
+        };
+
         return (
             <OfflineWithFeedback
                 pendingAction={pendingAction}
@@ -81,12 +88,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID));
-                        if (!login?.validatedDate) {
-                            User.requestContactMethodValidateCode(loginName);
-                        }
-                    }}
+                    onPress={NavigateToContactMethodDetails}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
