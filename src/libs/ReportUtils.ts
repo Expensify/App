@@ -3671,6 +3671,16 @@ function getReportName(
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+        return getIOUSubmittedMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+        return getIOUForwardedMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+        return getIOUApprovedMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
@@ -4373,23 +4383,25 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function getFormattedAmount(reportID: string) {
-    const report = getReportOrDraftReport(reportID);
-    const linkedReport = isChatThread(report) ? getParentReport(report) : report;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
+function getFormattedAmount(reportAction: ReportAction) {
+    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isApprovedAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
     return formattedAmount;
 }
 
-function getIOUSubmittedMessage(reportID: string) {
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportID)});
+function getIOUSubmittedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportID: string) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
+function getIOUApprovedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUForwardedMessage(reportID: string) {
-    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+function getIOUForwardedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -4431,7 +4443,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `approved ${amount}`;
             break;
         case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
-            iouMessage = getIOUForwardedMessage(iouReportID);
+            iouMessage = Localize.translateLocal('iou.forwardedAmount', {amount});
             break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
