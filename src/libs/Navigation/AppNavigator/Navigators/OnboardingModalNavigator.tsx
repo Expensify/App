@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,8 +31,6 @@ function OnboardingModalNavigator() {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const {isSmallScreenWidth} = useResponsiveLayout();
-
-    useDisableModalDismissOnEscape();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {

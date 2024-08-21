@@ -46,8 +46,8 @@ while read -r line; do
         exit 1
     fi
 
-    if ! [[ $DEST_URL =~ ^https://(help|use)\.expensify\.com ]]; then
-        error "Found destination URL that is not a helpDot or useDot URL: $DEST_URL"
+    if ! [[ $DEST_URL =~ ^https://(help|use|integrations)\.expensify\.com|^https://www\.expensify\.org ]]; then
+        error "Found destination URL that is not a supported URL: $DEST_URL"
         exit 1
     fi
 

@@ -303,7 +303,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
+                Modal.close(
+                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
+                    true,
+                    true,
+                );
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -474,6 +478,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={onboardingScreenOptions}
                         component={OnboardingModalNavigator}
+                        listeners={{
+                            focus: () => {
+                                Modal.setDisableDismissOnEscape(true);
+                            },
+                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                        }}
                     />
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}

@@ -64,7 +64,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== defaultVendor) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value);
+                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

@@ -26,19 +26,6 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
 type ConfirmationWarningTranslationPaths = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
 
-// TODO: remove when Onyx data is available
-const mockedCard = {
-    accountID: 885646,
-    availableSpend: 1000,
-    nameValuePairs: {
-        cardTitle: 'Test 1',
-        isVirtual: true,
-        limit: 2000,
-        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-    },
-    lastFourPAN: '1234',
-};
-
 type WorkspaceEditCardLimitPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT>;
 
 function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
@@ -49,11 +36,11 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const card = cardsList?.[cardID] ?? mockedCard;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const card = cardsList?.[cardID];
 
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
-        switch (card.nameValuePairs?.limitType) {
+        switch (card?.nameValuePairs?.limitType) {
             case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
                 return 'workspace.expensifyCard.smartLimitWarning';
             case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
@@ -63,28 +50,37 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             default:
                 return 'workspace.expensifyCard.fixedLimitWarning';
         }
-    }, [card.nameValuePairs?.limitType]);
+    }, [card?.nameValuePairs?.limitType]);
 
-    const updateCardLimit = (newLimit: string) => {
+    const getNewAvailableSpend = (newLimit: number) => {
+        const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+        const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+
+        return newLimit - currentSpend;
+    };
+
+    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)), [policyID, cardID]);
+
+    const updateCardLimit = (newLimit: number) => {
+        const newAvailableSpend = getNewAvailableSpend(newLimit);
+
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), Number(newLimit) * 100, card.nameValuePairs?.limit);
+        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), newLimit, newAvailableSpend, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend);
 
-        Navigation.goBack();
+        goBack();
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
-        const currentLimit = card.nameValuePairs?.limit ?? 0;
-        const currentSpend = currentLimit - (card.availableSpend ?? 0);
         const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
-        const newAvailableSpend = newLimit - currentSpend;
+        const newAvailableSpend = getNewAvailableSpend(newLimit);
 
         if (newAvailableSpend <= 0) {
             setIsConfirmModalVisible(true);
             return;
         }
 
-        updateCardLimit(values[INPUT_IDS.LIMIT]);
+        updateCardLimit(newLimit);
     };
 
     const validate = useCallback(
@@ -114,7 +110,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.cardLimit')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID))}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM}
@@ -131,7 +127,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                         <>
                             <InputWrapper
                                 InputComponent={AmountForm}
-                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card.nameValuePairs?.limit, CONST.CURRENCY.USD, false)}
+                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD, false)}
                                 isCurrencyPressable={false}
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
@@ -139,7 +135,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                             <ConfirmModal
                                 title={translate('workspace.expensifyCard.changeCardLimit')}
                                 isVisible={isConfirmModalVisible}
-                                onConfirm={() => updateCardLimit(inputValues[INPUT_IDS.LIMIT])}
+                                onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
                                 onCancel={() => setIsConfirmModalVisible(false)}
                                 prompt={translate(getPromptTextKey, CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD))}
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
