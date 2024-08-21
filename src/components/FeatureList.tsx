@@ -117,7 +117,7 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
-                {secondaryButtonText && (
+                {!!secondaryButtonText && (
                     <Button
                         text={secondaryButtonText}
                         onPress={onSecondaryButtonPress}

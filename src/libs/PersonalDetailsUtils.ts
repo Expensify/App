@@ -323,6 +323,10 @@ function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
 
+function getPersonalDetailsLength() {
+    return personalDetails.length;
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -339,4 +343,5 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
+    getPersonalDetailsLength,
 };

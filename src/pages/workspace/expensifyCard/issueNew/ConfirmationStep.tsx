@@ -20,7 +20,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    // ID of the policy that the card will be issued under
+    policyID: string;
+};
+
+function ConfirmationStep({policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -30,7 +35,7 @@ function ConfirmationStep() {
     const data = issueNewCard?.data;
 
     const submit = () => {
-        // TODO: the logic will be created when CreateExpensifyCard is ready
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
         Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };

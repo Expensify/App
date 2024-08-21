@@ -10,12 +10,15 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
-function FocusTrapForScreen({children}: FocusTrapProps) {
+function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isActive = useMemo(() => {
+        if (typeof focusTrapSettings?.active !== 'undefined') {
+            return focusTrapSettings.active;
+        }
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
         if (BOTTOM_TAB_SCREENS.find((screen) => screen === route.name)) {
             return false;
@@ -31,12 +34,13 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
             return false;
         }
         return true;
-    }, [isFocused, isSmallScreenWidth, route.name]);
+    }, [isFocused, isSmallScreenWidth, route.name, focusTrapSettings?.active]);
 
     return (
         <FocusTrap
             active={isActive}
             paused={!isFocused}
+            containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
@@ -59,6 +63,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                     }
                     return element;
                 },
+                ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >
             {children}
