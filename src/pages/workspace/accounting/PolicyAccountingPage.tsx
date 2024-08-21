@@ -26,7 +26,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getSynchronizationErrorMessage, isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
-    canUseTaxNetSuite,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
@@ -234,8 +233,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy, canUseNetSuiteUSATax);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         const configurationOptions = [
