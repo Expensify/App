@@ -164,6 +164,7 @@ export default {
         profile: 'Perfil',
         referral: 'Remisión',
         payments: 'Pagos',
+        approvals: 'Aprobaciones',
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
@@ -239,6 +240,7 @@ export default {
         conjunctionAt: 'a',
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
+        percentage: 'Porcentaje',
         error: {
             invalidAmount: 'Importe no válido.',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar.',
@@ -815,8 +817,8 @@ export default {
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             receiptFailureMessage: 'El recibo no se subió.',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             saveFileMessage: 'Guarda el archivo ',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             loseFileMessage: 'o descarta este error y piérdelo.',
@@ -1756,34 +1758,34 @@ export default {
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
         error: {
-            youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
-            noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
-            noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
-            taxID: 'Por favor, introduce un número de identificación fiscal válido',
+            youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar.',
+            noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible.',
+            noBankAccountSelected: 'Por favor, elige una cuenta bancaria.',
+            taxID: 'Por favor, introduce un número de identificación fiscal válido.',
             website: 'Por favor, introduce un sitio web válido. El sitio web debe estar en minúsculas.',
             zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
-            phoneNumber: 'Por favor, introduce un teléfono válido',
-            companyName: 'Por favor, introduce un nombre comercial legal válido',
-            addressCity: 'Por favor, introduce una ciudad válida',
-            addressStreet: 'Por favor, introduce una calle de dirección válida que no sea un apartado postal',
-            addressState: 'Por favor, selecciona un estado',
-            incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
-            incorporationState: 'Por favor, selecciona una estado válido',
-            industryCode: 'Por favor, introduce un código de clasificación de industria válido',
-            restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
-            routingNumber: 'Por favor, introduce un número de ruta válido',
-            accountNumber: 'Por favor, introduce un número de cuenta válido',
-            routingAndAccountNumberCannotBeSame: 'Los números de ruta y de cuenta no pueden ser iguales',
-            companyType: 'Por favor, selecciona un tipo de compañía válido',
+            phoneNumber: 'Por favor, introduce un teléfono válido.',
+            companyName: 'Por favor, introduce un nombre comercial legal válido.',
+            addressCity: 'Por favor, introduce una ciudad válida.',
+            addressStreet: 'Por favor, introduce una calle de dirección válida que no sea un apartado postal.',
+            addressState: 'Por favor, selecciona un estado.',
+            incorporationDateFuture: 'La fecha de incorporación no puede ser futura.',
+            incorporationState: 'Por favor, selecciona una estado válido.',
+            industryCode: 'Por favor, introduce un código de clasificación de industria válido.',
+            restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos.',
+            routingNumber: 'Por favor, introduce un número de ruta válido.',
+            accountNumber: 'Por favor, introduce un número de cuenta válido.',
+            routingAndAccountNumberCannotBeSame: 'Los números de ruta y de cuenta no pueden ser iguales.',
+            companyType: 'Por favor, selecciona un tipo de compañía válido.',
             tooManyAttempts:
                 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción ha sido desactivada temporalmente durante 24 horas. Por favor, inténtalo de nuevo más tarde.',
-            address: 'Por favor, introduce una dirección válida',
-            dob: 'Por favor, selecciona una fecha de nacimiento válida',
-            age: 'Debe ser mayor de 18 años',
-            ssnLast4: 'Por favor, introduce los últimos 4 dígitos del número de seguridad social',
-            firstName: 'Por favor, introduce el nombre',
-            lastName: 'Por favor, introduce los apellidos',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito',
+            address: 'Por favor, introduce una dirección válida.',
+            dob: 'Por favor, selecciona una fecha de nacimiento válida.',
+            age: 'Debe ser mayor de 18 años.',
+            ssnLast4: 'Por favor, introduce los últimos 4 dígitos del número de seguridad social.',
+            firstName: 'Por favor, introduce el nombre.',
+            lastName: 'Por favor, introduce los apellidos.',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito.',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
         },
     },
@@ -2153,6 +2155,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
@@ -2884,6 +2887,11 @@ export default {
                 title: 'Gane',
                 subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
             },
+            manageSection: {
+                title: 'Gestionar',
+                subtitle: 'Agrega controles que ayuden a mantener los gastos dentro del presupuesto.',
+            },
+
             organizeSection: {
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
@@ -2891,6 +2899,10 @@ export default {
             integrateSection: {
                 title: 'Integrar',
                 subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
@@ -2908,10 +2920,6 @@ export default {
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
-            },
-            distanceRates: {
-                title: 'Tasas de distancia',
-                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -2946,6 +2954,10 @@ export default {
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
+            },
+            rules: {
+                title: 'Reglas',
+                subtitle: 'Configura cuándo se requieren recibos, marca gastos elevados y más.',
             },
         },
         reportFields: {
@@ -3598,6 +3610,12 @@ export default {
                 learnMore: 'más información',
                 aboutOurPlans: 'sobre nuestros planes y precios.',
             },
+            rules: {
+                title: 'Reglas',
+                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control, para que no tengas que preocuparte por los pequeños detalles.\n\nRequiere detalles de gastos como recibos y descripciones, establece límites y valores predeterminados, y automatiza aprobaciones y pagos, todo en un solo lugar.`,
+                onlyAvailableOnPlan: 'Las reglas solo están disponibles en el plan Control, a partir de ',
+            },
+
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'por miembro activo al mes.',
@@ -3630,6 +3648,7 @@ export default {
                 subtitle: 'Establece controles de gasto y valores predeterminados para gastos individuales. También puedes crear reglas para categorías y etiquetas.',
             },
             expenseReportRules: {
+                examples: 'Ejemplos:',
                 title: 'Informes de gastos',
                 subtitle: 'Automatiza el cumplimiento, las aprobaciones y los pagos de los informes de gastos.',
                 customReportNamesTitle: 'Nombres personalizados de informes',
