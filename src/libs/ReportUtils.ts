@@ -2695,7 +2695,7 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
- * Check if Report is unsubmitted in a workspace with delayed submission enabled 
+ * Check if Report is unsubmitted in a workspace with delayed submission enabled
  */
 function isReportUnsubmitted(report: OnyxEntry<Report>): boolean {
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
