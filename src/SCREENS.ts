@@ -496,8 +496,8 @@ const SCREENS = {
     },
     ROOM_MEMBERS: {
         ROOT: 'RoomMembers_Root',
-        INVITE: 'RoomInvite_Root',
-        DETAILS: 'RoomMembersDetails_Root',
+        INVITE: 'RoomMembers_Invite',
+        DETAILS: 'RoomMember_Details',
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
