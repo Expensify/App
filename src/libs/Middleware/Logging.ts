@@ -1,3 +1,4 @@
+import type {Primitive} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
@@ -5,6 +6,66 @@ import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
+
+function serializeValue(data: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const seen = new WeakMap<any, boolean>();
+    function serialize(item: unknown): string | Record<string, unknown> | Primitive | Map<unknown, unknown> | Set<unknown> {
+        if (seen.has(item)) {
+            return '"[Circular]"';
+        }
+
+        if (['undefined', 'null', 'number', 'boolean', 'string', 'bigint', 'symbol'].includes(typeof item) || item instanceof Date || item instanceof RegExp || item instanceof Error) {
+            return item as Primitive;
+        }
+
+        if (item instanceof Map) {
+            seen.set(item, true);
+            const serializedMap = new Map(Array.from(item.entries()).map(([key, value]) => [serialize(key), serialize(value)]));
+            seen.delete(item);
+            return serializedMap;
+        }
+
+        if (item instanceof Set) {
+            seen.set(item, true);
+            const serializedSet = new Set(Array.from(item.values()).map((v) => serialize(v)));
+            seen.delete(item);
+            return serializedSet;
+        }
+
+        if (ArrayBuffer.isView(item)) {
+            const typedArrayName = item.constructor.name;
+            return `new ${typedArrayName}`;
+        }
+
+        if (item instanceof ArrayBuffer) {
+            return `new Uint8Array.buffer`;
+        }
+
+        if (Array.isArray(item)) {
+            seen.set(item, true);
+            const serializedArray = item.map(serialize);
+            seen.delete(item);
+            return `[${serializedArray.join(',')}]`;
+        }
+
+        if (typeof item === 'object') {
+            const itemAsObject = item as Record<string, unknown>;
+            seen.set(item, true);
+            const serializedObj: Record<string, unknown> = {};
+            Object.keys(itemAsObject).forEach((key) => {
+                serializedObj[key] = serialize(itemAsObject[key]);
+            });
+            seen.delete(item);
+            return serializedObj;
+        }
+
+        const type = (item as (...args: unknown[]) => unknown)?.constructor?.name || Object.prototype.toString.call(item).slice(8, -1);
+        return `"[Not serializable: ${type}]"`;
+    }
+
+    return serialize(data);
+}
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
@@ -38,7 +99,10 @@ function logRequestDetails(message: string, request: Request, response?: Respons
      * requests because they contain sensitive information.
      */
     if (request.command !== 'AuthenticatePusher') {
-        extraData.request = request;
+        extraData.request = {
+            ...request,
+            data: serializeValue(request.data),
+        };
         extraData.response = response;
     }
 
