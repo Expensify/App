@@ -20,13 +20,13 @@ import ReviewFields from './ReviewFields';
 function ReviewTaxRate() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const transaction = TransactionUtils.getTransaction(reviewDuplicates?.transactionID ?? '');
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(reviewDuplicates?.transactionID ?? '');
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID ?? '');
-    const transaction = TransactionUtils.getTransaction(transactionID);
     const options = useMemo(
         () =>
             compareResult.change.taxCode?.map((taxID) =>
@@ -39,6 +39,7 @@ function ReviewTaxRate() {
             ),
         [compareResult.change.taxCode, policy, transaction, translate],
     );
+
     const getTaxAmount = useCallback(
         (taxID: string) => {
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxID);

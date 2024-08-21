@@ -31,6 +31,8 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPolicy} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -279,15 +281,20 @@ function MoneyRequestPreviewContent({
     const navigateToReviewFields = () => {
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
         Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
-        if ('merchant' in comparisonResult.change) {
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('category' in comparisonResult.change) {
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('tag' in comparisonResult.change) {
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('description' in comparisonResult.change) {
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('taxCode' in comparisonResult.change) {
+
+        const report2 = ReportUtils.getReport(transaction?.reportID ?? '');
+        const policy = PolicyUtils.getPolicy(report2?.policyID);
+        const hasValidTaxes = comparisonResult.change.taxCode?.filter((taxID) => PolicyUtils.getTaxByID(policy, taxID ?? '')?.name).length;
+        // if ('merchant' in comparisonResult.change) {
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        // } else if ('category' in comparisonResult.change) {
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        // } else if ('tag' in comparisonResult.change) {
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
+        // } else if ('description' in comparisonResult.change) {
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
+        // }
+        if ('taxCode' in comparisonResult.change && hasValidTaxes) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID));
         } else if ('billable' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID));
