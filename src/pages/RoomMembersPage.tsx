@@ -361,6 +361,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
+                        sectionListStyle={[!canSelectMultiple && styles.mt3]}
                         ListItem={TableListItem}
                         onDismissError={dismissError}
                     />
