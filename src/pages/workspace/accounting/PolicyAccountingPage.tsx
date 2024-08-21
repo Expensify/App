@@ -431,6 +431,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <OfflineWithFeedback
                                     pendingAction={menuItem.pendingAction}
                                     key={menuItem.title}
+                                    shouldDisableStrikeThrough
                                 >
                                     <MenuItem
                                         brickRoadIndicator={menuItem.brickRoadIndicator}

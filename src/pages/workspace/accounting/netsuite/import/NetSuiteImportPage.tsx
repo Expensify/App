@@ -120,6 +120,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback
                         key={importField}
                         pendingAction={settingsPendingAction(settings, config?.pendingFields)}
+                        shouldDisableStrikeThrough
                     >
                         <MenuItemWithTopDescription
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
