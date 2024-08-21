@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
+import {updateLastScreen} from '@libs/actions/App';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -64,7 +65,6 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function showCameraPermissionsAlert(screenName: IOUType | '') {
     Alert.alert(
         Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
@@ -78,6 +78,11 @@ function showCameraPermissionsAlert(screenName: IOUType | '') {
                 text: Localize.translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
+                    // In case of ios, app reload when we enable camera permission from settings
+                    // we are saving last screen so we can navigate to it after app reload
+                    if (screenName) {
+                        updateLastScreen(screenName);
+                    }
                 },
             },
         ],
