@@ -73,6 +73,9 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialCodeSent = useRef<boolean>(false);
+
+    console.log('isInitialCodeSent', isInitialCodeSent);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -134,6 +137,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(contactMethod);
         inputValidateCodeRef.current?.clear();
+        isInitialCodeSent.current = true;
     };
 
     /**
@@ -168,7 +172,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         setFormError({});
         User.validateSecondaryLogin(loginList, contactMethod, validateCode);
     }, [loginList, validateCode, contactMethod]);
-
+    
     return (
         <>
             <MagicCodeInput
@@ -201,7 +205,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && (
+                    {hasMagicCodeBeenSent && isInitialCodeSent.current && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
