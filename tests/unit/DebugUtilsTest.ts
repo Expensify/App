@@ -86,7 +86,7 @@ const MOCK_REPORT_ACTION: ReportAction = {
     lastModified: '2024-08-08 18:20:44.171',
 } satisfies ReportAction;
 
-const MOCK_DRAFT_REPORT_ACTION = JSON.stringify(MOCK_REPORT_ACTION, null, 6);
+const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
 const MOCK_CONST_ENUM = {foo: 'foo', bar: 'bar'};
 
@@ -194,13 +194,13 @@ describe('Debug Utils', () => {
                 d: '{}',
                 e: 'true',
                 f: 'false',
-                g: JSON.stringify([1], null, 6),
-                h: JSON.stringify(['a'], null, 6),
-                i: JSON.stringify([true], null, 6),
-                j: JSON.stringify([false], null, 6),
-                k: JSON.stringify([{}], null, 6),
-                l: JSON.stringify([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}], null, 6),
-                m: JSON.stringify({a: 1, b: 'a', c: [], d: {}, e: true, f: false}, null, 6),
+                g: DebugUtils.onyxDataToString([1]),
+                h: DebugUtils.onyxDataToString(['a']),
+                i: DebugUtils.onyxDataToString([true]),
+                j: DebugUtils.onyxDataToString([false]),
+                k: DebugUtils.onyxDataToString([{}]),
+                l: DebugUtils.onyxDataToString([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}]),
+                m: DebugUtils.onyxDataToString({a: 1, b: 'a', c: [], d: {}, e: true, f: false}),
                 n: 'undefined',
             });
         });
@@ -356,9 +356,14 @@ describe('Debug Utils', () => {
                 });
             }).not.toThrow();
         });
-        it('throws SyntaxError when value is not a valid string representation of an array', () => {
+        it('throws SyntaxError when value is just a string', () => {
             expect(() => {
                 DebugUtils.validateArray('a', 'number');
+            }).toThrow();
+        });
+        it('throws SyntaxError when value is a string representation of an object', () => {
+            expect(() => {
+                DebugUtils.validateArray('{}', 'number');
             }).toThrow();
         });
         it('throws SyntaxError when value is not a valid string representation of a number array', () => {
@@ -385,7 +390,7 @@ describe('Debug Utils', () => {
         });
         it('does not throw SyntaxError when value is a valid JSON', () => {
             expect(() => {
-                DebugUtils.validateObject(JSON.stringify({a: 1, b: 'a', c: [], d: {}, e: true, f: false}, null, 6), {
+                DebugUtils.validateObject(DebugUtils.onyxDataToString({a: 1, b: 'a', c: [], d: {}, e: true, f: false}), {
                     a: 'number',
                     b: 'string',
                     c: 'array',
@@ -397,7 +402,7 @@ describe('Debug Utils', () => {
         });
         it('throws SyntaxError when value is a JSON representation of an array', () => {
             expect(() => {
-                DebugUtils.validateObject(JSON.stringify([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}], null, 6), {
+                DebugUtils.validateObject(DebugUtils.onyxDataToString([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}]), {
                     a: 'number',
                     b: 'string',
                     c: 'array',
@@ -409,7 +414,7 @@ describe('Debug Utils', () => {
         });
         it('throws SyntaxError when value is not a valid JSON - invalid property', () => {
             expect(() => {
-                DebugUtils.validateObject(JSON.stringify({a: 'a', b: 'a', c: [], d: {}, e: true, f: false}, null, 6), {
+                DebugUtils.validateObject(DebugUtils.onyxDataToString({a: 'a', b: 'a', c: [], d: {}, e: true, f: false}), {
                     a: 'number',
                     b: 'string',
                     c: 'array',
@@ -511,28 +516,28 @@ describe('Debug Utils', () => {
         });
         it('throws SyntaxError when property is not a valid number', () => {
             const reportAction = {...MOCK_REPORT_ACTION, accountID: '2'} as unknown as ReportAction;
-            const draftReportAction = JSON.stringify(reportAction, null, 6);
+            const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
             }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'accountID', expectedType: 'number | undefined'}}));
         });
         it('throws SyntaxError when property is not a valid date', () => {
             const reportAction = {...MOCK_REPORT_ACTION, created: 2} as unknown as ReportAction;
-            const draftReportAction = JSON.stringify(reportAction, null, 6);
+            const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
             }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'created', expectedType: CONST.DATE.FNS_DB_FORMAT_STRING}}));
         });
         it('throws SyntaxError when property is not a valid boolean', () => {
             const reportAction = {...MOCK_REPORT_ACTION, isLoading: 2} as unknown as ReportAction;
-            const draftReportAction = JSON.stringify(reportAction, null, 6);
+            const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
             }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'isLoading', expectedType: 'true | false | undefined'}}));
         });
         it('throws SyntaxError when property is missing', () => {
             const reportAction = {...MOCK_REPORT_ACTION, actionName: undefined} as unknown as ReportAction;
-            const draftReportAction = JSON.stringify(reportAction, null, 6);
+            const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
             }).toThrow(new SyntaxError('debug.missingProperty', {cause: {propertyName: 'actionName'}}));
