@@ -55,11 +55,6 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-// This is supposed to restart to the initial state
-Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-    App.openApp();
-});
-
 type ExpensifyOnyxProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;

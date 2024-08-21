@@ -53,8 +53,6 @@ type TroubleshootPageOnyxProps = {
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-Network.setShouldForceOffline(false);
-
 function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
