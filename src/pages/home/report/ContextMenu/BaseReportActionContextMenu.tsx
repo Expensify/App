@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -28,6 +28,7 @@ import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuAct
 import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
+import * as Report from '@userActions/Report';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */
@@ -144,7 +145,16 @@ function BaseReportActionContextMenu({
 
     const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
     const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
-    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+    const {reportActions: paginatedReportActions, sortedAllReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
+    const hasNewestReportAction = sortedAllReportActions && sortedAllReportActions[0]?.created === childReport?.lastVisibleActionCreated;
+
+    useEffect(() => {
+        if (hasNewestReportAction) {
+            return;
+        }
+
+        Report.openReport(childReport?.reportID ?? '-1');
+    }, [hasNewestReportAction]);
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(childReport?.reportID ?? '-1', paginatedReportActions ?? [], isOffline),
