@@ -95,6 +95,9 @@ type CardList = Record<string, Card>;
 /** Issue new card flow steps */
 type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
 
+/** Card spending limit type */
+type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
 /** Data required to be sent to issue a new card */
 type IssueNewCardData = {
     /** The email address of the cardholder */
@@ -104,7 +107,7 @@ type IssueNewCardData = {
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
-    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+    limitType: CardLimitType;
 
     /** Card spending limit */
     limit: number;
@@ -129,4 +132,4 @@ type IssueNewCard = {
 type WorkspaceCardsList = Record<string, Card>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

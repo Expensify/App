@@ -123,37 +123,33 @@ function showContextMenu(
     if (!contextMenuRef.current) {
         return;
     }
-    const show = () => {
-        contextMenuRef.current?.showContextMenu(
-            type,
-            event,
-            selection,
-            contextMenuAnchor,
-            reportID,
-            reportActionID,
-            originalReportID,
-            draftMessage,
-            onShow,
-            onHide,
-            isArchivedRoom,
-            isChronosReport,
-            isPinnedChat,
-            isUnreadChat,
-            disabledActions,
-            shouldCloseOnTarget,
-            setIsEmojiPickerActive,
-            isOverflowMenu,
-        );
-    };
-
     // If there is an already open context menu, close it first before opening
     // a new one.
     if (contextMenuRef.current.instanceID) {
-        hideContextMenu(false, show);
-        return;
+        hideContextMenu();
+        contextMenuRef.current.runAndResetOnPopoverHide();
     }
 
-    show();
+    contextMenuRef.current.showContextMenu(
+        type,
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportActionID,
+        originalReportID,
+        draftMessage,
+        onShow,
+        onHide,
+        isArchivedRoom,
+        isChronosReport,
+        isPinnedChat,
+        isUnreadChat,
+        disabledActions,
+        shouldCloseOnTarget,
+        setIsEmojiPickerActive,
+        isOverflowMenu,
+    );
 }
 
 /**
