@@ -43,9 +43,12 @@ type FeedbackSurveyProps = {
 
     /** Indicates whether a loading indicator should be shown */
     isLoading?: boolean;
+
+    /** Should the submit button be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft, draftResults] = useOnyx(`${formID}Draft`);
@@ -103,7 +106,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
             onSubmit={handleSubmit}
             submitButtonText={translate('common.submit')}
             isSubmitButtonVisible={false}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOffline}
         >
             <View style={styles.mh5}>
                 <Text style={styles.textHeadline}>{title}</Text>
