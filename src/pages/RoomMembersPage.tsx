@@ -80,7 +80,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
 
         const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
-        const shouldShowInput = participants.length > CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        const shouldShowInput = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
 
         if (shouldShowTextInput !== shouldShowInput) {
             setShouldShowTextInput(shouldShowInput);
