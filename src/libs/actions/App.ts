@@ -458,7 +458,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, init
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
     // to prevent signing into the wrong account
     if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
-        Browser.openRouteInDesktopApp(initialRoute);
+        Browser.openRouteInDesktopApp();
         return;
     }
 
@@ -475,7 +475,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, init
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
     });
 }
 
