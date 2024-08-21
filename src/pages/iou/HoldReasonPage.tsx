@@ -5,7 +5,6 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -63,7 +62,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
             return errors;
         },
-        [translate],
+        [report, translate],
     );
 
     useEffect(() => {
