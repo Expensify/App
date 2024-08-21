@@ -56,7 +56,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const [searchValue, setSearchValue] = useState('');
-    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
 
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
@@ -69,18 +68,18 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         setSelectedMembers([]);
     }, [isFocused]);
 
-    useEffect(() => {
+    const shouldShowTextInput = useMemo(() => {
         const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
-        const shouldShowInput = chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        return chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    }, [report, personalDetails]);
 
-        if (shouldShowTextInput !== shouldShowInput) {
-            setShouldShowTextInput(shouldShowInput);
+    useEffect(() => {
+        if (shouldShowTextInput) {
+            return;
         }
 
-        if (!shouldShowInput) {
-            setSearchValue('');
-        }
-    }, [report, shouldShowTextInput, personalDetails]);
+        setSearchValue('');
+    }, [shouldShowTextInput]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];

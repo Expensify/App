@@ -68,28 +68,26 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
-    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
-
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
-    useEffect(() => {
+    const shouldShowTextInput = useMemo(() => {
         if (!didLoadRoomMembers) {
-            return;
+            return false;
         }
 
         const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
-        const shouldShowInput = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        return participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    }, [report, didLoadRoomMembers]);
 
-        if (shouldShowTextInput !== shouldShowInput) {
-            setShouldShowTextInput(shouldShowInput);
+    useEffect(() => {
+        if (shouldShowTextInput) {
+            return;
         }
 
-        if (!shouldShowInput) {
-            setSearchValue('');
-        }
-    }, [report, didLoadRoomMembers, shouldShowTextInput]);
+        setSearchValue('');
+    }, [shouldShowTextInput]);
 
     useEffect(
         () => () => {
