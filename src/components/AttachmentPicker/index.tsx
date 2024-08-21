@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import type {ValueOf} from 'type-fest';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
@@ -14,6 +15,25 @@ function getAcceptableFileTypes(type: string): string | undefined {
     return 'image/*';
 }
 
+function getAcceptableFileTypesFromAList(fileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>): string {
+    const acceptValue = fileTypes
+        .map((type) => {
+            switch (type) {
+                case 'msword':
+                    return 'application/msword';
+                case 'text':
+                    return 'text/plain';
+                case 'message':
+                    return 'message/rfc822';
+                default:
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    return `.${type}`;
+            }
+        })
+        .join(',');
+    return acceptValue;
+}
+
 /**
  * This component renders a function as a child and
  * returns a "show attachment picker" method that takes
@@ -21,7 +41,7 @@ function getAcceptableFileTypes(type: string): string | undefined {
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: AttachmentPickerProps): React.JSX.Element {
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, acceptedFileTypes}: AttachmentPickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
     const onPicked = useRef<(file: File) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
@@ -75,7 +95,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
                         {once: true},
                     );
                 }}
-                accept={getAcceptableFileTypes(type)}
+                accept={acceptedFileTypes ? getAcceptableFileTypesFromAList(acceptedFileTypes) : getAcceptableFileTypes(type)}
             />
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {

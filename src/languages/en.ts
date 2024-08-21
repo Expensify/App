@@ -459,6 +459,26 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Submit an expense',
+            subtitleText1: 'Submit to someone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Split an expense',
+            subtitleText1: 'Split with a friend and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pay someone',
+            subtitleText1: 'Pay anyone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Book a call',
     },
@@ -648,9 +668,9 @@ export default {
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
-        locationAccessMessage: 'We’ll use your location to accurately determine your default currency and timezone. You can edit access in your device’s settings anytime.',
-        locationErrorTitle: 'Enable location in settings',
-        locationErrorMessage: 'Allowing location access is required to help accurately determine your default currency and timezone. Tap Settings to update permissions.',
+        locationAccessMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
+        locationErrorTitle: 'Allow location access',
+        locationErrorMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -800,9 +820,9 @@ export default {
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            receiptFailureMessage: "The receipt didn't upload. ",
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            receiptFailureMessage: "The receipt didn't upload.",
             saveFileMessage: 'Download the file ',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             loseFileMessage: 'or dismiss this error and lose it.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
@@ -1330,6 +1350,8 @@ export default {
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
+        deleteTitle: 'Delete approval workflow',
+        deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -1706,34 +1728,34 @@ export default {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
-            youNeedToSelectAnOption: 'You need to select an option to proceed.',
-            noBankAccountAvailable: 'Sorry, no bank account is available.',
-            noBankAccountSelected: 'Please choose an account.',
-            taxID: 'Please enter a valid tax ID number.',
-            website: 'Please enter a valid website. The website should be in lowercase.',
-            zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
-            phoneNumber: 'Please enter a valid phone number.',
-            companyName: 'Please enter a valid legal business name.',
-            addressCity: 'Please enter a valid city.',
-            addressStreet: 'Please enter a valid street address that is not a PO box.',
-            addressState: 'Please select a valid state.',
-            incorporationDateFuture: 'Incorporation date cannot be in the future.',
-            incorporationState: 'Please select a valid state.',
-            industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
-            restrictedBusiness: 'Please confirm company is not on the list of restricted businesses.',
-            routingNumber: 'Please enter a valid routing number.',
-            accountNumber: 'Please enter a valid account number.',
-            routingAndAccountNumberCannotBeSame: 'The routing number and account number cannot be the same.',
-            companyType: 'Please select a valid company type.',
-            tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
-            address: 'Please enter a valid address.',
-            dob: 'Please select a valid date of birth.',
-            age: 'Must be over 18 years old.',
-            ssnLast4: 'Please enter valid last 4 digits of SSN.',
-            firstName: 'Please enter a valid first name.',
-            lastName: 'Please enter a valid last name.',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card.',
-            validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
+            youNeedToSelectAnOption: 'Please select an option to proceed',
+            noBankAccountAvailable: "Sorry, there's no bank account available",
+            noBankAccountSelected: 'Please choose an account',
+            taxID: 'Please enter a valid tax ID number',
+            website: 'Please enter a valid website using lower-case letters',
+            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            phoneNumber: 'Please enter a valid phone number',
+            companyName: 'Please enter a valid business name',
+            addressCity: 'Please enter a valid city',
+            addressStreet: 'Please enter a valid street address',
+            addressState: 'Please select a valid state',
+            incorporationDateFuture: "Incorporation date can't be in the future",
+            incorporationState: 'Please select a valid state',
+            industryCode: 'Please enter a valid industry classification code with six digits',
+            restrictedBusiness: "Please confirm the business isn't on the list of restricted businesses",
+            routingNumber: 'Please enter a valid routing number',
+            accountNumber: 'Please enter a valid account number',
+            routingAndAccountNumberCannotBeSame: "Routing and account numbers can't match",
+            companyType: 'Please select a valid company type',
+            tooManyAttempts: 'Due to a high number of login attempts, this option has been disabled for 24 hours. Please try again later or enter details manually instead.',
+            address: 'Please enter a valid address',
+            dob: 'Please select a valid date of birth',
+            age: 'Must be over 18 years old',
+            ssnLast4: 'Please enter valid last 4 digits of SSN',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
+            validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
         },
     },
     addPersonalBankAccountPage: {
@@ -1763,11 +1785,11 @@ export default {
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
     },
     onfidoStep: {
-        acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
+        acceptTerms: 'By continuing with the request to activate your Expensify Wallet, you confirm that you have read, understand, and accept',
         facialScan: 'Onfido’s Facial Scan Policy and Release',
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
-        letsVerifyIdentity: "Let's verify your identity.",
+        letsVerifyIdentity: "Let's verify your identity",
         butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
         genericError: 'An error occurred while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Enable camera access',
@@ -1783,17 +1805,17 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Additional details',
-        helpText: 'We need to confirm the following information before you can send and receive money with your wallet.',
-        helpTextIdologyQuestions: 'Just a few more questions to finish verifying your identity.',
+        helpText: 'We need to confirm the following information before you can send and receive money from your wallet.',
+        helpTextIdologyQuestions: 'We need to ask you just a few more questions to finish validating your identity.',
         helpLink: 'Learn more about why we need this.',
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
-        selectAnswer: 'You need to select a response to proceed.',
-        ssnFull9Error: 'Please enter a valid 9-digit SSN.',
-        needSSNFull9: "We're having trouble verifying your SSN. Please enter the full 9 digits of your SSN.",
-        weCouldNotVerify: 'We could not verify',
-        pleaseFixIt: 'Please fix this information before continuing.',
+        selectAnswer: 'Please select a response to proceed.',
+        ssnFull9Error: 'Please enter a valid nine-digit SSN.',
+        needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
+        weCouldNotVerify: "We couldn't verify",
+        pleaseFixIt: 'Please fix this information before continuing',
         failedKYCTextBefore: "We weren't able to verify your identity. Please try again later or reach out to ",
         failedKYCTextAfter: ' if you have any questions.',
     },
@@ -1965,8 +1987,8 @@ export default {
         doYouOwn25percent: 'Do you own 25% or more of',
         doAnyIndividualOwn25percent: 'Do any individuals own 25% or more of',
         areThereMoreIndividualsWhoOwn25percent: 'Are there more individuals who own 25% or more of',
-        regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the company.',
-        companyOwner: 'Company owner',
+        regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
+        companyOwner: 'Business owner',
         enterLegalFirstAndLastName: "What's the owner's legal name?",
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -2016,7 +2038,7 @@ export default {
         confirmAgreements: 'Please confirm the agreements below.',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         certifyTrueAndAccurateError: 'Please certify that the information is true and accurate',
-        isAuthorizedToUseBankAccount: 'I am authorized to use my company bank account for business spend',
+        isAuthorizedToUseBankAccount: 'I am authorized to use this business bank account for business spend',
         isAuthorizedToUseBankAccountError: 'You must be a controlling officer with authorization to operate the business bank account.',
         termsAndConditions: 'terms and conditions',
     },
@@ -2807,7 +2829,7 @@ export default {
         moreFeatures: {
             spendSection: {
                 title: 'Spend',
-                subtitle: 'Enable optional functionality that helps you scale your team.',
+                subtitle: 'Enable functionality that helps you scale your team.',
             },
             earnSection: {
                 title: 'Earn',
@@ -3266,6 +3288,12 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importing custom lists';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importing subsidiaries';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importing vendors';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
                         case 'intacctImportDimensions':
@@ -3423,7 +3451,7 @@ export default {
             yesStartOver: 'Yes, start over',
             disconnectYour: 'Disconnect your ',
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
-            clearProgress: "Starting over will clear any progress you've made.",
+            clearProgress: "Starting over will clear the progress you've made so far.",
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
@@ -3598,6 +3626,9 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Public Announce',
         },
+    },
+    workspaceActions: {
+        renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
@@ -3816,11 +3847,14 @@ export default {
                 reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
-                share: ({to}: ShareParams) => `invited user ${to}`,
+                share: ({to}: ShareParams) => `invited member ${to}`,
                 unshare: ({to}: UnshareParams) => `removed user ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
+                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
+                updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
+                removeMember: (email: string, role: string) => `removed ${role} ${email}`,
             },
         },
     },
@@ -3930,7 +3964,8 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
-        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
+        joinExpensifyOrg:
+            'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
@@ -4252,6 +4287,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            authenticatePayment: 'Authenticate payment',
             requestRefund: 'Request refund',
             requestRefundModal: {
                 phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
