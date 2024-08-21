@@ -17,7 +17,7 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
         >
             <Text
                 numberOfLines={isSingleLine ? 1 : undefined}
-                style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap, styles.dFlex]}
+                style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
             >
                 {processedTextArray.length !== 0 ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithTextFontSize}>{text}</Text> : text)) : fragmentText}
             </Text>
