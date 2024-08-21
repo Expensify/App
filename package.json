@@ -188,7 +188,8 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
-    "semver": "^7.5.2"
+    "semver": "^7.5.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",

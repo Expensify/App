@@ -27,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -52,9 +53,11 @@ type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamLis
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -239,7 +242,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -292,6 +295,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </View>
     );
 
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems = [
+            {
+                icon: Expensicons.Table,
+                text: translate('common.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
+                },
+            },
+        ];
+
+        return menuItems;
+    }, [policyId, translate, isOffline]);
+
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
@@ -319,6 +340,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         Navigation.goBack(backTo);
                     }}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -371,6 +395,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <ConfirmModal
+                    isVisible={isOfflineModalVisible}
+                    onConfirm={() => setIsOfflineModalVisible(false)}
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.thisFeatureRequiresInternet')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

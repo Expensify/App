@@ -6,6 +6,7 @@ import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPo
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
@@ -115,6 +116,58 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: failureCategoryMap,
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
+function buildPolicyImportCategories(policyID: string, categories: readonly PolicyCategory[]) {
+    const oldCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category.name] = {
+            name: category.name,
+            enabled: category.enabled,
+        };
+        return acc;
+    }, {});
+
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategoryMap,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importSuccessfullDescription', categories.length)},
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: oldCategories,
             },
         ],
     };
@@ -264,6 +317,17 @@ function createPolicyCategory(policyID: string, categoryName: string) {
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+}
+
+function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
+    const onyxData = buildPolicyImportCategories(policyID, categories);
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled}))]),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET, parameters, onyxData);
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
@@ -763,4 +827,5 @@ export {
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
+    importPolicyCategories,
 };

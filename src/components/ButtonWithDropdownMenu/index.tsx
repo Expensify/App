@@ -39,11 +39,12 @@ function ButtonWithDropdownMenu<IValueType>({
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
     useKeyboardShortcuts = false,
+    defaultSelectedIndex = 0,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+    const [selectedItemIndex, setSelectedItemIndex] = useState(defaultSelectedIndex);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -97,7 +98,7 @@ function ButtonWithDropdownMenu<IValueType>({
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
+                <>
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
@@ -143,7 +144,7 @@ function ButtonWithDropdownMenu<IValueType>({
                             </View>
                         </Button>
                     )}
-                </View>
+                </>
             ) : (
                 <Button
                     success={success}

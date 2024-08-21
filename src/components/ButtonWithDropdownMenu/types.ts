@@ -58,7 +58,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
@@ -93,6 +93,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
+
+    /** Decides which index in menuItems should be selected */
+    defaultSelectedIndex?: number;
 };
 
 export type {
