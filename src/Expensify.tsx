@@ -256,6 +256,7 @@ function Expensify({
         <DeeplinkWrapper
             isAuthenticated={isAuthenticated}
             autoAuthState={autoAuthState}
+            initialUrl={initialUrl ?? ''}
         >
             {shouldInit && (
                 <>

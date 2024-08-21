@@ -449,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
@@ -458,7 +458,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
     // to prevent signing into the wrong account
     if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
-        Browser.openRouteInDesktopApp();
+        Browser.openRouteInDesktopApp(initialRoute);
         return;
     }
 
