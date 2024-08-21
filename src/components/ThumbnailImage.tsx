@@ -24,7 +24,7 @@ type ThumbnailImageProps = {
     previewSourceURL: string | ImageSourcePropType;
 
     /** alt text for the image */
-    altText: string;
+    altText?: string;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
