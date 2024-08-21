@@ -71,7 +71,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     useEffect(() => {
         const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
-        const shouldShowInput = chatParticipants.length > CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        const shouldShowInput = chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
 
         if (shouldShowTextInput !== shouldShowInput) {
             setShouldShowTextInput(shouldShowInput);
