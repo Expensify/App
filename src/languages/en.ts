@@ -375,7 +375,6 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
-        outstanding: 'Outstanding',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2096,7 +2095,6 @@ export default {
         viewTrip: 'View trip',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
-        trips: 'Trips',
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -3290,6 +3288,12 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importing custom lists';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importing subsidiaries';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importing vendors';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
                         case 'intacctImportDimensions':
