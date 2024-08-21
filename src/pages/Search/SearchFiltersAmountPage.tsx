@@ -24,16 +24,16 @@ function SearchFiltersAmountPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const greaterThan = searchAdvancedFiltersForm?.[INPUT_IDS.GREATER_THAN];
-    const greaterThanFormattedAmount = greaterThan !== undefined ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
+    const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
     const lessThan = searchAdvancedFiltersForm?.[INPUT_IDS.LESS_THAN];
-    const lessThanFormattedAmount = lessThan !== undefined ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
+    const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateAmountFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const greater = values[INPUT_IDS.GREATER_THAN];
-        const greaterThanBackendAmount = greater ? convertToBackendAmount(Number(greater)) : undefined;
+        const greaterThanBackendAmount = greater ? convertToBackendAmount(Number(greater)) : '';
         const less = values[INPUT_IDS.LESS_THAN];
-        const lessThanBackendAmount = less ? convertToBackendAmount(Number(less)) : undefined;
+        const lessThanBackendAmount = less ? convertToBackendAmount(Number(less)) : '';
         updateAdvancedFilters({greaterThan: greaterThanBackendAmount?.toString(), lessThan: lessThanBackendAmount?.toString()});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
