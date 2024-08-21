@@ -4933,7 +4933,7 @@ export default {
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
     },
     delegate: {
-        switchAccount: 'Cambiar cuentas:',
+        switchAccount: 'Cambiar de cuenta:',
         role: (role: DelegateRole): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
