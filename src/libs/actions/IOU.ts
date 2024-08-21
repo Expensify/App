@@ -3844,6 +3844,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
+        console.debug('Created a new group chat report', splitChatReport);
         return {existingSplitChatReport: null, splitChatReport};
     }
 
@@ -3954,6 +3955,16 @@ function createSplitsAndOnyxData(
         };
     }
 
+    const updatedParticipants = fastMerge(
+        splitChatReport.participants,
+        {
+            [currentUserAccountID]: {
+                notificationPreference: splitChatReportNotificationPreference,
+            },
+        },
+        false,
+    );
+
     const optimisticData: OnyxUpdate[] = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
@@ -3962,11 +3973,7 @@ function createSplitsAndOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: {
                 ...splitChatReport,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: splitChatReportNotificationPreference,
-                    },
-                },
+                participants: updatedParticipants,
             },
         },
         {
