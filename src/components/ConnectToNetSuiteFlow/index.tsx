@@ -3,7 +3,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
