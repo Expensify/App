@@ -57,7 +57,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1'));
+        Navigation.goBack();
         Card.clearIssueNewCardFlow();
     };
 
