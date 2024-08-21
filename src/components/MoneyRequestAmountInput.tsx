@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
@@ -136,11 +136,14 @@ function MoneyRequestAmountInput(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [currentCurrency, setCurrentCurrency] = useState(currency);
+
+    const decimals = useMemo(() => {
+        return CurrencyUtils.getCurrencyDecimals(currentCurrency);
+    }, [currentCurrency]);
 
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
@@ -256,10 +259,8 @@ function MoneyRequestAmountInput(
         if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
-
         // If the changed currency doesn't support decimals, we can strip the decimals
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
-
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [setNewAmount]);

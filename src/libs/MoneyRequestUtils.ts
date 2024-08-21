@@ -59,7 +59,7 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  *
  */
 function validateAmountWithCurrency(amountWithCurreny: string): ExactAmountWithCurrency | undefined {
-    const regex = /^(\p{Sc})?(\d+)$/u;
+    const regex = /^(\p{Sc})?(\d+(\.\d+)?)$/u;
 
     const match = amountWithCurreny.match(regex);
 
