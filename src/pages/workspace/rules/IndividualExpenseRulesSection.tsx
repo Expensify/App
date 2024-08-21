@@ -15,6 +15,7 @@ import type {ThemeStyles} from '@styles/index';
 import * as Link from '@userActions/Link';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -26,6 +27,12 @@ type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
     translate: LocaleContextProps['translate'];
     styles: ThemeStyles;
+};
+
+type IndividualExpenseRulesMenuItem = {
+    title: string;
+    descriptionTranslationKey: TranslationPaths;
+    action: () => void;
 };
 
 function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
@@ -103,6 +110,29 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
+    const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
+        {
+            title: maxExpenseAmountNoReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+        },
+        {
+            title: maxExpenseAmountText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
+        },
+        {
+            title: maxExpenseAgeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAge',
+            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
+        },
+        {
+            title: billableModeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.billableDefault',
+            action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
+        },
+    ];
+
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
 
     return (
@@ -120,50 +150,18 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             titleStyles={styles.accountSettingsSectionTitle}
         >
             <View style={[styles.mt3, styles.gap3]}>
-                <MenuItemWithTopDescription
-                    key={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
-                    shouldShowRightIcon
-                    title={maxExpenseAmountNoReceiptText}
-                    description={translate('workspace.rules.individualExpenseRules.receiptRequiredAmount')}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID));
-                    }}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
-                />
-                <MenuItemWithTopDescription
-                    key={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
-                    shouldShowRightIcon
-                    title={maxExpenseAmountText}
-                    description={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID));
-                    }}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
-                />
-                <MenuItemWithTopDescription
-                    key={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
-                    shouldShowRightIcon
-                    title={maxExpenseAgeText}
-                    description={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID));
-                    }}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
-                />
-                <MenuItemWithTopDescription
-                    key={translate('workspace.rules.individualExpenseRules.billableDefault')}
-                    shouldShowRightIcon
-                    title={billableModeText}
-                    description={translate('workspace.rules.individualExpenseRules.billableDefault')}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID));
-                    }}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
-                />
+                {individualExpenseRulesItems.map((item) => (
+                    <MenuItemWithTopDescription
+                        key={translate(item.descriptionTranslationKey)}
+                        shouldShowRightIcon
+                        title={item.title}
+                        description={translate(item.descriptionTranslationKey)}
+                        onPress={item.action}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        numberOfLinesTitle={2}
+                    />
+                ))}
+
                 <View style={[styles.mt3]}>
                     <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
