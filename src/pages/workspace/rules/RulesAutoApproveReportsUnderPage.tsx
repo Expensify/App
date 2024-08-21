@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +25,7 @@ type RulesAutoApproveReportsUnderPageProps = StackScreenProps<SettingsNavigatorP
 
 function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderPageProps) {
     const {policyID} = route.params;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
@@ -52,7 +52,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
-                        PolicyActions.setPolicyAutomaticApprovalLimit(maxExpenseAutoApprovalAmount, policyID);
+                        PolicyActions.setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

@@ -3362,10 +3362,10 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
 
 /**
  * Call the API to enable custom report title for the reports in the given policy
- * @param enabled - whether custom report title for the reports is enabled in the given policy
  * @param policyID - id of the policy to apply the limit to
+ * @param enabled - whether custom report title for the reports is enabled in the given policy
  */
-function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
+function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
     const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
@@ -3410,10 +3410,10 @@ function enablePolicyDefaultReportTitle(enabled: boolean, policyID: string) {
 
 /**
  * Call the API to set default report title pattern for the given policy
- * @param customName - name pattern to be used for the reports
  * @param policyID - id of the policy to apply the naming pattern to
+ * @param customName - name pattern to be used for the reports
  */
-function setPolicyDefaultReportTitle(customName: string, policyID: string) {
+function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
     const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
@@ -3454,10 +3454,10 @@ function setPolicyDefaultReportTitle(customName: string, policyID: string) {
 
 /**
  * Call the API to enable or disable enforcing the naming pattern for the reports
- * @param enforced - flag whether to enforce policy name
  * @param policyID - id of the policy to apply the naming pattern to
+ * @param enforced - flag whether to enforce policy name
  */
-function setPolicyPreventMemberCreatedTitle(enforced: boolean, policyID: string) {
+function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean) {
     const policy = getPolicy(policyID);
     const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
@@ -3498,10 +3498,10 @@ function setPolicyPreventMemberCreatedTitle(enforced: boolean, policyID: string)
 
 /**
  * Call the API to enable or disable self approvals for the reports
- * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
  * @param policyID - id of the policy to apply the naming pattern to
+ * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
  */
-function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: string) {
+function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -3537,10 +3537,10 @@ function setPolicyPreventSelfApproval(preventSelfApproval: boolean, policyID: st
 
 /**
  * Call the API to apply automatic approval limit for the given policy
- * @param limit - max amount for auto-approval of the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
+ * @param limit - max amount for auto-approval of the reports in the given policy
  */
-function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
+function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
     const policy = getPolicy(policyID);
@@ -3582,10 +3582,10 @@ function setPolicyAutomaticApprovalLimit(limit: string, policyID: string) {
 
 /**
  * Call the API to set the audit rate for the given policy
- * @param auditRate - percentage of the reports to be qualified for a random audit
  * @param policyID - id of the policy to apply the limit to
+ * @param auditRate - percentage of the reports to be qualified for a random audit
  */
-function setPolicyAutomaticApprovalRate(auditRate: string, policyID: string) {
+function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10);
     const policy = getPolicy(policyID);
@@ -3627,10 +3627,10 @@ function setPolicyAutomaticApprovalRate(auditRate: string, policyID: string) {
 
 /**
  * Call the API to enable auto-approval for the reports in the given policy
- * @param enabled - whether auto-approve for the reports is enabled in the given policy
  * @param policyID - id of the policy to apply the limit to
+ * @param enabled - whether auto-approve for the reports is enabled in the given policy
  */
-function enableAutoApprovalOptions(enabled: boolean, policyID: string) {
+function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3664,10 +3664,10 @@ function enableAutoApprovalOptions(enabled: boolean, policyID: string) {
 
 /**
  * Call the API to set the limit for auto-payments in the given policy
- * @param limit - max amount for auto-payment for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
+ * @param limit - max amount for auto-payment for the reports in the given policy
  */
-function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
+function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const policy = getPolicy(policyID);
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
@@ -3734,10 +3734,10 @@ function setPolicyAutoReimbursementLimit(limit: string, policyID: string) {
 
 /**
  * Call the API to enable auto-payment for the reports in the given policy
- * @param enabled - whether auto-payment for the reports is enabled in the given policy
  * @param policyID - id of the policy to apply the limit to
+ * @param enabled - whether auto-payment for the reports is enabled in the given policy
  */
-function enablePolicyAutoReimbursementLimit(enabled: boolean, policyID: string) {
+function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [

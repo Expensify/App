@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,7 +26,7 @@ type RulesAutoPayReportsUnderPageProps = StackScreenProps<SettingsNavigatorParam
 
 function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps) {
     const {policyID} = route.params;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
@@ -62,7 +62,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
-                        PolicyActions.setPolicyAutoReimbursementLimit(maxExpenseAutoPayAmount, policyID);
+                        PolicyActions.setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

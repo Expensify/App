@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +26,7 @@ type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typ
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     const {policyID} = route.params;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -81,7 +81,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     validate={validateCustomName}
                     onSubmit={({customName}) => {
-                        PolicyActions.setPolicyDefaultReportTitle(customName, policyID);
+                        PolicyActions.setPolicyDefaultReportTitle(policyID, customName);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
