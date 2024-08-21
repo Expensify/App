@@ -54,7 +54,7 @@ function VisibilityPage({report}: VisibilityProps) {
                 ReportUtils.goBackToDetailsPage(report);
             }
         },
-        [report],
+        [report, showConfirmModal],
     );
 
     const hideModal = useCallback(() => {
@@ -92,9 +92,10 @@ function VisibilityPage({report}: VisibilityProps) {
                         hideModal();
                     }}
                     onModalHide={() => {
-                        if (shouldGoBackToDetailsPage.current) {
-                            ReportUtils.goBackToDetailsPage(report);
+                        if (!shouldGoBackToDetailsPage.current) {
+                            return;
                         }
+                        ReportUtils.goBackToDetailsPage(report);
                     }}
                     onCancel={hideModal}
                     title={translate('common.areYouSure')}
