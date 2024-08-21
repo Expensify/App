@@ -112,6 +112,9 @@ type SendInvoiceInformation = {
     transactionID: string;
     transactionThreadReportID: string;
     iouReportActionID: string;
+    createdIOUReportActionID: string;
+    createdReportActionIDForThread?: string;
+    reportActionID: string;
     onyxData: OnyxData;
 };
 
@@ -1967,6 +1970,9 @@ function getSendInvoiceInformation(
     );
 
     return {
+        createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        reportActionID: iouAction.reportActionID,
         senderWorkspaceID,
         iouReportActionID: iouAction.reportActionID,
         receiver,
@@ -3616,10 +3622,16 @@ function sendInvoice(
         transactionID,
         transactionThreadReportID,
         iouReportActionID,
+        createdIOUReportActionID,
+        createdReportActionIDForThread,
+        reportActionID,
         onyxData,
     } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
 
     const parameters: SendInvoiceParams = {
+        createdIOUReportActionID,
+        createdReportActionIDForThread,
+        reportActionID,
         iouReportActionID,
         senderWorkspaceID,
         accountID: currentUserAccountID,
