@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
@@ -10,19 +11,25 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ThemeStyles} from '@styles/index';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
 };
 
-function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const policy = usePolicy(policyID);
+type IndividualExpenseRulesSectionSubtitleProps = {
+    policy?: Policy;
+    translate: LocaleContextProps['translate'];
+    styles: ThemeStyles;
+};
+
+function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
+    const policyID = policy?.id ?? '-1';
 
     const handleOnPressCategoriesLink = () => {
         if (policy?.areCategoriesEnabled) {
@@ -41,6 +48,32 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
         Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
     };
+
+    return (
+        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.subtitle')}</Text>{' '}
+            <TextLink
+                style={styles.link}
+                onPress={handleOnPressCategoriesLink}
+            >
+                {translate('workspace.common.categories').toLowerCase()}
+            </TextLink>{' '}
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.and')}</Text>{' '}
+            <TextLink
+                style={styles.link}
+                onPress={handleOnPressTagsLink}
+            >
+                {translate('workspace.common.tags').toLowerCase()}
+            </TextLink>
+            .
+        </Text>
+    );
+}
+
+function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const policy = usePolicy(policyID);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -77,23 +110,11 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             isCentralPane
             title={translate('workspace.rules.individualExpenseRules.title')}
             renderSubtitle={() => (
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.subtitle')}</Text>{' '}
-                    <TextLink
-                        style={styles.link}
-                        onPress={handleOnPressCategoriesLink}
-                    >
-                        {translate('workspace.common.categories').toLowerCase()}
-                    </TextLink>{' '}
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.and')}</Text>{' '}
-                    <TextLink
-                        style={styles.link}
-                        onPress={handleOnPressTagsLink}
-                    >
-                        {translate('workspace.common.tags').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
+                <IndividualExpenseRulesSectionSubtitle
+                    policy={policy}
+                    translate={translate}
+                    styles={styles}
+                />
             )}
             subtitle={translate('workspace.rules.individualExpenseRules.subtitle')}
             titleStyles={styles.accountSettingsSectionTitle}
@@ -149,7 +170,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <Switch
                             isOn={areEReceiptsEnabled}
                             accessibilityLabel={translate('workspace.categories.enableCategory')}
-                            onToggle={() => Policy.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                            onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
                             disabled={policyCurrency !== CONST.CURRENCY.USD}
                         />
                     </View>
