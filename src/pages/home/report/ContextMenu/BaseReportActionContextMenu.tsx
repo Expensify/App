@@ -149,7 +149,7 @@ function BaseReportActionContextMenu({
     const hasNewestReportAction = sortedAllReportActions && sortedAllReportActions[0]?.created === childReport?.lastVisibleActionCreated;
 
     useEffect(() => {
-        if (hasNewestReportAction || !childReport?.reportID) {
+        if (hasNewestReportAction ?? !childReport?.reportID) {
             return;
         }
 
