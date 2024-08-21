@@ -141,7 +141,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseCompleteForm')}
                     buttonText={translate('common.submit')}
-                    enabledWhenOffline
+                    enabledWhenOffline={enabledWhenOffline}
                     containerStyles={styles.mt3}
                     isLoading={isLoading}
                 />
