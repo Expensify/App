@@ -3596,6 +3596,7 @@ export default {
                 subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for categories and tags.',
             },
             expenseReportRules: {
+                examples: 'Examples:',
                 title: 'Expense reports',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 customReportNamesTitle: 'Custom report names',

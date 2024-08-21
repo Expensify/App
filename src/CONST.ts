@@ -675,6 +675,7 @@ const CONST = {
             ADMIN: 'admin',
             MEMBER: 'member',
         },
+        OLD_DOT_NAMING_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         SPLIT_REPORTID: '-2',

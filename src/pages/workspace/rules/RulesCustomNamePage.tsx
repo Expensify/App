@@ -64,12 +64,12 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     title={translate('workspace.rules.expenseReportRules.customNameTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[{paddingHorizontal: 20}, styles.pt3, styles.pb4]}>
+                <View style={[styles.ph5, styles.pt3, styles.pb4]}>
                     <Text>
                         {translate('workspace.rules.expenseReportRules.customNameDescription')}
                         <TextLink
                             style={[styles.link]}
-                            href="https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates"
+                            href={CONST.REPORT.OLD_DOT_NAMING_URL}
                         >
                             {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
                         </TextLink>
@@ -97,7 +97,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     />
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
-                        header="Examples:"
+                        header={translate('workspace.rules.expenseReportRules.examples')}
                     />
                 </FormProvider>
             </ScreenWrapper>
