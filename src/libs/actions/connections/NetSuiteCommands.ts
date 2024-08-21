@@ -151,7 +151,9 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
                     netsuite: {
                         options: {
                             config: {
-                                [settingName]: settingValue ?? null,
+                                syncOptions: {
+                                    [settingName]: settingValue ?? null,
+                                },
                                 pendingFields: {
                                     [modifiedFieldID ?? settingName]: pendingAction ?? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
