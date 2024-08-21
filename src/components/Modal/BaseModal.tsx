@@ -256,7 +256,10 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <ModalContent onDismiss={handleDismissModal}>
+                    <ModalContent
+                        onModalWillShow={saveFocusState}
+                        onDismiss={handleDismissModal}
+                    >
                         <PortalHost name="modal" />
                         <FocusTrapForModal
                             active={isVisible}

@@ -44,6 +44,7 @@ type AttachmentPickerProps = {
 
     /** Last screen to save for navigating after granting camera permission from settings in ios */
     lastScreen?: IOUType | '';
+    acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 };
 
 export default AttachmentPickerProps;
