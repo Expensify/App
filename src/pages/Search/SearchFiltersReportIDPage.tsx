@@ -15,14 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersReportIDPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const reportID = searchAdvancedFiltersForm?.[INPUT_IDS.REPORT_ID];
+    const reportID = searchAdvancedFiltersForm?.[FILTER_KEYS.REPORT_ID];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateReportIDFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -53,8 +53,8 @@ function SearchFiltersReportIDPage() {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.REPORT_ID}
-                        name={INPUT_IDS.REPORT_ID}
+                        inputID={FILTER_KEYS.REPORT_ID}
+                        name={FILTER_KEYS.REPORT_ID}
                         defaultValue={reportID}
                         label={translate('common.reportID')}
                         accessibilityLabel={translate('common.reportID')}
