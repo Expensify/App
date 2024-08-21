@@ -16,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -297,6 +298,22 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     );
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
 
+    const customListHeader = useMemo(() => {
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                <View>
+                    <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
+                </View>
+            </View>
+        );
+
+        if (canSelectMultiple) {
+            return header;
+        }
+
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
+    }, [styles, translate, canSelectMultiple]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -337,7 +354,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                 />
-                <View style={[styles.w100, canSelectMultiple ? styles.mt3 : styles.mt6, styles.flex1]}>
+                <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data, isDisabled: false}]}
@@ -359,7 +376,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
-                        sectionListStyle={[!canSelectMultiple && styles.mt3]}
+                        customListHeader={customListHeader}
                         ListItem={TableListItem}
                         onDismissError={dismissError}
                     />
