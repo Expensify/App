@@ -518,7 +518,7 @@ function MoneyRequestView({
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle && getPendingFieldAction('customUnitRateID'))}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
                         shouldShowTitleIcon={isSettled}
