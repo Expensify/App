@@ -328,6 +328,29 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
+        // eslint-disable-next-line no-console
+        console.group('[TEST] ReportActionsList useEffect');
+        console.debug('[TEST] isFromNotification', route?.params?.referrer === CONST.REFERRER.NOTIFICATION);
+        console.debug('[TEST] Visibility.isVisible()', Visibility.isVisible());
+        console.debug('[TEST] report.reportID', report.reportID);
+        console.debug('[TEST] prevReportID', prevReportID);
+        console.debug('[TEST] report.reportID !== prevReportID', report.reportID !== prevReportID);
+        console.debug('[TEST] scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD', scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD);
+        // eslint-disable-next-line no-console
+        console.groupEnd();
+
+        Alert.alert(
+            'ReportActionsList useEffect',
+            JSON.stringify({
+                isFromNotification: route?.params?.referrer === CONST.REFERRER.NOTIFICATION,
+                reportID: report.reportID,
+                prevReportID,
+                reportIDsCondition: report.reportID !== prevReportID,
+                isVisible: Visibility.isVisible(),
+                offsetCondition: scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD,
+            }),
+        );
+
         if (report.reportID !== prevReportID) {
             return;
         }
@@ -511,7 +534,8 @@ function ReportActionsList({
         if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
             return;
         }
-
+        // #region useEffect readNewestAction
+        console.debug('[TEST] ReportActionsList useEffect 2');
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
 

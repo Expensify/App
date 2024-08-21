@@ -2,7 +2,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import {Alert, DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
@@ -1211,6 +1211,15 @@ function expandURLPreview(reportID: string, reportActionID: string) {
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
 function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
+    Alert.alert(
+        'readNewestAction',
+        JSON.stringify({
+            reportID,
+            shouldResetUnreadMarker,
+        }),
+    );
+    console.debug('[TEST] readNewestAction');
+
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
