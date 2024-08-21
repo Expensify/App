@@ -82,6 +82,7 @@ function RulesMaxExpenseAgePage({route}: RulesMaxExpenseAgePageProps) {
                             value={maxExpenseAge}
                             onChangeText={onChangeMaxExpenseAge}
                             ref={inputCallbackRef}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.maxExpenseAgeDescription')}</Text>
                     </View>
