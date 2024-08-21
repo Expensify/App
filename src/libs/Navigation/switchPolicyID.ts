@@ -4,6 +4,7 @@ import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -108,12 +109,19 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
-        if (isOpeningSearchFromBottomTab) {
+        if (isOpeningSearchFromBottomTab && params.q) {
             if (policyID) {
-                // @TODO: Here update the q param
-                params.policyIDs = policyID;
+                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+                if (queryJSON) {
+                    queryJSON.policyID = policyID;
+                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                }
             } else {
-                delete params.policyIDs;
+                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+                if (queryJSON) {
+                    delete queryJSON.policyID;
+                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                }
             }
         }
 

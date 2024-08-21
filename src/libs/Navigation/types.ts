@@ -1220,7 +1220,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE] & {policyID: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 

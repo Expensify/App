@@ -239,16 +239,29 @@ function peg$parse(input, options) {
   var peg$e29 = peg$otherExpectation("whitespace");
   var peg$e30 = peg$classExpectation([" ", "\t", "\r", "\n"], false, false);
 
-  var peg$f0 = function(filters) { return applyDefaults(filters); };
+  var peg$f0 = function(filters) {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  };
   var peg$f1 = function(head, tail) {
       const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null);
       if (!allFilters.length) {
       	return null;
       }
+
       return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     };
   var peg$f2 = function(field, op, value) {
       if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
+      if (isPolicyID(field)) {
         updateDefaultValues(field, value.trim());
         return null;
       }
@@ -1112,13 +1125,24 @@ function peg$parse(input, options) {
       filters
     };
   }
-  
+
+  function applyPolicyID(filtersWithDefaults) {
+    return {
+      ...filtersWithDefaults,
+      policyID: filtersWithDefaults.policyID
+    };
+  }
+
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
 
   function isDefaultField(field) {
     return defaultValues.hasOwnProperty(field);
+  }
+
+  function isPolicyID(field) {
+    return field === 'policyID';
   }
 
   peg$result = peg$startRuleFunction();

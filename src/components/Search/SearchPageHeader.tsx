@@ -112,7 +112,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    // @TODO: Obtain the policyID from queryJSON
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
@@ -133,7 +132,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         [data, selectedTransactions],
     );
     const {status} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleText);
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleText ?? '');
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 

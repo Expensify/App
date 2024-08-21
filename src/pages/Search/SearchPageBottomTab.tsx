@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,22 +28,22 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, policyIDs, isCustomQuery} = useMemo(() => {
+    const {queryJSON, isCustomQuery} = useMemo(() => {
         if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyIDs: undefined};
+            return {queryJSON: undefined, isCustomQuery: undefined};
         }
 
-        // This will be SEARCH_CENTRAL_PANE as we checked that in if.
+        // This has to be SEARCH_CENTRAL_PANE
         const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
 
         return {
-            queryJSON: buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
-            policyIDs: searchParams.policyIDs,
+            queryJSON: SearchUtils.buildSearchQueryJSON(searchParams.q),
             isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+    const policyID = queryJSON && SearchUtils.getPolicyIDFromSearchQuery(queryJSON);
 
     return (
         <ScreenWrapper
@@ -59,7 +59,7 @@ function SearchPageBottomTab() {
                 {!selectionMode?.isEnabled && queryJSON ? (
                     <>
                         <TopBar
-                            activeWorkspaceID={policyIDs}
+                            activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
@@ -81,7 +81,6 @@ function SearchPageBottomTab() {
                     <Search
                         queryJSON={queryJSON}
                         isCustomQuery={isCustomQuery}
-                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>
