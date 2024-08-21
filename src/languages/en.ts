@@ -3591,6 +3591,11 @@ export default {
                 title: 'Expense reports',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
             },
+            categoryRules: {
+                title: 'Category rules',
+                requireDescription: 'Require description',
+                descriptionHint: 'Description hint',
+            },
         },
     },
     getAssistancePage: {

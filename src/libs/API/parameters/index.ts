@@ -277,3 +277,4 @@ export type {default as ConfigureExpensifyCardsForPolicyParams} from './Configur
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
+export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';

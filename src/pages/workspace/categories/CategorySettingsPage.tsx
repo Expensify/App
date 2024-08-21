@@ -21,7 +21,6 @@ import {isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,49 +35,55 @@ type CategorySettingsPageOnyxProps = {
 
 type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
-function CategorySettingsPage({route, policyCategories, navigation}: CategorySettingsPageProps) {
+function CategorySettingsPage({
+    route: {
+        params: {backTo, policyID, categoryName},
+    },
+    policyCategories,
+    navigation,
+}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
-    const backTo = route.params?.backTo;
-    const policy = usePolicy(route.params.policyID);
+    const policy = usePolicy(policyID);
 
-    const policyCategory =
-        policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
+    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
+
+    const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
 
     const navigateBack = () => {
         if (backTo) {
-            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
+            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo));
             return;
         }
         Navigation.goBack();
     };
 
     useEffect(() => {
-        if (policyCategory?.name === route.params.categoryName || !policyCategory) {
+        if (policyCategory?.name === categoryName || !policyCategory) {
             return;
         }
         navigation.setParams({categoryName: policyCategory?.name});
-    }, [route.params.categoryName, navigation, policyCategory]);
+    }, [categoryName, navigation, policyCategory]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        setWorkspaceCategoryEnabled(route.params.policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+        Category.setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
     const navigateToEditCategory = () => {
         if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name, backTo));
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo));
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
     };
 
     const deleteCategory = () => {
-        Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        Category.deleteWorkspaceCategories(policyID, [categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
@@ -88,7 +93,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
@@ -97,7 +102,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={route.params.categoryName}
+                    title={categoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -115,7 +120,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                         errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Category.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
+                        onClose={() => Category.clearCategoryErrors(policyID, categoryName)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -144,14 +149,14 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                                 if (!isControlPolicy(policy)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            route.params.policyID,
+                                            policyID,
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                         ),
                                     );
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name));
                             }}
                             shouldShowRightIcon
                         />
@@ -164,18 +169,30 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                                 if (!isControlPolicy(policy)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            route.params.policyID,
+                                            policyID,
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
                                         ),
                                     );
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name));
                             }}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+
+                    <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
+                        <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
+                        <Switch
+                            isOn={policyCategory?.areCommentsRequired ?? false}
+                            accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
+                            onToggle={() => Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired)}
+                        />
+                    </View>
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
