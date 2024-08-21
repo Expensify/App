@@ -365,7 +365,6 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        outstanding: 'Pendiente',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -2128,7 +2127,6 @@ export default {
         viewTrip: 'Ver viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
-        trips: 'Viajes',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2689,12 +2687,12 @@ export default {
                         },
                     },
                     customLists: {
-                        title: 'Listas personalizados',
-                        addText: 'Añadir lista personalizado',
+                        title: 'Listas personalizadas',
+                        addText: 'Añadir lista personalizada',
                         recordTitle: 'Lista personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
                         helpLinkText: 'Ver instrucciones detalladas',
-                        helpText: ' sobre cómo configurar listas personalizado.',
+                        helpText: ' sobre cómo configurar listas personalizada.',
                         emptyTitle: 'Añadir una lista personalizado',
                         fields: {
                             listName: 'Nombre',
@@ -3267,6 +3265,12 @@ export default {
                             return 'Actualizando información de conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importando listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando subsidiarias';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'intacctCheckConnection':
@@ -4800,6 +4804,7 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
+            authenticatePayment: 'Autenticar el pago',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
                 phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
