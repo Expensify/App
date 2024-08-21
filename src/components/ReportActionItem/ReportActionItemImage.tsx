@@ -99,7 +99,7 @@ function ReportActionItemImage({
 
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !TransactionUtils.hasReceipt(transaction) && TransactionUtils.hasEReceipt(transaction);
 
     let propsObj: ReceiptImageProps;
 
