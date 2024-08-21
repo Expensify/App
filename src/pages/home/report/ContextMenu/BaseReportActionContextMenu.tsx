@@ -149,11 +149,11 @@ function BaseReportActionContextMenu({
     const hasNewestReportAction = sortedAllReportActions && sortedAllReportActions[0]?.created === childReport?.lastVisibleActionCreated;
 
     useEffect(() => {
-        if (hasNewestReportAction) {
+        if (hasNewestReportAction || !childReport?.reportID) {
             return;
         }
 
-        Report.openReport(childReport?.reportID ?? '-1');
+        Report.openReport(childReport.reportID);
     }, [hasNewestReportAction, childReport?.reportID]);
 
     const transactionThreadReportID = useMemo(
