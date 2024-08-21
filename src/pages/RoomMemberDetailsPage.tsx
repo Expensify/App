@@ -37,7 +37,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
-    const accountID = Number(route.params?.accountID ?? -1);
+    const accountID = Number(route.params.accountID);
     const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1');
 
     const member = report?.participants?.[accountID];
