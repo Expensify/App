@@ -36,7 +36,7 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
+function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
 }
 
@@ -56,5 +56,5 @@ export default {
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
-    canWorkspaceRules,
+    canUseWorkspaceRules,
 };

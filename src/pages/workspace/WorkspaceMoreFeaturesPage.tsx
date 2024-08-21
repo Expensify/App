@@ -61,7 +61,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -130,7 +130,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     ];
 
     // TODO remove this when feature will be fully done, and move manage item inside manageItems array
-    if (canWorkspaceRules) {
+    if (canUseWorkspaceRules) {
         manageItems.splice(1, 0, {
             icon: Illustrations.Rules,
             titleTranslationKey: 'workspace.moreFeatures.rules.title',

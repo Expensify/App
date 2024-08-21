@@ -101,7 +101,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceRules} = usePermissions();
     const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -310,7 +310,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canWorkspaceRules) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
