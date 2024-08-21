@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -68,13 +69,13 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', greaterThan, lessThan);
+            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', lessThan);
+            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', greaterThan);
+            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
         }
     }
 

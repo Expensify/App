@@ -11,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import {convertToBackendAmount, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,11 +24,17 @@ function SearchFiltersAmountPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const greaterThan = searchAdvancedFiltersForm?.[INPUT_IDS.GREATER_THAN];
+    const greaterThanFormattedAmount = greaterThan !== undefined ? convertToDisplayStringWithoutCurrency(Number(greaterThan)) : undefined;
     const lessThan = searchAdvancedFiltersForm?.[INPUT_IDS.LESS_THAN];
+    const lessThanFormattedAmount = lessThan !== undefined ? convertToDisplayStringWithoutCurrency(Number(lessThan)) : undefined;
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateAmountFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
-        updateAdvancedFilters(values);
+        const greater = values[INPUT_IDS.GREATER_THAN];
+        const greaterThanBackendAmount = greater ? convertToBackendAmount(Number(greater)) : undefined;
+        const less = values[INPUT_IDS.LESS_THAN];
+        const lessThanBackendAmount = less ? convertToBackendAmount(Number(less)) : undefined;
+        updateAdvancedFilters({greaterThan: greaterThanBackendAmount?.toString(), lessThan: lessThanBackendAmount?.toString()});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
@@ -56,7 +63,7 @@ function SearchFiltersAmountPage() {
                         InputComponent={AmountWithoutCurrencyForm}
                         inputID={INPUT_IDS.GREATER_THAN}
                         name={INPUT_IDS.GREATER_THAN}
-                        defaultValue={greaterThan}
+                        defaultValue={greaterThanFormattedAmount}
                         label={translate('search.filters.amount.greaterThan')}
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
                         role={CONST.ROLE.PRESENTATION}
@@ -68,7 +75,7 @@ function SearchFiltersAmountPage() {
                         InputComponent={AmountWithoutCurrencyForm}
                         inputID={INPUT_IDS.LESS_THAN}
                         name={INPUT_IDS.LESS_THAN}
-                        defaultValue={lessThan}
+                        defaultValue={lessThanFormattedAmount}
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
