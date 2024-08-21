@@ -339,7 +339,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                 />
-                <View style={[styles.w100, styles.mt3, styles.flex1]}>
+                <View style={[styles.w100, canSelectMultiple ? styles.mt3 : styles.mt6, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data, isDisabled: false}]}

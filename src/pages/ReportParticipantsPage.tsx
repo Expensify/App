@@ -230,7 +230,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return header;
         }
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5]}>{header}</View>;
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
     }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
