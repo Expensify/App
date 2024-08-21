@@ -210,15 +210,11 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
-        if (canUseWallet) {
+        if (canUseWallet || (isExpenseReport && shouldShowPaywithExpensifyOption)) {
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
         }
 
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
-        }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
