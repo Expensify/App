@@ -17,13 +17,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {LoginList, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as User from '@userActions/User';
 
 type ContactMethodsPageOnyxProps = {
     /** Login list for the user that is signed in */
@@ -81,7 +81,8 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => {Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID));
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID));
                         if (!login?.validatedDate) {
                             User.requestContactMethodValidateCode(loginName);
                         }
