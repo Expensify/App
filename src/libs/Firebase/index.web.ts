@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import {trace} from 'firebase/performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -19,20 +18,20 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
-    const newTrace = trace(firebasePerfWeb, customEventName);
+    const perfTrace = trace(firebasePerfWeb, customEventName);
 
     const attributes = getAttributes();
 
     Object.entries(attributes).forEach(([name, value]) => {
-        newTrace.putAttribute(name, value);
+        perfTrace.putAttribute(name, value);
     });
 
     traceMap[customEventName] = {
-        trace: newTrace,
+        trace: perfTrace,
         start,
     };
 
-    newTrace.start();
+    perfTrace.start();
 };
 
 const stopTrace: StopTrace = (customEventName) => {

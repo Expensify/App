@@ -1,7 +1,7 @@
 import {initializeApp} from 'firebase/app';
 import {getPerformance, initializePerformance} from 'firebase/performance';
 
-// TODO add newly created Firebase web proejct details details
+// TODO add newly created Firebase web project details before merging
 
 const firebaseConfig = {
     apiKey: 'YOUR_API_KEY',
