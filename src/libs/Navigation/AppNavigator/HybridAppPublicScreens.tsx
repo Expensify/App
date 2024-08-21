@@ -1,7 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {HybridAppPublicScreensParamList} from '@navigation/types';
-import HybridAppError from '@pages/HybridApp/HybridAppErrorPage';
+import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import HybridAppLoading from '@pages/HybridApp/HybridAppLoading';
 import HybridAppTransitionPage from '@pages/HybridApp/HybridAppTransitionPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -27,7 +27,7 @@ function HybridAppPublicScreens() {
             <RootStack.Screen
                 name={SCREENS.HYBRID_APP_ERROR}
                 options={defaultScreenOptions}
-                component={HybridAppError}
+                component={GenericErrorPage}
             />
         </RootStack.Navigator>
     );

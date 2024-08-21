@@ -10,10 +10,12 @@ import type {GestureResponderEvent, LayoutRectangle, NativeSyntheticEvent, Targe
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type StartupTimer from '@libs/StartupTimer/types';
+import type Response from '@src/types/onyx/Response';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
     completeOnboarding: (status: boolean) => void;
+    reauthenticate: () => Promise<Response>;
     exitApp: () => void;
 };
 
