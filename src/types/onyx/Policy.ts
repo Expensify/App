@@ -1510,6 +1510,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
+        /** Whether the reules feature is enabled */
+        areRulesEnabled?: boolean;
+
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 

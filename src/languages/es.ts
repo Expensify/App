@@ -2159,6 +2159,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
@@ -2886,6 +2887,10 @@ export default {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
             },
+            manageSection: {
+                title: 'Gestionar',
+                subtitle: 'Añade controles que ayudan a mantener los gastos dentro del presupuesto.',
+            },
             earnSection: {
                 title: 'Gane',
                 subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
@@ -2952,6 +2957,10 @@ export default {
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
+            },
+            rules: {
+                title: 'Reglas',
+                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
             },
         },
         reportFields: {
@@ -3599,6 +3608,11 @@ export default {
                 description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
             },
+            rules: {
+                title: 'Reglas',
+                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
+                onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',
@@ -3629,6 +3643,16 @@ export default {
             chatWithYourAdmin: 'Chatea con tu administrador',
             chatInAdmins: 'Chatea en #admins',
             addPaymentCard: 'Agregar tarjeta de pago',
+        },
+        rules: {
+            individualExpenseRules: {
+                title: 'Gastos',
+                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+            },
+            expenseReportRules: {
+                title: 'Informes de gastos',
+                subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
+            },
         },
     },
     getAssistancePage: {
