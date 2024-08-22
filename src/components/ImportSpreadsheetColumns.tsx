@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Button from './Button';
+import FixedFooter from './FixedFooter';
 import type {ColumnRole} from './ImportColumn';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -40,53 +41,53 @@ function ImportSpreeadsheetColumns({
     const {isOffline} = useNetwork();
 
     return (
-        <ScrollView
-            contentContainerStyle={[styles.h100, styles.flexColumn, styles.justifyContentBetween, {alignContent: 'space-between'}]}
-            style={styles.mh5}
-        >
-            <View>
-                <RenderHTML html={Parser.replace(translate('workspace.categories.importedCategoriesMessage', spreadsheetColumns?.length))} />
+        <>
+            <ScrollView style={styles.mh5}>
+                <View>
+                    <RenderHTML html={Parser.replace(translate('workspace.categories.importedCategoriesMessage', spreadsheetColumns?.length))} />
 
-                <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
+                    <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                        <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
 
-                    <Switch
-                        accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                        isOn={containsHeader}
-                        onToggle={setContainsHeader}
-                    />
-                </View>
-
-                {spreadsheetColumns.map((column, index) => {
-                    return (
-                        <ImportColumn
-                            key={columnNames[index]}
-                            column={column}
-                            containsHeader={containsHeader}
-                            columnName={columnNames[index]}
-                            columnRoles={columnRoles}
-                            columnIndex={index}
+                        <Switch
+                            accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                            isOn={containsHeader}
+                            onToggle={setContainsHeader}
                         />
-                    );
-                })}
-            </View>
+                    </View>
 
-            <OfflineWithFeedback
-                style={styles.mt6}
-                errorAboveChildren
-                errors={errors}
-                canDismissError={false}
-            >
-                <Button
-                    style={styles.mv2}
-                    text={translate('common.import')}
-                    onPress={importFunction}
-                    isLoading={isButtonLoading}
-                    isDisabled={isOffline}
-                    success
-                />
-            </OfflineWithFeedback>
-        </ScrollView>
+                    {spreadsheetColumns.map((column, index) => {
+                        return (
+                            <ImportColumn
+                                key={columnNames[index]}
+                                column={column}
+                                containsHeader={containsHeader}
+                                columnName={columnNames[index]}
+                                columnRoles={columnRoles}
+                                columnIndex={index}
+                            />
+                        );
+                    })}
+                </View>
+            </ScrollView>
+            <FixedFooter style={styles.mtAuto}>
+                <OfflineWithFeedback
+                    style={styles.mt6}
+                    errorAboveChildren
+                    errors={errors}
+                    canDismissError={false}
+                >
+                    <Button
+                        style={styles.mv2}
+                        text={translate('common.import')}
+                        onPress={importFunction}
+                        isLoading={isButtonLoading}
+                        isDisabled={isOffline}
+                        success
+                    />
+                </OfflineWithFeedback>
+            </FixedFooter>
+        </>
     );
 }
 
