@@ -511,6 +511,7 @@ function ReportActionsList({
         if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
             return;
         }
+
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
 
