@@ -179,10 +179,12 @@ function ReportActionItem({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const blockedFromConcierge = useBlockedFromConcierge();
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) ?? '-1', [report.reportID, action]);
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {selector: (draftMessagesForReport) => {
-        const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
-        return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
-    }});
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
+        selector: (draftMessagesForReport) => {
+            const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
+            return typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+        },
+    });
     const theme = useTheme();
     const styles = useThemeStyles();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
