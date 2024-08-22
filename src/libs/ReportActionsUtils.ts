@@ -152,6 +152,13 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
+function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+}
+
+function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
@@ -221,7 +228,7 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return [];
     }
 
-    if (!Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
+    if (message !== null && !Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
         return message?.whisperedTo ?? [];
     }
 
@@ -1594,6 +1601,52 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return Localize.translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
+}
+
+function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
+        return '';
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.addEmployee', email, role);
+}
+
+function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
+}
+
+function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const newRole = originalMessage?.newValue ?? '';
+    const oldRole = originalMessage?.oldValue ?? '';
+    return Localize.translateLocal('report.actions.type.updateRole', email, oldRole, newRole);
+}
+
+function isPolicyChangeLogDeleteMemberMessage(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
+}
+
+function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const role = originalMessage?.role ?? '';
+    return Localize.translateLocal('report.actions.type.removeMember', email, role);
+}
+
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
     const initialMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
@@ -1684,6 +1737,9 @@ export {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
+    isSubmittedAction,
+    isApprovedAction,
+    isForwardedAction,
     isWhisperActionTargetedToOthers,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
@@ -1696,6 +1752,9 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     didMessageMentionCurrentUser,
+    getPolicyChangeLogAddEmployeeMessage,
+    getPolicyChangeLogChangeRoleMessage,
+    getPolicyChangeLogDeleteMemberMessage,
     getRenamedAction,
 };
 

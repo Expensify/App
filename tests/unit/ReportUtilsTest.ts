@@ -561,7 +561,6 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -574,7 +573,6 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -593,7 +591,6 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
-                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -614,7 +611,6 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
-                        managerID: currentUserAccountID,
                     };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
@@ -638,7 +634,6 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -651,7 +646,6 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -685,7 +679,6 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                         policyID: paidPolicy.id,
-                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
                     expect(moneyRequestOptions.length).toBe(2);

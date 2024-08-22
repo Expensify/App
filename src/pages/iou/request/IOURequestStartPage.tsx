@@ -134,6 +134,7 @@ function IOURequestStartPage({
                             {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
+                                    defaultSelectedTab={CONST.TAB_REQUEST.SCAN}
                                     onTabSelected={resetIOUTypeIfChanged}
                                     tabBar={TabSelector}
                                     onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
