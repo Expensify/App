@@ -1,7 +1,12 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAutoSyncParams, UpdateQuickbooksOnlineReimbursementAccountIDParams} from '@libs/API/parameters';
+import type {
+    ConnectPolicyToAccountingIntegrationParams,
+    UpdateQuickbooksOnlineAutoSyncParams,
+    UpdateQuickbooksOnlineExportParams,
+    UpdateQuickbooksOnlineReimbursementAccountIDParams,
+} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -345,6 +350,17 @@ function updateQuickbooksOnlineReimbursementAccountID(policyID: string, settingV
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineExport(policyID: string, settingValue: Partial<QBOConnectionConfig['export']>) {
+    const {optimisticData, failureData, successData} = buildQuickbooksOnlineUpdateConfigOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineExportParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.EXPORT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     getQuickbooksOnlineSetupLink,
     updateQuickbooksOnlineEnableNewCategories,
@@ -352,4 +368,5 @@ export {
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineAutoSync,
     updateQuickbooksOnlineReimbursementAccountID,
+    updateQuickbooksOnlineExport,
 };

@@ -221,6 +221,7 @@ export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicy
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdateQuickbooksOnlineAutoSyncParams} from './UpdateQuickbooksOnlineAutoSyncParams';
+export type {default as UpdateQuickbooksOnlineExportParams} from './UpdateQuickbooksOnlineExportParams';
 export type {default as UpdateQuickbooksOnlineReimbursementAccountIDParams} from './UpdateQuickbooksOnlineReimbursementAccountIDParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
