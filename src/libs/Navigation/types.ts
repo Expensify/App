@@ -30,7 +30,7 @@ type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
 type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
 
 type ActionNavigate = {
-    type: string;
+    type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
     payload: {
         name?: string;
         key?: string;
