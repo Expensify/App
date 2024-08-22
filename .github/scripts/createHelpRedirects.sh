@@ -83,6 +83,9 @@ done | jq -n '. |= [inputs]')
 
 info "Adding redirects for $PUT_JSON"
 
+# Dump $PUT_JSON into a file otherwise the curl request below will fail with too many arguments
+echo $PUT_JSON > redirects.json
+
 # We use PUT here instead of POST so that we replace the entire list in place. This has many benefits:
 # 1. We don't have to check if items are already in the list, allowing this script to run faster
 # 2. We can support deleting redirects this way by simply removing them from the list
@@ -93,7 +96,7 @@ info "Adding redirects for $PUT_JSON"
 PUT_RESULT=$(curl -s --request PUT --url "https://api.cloudflare.com/client/v4/accounts/$ZONE_ID/rules/lists/$LIST_ID/items" \
     --header 'Content-Type: application/json' \
     --header "Authorization: Bearer $CLOUDFLARE_LIST_TOKEN" \
-    --data "$PUT_JSON")
+    --data-binary @redirects.json)
 
 checkCloudflareResult "$PUT_RESULT"
 OPERATION_ID=$(echo "$PUT_RESULT" | jq -r .result.operation_id)
