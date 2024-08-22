@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import {isEmptyObject} from "@src/types/utils/EmptyObject";
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
