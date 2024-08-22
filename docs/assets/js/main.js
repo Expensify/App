@@ -194,7 +194,45 @@ const tocbotOptions = {
 
     // If there is a fixed article scroll container, set to calculate titles' offset
     scrollContainer: 'content-area',
+
+    onClick: (e) => {
+        e.preventDefault();
+        const hashText = e.target.href.split('#').pop();
+        // Append hashText to the current URL without saving to history
+        const newUrl = `${window.location.pathname}#${hashText}`;
+        history.replaceState(null, '', newUrl);
+    },
 };
+
+// Define the media query string for the mobile breakpoint
+const mobileBreakpoint = window.matchMedia('(max-width: 799px)');
+
+// Function to update tocbot options and refresh
+function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
+    tocbotOptions.headingsOffset = headingsOffset;
+    tocbotOptions.scrollSmoothOffset = scrollSmoothOffset;
+    window.tocbot.refresh({
+        ...tocbotOptions,
+        contentSelector: '#new-expensify',
+    });
+}
+
+// Function to handle changes in the media query statuses
+function handleBreakpointChange() {
+    if (mobileBreakpoint.matches) {
+        updateTocbotOptions(80, -80);
+        console.log('[wildebug] Mobile breakpoint matched');
+    } else {
+        updateTocbotOptions(0, 0);
+        console.log('[wildebug] Non-mobile breakpoint matched');
+    }
+}
+
+// Add listener for changes to the media query status using addEventListener
+mobileBreakpoint.addEventListener('change', handleBreakpointChange);
+
+// Initial check
+handleBreakpointChange();
 
 function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
     newExpensifyTab.classList.add('active');
