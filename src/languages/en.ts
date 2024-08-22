@@ -1434,7 +1434,7 @@ export default {
         addPaymentMethod: 'Add payment method',
         addNewDebitCard: 'Add new debit card',
         addNewBankAccount: 'Add new bank account',
-        accountLastFour: 'Account ending in',
+        accountLastFour: 'Ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',

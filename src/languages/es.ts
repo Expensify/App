@@ -1442,7 +1442,7 @@ export default {
         addPaymentMethod: 'Añadir método de pago',
         addNewDebitCard: 'Añadir nueva tarjeta de débito',
         addNewBankAccount: 'Añadir nueva cuenta de banco',
-        accountLastFour: 'Cuenta terminada en',
+        accountLastFour: 'Terminada en',
         cardLastFour: 'Tarjeta terminada en',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
