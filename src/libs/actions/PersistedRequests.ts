@@ -1,10 +1,12 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
+const keepLastInstance: string[] = [WRITE_COMMANDS.RECONNECT_APP];
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
@@ -23,9 +25,22 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests, requestToPersist];
-    persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
+    if (keepLastInstance.includes(requestToPersist.command)) {
+        // Find the index of an existing request with the same command
+        const index = persistedRequests.findIndex((request) => request.command === requestToPersist.command);
+
+        if (index !== -1) {
+            // If found, update the existing request with the new one
+            persistedRequests[index] = requestToPersist;
+        } else {
+            // If not found, add the new request
+            persistedRequests.push(requestToPersist);
+        }
+    } else {
+        // If the command is not in the keepLastInstance array, add the new request as usual
+        persistedRequests = [...persistedRequests, requestToPersist];
+    }
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
         Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
     });
 }
