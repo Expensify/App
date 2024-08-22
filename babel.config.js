@@ -104,6 +104,12 @@ const metro = {
             },
         ],
     ],
+    env: {
+        production: {
+            // Keep console logs for e2e tests
+            plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
+        },
+    },
 };
 
 /*
