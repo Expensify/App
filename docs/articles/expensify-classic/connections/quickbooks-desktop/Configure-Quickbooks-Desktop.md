@@ -65,7 +65,7 @@ When syncing Expensify to QuickBooks Desktop, we recommend waiting until the syn
 
 Here is the list of accounts from QuickBooks Desktop and how they are pulled into Expensify:
 
-| QBD account type  | How it imports to Expensif |
+| QBD account type  | How it imports to Expensify |
 | ------------- | ------------- |
 | Accounts payable  | Vendor bill or journal entry export options  |
 | Accounts receivable  | Do not import  |
