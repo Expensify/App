@@ -7017,7 +7017,8 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
-        hasParticipantInArray(report, [currentUserAccountID ?? 0])
+        hasParticipantInArray(report, [currentUserAccountID ?? 0]) &&
+        !isOnlyAllowedToComment(report)
     );
 }
 
