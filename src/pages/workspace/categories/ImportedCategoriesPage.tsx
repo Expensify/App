@@ -37,7 +37,7 @@ function findDuplicate(array: string[]): string | null {
 
     for (const item of array) {
         if (item !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
-            if (frequencyCounter[item] > 1) {
+            if (frequencyCounter[item]) {
                 return item;
             }
             frequencyCounter[item] = (frequencyCounter[item] || 0) + 1;
