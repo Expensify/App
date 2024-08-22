@@ -19,6 +19,7 @@ type MileageRate = {
     currency?: string;
     unit: Unit;
     name?: string;
+    enabled?: boolean;
 };
 
 let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
@@ -32,7 +33,7 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
-function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
     if (!policy?.customUnits) {
@@ -45,7 +46,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (!includeDisabledRates && rate.enabled === false) {
+        if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
             return;
         }
 
@@ -55,6 +56,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             unit: distanceUnit.attributes.unit,
             name: rate.name,
             customUnitRateID: rate.customUnitRateID,
+            enabled: rate.enabled,
         };
     });
 
