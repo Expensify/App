@@ -2,7 +2,6 @@ import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
-import type {LastScreen} from '@src/types/onyx/OnyxCommon';
 
 type PickerOptions = {
     /** A callback that will be called with the selected attachment. */
@@ -42,8 +41,6 @@ type AttachmentPickerProps = {
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 
-    /** Last screen to save for navigating after granting camera permission from settings in ios */
-    lastScreen?: LastScreen;
     acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 };
 

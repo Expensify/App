@@ -16,6 +16,7 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 
 /**
  * Function called when a pinned chat is selected.
@@ -62,7 +63,8 @@ function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
         }
 
         updateLastScreen('');
-        Navigation.navigate(lastScreen);
+        const route = lastScreen as Route;
+        Navigation.navigate(route);
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);

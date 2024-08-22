@@ -39,7 +39,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
@@ -562,7 +561,7 @@ function IOURequestStepScan({
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker lastScreen={{screenName: SCREENS.RIGHT_MODAL.MONEY_REQUEST, iouType}}>
+                <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
