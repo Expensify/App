@@ -70,9 +70,8 @@ function ImportSpreeadsheetColumns({
                     })}
                 </View>
             </ScrollView>
-            <FixedFooter style={styles.mtAuto}>
+            <FixedFooter style={styles.mt6}>
                 <OfflineWithFeedback
-                    style={styles.mt6}
                     errorAboveChildren
                     errors={errors}
                     canDismissError={false}
