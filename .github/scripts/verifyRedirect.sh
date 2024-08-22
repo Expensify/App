@@ -32,7 +32,7 @@ while read -r line; do
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
 
-    # Make sure the format of the line is as execpted.
+    # Make sure the format of the line is as expected.
     if [[ "${#LINE_PARTS[@]}" -gt 2 ]]; then
         error "Found a line with more than one comma: $line"
         exit 1
