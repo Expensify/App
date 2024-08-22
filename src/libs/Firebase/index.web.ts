@@ -3,7 +3,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
 import {firebasePerfWeb} from './firebaseWebConfig';
-import type {FirebaseAttributes, StartTrace, StopTrace, TraceMap} from './types';
+import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 
@@ -51,6 +51,10 @@ const stopTrace: StopTrace = (customEventName) => {
     delete traceMap[customEventName];
 };
 
+const log: Log = () => {
+    // crashlytics is not supported on WEB
+};
+
 function getAttributes(): FirebaseAttributes {
     const session = SessionUtils.getSession();
 
@@ -68,4 +72,5 @@ function getAttributes(): FirebaseAttributes {
 export default {
     startTrace,
     stopTrace,
+    log,
 };

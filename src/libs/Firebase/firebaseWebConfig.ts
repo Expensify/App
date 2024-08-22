@@ -13,7 +13,6 @@ const firebaseConfig = {
     measurementId: 'YOUR_MEASUREMENT_ID',
 };
 
-// Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 
 initializePerformance(firebaseApp, {dataCollectionEnabled: true});
