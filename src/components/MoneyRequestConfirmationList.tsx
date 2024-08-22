@@ -233,7 +233,8 @@ function MoneyRequestConfirmationList({
         }
 
         const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
-        const rateID = canUseP2PDistanceRequests ? lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate : defaultRate;
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
