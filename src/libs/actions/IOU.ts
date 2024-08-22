@@ -3779,6 +3779,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
+                customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
