@@ -365,7 +365,6 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        outstanding: 'Pendiente',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -744,11 +743,17 @@ export default {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
-            }`,
-
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const expenseText = `${count} ${Str.pluralize('gasto', 'gastos', count)}`;
+            const statusText = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} escaneando`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pendiente`);
+            }
+            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+        },
         deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
         deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
@@ -2128,7 +2133,6 @@ export default {
         viewTrip: 'Ver viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
-        trips: 'Viajes',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2633,7 +2637,7 @@ export default {
                     },
                 },
                 customersOrJobs: {
-                    title: 'Clientes / proyectos',
+                    title: 'Clientes/proyectos',
                     subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
                     importCustomers: 'Importar clientes',
                     importJobs: 'Importar proyectos',
@@ -2648,7 +2652,7 @@ export default {
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
                         addText: 'Añadir segmento/registro personalizado',
-                        recordTitle: 'Segmento personalizado',
+                        recordTitle: 'Segmento/registro personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'Ver instrucciones detalladas',
                         helpText: ' sobre la configuración de segmentos/registros personalizado.',
@@ -2689,12 +2693,12 @@ export default {
                         },
                     },
                     customLists: {
-                        title: 'Listas personalizados',
-                        addText: 'Añadir lista personalizado',
+                        title: 'Listas personalizadas',
+                        addText: 'Añadir lista personalizada',
                         recordTitle: 'Lista personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
                         helpLinkText: 'Ver instrucciones detalladas',
-                        helpText: ' sobre cómo configurar listas personalizado.',
+                        helpText: ' sobre cómo configurar listas personalizada.',
                         emptyTitle: 'Añadir una lista personalizado',
                         fields: {
                             listName: 'Nombre',
@@ -3267,6 +3271,12 @@ export default {
                             return 'Actualizando información de conexión';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importando listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando subsidiarias';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importando proveedores';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'intacctCheckConnection':
@@ -3766,6 +3776,11 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
+            amount: {
+                lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
+                greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} y ${lessThan}`,
+            },
         },
         expenseType: 'Tipo de gasto',
     },
@@ -3900,6 +3915,7 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
+                integrationSyncFailed: (label: string, errorMessage: string) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
                 addEmployee: (email: string, role: string) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: (email: string, currentRole: string, newRole: string) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
@@ -4800,6 +4816,7 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
+            authenticatePayment: 'Autenticar el pago',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
                 phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
