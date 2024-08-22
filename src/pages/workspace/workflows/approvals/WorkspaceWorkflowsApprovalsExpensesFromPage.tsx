@@ -168,7 +168,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const isMembersListEmpty = !sections[0].data.length;
+    const headerMessage = useMemo(() => (searchTerm && isMembersListEmpty ? translate('common.noResultsFound') : ''), [searchTerm, isMembersListEmpty, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -191,19 +192,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         onBackButtonPress={goBack}
                     />
                     {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
-                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>
+                            {isMembersListEmpty ? 'Nice job! All workspace members belong to an approval workflow.' : translate('workflowsExpensesFromPage.header')}
+                        </Text>
                     )}
                     <SelectionList
                         canSelectMultiple
                         sections={sections}
                         ListItem={InviteMemberListItem}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={isMembersListEmpty ? undefined : translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         onSelectRow={toggleMember}
                         showScrollIndicator
-                        showLoadingPlaceholder={!didScreenTransitionEnd || approvalWorkflowMetadata.status === 'loading'}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         footerContent={nextButton}
                     />
