@@ -414,6 +414,10 @@ export default {
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
     },
+    filePicker: {
+        fileError: 'File error',
+        errorWhileSelectingFile: 'An error occurred while selecting an file. Please try again.',
+    },
     connectionComplete: {
         title: 'Connection complete',
         supportingText: 'You can close this window and head back to the Expensify app.',
