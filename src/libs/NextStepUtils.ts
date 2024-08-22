@@ -36,7 +36,7 @@ Onyx.connect({
 });
 
 function parseMessage(messages: Message[] | undefined, title: string | undefined) {
-    let nextStepHTML = '';
+    let nextStepHTML = title ? `<span>${title}<span>` : '';
 
     messages?.forEach((part) => {
         const isEmail = Str.isValidEmail(part.text);
@@ -48,8 +48,7 @@ function parseMessage(messages: Message[] | undefined, title: string | undefined
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
-        const nextStepMessage = title ? [title, content].join(' ') : content;
-        nextStepHTML += `<${tagType}>${nextStepMessage}</${tagType}>`;
+        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
     });
 
     const formattedHtml = nextStepHTML
