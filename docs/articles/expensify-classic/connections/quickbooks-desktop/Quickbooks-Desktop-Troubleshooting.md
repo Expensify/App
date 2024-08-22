@@ -79,7 +79,7 @@ If these general troubleshooting steps don’t work, reach out to Concierge with
 
 Generally, an “Oops!” error can often be temporary or a false error. Although you will see a message pop up, there may actually not be an actual issue. 
 
-##How to resolve
+## How to resolve
 
 1. Check to see if the sync or export was successful.
 2. If it wasn't, please attempt to sync or export the connection again.
