@@ -76,7 +76,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: !!autoSync?.enabled,
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
+                QuickbooksOnline.updateQuickbooksOnlineAutoSync(policyID, {
                     enabled: !autoSync?.enabled,
                 }),
             pendingAction: pendingFields?.autoSync,
