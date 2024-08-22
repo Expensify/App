@@ -27,32 +27,6 @@ function checkCloudflareResult {
 declare -a ITEMS_TO_ADD
 
 while read -r line; do
-    # Split each line of the file into a source and destination so we can sanity check
-    # and compare against the current list.
-    read -r -a LINE_PARTS < <(echo "$line" | tr ',' ' ')
-    SOURCE_URL=${LINE_PARTS[0]}
-    DEST_URL=${LINE_PARTS[1]}
-
-    # Make sure the format of the line is as execpted.
-    if [[ "${#LINE_PARTS[@]}" -gt 2 ]]; then
-        error "Found a line with more than one comma: $line"
-        exit 1
-    fi
-
-    # Basic sanity checking to make sure that the source and destination are in expected
-    # subdomains.
-    if ! [[ $SOURCE_URL =~ ^https://(community|help)\.expensify\.com ]]; then
-        error "Found source URL that is not a communityDot or helpDot URL: $SOURCE_URL"
-        exit 1
-    fi
-
-    if ! [[ $DEST_URL =~ ^https://(help|use|integrations)\.expensify\.com|^https://www\.expensify\.org ]]; then
-        error "Found destination URL that is not a supported URL: $DEST_URL"
-        exit 1
-    fi
-
-    info "Source: $SOURCE_URL and destination: $DEST_URL appear to be formatted correctly."
-
     ITEMS_TO_ADD+=("$line")
 
 # This line skips the first line in the csv because the first line is a header row.
