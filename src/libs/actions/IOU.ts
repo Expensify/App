@@ -3639,6 +3639,7 @@ function trackExpense(
     actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
+    customUnitRateID = '',
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report.chatReportID) : report;

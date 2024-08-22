@@ -121,6 +121,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
+    const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -303,6 +304,11 @@ function IOURequestStepDistance({
                         undefined,
                         undefined,
                         TransactionUtils.getValidWaypoints(waypoints, true),
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        customUnitRateID,
                     );
                     return;
                 }
@@ -356,6 +362,7 @@ function IOURequestStepDistance({
         policy,
         iouRequestType,
         reportNameValuePairs,
+        customUnitRateID,
     ]);
 
     const getError = () => {
