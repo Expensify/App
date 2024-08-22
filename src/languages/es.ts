@@ -2784,6 +2784,10 @@ export default {
             control: 'Control',
             collect: 'Recolectar',
         },
+        companyCards: {
+            addCompanyCards: 'Agregar tarjetas de empresa',
+            selectCardFeed: 'Seleccionar feed de tarjetas',
+        },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
@@ -2910,10 +2914,6 @@ export default {
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
-            },
-            companyCards: {
-                addCompanyCards: 'Agregar tarjetas de empresa',
-                selectCardFeed: 'Seleccionar feed de tarjetas',
             },
             distanceRates: {
                 title: 'Tasas de distancia',

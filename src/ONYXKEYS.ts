@@ -476,6 +476,9 @@ const ONYXKEYS = {
 
         /** The collection of card feeds */
         SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
+
+        /** Currently displaying feed */
+        LAST_SELECTED_FEED: 'lastSelectedFeed_',
     },
 
     /** List of Form ids */
@@ -757,6 +760,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: string;
 };
 
 type OnyxValuesMapping = {
