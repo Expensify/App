@@ -20,6 +20,7 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
@@ -206,8 +207,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
-
+    const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
 
@@ -450,7 +450,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
-    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+    const value = JSON.stringify({autoReportingOffset});
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -1685,6 +1685,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -1705,6 +1706,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 pendingAction: null,
                 pendingChatMembers: [],
+                isOptimisticReport: false,
             },
         },
         {
@@ -1724,6 +1726,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -2075,6 +2078,18 @@ function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: numb
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params, {optimisticData, successData, failureData});
+}
+
+function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyEditCardLimitTypePageParams = {
+        policyID,
+        authToken,
+        cardID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE, params);
 }
 
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
@@ -3347,6 +3362,7 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
+    openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
