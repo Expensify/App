@@ -48,7 +48,8 @@ function parseMessage(messages: Message[] | undefined, title: string | undefined
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
-        nextStepHTML += `<${tagType}>${[title, content].join(' ')}</${tagType}>`;
+        const nextStepMessage = title ? [title, content].join(' ') : content;
+        nextStepHTML += `<${tagType}>${nextStepMessage}</${tagType}>`;
     });
 
     const formattedHtml = nextStepHTML
