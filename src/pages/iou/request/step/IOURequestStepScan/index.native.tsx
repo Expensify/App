@@ -99,13 +99,13 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert({screenName: SCREENS.RIGHT_MODAL.MONEY_REQUEST, iouType});
+                    FileUtils.showCameraPermissionsAlert();
                 }
             })
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    }, [iouType]);
+    }, []);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);

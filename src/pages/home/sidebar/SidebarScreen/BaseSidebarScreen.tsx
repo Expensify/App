@@ -9,18 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastScreen} from '@libs/actions/App';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as ReportUtils from '@libs/ReportUtils';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
-import * as IOU from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {LastScreen} from '@src/types/onyx/OnyxCommon';
 
 /**
  * Function called when a pinned chat is selected.
@@ -32,7 +27,7 @@ const startTimer = () => {
 
 type BaseSidebarScreenOnyxProps = {
     /** last visited screen */
-    lastScreen: OnyxEntry<LastScreen>;
+    lastScreen: OnyxEntry<string>;
 };
 
 type BaseSidebarScreenProps = BaseSidebarScreenOnyxProps;
@@ -62,31 +57,12 @@ function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
      * This will only works for ios application because we are saving last screen only for ios
      */
     useEffect(() => {
-        if (!lastScreen || lastScreen?.screenName === '') {
+        if (!lastScreen) {
             return;
         }
 
-        updateLastScreen({screenName: '', iouType: undefined});
-
-        switch (lastScreen.screenName) {
-            case SCREENS.RIGHT_MODAL.MONEY_REQUEST:
-                interceptAnonymousUser(() => {
-                    if (!lastScreen.iouType) {
-                        return;
-                    }
-
-                    IOU.startMoneyRequest(
-                        lastScreen.iouType,
-                        // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                        // for all of the routes in the creation flow.
-                        ReportUtils.generateReportID(),
-                    );
-                });
-                break;
-
-            default:
-                break;
-        }
+        updateLastScreen('');
+        Navigation.navigate(lastScreen);
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -122,6 +98,5 @@ BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 export default withOnyx<BaseSidebarScreenProps, BaseSidebarScreenOnyxProps>({
     lastScreen: {
         key: ONYXKEYS.LAST_SCREEN,
-        selector: (lastScreen) => lastScreen,
     },
 })(BaseSidebarScreen);
