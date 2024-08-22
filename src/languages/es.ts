@@ -743,11 +743,17 @@ export default {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
-            }`,
-
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const expenseText = `${count} ${Str.pluralize('gasto', 'gastos', count)}`;
+            const statusText = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} escaneando`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pendiente`);
+            }
+            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+        },
         deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
         deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
@@ -3909,6 +3915,7 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
+                integrationSyncFailed: (label: string, errorMessage: string) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
                 addEmployee: (email: string, role: string) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: (email: string, currentRole: string, newRole: string) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
