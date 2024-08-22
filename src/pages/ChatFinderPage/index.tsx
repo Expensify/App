@@ -154,7 +154,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.closeAndNavigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         } else {
             Report.navigateToAndOpenReport(option.login ? [option.login] : []);
         }
