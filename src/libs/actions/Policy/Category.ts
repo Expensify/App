@@ -7,6 +7,7 @@ import type {
     OpenPolicyCategoriesPageParams,
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyDistanceRatesDefaultCategoryParams,
+    SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -818,11 +819,76 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
+function SetWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            commentHint: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        commentHint,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            commentHint: null,
+                        },
+
+                        commentHint,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            commentHint: null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetWorkspaceCategoryDescriptionHintParams = {
+        policyID,
+        categoryName,
+        commentHint,
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, onyxData);
+}
+
 export {
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
     setPolicyCategoryDescriptionRequired,
+    SetWorkspaceCategoryDescriptionHint,
     setWorkspaceRequiresCategory,
     setPolicyCategoryPayrollCode,
     createPolicyCategory,

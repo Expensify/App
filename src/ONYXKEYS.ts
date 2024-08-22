@@ -482,6 +482,7 @@ const ONYXKEYS = {
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
         WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
+        WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM: 'workspaceCategoryDescriptionHintForm',
         WORKSPACE_TAG_FORM: 'workspaceTagForm',
         WORKSPACE_TAG_FORM_DRAFT: 'workspaceTagFormDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
@@ -636,6 +637,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM]: FormTypes.WorkspaceReportFieldForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM]: FormTypes.WorkspaceCategoryDescriptionHintForm;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;

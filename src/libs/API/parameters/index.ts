@@ -278,3 +278,7 @@ export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardPa
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
+export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
+export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
+export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
+export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';

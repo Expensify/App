@@ -1,5 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+type PolicyCategoryExpenseLimitType = 'expense' | 'daily';
+
 /** Model of policy category */
 type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a category */
@@ -41,7 +43,7 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     maxExpenseAmount?: number;
 
-    expenseLimitType?: 'expense' | 'daily';
+    expenseLimitType?: PolicyCategoryExpenseLimitType;
 
     maxExpenseAmountNoReceipt?: number | null;
 }>;
@@ -49,4 +51,4 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /** Record of policy categories, indexed by their name */
 type PolicyCategories = Record<string, PolicyCategory>;
 
-export type {PolicyCategory, PolicyCategories};
+export type {PolicyCategory, PolicyCategories, PolicyCategoryExpenseLimitType};

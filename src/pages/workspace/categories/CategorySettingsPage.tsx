@@ -203,22 +203,24 @@ function CategorySettingsPage({
                             </View>
                         </View>
                     </OfflineWithFeedback>
+                    {policyCategory?.areCommentsRequired && (
+                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                            <MenuItemWithTopDescription
+                                title={policyCategory?.commentHint}
+                                description={translate(`workspace.categories.descriptionHint`)}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                }}
+                                shouldShowRightIcon
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.approver}>
                         <MenuItemWithTopDescription
                             title={policyCategory?.approver}
                             description={translate(`workspace.categories.approver`)}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                            }}
-                            shouldShowRightIcon
-                        />
-                    </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                        <MenuItemWithTopDescription
-                            title={policyCategory?.approver}
-                            description={translate(`workspace.categories.descriptionHint`)}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                             }}
                             shouldShowRightIcon
                         />
