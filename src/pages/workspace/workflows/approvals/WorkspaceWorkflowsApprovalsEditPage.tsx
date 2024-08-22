@@ -51,7 +51,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove);
-        Navigation.goBack();
+        Navigation.dismissModal();
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
@@ -61,7 +61,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Remove the approval workflow using the initial data as it could be already edited
         Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
-        Navigation.goBack();
+        Navigation.dismissModal();
     }, [initialApprovalWorkflow, route.params.policyID]);
 
     // Set the initial approval workflow when the page is loaded
