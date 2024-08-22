@@ -2674,7 +2674,7 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Onyx.connect({
+            const connectionID = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (onboarding) => {
                     Navigation.waitForProtectedRoutes().then(() => {
@@ -2713,6 +2713,7 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
+                        Onyx.disconnect(connectionID);
                         Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
                     });
                 },
