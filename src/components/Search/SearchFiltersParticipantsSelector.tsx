@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -76,7 +77,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             false,
             0,
             undefined,
-            true,
+            false,
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
@@ -108,9 +109,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         newSections.push(formattedResults.section);
 
         if (chatOptions.currentUserOption && !isCurrentUserSelected) {
+            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
             newSections.push({
                 title: '',
-                data: [chatOptions.currentUserOption],
+                data: [{...chatOptions.currentUserOption, text: formattedName}],
                 shouldShow: true,
             });
         }

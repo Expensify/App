@@ -1238,6 +1238,11 @@ function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
  * Sets the last read time on a report
  */
 function markCommentAsUnread(reportID: string, reportActionCreated: string) {
+    if (reportID === '-1') {
+        Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
+        return;
+    }
+
     const reportActions = allReportActions?.[reportID];
 
     // Find the latest report actions from other users
@@ -2304,7 +2309,9 @@ function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID, shouldDeleteChildReports);
+    InteractionManager.runAfterInteractions(() => {
+        deleteReport(reportID, shouldDeleteChildReports);
+    });
 }
 
 /**
