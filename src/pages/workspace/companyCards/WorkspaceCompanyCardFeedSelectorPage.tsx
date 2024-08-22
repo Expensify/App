@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -48,7 +47,7 @@ type WorkspaceCompanyCardFeedSelectorPageProps = StackScreenProps<SettingsNaviga
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    // const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -68,9 +67,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.cardIcon, styles.mr3]}
+                height={variables.iconSizeExtraLarge}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={styles.mr3}
             />
         ),
     }));
