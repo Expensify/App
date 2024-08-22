@@ -28,22 +28,22 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, isCustomQuery} = useMemo(() => {
-        if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, isCustomQuery: undefined};
+    const {queryJSON, policyID, isCustomQuery} = useMemo(() => {
+        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
+            return {queryJSON: undefined, policyID: undefined, isCustomQuery: undefined};
         }
 
-        // This has to be SEARCH_CENTRAL_PANE
-        const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+        const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+        const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
 
         return {
-            queryJSON: SearchUtils.buildSearchQueryJSON(searchParams.q),
+            queryJSON: parsedQuery,
+            policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
             isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
-    const policyID = queryJSON && SearchUtils.getPolicyIDFromSearchQuery(queryJSON);
 
     return (
         <ScreenWrapper
