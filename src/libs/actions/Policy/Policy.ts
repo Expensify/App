@@ -235,7 +235,7 @@ function getInvoicePrimaryWorkspace(activePolicyID?: OnyxEntry<string>): Policy 
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyAdminPolicies = false): boolean {
     const chatEnabledPolicies = Object.values(policies ?? {}).filter(
-        (policy) => policy?.isPolicyExpenseChatEnabled && (!includeOnlyAdminPolicies ? policy.role === CONST.POLICY.ROLE.ADMIN : true),
+        (policy) => policy?.isPolicyExpenseChatEnabled && (!includeOnlyAdminPolicies || policy.role === CONST.POLICY.ROLE.ADMIN),
     );
 
     if (chatEnabledPolicies.length === 0) {
