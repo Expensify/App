@@ -1356,6 +1356,7 @@ export default {
     workflowsExpensesFromPage: {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
+        emptyMembersList: 'Nice job! All workspace members belong to an approval workflow.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",

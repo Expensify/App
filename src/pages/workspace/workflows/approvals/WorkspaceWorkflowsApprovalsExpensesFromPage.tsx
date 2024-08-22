@@ -191,7 +191,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     />
                     {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
                         <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>
-                            {isMembersListEmpty ? 'Nice job! All workspace members belong to an approval workflow.' : translate('workflowsExpensesFromPage.header')}
+                            {translate(isMembersListEmpty ? 'workflowsExpensesFromPage.emptyMembersList' : 'workflowsExpensesFromPage.header')}
                         </Text>
                     )}
                     <SelectionList
