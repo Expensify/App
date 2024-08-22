@@ -1,69 +1,75 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {normalizeQuery} from '@libs/SearchUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
+import SearchStatusMenuNarrow from './SearchStatusMenuNarrow';
 
-type SearchTypeMenuProps = {
+type SearchStatusMenuProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
 };
 
-type SearchTypeMenuItem = {
+type SearchStatusMenuItem = {
     title: string;
-    type: SearchDataTypes;
+    status: SearchStatus;
     icon: IconAsset;
     route?: Route;
 };
 
-function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
-    const {type} = queryJSON;
+function SearchStatusMenu({queryJSON, isCustomQuery}: SearchStatusMenuProps) {
+    const {status} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
-    const typeMenuItems: SearchTypeMenuItem[] = [
+    const statusMenuItems: SearchStatusMenuItem[] = [
         {
             title: translate('common.expenses'),
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.ALL)}),
         },
         {
-            title: translate('workspace.common.invoices'),
-            type: CONST.SEARCH.DATA_TYPES.INVOICE,
-            icon: Expensicons.InvoiceGeneric,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.INVOICE.ALL)}),
+            title: translate('common.shared'),
+            status: CONST.SEARCH.STATUS.EXPENSE.SHARED,
+            icon: Expensicons.Send,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.SHARED)}),
         },
         {
-            title: translate('travel.trips'),
-            type: CONST.SEARCH.DATA_TYPES.TRIP,
-            icon: Expensicons.Suitcase,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
+            title: translate('common.drafts'),
+            status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            icon: Expensicons.Pencil,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.DRAFTS)}),
+        },
+        {
+            title: translate('common.finished'),
+            status: CONST.SEARCH.STATUS.EXPENSE.FINISHED,
+            icon: Expensicons.CheckCircle,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: normalizeQuery(CONST.SEARCH.TAB.EXPENSE.FINISHED)}),
         },
     ];
-    const activeItemIndex = typeMenuItems.findIndex((item) => item.type === type);
+    const activeItemIndex = statusMenuItems.findIndex((item) => item.status === status);
 
     if (shouldUseNarrowLayout) {
         const title = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : undefined;
 
         return (
-            <SearchTypeMenuNarrow
-                typeMenuItems={typeMenuItems}
+            <SearchStatusMenuNarrow
+                statusMenuItems={statusMenuItems}
                 activeItemIndex={activeItemIndex}
                 title={title}
             />
@@ -72,7 +78,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
 
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-            {typeMenuItems.map((item, index) => {
+            {statusMenuItems.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
 
                 return (
@@ -96,7 +102,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
     );
 }
 
-SearchTypeMenu.displayName = 'SearchTypeMenu';
+SearchStatusMenu.displayName = 'SearchStatusMenu';
 
-export default SearchTypeMenu;
-export type {SearchTypeMenuItem};
+export default SearchStatusMenu;
+export type {SearchStatusMenuItem};

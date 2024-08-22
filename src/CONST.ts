@@ -355,6 +355,7 @@ const CONST = {
             OPEN: 'OPEN',
         },
         MAX_LENGTH: {
+            FULL_SSN: 9,
             SSN: 4,
             ZIP_CODE: 10,
         },
@@ -712,6 +713,7 @@ const CONST = {
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
+                INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -976,8 +978,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
-        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
-        SWITCH_REPORT_THREAD: 'switch_report_thread',
+        OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
+        OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -1192,6 +1194,7 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
         NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
     },
 
     INPUT_MODE: {
@@ -2191,7 +2194,10 @@ const CONST = {
                 NETSUITE_SYNC_ACCOUNTS: 'netSuiteSyncAccounts',
                 NETSUITE_SYNC_CURRENCIES: 'netSuiteSyncCurrencies',
                 NETSUITE_SYNC_CATEGORIES: 'netSuiteSyncCategories',
+                NETSUITE_SYNC_IMPORT_CUSTOM_LISTS: 'netSuiteSyncImportCustomLists',
                 NETSUITE_SYNC_IMPORT_EMPLOYEES: 'netSuiteSyncImportEmployees',
+                NETSUITE_SYNC_IMPORT_SUBSIDIARIES: 'netSuiteSyncImportSubsidiaries',
+                NETSUITE_SYNC_IMPORT_VENDORS: 'netSuiteSyncImportVendors',
                 NETSUITE_SYNC_REPORT_FIELDS: 'netSuiteSyncReportFields',
                 NETSUITE_SYNC_TAGS: 'netSuiteSyncTags',
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
@@ -3917,6 +3923,7 @@ const CONST = {
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
+        CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
     TAB: {
         NEW_CHAT_TAB_ID: 'NewChatTab',
@@ -5254,6 +5261,8 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
+            TRANSACTION: 'transaction',
+            REPORT: 'report',
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
@@ -5282,10 +5291,9 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                SHARED: 'shared',
                 DRAFTS: 'drafts',
-                OUTSTANDING: 'outstanding',
-                APPROVED: 'approved',
-                PAID: 'paid',
+                FINISHED: 'finished',
             },
             INVOICE: {
                 ALL: 'all',
@@ -5298,6 +5306,14 @@ const CONST = {
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
                 PAID: 'paid',
+            },
+        },
+        TAB: {
+            EXPENSE: {
+                ALL: 'type:expense status:all',
+                SHARED: 'type:expense status:shared',
+                DRAFTS: 'type:expense status:drafts',
+                FINISHED: 'type:expense status:finished',
             },
         },
         TABLE_COLUMNS: {
