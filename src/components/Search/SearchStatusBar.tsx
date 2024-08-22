@@ -132,7 +132,6 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
             style={[styles.flexRow, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
             horizontal
             showsHorizontalScrollIndicator={false}
-            snapToEnd={false}
         >
             {options.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
