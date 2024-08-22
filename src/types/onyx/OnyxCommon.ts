@@ -54,4 +54,12 @@ type Icon = {
     fill?: string;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
+/** Object store last screen data for navigating back after app reload due to permission change */
+type LastScreen = {
+    /** Name of the main screen */
+    screenName: string;
+    /** iouType for launching request expense screen */
+    iouType: ValueOf<typeof CONST.IOU.TYPE> | undefined;
+};
+
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, LastScreen};

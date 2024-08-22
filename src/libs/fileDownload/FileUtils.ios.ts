@@ -6,8 +6,8 @@ import {updateLastScreen} from '@libs/actions/App';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {LastScreen} from '@src/types/onyx/OnyxCommon';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
@@ -65,7 +65,7 @@ function showPermissionErrorAlert() {
 /**
  * Inform the users when they need to grant camera access and guide them to settings
  */
-function showCameraPermissionsAlert(screenName: IOUType | '') {
+function showCameraPermissionsAlert(lastScreen: LastScreen) {
     Alert.alert(
         Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
         Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
@@ -80,8 +80,8 @@ function showCameraPermissionsAlert(screenName: IOUType | '') {
                     Linking.openSettings();
                     // In case of ios, app reload when we enable camera permission from settings
                     // we are saving last screen so we can navigate to it after app reload
-                    if (screenName) {
-                        updateLastScreen(screenName);
+                    if (lastScreen) {
+                        updateLastScreen(lastScreen);
                     }
                 },
             },

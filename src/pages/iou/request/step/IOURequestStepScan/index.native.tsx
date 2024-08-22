@@ -39,6 +39,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
@@ -98,7 +99,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert(iouType);
+                    FileUtils.showCameraPermissionsAlert({screenName: SCREENS.RIGHT_MODAL.MONEY_REQUEST, iouType});
                 }
             })
             .catch(() => {
@@ -561,7 +562,7 @@ function IOURequestStepScan({
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker lastScreen={iouType}>
+                <AttachmentPicker lastScreen={{screenName: SCREENS.RIGHT_MODAL.MONEY_REQUEST, iouType}}>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}

@@ -17,13 +17,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {LastScreen} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy/Policy';
 import * as Session from './Session';
@@ -497,7 +497,7 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
-function updateLastScreen(screen: IOUType | '') {
+function updateLastScreen(screen: LastScreen) {
     Onyx.set(ONYXKEYS.LAST_SCREEN, screen);
 }
 

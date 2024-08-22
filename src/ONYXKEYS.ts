@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
-import type {IOUType} from './CONST';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type Onboarding from './types/onyx/Onboarding';
+import type {LastScreen} from './types/onyx/OnyxCommon';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -895,7 +895,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
-    [ONYXKEYS.LAST_SCREEN]: IOUType | '';
+    [ONYXKEYS.LAST_SCREEN]: LastScreen;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

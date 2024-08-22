@@ -5,8 +5,8 @@ import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {LastScreen} from '@src/types/onyx/OnyxCommon';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
@@ -65,7 +65,7 @@ function showPermissionErrorAlert() {
  * Inform the users when they need to grant camera access and guide them to settings
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function showCameraPermissionsAlert(screenName: IOUType | '') {
+function showCameraPermissionsAlert(screenName: LastScreen | undefined) {
     Alert.alert(
         Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
         Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
