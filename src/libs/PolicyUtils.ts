@@ -143,8 +143,10 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
         return '';
     }
 
-    if (!Number.isNaN(Number(numValue)) && withDecimals) {
-        return Number(numValue).toFixed(2).toString().replace('.', toLocaleDigit('.'));
+    if (withDecimals) {
+        const decimalPart = numValue.toString().split('.')[1];
+        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
