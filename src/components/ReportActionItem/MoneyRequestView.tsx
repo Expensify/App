@@ -19,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
-import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -163,14 +162,14 @@ function MoneyRequestView({
         tag: transactionTag,
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
-        cardID: transactionCardID,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
-    const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
+    const cardProgramName = TransactionUtils.getCardName(transaction);
+    const shouldShowCard = isCardTransaction && cardProgramName;
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const isPaidReport = ReportActionsUtils.isPayAction(parentReportAction);
@@ -602,7 +601,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && tagList}
-                {isCardTransaction && (
+                {shouldShowCard && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}

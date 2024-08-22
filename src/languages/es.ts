@@ -2631,7 +2631,7 @@ export default {
                     },
                 },
                 customersOrJobs: {
-                    title: 'Clientes / proyectos',
+                    title: 'Clientes/proyectos',
                     subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
                     importCustomers: 'Importar clientes',
                     importJobs: 'Importar proyectos',
@@ -2646,7 +2646,7 @@ export default {
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
                         addText: 'Añadir segmento/registro personalizado',
-                        recordTitle: 'Segmento personalizado',
+                        recordTitle: 'Segmento/registro personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'Ver instrucciones detalladas',
                         helpText: ' sobre la configuración de segmentos/registros personalizado.',
@@ -3770,6 +3770,11 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
+            amount: {
+                lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
+                greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
+                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} y ${lessThan}`,
+            },
         },
         expenseType: 'Tipo de gasto',
     },
