@@ -2,7 +2,6 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import * as ReportConnection from '@libs/ReportConnection';
