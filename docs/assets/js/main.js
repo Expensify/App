@@ -212,8 +212,7 @@ function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
     tocbotOptions.headingsOffset = headingsOffset;
     tocbotOptions.scrollSmoothOffset = scrollSmoothOffset;
     window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#new-expensify',
+        ...tocbotOptions
     });
 }
 
