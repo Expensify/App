@@ -135,7 +135,8 @@ function MoneyRequestPreviewContent({
 
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
-    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
+    // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
+    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
