@@ -4,9 +4,9 @@
 
 
 
-function buildFilter(operator, left, right) {
-  return { operator, left, right };
-}
+  function buildFilter(operator, left, right) {
+    return { operator, left, right };
+  }
 
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
@@ -250,48 +250,71 @@ function peg$parse(input, options) {
 
   var peg$f0 = function(filters) { return applyDefaults(filters); };
   var peg$f1 = function(head, tail) {
-  const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null).filter(Boolean);
-  if (!allFilters.length) {
-    return null;
-  }
+      const allFilters = [head, ...tail.map(([_, filter]) => filter)]
+        .filter((filter) => filter !== null)
+        .filter(Boolean);
+      if (!allFilters.length) {
+        return null;
+      }
 
-  const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
-  const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+      const keywords = allFilters.filter(
+        (filter) =>
+          filter.left === "keyword" || filter.right?.left === "keyword"
+      );
+      const nonKeywords = allFilters.filter(
+        (filter) =>
+          filter.left !== "keyword" && filter.right?.left !== "keyword"
+      );
 
-  if(!nonKeywords.length){
-  return keywords.reduce((result, filter) => buildFilter("or", result, filter))
-  }
-  if(!keywords.length){
-  return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
-  }
+      if (!nonKeywords.length) {
+        return keywords.reduce((result, filter) =>
+          buildFilter("or", result, filter)
+        );
+      }
+      if (!keywords.length) {
+        return nonKeywords.reduce((result, filter) =>
+          buildFilter("and", result, filter)
+        );
+      }
 
-  return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
+      return buildFilter(
+        "and",
+        keywords.reduce((result, filter) => buildFilter("or", result, filter)),
+        nonKeywords.reduce((result, filter) =>
+          buildFilter("and", result, filter)
+        )
+      );
 
-  return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
-};
+      return allFilters.reduce((result, filter) =>
+        buildFilter("and", result, filter)
+      );
+    };
   var peg$f2 = function(key, op, value) {
-	updateDefaultValues(key, value.trim());
-};
-  var peg$f3 = function(value) {
-	return buildFilter('eq', 'keyword', value.trim());
-};
+      updateDefaultValues(key, value.trim());
+    };
+  var peg$f3 = function(value) { return buildFilter("eq", "keyword", value.trim()); };
   var peg$f4 = function(field, op, value) {
-  return buildFilter(op, field, value)
-};
+      return buildFilter(op, field, value);
+    };
   var peg$f5 = function(field, op, value) {
-	
-	const values = value.split(',');
-    return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter(op, field, val.trim())), buildFilter(op, field, values[0]));
-};
+      const values = value.split(",");
+      return values
+        .slice(1)
+        .reduce(
+          (acc, val) =>
+            buildFilter("or", acc, buildFilter(op, field, val.trim())),
+          buildFilter(op, field, values[0])
+        );
+    };
   var peg$f6 = function() { return "eq"; };
   var peg$f7 = function() { return "neq"; };
   var peg$f8 = function() { return "gte"; };
   var peg$f9 = function() { return "gt"; };
   var peg$f10 = function() { return "lte"; };
   var peg$f11 = function() { return "lt"; };
-  var peg$f12 = function(parts) { return parts.join(''); };
-  var peg$f13 = function(chars) { return chars.join(''); };
-  var peg$f14 = function(chars) { return chars.join(''); };
+  var peg$f12 = function(parts) { return parts.join(""); };
+  var peg$f13 = function(chars) { return chars.join(""); };
+  var peg$f14 = function(chars) { return chars.join(""); };
   var peg$f15 = function() { return "and"; };
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
@@ -1141,19 +1164,19 @@ function peg$parse(input, options) {
 
 
   const defaultValues = {
-    "type": "expense",
-    "status": "all",
-    "sortBy": "date",
-    "sortOrder": "desc",
+    type: "expense",
+    status: "all",
+    sortBy: "date",
+    sortOrder: "desc",
   };
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
-      filters
+      filters,
     };
   }
-  
+
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
