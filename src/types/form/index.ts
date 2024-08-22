@@ -69,5 +69,6 @@ export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDescriptionHintForm';
+export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';

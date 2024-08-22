@@ -430,6 +430,7 @@ const SCREENS = {
         CATEGORY_FLAG_AMOUNTS_OVER: 'Category_Flag_Amounts_Over',
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
+        CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',

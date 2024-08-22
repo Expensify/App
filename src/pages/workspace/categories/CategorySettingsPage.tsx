@@ -225,6 +225,26 @@ function CategorySettingsPage({
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
+                        <MenuItemWithTopDescription
+                            title={``}
+                            description={translate(`workspace.categories.flagAmountsOver`)}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
+                        <MenuItemWithTopDescription
+                            title={``}
+                            description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Expensicons.Trashcan}

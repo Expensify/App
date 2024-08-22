@@ -14,9 +14,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_APPROVER>;
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
-function CategoryApproverPage({
+function CategoryRequireReceiptsOverPage({
     route: {
         params: {policyID, categoryName},
     },
@@ -36,11 +36,11 @@ function CategoryApproverPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={CategoryApproverPage.displayName}
+                testID={CategoryRequireReceiptsOverPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.approver')}
+                    title={translate('workspace.rules.categoryRules.requireReceiptsOver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
             </ScreenWrapper>
@@ -48,6 +48,6 @@ function CategoryApproverPage({
     );
 }
 
-CategoryApproverPage.displayName = 'CategoryApproverPage';
+CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
 
-export default CategoryApproverPage;
+export default CategoryRequireReceiptsOverPage;
