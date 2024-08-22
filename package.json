@@ -63,7 +63,9 @@
     "e2e-test-runner-build": "node --max-old-space-size=8192 node_modules/.bin/ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy ",
-    "web:prod": "http-server ./dist --cors"
+    "web:prod": "http-server ./dist --cors",
+    "test:e2e:android": "bash ./scripts/run-maestro-tests.sh android",
+    "test:e2e:ios": "bash ./scripts/run-maestro-tests.sh ios"
   },
   "dependencies": {
     "@babel/plugin-proposal-private-methods": "^7.18.6",
