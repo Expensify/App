@@ -84,7 +84,7 @@ done | jq -n '. |= [inputs]')
 info "Adding redirects for $PUT_JSON"
 
 # Dump $PUT_JSON into a file otherwise the curl request below will fail with too many arguments
-echo $PUT_JSON > redirects.json
+echo "$PUT_JSON" > redirects.json
 
 # We use PUT here instead of POST so that we replace the entire list in place. This has many benefits:
 # 1. We don't have to check if items are already in the list, allowing this script to run faster
