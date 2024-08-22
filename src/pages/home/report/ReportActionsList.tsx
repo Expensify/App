@@ -537,6 +537,15 @@ function ReportActionsList({
         }
         // #region useEffect readNewestAction
         console.debug('[TEST] ReportActionsList useEffect 2');
+        Alert.alert(
+            'ReportActionsList useEffect 2',
+            JSON.stringify({
+                isFromNotification: route?.params?.referrer === CONST.REFERRER.NOTIFICATION,
+                reportID: report.reportID,
+                prevReportID,
+                reportIDsCondition: report.reportID !== prevReportID,
+            }),
+        );
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
 
