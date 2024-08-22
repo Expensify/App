@@ -75,8 +75,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isInitialCodeSent = useRef<boolean>(false);
 
-    console.log('isInitialCodeSent', isInitialCodeSent);
-
     useImperativeHandle(innerRef, () => ({
         focus() {
             inputValidateCodeRef.current?.focus();
