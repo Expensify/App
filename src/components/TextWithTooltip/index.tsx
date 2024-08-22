@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import Parser from '@libs/Parser';
 import type TextWithTooltipProps from './types';
 
 type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1}: TextWithTooltipProps) {
+function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, shouldRenderAsHTML = false}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -30,7 +32,7 @@ function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1}: Te
                     setShowTooltip(false);
                 }}
             >
-                {text}
+                {shouldRenderAsHTML ? <RenderHTML html={Parser.replace(text)} /> : text}
             </Text>
         </Tooltip>
     );

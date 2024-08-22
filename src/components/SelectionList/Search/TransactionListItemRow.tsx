@@ -139,6 +139,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
             shouldShowTooltip={showTooltip}
             text={merchantToDisplay}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
+            shouldRenderAsHTML={!transactionItem.shouldShowMerchant}
         />
     );
 }

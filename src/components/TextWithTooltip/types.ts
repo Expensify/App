@@ -12,6 +12,9 @@ type TextWithTooltipProps = {
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
+
+    /** Whether to render the text as HTML */
+    shouldRenderAsHTML?: boolean;
 };
 
 export default TextWithTooltipProps;
