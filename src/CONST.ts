@@ -355,6 +355,7 @@ const CONST = {
             OPEN: 'OPEN',
         },
         MAX_LENGTH: {
+            FULL_SSN: 9,
             SSN: 4,
             ZIP_CODE: 10,
         },
@@ -972,8 +973,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
-        SWITCH_REPORT_FROM_PREVIEW: 'switch_report_from_preview',
-        SWITCH_REPORT_THREAD: 'switch_report_thread',
+        OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
+        OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
@@ -1188,6 +1189,7 @@ const CONST = {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
         NUMBER_PAD: 'number-pad',
+        DECIMAL_PAD: 'decimal-pad',
     },
 
     INPUT_MODE: {
