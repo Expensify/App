@@ -50,9 +50,8 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -179,7 +178,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
-                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
