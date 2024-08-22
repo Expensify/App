@@ -6536,8 +6536,9 @@ function getPayMoneyRequestParams(
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+    const shouldCreatePolicy = !activePolicy || !PolicyUtils.isPolicyAdmin(activePolicy) || !PolicyUtils.isPaidGroupPolicy(activePolicy);
 
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && (!activePolicy || !PolicyUtils.isPolicyAdmin(activePolicy) || !PolicyUtils.isPaidGroupPolicy(activePolicy))) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && shouldCreatePolicy) {
         payerPolicyID = Policy.generatePolicyID();
         const {
             optimisticData: policyOptimisticData,
@@ -6545,7 +6546,19 @@ function getPayMoneyRequestParams(
             successData: policySuccessData,
             params,
         } = Policy.buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
-        const {announceChatReportID, announceCreatedReportActionID, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = params;
+        const {
+            announceChatReportID,
+            announceCreatedReportActionID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        } = params;
+
         policyParams = {
             policyID: payerPolicyID,
             announceChatReportID,
@@ -6554,6 +6567,10 @@ function getPayMoneyRequestParams(
             adminsCreatedReportActionID,
             expenseChatReportID,
             expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
         };
 
         optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
@@ -7405,6 +7422,10 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
             adminsCreatedReportActionID,
             expenseChatReportID,
             expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
         },
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
 
@@ -7425,6 +7446,10 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
             adminsCreatedReportActionID,
             expenseChatReportID,
             expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
         };
     }
 
