@@ -33,6 +33,17 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
+
+    /** The approver of the policy category */
+    approver?: string;
+
+    commentHint?: string;
+
+    maxExpenseAmount?: number;
+
+    expenseLimitType?: 'expense' | 'daily';
+
+    maxExpenseAmountNoReceipt?: number | null;
 }>;
 
 /** Record of policy categories, indexed by their name */

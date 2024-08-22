@@ -182,17 +182,47 @@ function CategorySettingsPage({
                         />
                     </OfflineWithFeedback>
 
-                    <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
+                    <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                         <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
                     </View>
-                    <View style={[styles.flexRow, styles.mh5, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
-                        <Switch
-                            isOn={policyCategory?.areCommentsRequired ?? false}
-                            accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
-                            onToggle={() => Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired)}
+
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
+                        pendingAction={policyCategory?.pendingFields?.areCommentsRequired}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => Category.clearCategoryErrors(policyID, categoryName)}
+                    >
+                        <View style={[styles.mt2, styles.mh5]}>
+                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
+                                <Switch
+                                    isOn={policyCategory?.areCommentsRequired ?? false}
+                                    accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
+                                    onToggle={() => Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired)}
+                                />
+                            </View>
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.approver}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory?.approver}
+                            description={translate(`workspace.categories.approver`)}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
                         />
-                    </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory?.approver}
+                            description={translate(`workspace.categories.descriptionHint`)}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Expensicons.Trashcan}

@@ -2826,6 +2826,11 @@ export default {
             updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            requireDescription: 'Require description',
+            defaultTaxRate: 'Default tax rate',
+            flagAmountsOver: 'Flag amounts over',
+            descriptionHint: 'Description hint',
+            approver: 'Approver',
         },
         moreFeatures: {
             spendSection: {
