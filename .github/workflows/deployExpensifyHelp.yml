@@ -1,14 +1,12 @@
 name: Deploy ExpensifyHelp
 
 on:
-  # Run on any push to main that has changes to the docs directory
   push:
     branches:
       - main
     paths:
       - 'docs/**'
 
-  # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
