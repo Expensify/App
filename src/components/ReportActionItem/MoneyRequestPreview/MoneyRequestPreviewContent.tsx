@@ -123,13 +123,19 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const duplicates = useMemo(() => {
-        const transactions =
+    const allDuplicates = useMemo(
+        () =>
             transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
                 (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-            )?.data?.duplicates ?? [];
-        return TransactionUtils.removeSettledTransactions(transactions);
-    }, [transaction?.transactionID, transactionViolations]);
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
+
+    // Remove settled transactions from duplicates
+    const duplicates = TransactionUtils.removeSettledTransactions(allDuplicates);
+
+    // When there are no settled transactions in duplicates, show the "Keep this one" button
+    const shouldShowKeepButton = allDuplicates.length === duplicates.length;
 
     const hasDuplicates = duplicates.length > 0;
 
@@ -438,7 +444,7 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransactionPage && !isSettled && (
+            {isReviewDuplicateTransactionPage && !isSettled && shouldShowKeepButton && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
