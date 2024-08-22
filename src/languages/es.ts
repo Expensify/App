@@ -1363,7 +1363,7 @@ export default {
     workflowsExpensesFromPage: {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
-        emptyMembersList: '¡Buen trabajo! Todos los miembros del espacio de trabajo pertenecen a un flujo de trabajo de aprobación.',
+        emptyMembersList: '¡Buen trabajo! Todos los miembros del espacio de trabajo pertenecen a un flujo de aprobación.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
