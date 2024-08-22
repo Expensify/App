@@ -3,7 +3,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Alert, DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -328,29 +328,6 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
-        // eslint-disable-next-line no-console
-        console.group('[TEST] ReportActionsList useEffect');
-        console.debug('[TEST] isFromNotification', route?.params?.referrer === CONST.REFERRER.NOTIFICATION);
-        console.debug('[TEST] Visibility.isVisible()', Visibility.isVisible());
-        console.debug('[TEST] report.reportID', report.reportID);
-        console.debug('[TEST] prevReportID', prevReportID);
-        console.debug('[TEST] report.reportID !== prevReportID', report.reportID !== prevReportID);
-        console.debug('[TEST] scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD', scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD);
-        // eslint-disable-next-line no-console
-        console.groupEnd();
-
-        Alert.alert(
-            'ReportActionsList useEffect',
-            JSON.stringify({
-                isFromNotification: route?.params?.referrer === CONST.REFERRER.NOTIFICATION,
-                reportID: report.reportID,
-                prevReportID,
-                reportIDsCondition: report.reportID !== prevReportID,
-                isVisible: Visibility.isVisible(),
-                offsetCondition: scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD,
-            }),
-        );
-
         if (report.reportID !== prevReportID) {
             return;
         }
@@ -536,17 +513,6 @@ function ReportActionsList({
         if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
             return;
         }
-        // #region useEffect readNewestAction
-        console.debug('[TEST] ReportActionsList useEffect 2');
-        Alert.alert(
-            'ReportActionsList useEffect 2',
-            JSON.stringify({
-                isFromNotification: route?.params?.referrer === CONST.REFERRER.NOTIFICATION,
-                reportID: report.reportID,
-                prevReportID,
-                reportIDsCondition: report.reportID !== prevReportID,
-            }),
-        );
         Report.readNewestAction(report.reportID);
         userActiveSince.current = DateUtils.getDBTime();
 
