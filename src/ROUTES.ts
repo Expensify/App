@@ -928,6 +928,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
+    WORKSPACE_RULES: {
+        route: 'settings/workspaces/:policyID/rules',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,

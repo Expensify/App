@@ -1194,6 +1194,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES]: {
+        policyID: string;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
