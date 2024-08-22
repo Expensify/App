@@ -109,10 +109,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyPendingTransactions = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).every(
         (t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t),
     );
-    const hasOnlyPostedTransactions = allTransactions.every(
-        (transaction) => !TransactionUtils.getReimbursable(transaction) && !TransactionUtils.isPending(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction),
-    );
-
     const transactionIDs = allTransactions.map((t) => t.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
