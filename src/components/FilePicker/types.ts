@@ -35,6 +35,9 @@ type FilePickerProps = {
      * </FilePicker>
      * */
     children: (props: {openPicker: OpenPickerFunction}) => ReactNode;
+
+    /** A string of acceptable file types. */
+    acceptableFileTypes?: string;
 };
 
 export default FilePickerProps;

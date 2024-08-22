@@ -9,7 +9,7 @@ import type FilePickerProps from './types';
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function FilePicker({children}: FilePickerProps): React.JSX.Element {
+function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
     const onPicked = useRef<(file: File) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
@@ -63,6 +63,7 @@ function FilePicker({children}: FilePickerProps): React.JSX.Element {
                         {once: true},
                     );
                 }}
+                accept={acceptableFileTypes}
             />
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {

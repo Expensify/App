@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -57,17 +56,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
 
     const validateFile = (file: FileObject) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-        if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_SPREADSHEET_EXTENSIONS.includes(
-                fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_SPREADSHEET_EXTENSIONS>,
-            )
-        ) {
+        if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
-
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadFileError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
             return false;
         }
 
@@ -126,7 +116,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 <Text style={[styles.textFileUpload]}>{translate('spreadsheet.upload')}</Text>
                 <Text style={[styles.subTextFileUpload]}>{isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}</Text>
             </View>
-            <FilePicker>
+            <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
                 {({openPicker}) => (
                     <Button
                         medium
