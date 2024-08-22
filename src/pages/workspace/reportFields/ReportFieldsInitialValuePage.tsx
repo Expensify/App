@@ -106,7 +106,7 @@ function ReportFieldsInitialValuePage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={reportField.name}
+                    title={translate('common.initialValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 {isListFieldType && (

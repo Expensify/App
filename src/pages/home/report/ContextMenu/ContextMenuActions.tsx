@@ -67,6 +67,8 @@ type ShouldShow = (
     isOffline: boolean,
     isMini: boolean,
     isProduction: boolean,
+    moneyRequestAction: ReportAction | undefined,
+    areHoldRequirementsMet: boolean,
 ) => boolean;
 
 type ContextMenuActionPayload = {
@@ -84,6 +86,7 @@ type ContextMenuActionPayload = {
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: MutableRefObject<View | null>;
+    moneyRequestAction: ReportAction | undefined;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -262,18 +265,32 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'iou.unholdExpense',
+        textTranslateKey: 'iou.unhold',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
-        onPress: (closePopover, {reportAction}) => {
+        shouldShow: (
+            type,
+            reportAction,
+            isArchivedRoom,
+            betas,
+            anchor,
+            isChronosReport,
+            reportID,
+            isPinnedChat,
+            isUnreadChat,
+            isOffline,
+            isMini,
+            isProduction,
+            moneyRequestAction,
+            areHoldRequirementsMet,
+        ) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canUnholdRequest,
+        onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
     },
@@ -281,16 +298,30 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: (type, reportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
-        onPress: (closePopover, {reportAction}) => {
+        shouldShow: (
+            type,
+            reportAction,
+            isArchivedRoom,
+            betas,
+            anchor,
+            isChronosReport,
+            reportID,
+            isPinnedChat,
+            isUnreadChat,
+            isOffline,
+            isMini,
+            isProduction,
+            moneyRequestAction,
+            areHoldRequirementsMet,
+        ) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
+        onPress: (closePopover, {moneyRequestAction}) => {
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
     },
@@ -310,16 +341,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
+                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
+            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },
@@ -377,8 +409,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReportID, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isTaskAction(reportAction)) {
-                    const displayMessage = TaskUtils.getTaskReportActionMessage(reportAction).text;
-                    Clipboard.setString(displayMessage);
+                    const {text, html} = TaskUtils.getTaskReportActionMessage(reportAction);
+                    const displayMessage = html ?? text;
+                    setClipboardMessage(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
@@ -395,6 +428,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
+                    Clipboard.setString(ReportUtils.getWorkspaceNameUpdatedMessage(reportAction));
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
@@ -402,14 +437,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
+                } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
+                    setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
@@ -427,6 +464,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(ReportActionsUtils.getExportIntegrationMessageHTML(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
                     setClipboardMessage(ReportActionsUtils.getUpdateRoomDescriptionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
+                    setClipboardMessage(ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
+                    setClipboardMessage(ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
+                    setClipboardMessage(ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

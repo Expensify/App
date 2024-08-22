@@ -1,5 +1,4 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -17,10 +16,8 @@ function SearchAdvancedFiltersPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={false}>
-                <HeaderWithBackButton title={translate('search.filtersHeader')} />
-                <AdvancedSearchFilters />
-            </FullPageNotFoundView>
+            <HeaderWithBackButton title={translate('search.filtersHeader')} />
+            <AdvancedSearchFilters />
         </ScreenWrapper>
     );
 }

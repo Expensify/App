@@ -86,6 +86,8 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
+    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     useFocusEffect(fetchReportFields);
 
     useEffect(() => {
@@ -110,7 +112,7 @@ function WorkspaceReportFieldsPage({
                         keyForList: String(reportField.fieldID),
                         orderWeight: reportField.orderWeight,
                         pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
+                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
                         rightElement: (
@@ -123,7 +125,7 @@ function WorkspaceReportFieldsPage({
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, translate]);
+    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
@@ -273,7 +275,7 @@ function WorkspaceReportFieldsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

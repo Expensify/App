@@ -54,8 +54,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

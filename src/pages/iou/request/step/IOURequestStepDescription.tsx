@@ -41,7 +41,7 @@ type IOURequestStepDescriptionOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;

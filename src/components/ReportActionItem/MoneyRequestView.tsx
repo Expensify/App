@@ -19,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
-import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -61,7 +60,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -88,6 +87,15 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 };
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
+
+const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
+    CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+    CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+    CONST.VIOLATIONS.SMARTSCAN_FAILED,
+];
+
+const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
 const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) => {
     if (!parentReportAction) {
@@ -154,22 +162,21 @@ function MoneyRequestView({
         tag: transactionTag,
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
-        cardID: transactionCardID,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
-    const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
+    const cardProgramName = TransactionUtils.getCardName(transaction);
+    const shouldShowCard = isCardTransaction && cardProgramName;
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const isPaidReport = ReportActionsUtils.isPayAction(parentReportAction);
     const taxRates = policy?.taxRates;
-
     const formattedTaxAmount = updatedTransaction?.taxAmount
-        ? CurrencyUtils.convertToDisplayString(updatedTransaction?.taxAmount, transactionCurrency)
-        : CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
+        ? CurrencyUtils.convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
+        : CurrencyUtils.convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? TransactionUtils.getTaxName(policy, updatedTransaction) : TransactionUtils.getTaxName(policy, transaction);
@@ -374,14 +381,24 @@ function MoneyRequestView({
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
-    const receiptViolationNames: OnyxTypes.ViolationName[] = [
-        CONST.VIOLATIONS.RECEIPT_REQUIRED,
-        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
-        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
-        CONST.VIOLATIONS.SMARTSCAN_FAILED,
-    ];
-    const receiptViolations =
-        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
+
+    const [receiptImageViolations, receiptViolations] = useMemo(() => {
+        const imageViolations = [];
+        const allViolations = [];
+
+        for (const violation of transactionViolations ?? []) {
+            const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
+            const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
+            if (isReceiptFieldViolation || isReceiptImageViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                allViolations.push(violationMessage);
+                if (isReceiptImageViolation) {
+                    imageViolations.push(violationMessage);
+                }
+            }
+        }
+        return [imageViolations, allViolations];
+    }, [transactionViolations, translate]);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
@@ -475,6 +492,7 @@ function MoneyRequestView({
                                     filename={receiptURIs?.filename}
                                     transaction={transaction}
                                     enablePreviewModal
+                                    readonly={readonly}
                                 />
                             </View>
                         )}
@@ -498,7 +516,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptViolations} />}
+                {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -583,7 +601,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && tagList}
-                {isCardTransaction && (
+                {shouldShowCard && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}

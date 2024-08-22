@@ -68,7 +68,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+        return fields.filter((field) => field.target === report.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !ReportUtils.isReportFieldDisabled(report, reportField, policy));

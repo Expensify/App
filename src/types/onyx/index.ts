@@ -1,6 +1,6 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
-import type ApprovalWorkflow from './ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -50,7 +50,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -151,7 +151,7 @@ export type {
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
-    PolicyTagList,
+    PolicyTagLists,
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
@@ -217,7 +217,7 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
-    ApprovalWorkflow,
+    ApprovalWorkflowOnyx,
     MobileSelectionMode,
     WorkspaceTooltip,
 };
