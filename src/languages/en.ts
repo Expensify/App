@@ -1332,7 +1332,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: 'This member already belongs to at least one other approval workflow. Any updates here will reflect there, too.',
+        approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
