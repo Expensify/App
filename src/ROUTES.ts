@@ -44,6 +44,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
+    SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
@@ -349,7 +350,7 @@ const ROUTES = {
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role ?? ''}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',

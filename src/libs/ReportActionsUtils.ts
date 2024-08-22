@@ -152,6 +152,13 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
+function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+}
+
+function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
@@ -1730,6 +1737,9 @@ export {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
+    isSubmittedAction,
+    isApprovedAction,
+    isForwardedAction,
     isWhisperActionTargetedToOthers,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
