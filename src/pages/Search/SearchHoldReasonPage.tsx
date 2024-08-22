@@ -29,7 +29,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = ''} = route.params ?? {};
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
-
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
         clearSelectedTransactions();
