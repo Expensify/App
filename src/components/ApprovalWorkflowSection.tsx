@@ -4,8 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -17,19 +15,16 @@ type ApprovalWorkflowSectionProps = {
     /** Single workflow displayed in this component */
     approvalWorkflow: ApprovalWorkflow;
 
-    /** ID of the policy */
-    policyID: string;
+    /** A function that is called when the section is pressed */
+    onPress: () => void;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, policyID}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const openApprovalsEdit = useCallback(
-        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, approvalWorkflow.approvers[0].email)),
-        [approvalWorkflow.approvers, policyID],
-    );
+
     const approverTitle = useCallback(
         (index: number) =>
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
@@ -40,7 +35,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyID}: ApprovalWorkflowS
         <PressableWithoutFeedback
             accessibilityRole="button"
             style={[styles.border, isSmallScreenWidth ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={openApprovalsEdit}
+            onPress={onPress}
             accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
         >
             <View style={[styles.flex1]}>
@@ -70,7 +65,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyID}: ApprovalWorkflowS
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    onPress={openApprovalsEdit}
+                    onPress={onPress}
                     shouldRemoveBackground
                 />
 
@@ -88,7 +83,7 @@ function ApprovalWorkflowSection({approvalWorkflow, policyID}: ApprovalWorkflowS
                             iconHeight={20}
                             iconWidth={20}
                             iconFill={theme.icon}
-                            onPress={openApprovalsEdit}
+                            onPress={onPress}
                             shouldRemoveBackground
                         />
                     </View>

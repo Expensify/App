@@ -153,9 +153,9 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
 
     /**
-     * Current list of employees in the policy
+     * Members to remove from the approval workflow
      */
-    employeeList: PolicyEmployeeList;
+    membersToRemove?: Member[];
 
     /**
      * Mode to use when converting the approval workflow
@@ -164,7 +164,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeList, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRemove, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -175,15 +175,22 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, employeeLis
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
-            ...employeeList[approver.email],
+            email: approver.email,
             forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
         updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : employeeList[email]),
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
+        };
+    });
+
+    membersToRemove?.forEach(({email}) => {
+        updatedEmployeeList[email] = {
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+            submitsTo: '',
         };
     });
 

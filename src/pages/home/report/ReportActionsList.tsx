@@ -169,6 +169,7 @@ function ReportActionsList({
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible());
+    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
@@ -212,6 +213,7 @@ function ReportActionsList({
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
         setUnreadMarkerTime(report.lastReadTime ?? '');
+        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -221,22 +223,19 @@ function ReportActionsList({
      */
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
-            // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
-            const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
-            if (isFromCurrentUser) {
-                return false;
-            }
-
-            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-            if (!isWithinVisibleThreshold) {
-                return false;
-            }
-
             const nextMessage = sortedVisibleReportActions[index + 1];
             const isCurrentMessageUnread = isMessageUnread(reportAction, unreadMarkerTime);
             const isNextMessageRead = !nextMessage || !isMessageUnread(nextMessage, unreadMarkerTime);
+            let shouldDisplay = isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
 
-            return isCurrentMessageUnread && isNextMessageRead && !ReportActionsUtils.shouldHideNewMarker(reportAction);
+            if (shouldDisplay && !messageManuallyMarkedUnread) {
+                // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
+                const isFromCurrentUser = accountID === (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID);
+                const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
+                shouldDisplay = !isFromCurrentUser && isWithinVisibleThreshold;
+            }
+
+            return shouldDisplay;
         };
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -248,14 +247,20 @@ function ReportActionsList({
         }
 
         return null;
-    }, [accountID, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [accountID, sortedVisibleReportActions, unreadMarkerTime, messageManuallyMarkedUnread]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
     useEffect(() => {
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, setUnreadMarkerTime);
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, setUnreadMarkerTime);
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        });
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+            setMessageManuallyMarkedUnread(0);
+        });
 
         return () => {
             unreadActionSubscription.remove();
@@ -280,6 +285,7 @@ function ReportActionsList({
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
+        setMessageManuallyMarkedUnread(0);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sortedVisibleReportActions]);
@@ -357,12 +363,16 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
+            if (!isFromCurrentUser) {
+                return;
+            }
+            if (!hasNewestReportActionRef.current) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager],
+        [reportScrollManager, report.reportID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
