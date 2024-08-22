@@ -76,6 +76,23 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
+function isSearchDataType(type: string): type is SearchDataTypes {
+    const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
+    return searchDataTypes.includes(type);
+}
+
+function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
+    if (!search) {
+        return undefined;
+    }
+
+    if (!isSearchDataType(search.type)) {
+        return undefined;
+    }
+
+    return search.type;
+}
+
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
@@ -233,16 +250,45 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-function getListItem(status: SearchStatus): ListItemType<typeof status> {
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
+        default:
+            return TransactionListItem;
+    }
 }
 
-function getSections(status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
+        default:
+            return getTransactionsSections(data, metadata);
+    }
 }
 
-function getSortedSections(status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
+function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.REPORT:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
+                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
+                : getSortedReportData(data as ReportListItemType[]);
+        default:
+            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    }
 }
 
 function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
@@ -395,6 +441,28 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
     return dateFilter;
 }
 
+/**
+ * @private
+ * returns Date filter query string part, which needs special logic
+ */
+function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const lessThan = filterValues[FILTER_KEYS.LESS_THAN];
+    const greaterThan = filterValues[FILTER_KEYS.GREATER_THAN];
+
+    let amountFilter = '';
+    if (greaterThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}>${greaterThan}`;
+    }
+    if (lessThan && greaterThan) {
+        amountFilter += ' ';
+    }
+    if (lessThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}<${lessThan}`;
+    }
+
+    return amountFilter;
+}
+
 function sanitizeString(str: string) {
     if (str.includes(' ') || str.includes(',')) {
         return `"${str}"`;
@@ -418,42 +486,43 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const filtersString = Object.entries(filterValues)
-        .map(([filterKey, filterValue]) => {
-            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
-                }
+    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
             }
+        }
 
-            if (
-                (filterKey === FILTER_KEYS.CATEGORY ||
-                    filterKey === FILTER_KEYS.CARD_ID ||
-                    filterKey === FILTER_KEYS.TAX_RATE ||
-                    filterKey === FILTER_KEYS.EXPENSE_TYPE ||
-                    filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.CURRENCY ||
-                    filterKey === FILTER_KEYS.FROM ||
-                    filterKey === FILTER_KEYS.TO) &&
-                Array.isArray(filterValue) &&
-                filterValue.length > 0
-            ) {
-                const filterValueArray = filterValues[filterKey] ?? [];
-                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-                if (keyInCorrectForm) {
-                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
-                }
+        if (
+            (filterKey === FILTER_KEYS.CATEGORY ||
+                filterKey === FILTER_KEYS.CARD_ID ||
+                filterKey === FILTER_KEYS.TAX_RATE ||
+                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                filterKey === FILTER_KEYS.TAG ||
+                filterKey === FILTER_KEYS.CURRENCY ||
+                filterKey === FILTER_KEYS.FROM ||
+                filterKey === FILTER_KEYS.TO) &&
+            Array.isArray(filterValue) &&
+            filterValue.length > 0
+        ) {
+            const filterValueArray = filterValues[filterKey] ?? [];
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
             }
+        }
 
-            return undefined;
-        })
-        .filter(Boolean)
-        .join(' ');
+        return undefined;
+    });
 
     const dateFilter = buildDateFilterQuery(filterValues);
+    filtersString.push(dateFilter);
 
-    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
+    const amountFilter = buildAmountFilterQuery(filterValues);
+    filtersString.push(amountFilter);
+
+    return filtersString.filter(Boolean).join(' ');
 }
 
 function getFilters(queryJSON: SearchQueryJSON) {
@@ -525,10 +594,6 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
-function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
-    return normalizeQuery(`type:${type} status:${status}`);
-}
-
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -538,6 +603,7 @@ export {
     getListItem,
     getQueryHash,
     getSearchHeaderTitle,
+    getSearchType,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
@@ -546,6 +612,5 @@ export {
     isTransactionListItemType,
     normalizeQuery,
     shouldShowYear,
-    buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
 };

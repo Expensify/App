@@ -96,6 +96,7 @@ function EmptyStateComponent({
                                 onPress={buttonAction}
                                 text={buttonText}
                                 style={[styles.mt5]}
+                                large
                             />
                         )}
                     </View>

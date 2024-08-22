@@ -151,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             success
                             medium
                             text={translate('iou.reviewDuplicates')}
-                            style={[styles.p0]}
+                            style={[styles.p0, styles.ml2]}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
                             }}
