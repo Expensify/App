@@ -69,19 +69,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
     );
 
-    const approverHintMessage = useCallback(
-        (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
-            if (approver?.isInMultipleWorkflows && approver.email === previousApprover?.forwardsTo) {
-                return translate('workflowsPage.approverInMultipleWorkflows', {
-                    name1: approver.displayName,
-                    name2: previousApprover.displayName,
-                });
-            }
-        },
-        [approvalWorkflow.approvers, translate],
-    );
-
     const editMembers = useCallback(() => {
         const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
@@ -129,7 +116,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
-                    const hintText = !errorText && approverHintMessage(approver, approverIndex);
+                    const hintText =
+                        !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
+                            ? translate('workflowsPage.approverInMultipleWorkflows')
+                            : undefined;
+
                     return (
                         <MenuItemWithTopDescription
                             // eslint-disable-next-line react/no-array-index-key

@@ -71,12 +71,14 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         const defaultApprover = policy?.approver ?? policy.owner;
-        const workflows = convertPolicyEmployeesToApprovalWorkflows({
+        const firstApprover = route.params.firstApproverEmail;
+        const {approvalWorkflows, usedApproverEmails, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
             employees: policy.employeeList ?? {},
             defaultApprover,
             personalDetails,
+            firstApprover,
         });
-        const currentApprovalWorkflow = workflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail);
+        const currentApprovalWorkflow = approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover);
 
         if (!currentApprovalWorkflow) {
             return Workflow.clearApprovalWorkflow();
@@ -84,7 +86,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         Workflow.setApprovalWorkflow({
             ...currentApprovalWorkflow,
-            availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
+            availableMembers: [...currentApprovalWorkflow.members, ...availableMembers],
+            usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             isLoading: false,
             errors: null,
