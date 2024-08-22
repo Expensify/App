@@ -440,13 +440,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isRenamedAction(reportAction)) {
                     setClipboardMessage(ReportActionsUtils.getRenamedAction(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportID);
+                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
