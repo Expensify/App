@@ -40,10 +40,10 @@ while read -r line; do
 
     # Basic sanity checking to make sure that the source and destination are in expected
     # subdomains.
-    if ! [[ $SOURCE_URL =~ ^https://(community|help)\.expensify\.com ]]; then
-        error "Found source URL that is not a communityDot or helpDot URL: $SOURCE_URL"
-        exit 1
-    fi
+    if ! [[ $SOURCE_URL =~ ^https://(community|help)\.expensify\.com ]] || [[ $SOURCE_URL =~ \# ]]; then
+    error "Found source URL that is not a communityDot or helpDot URL, or contains a '#': $SOURCE_URL"
+    exit 1
+fi
 
     if ! [[ $DEST_URL =~ ^https://(help|use|integrations)\.expensify\.com|^https://www\.expensify\.org ]]; then
         error "Found destination URL that is not a supported URL: $DEST_URL"
