@@ -815,6 +815,7 @@ export default {
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total.',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
+            invalidSplitYourself: 'Por favor, ingresa una cantidad de división mayor que cero para ti.',
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al bloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',

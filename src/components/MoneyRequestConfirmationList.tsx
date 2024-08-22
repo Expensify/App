@@ -483,8 +483,13 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction?.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
