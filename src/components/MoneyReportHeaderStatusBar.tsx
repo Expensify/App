@@ -30,9 +30,8 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const theme = useTheme();
     const messageContent = useMemo(() => {
         const messageArray = nextStep.message;
-        const title = nextStep.title ?? '';
-        return NextStepUtils.parseMessage(messageArray, title);
-    }, [nextStep.message, nextStep.title]);
+        return NextStepUtils.parseMessage(messageArray);
+    }, [nextStep.message]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
