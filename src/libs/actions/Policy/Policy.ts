@@ -1038,8 +1038,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const currencyPendingAction = currency !== policy?.outputCurrency ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
-    const namePendingAction = name !== policy?.name ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
+    const currencyPendingAction = currency !== policy?.outputCurrency ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+    const namePendingAction = name !== policy?.name ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
     const currentRates = distanceUnit?.rates ?? {};
     const optimisticRates: Record<string, Rate> = {};
@@ -1076,8 +1076,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
 
                 pendingFields: {
                     ...policy.pendingFields,
-                    name: namePendingAction,
-                    outputCurrency: currencyPendingAction,
+                    ...(namePendingAction !== undefined && {name: namePendingAction}),
+                    ...(currencyPendingAction !== undefined && {outputCurrency: currencyPendingAction}),
                 },
 
                 // Clear errorFields in case the user didn't dismiss the general settings error
