@@ -1,0 +1,13 @@
+diff --git a/node_modules/@ua/react-native-airship/src/types.ts b/node_modules/@ua/react-native-airship/src/types.ts
+index 1514436..cec598f 100644
+--- a/node_modules/@ua/react-native-airship/src/types.ts
++++ b/node_modules/@ua/react-native-airship/src/types.ts
+@@ -7,7 +7,7 @@ export type JsonValue =
+   | JsonArray;
+ 
+ export type JsonObject = {
+-  [key: string]: JsonValue;
++  [key: string]: JsonValue | undefined;
+ };
+ 
+ export type JsonArray = JsonValue[];
