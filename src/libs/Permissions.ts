@@ -40,6 +40,11 @@ function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
 }
 
+function canUseCombinedCreateExpense(betas: OnyxEntry<Beta[]>): boolean {
+    // We don't need to show this to all betas.
+    return !!betas?.includes(CONST.BETAS.COMBINED_CREATE_EXPENSE);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -57,4 +62,5 @@ export default {
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
     canUseWorkspaceRules,
+    canUseCombinedCreateExpense,
 };
