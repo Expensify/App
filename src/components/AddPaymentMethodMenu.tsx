@@ -16,8 +16,8 @@ import type {PersonalDetails, Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
-import {usePersonalDetails} from './OnyxProvider';
 import type BaseModalProps from './Modal/types';
+import {usePersonalDetails} from './OnyxProvider';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuOnyxProps = {
@@ -85,7 +85,7 @@ function AddPaymentMethodMenu({
 
     const completeEngagement = useCallback(
         (paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) => {
-            if (isInviteOnboardingComplete) {
+            if (isInviteOnboardingComplete || !introSelected?.choice) {
                 return;
             }
 
