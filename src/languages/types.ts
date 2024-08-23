@@ -358,6 +358,11 @@ type ApprovalWorkflowErrorParams = {
     name2: string;
 };
 
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -481,4 +486,5 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    AssignCardParams,
 };
