@@ -335,9 +335,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            } else if (isAuditor) {
+                roleBadge = <Badge text={translate('common.auditor')} />
             }
 
             result.push({
@@ -506,16 +509,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         const hasAtLeaseOneNoneMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeaseOneNoneAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
 
-        if (hasAtLeaseOneNonAuditorRole) {
-            options.push(auditorOption);
-        }
-
         if (hasAtLeaseOneNoneMemberRole) {
             options.push(memberOption);
         }
 
         if (hasAtLeaseOneNoneAdminRole) {
             options.push(adminOption);
+        }
+
+        if (hasAtLeaseOneNonAuditorRole) {
+            options.push(auditorOption);
         }
 
         return options;
