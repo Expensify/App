@@ -3759,6 +3759,7 @@ export default {
             },
         },
         expenseType: 'Expense type',
+        invoices: 'Invoices',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

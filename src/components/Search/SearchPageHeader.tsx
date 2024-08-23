@@ -108,7 +108,7 @@ type HeaderContent = {
 function getHeaderContent(type: SearchDataTypes): HeaderContent {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
+            return {icon: Illustrations.EnvelopeReceipt, titleText: 'search.invoices'};
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
         case CONST.SEARCH.DATA_TYPES.EXPENSE:

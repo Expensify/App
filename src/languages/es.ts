@@ -3809,6 +3809,7 @@ export default {
             },
         },
         expenseType: 'Tipo de gasto',
+        invoices: 'Facturas',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
