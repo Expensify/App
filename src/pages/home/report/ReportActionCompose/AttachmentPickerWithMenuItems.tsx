@@ -230,7 +230,7 @@ function AttachmentPickerWithMenuItems({
                             }
                             triggerAttachmentPicker();
                         },
-                        shouldCallAfterModalHide: true,
+                        shouldCallAfterModalHide: !Browser.isSafari(),
                     },
                 ];
                 return (

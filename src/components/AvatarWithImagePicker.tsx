@@ -272,7 +272,7 @@ function AvatarWithImagePicker({
                         onPicked: showAvatarCropModal,
                     });
                 },
-                shouldCallAfterModalHide: true,
+                shouldCallAfterModalHide: !Browser.isSafari(),
             },
         ];
 
