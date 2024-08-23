@@ -1,14 +1,13 @@
-/* eslint-disable prettier/prettier */
-import type {PushPayloadOverride} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as Report from '@userActions/Report';
-import type { PushNotificationData } from './NotificationType';
+import type {PushNotificationData} from './NotificationType';
 
 /**
  * Returns whether the given Airship notification should be shown depending on the current state of the app
  */
-export default function shouldShowPushNotification(pushPayload: PushPayloadOverride): boolean {
+export default function shouldShowPushNotification(pushPayload: PushPayload): boolean {
     Log.info('[PushNotification] push notification received', false, {pushPayload});
 
     let payload = pushPayload.extras?.payload;
@@ -16,19 +15,21 @@ export default function shouldShowPushNotification(pushPayload: PushPayloadOverr
     // The payload is string encoded on Android
     if (typeof payload === 'string') {
         try {
-            payload = JSON.parse(payload) as PushNotificationData;
+            payload = JSON.parse(payload) as string;
         } catch {
             Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
         }
     }
 
-    if (!payload || !(payload as PushNotificationData)?.reportID) {
+    const data = payload ? (payload as PushNotificationData) : undefined;
+
+    if (!data?.reportID) {
         Log.info('[PushNotification] Not a report action notification. Showing notification');
         return true;
     }
 
-    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData((payload as PushNotificationData).onyxData ?? null);
-    const shouldShow = Report.shouldShowReportActionNotification(String((payload as PushNotificationData).reportID), reportAction, true);
+    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(data.onyxData ?? null);
+    const shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), reportAction, true);
     Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
     return shouldShow;
 }
