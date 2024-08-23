@@ -2993,6 +2993,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
+            invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',

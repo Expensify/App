@@ -3041,6 +3041,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
+            invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
