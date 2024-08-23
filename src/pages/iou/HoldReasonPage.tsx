@@ -52,7 +52,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         }
 
         IOU.putOnHold(transactionID, values.comment, reportID);
-        Navigation.navigate(backTo);
+        Navigation.dismissModal();
     };
 
     const validate = useCallback(

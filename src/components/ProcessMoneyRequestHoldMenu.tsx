@@ -53,7 +53,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             withoutOverlay={false}
             shouldCloseWhenBrowserNavigationChanged={false}
             shouldEnableNewFocusManagement
-            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE}
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
