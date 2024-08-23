@@ -458,6 +458,8 @@ const ONYXKEYS = {
         // Shared NVPs
         /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
         SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
+
+        /** The collection of card feeds */
         SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
 
         /**
@@ -474,9 +476,6 @@ const ONYXKEYS = {
 
         /** The value that indicates whether Continuous Reconciliation should be used on the domain */
         EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'expensifyCard_useContinuousReconciliation_',
-
-        /** The collection of card feeds */
-        SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
 
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
@@ -756,12 +755,11 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CompanyCards;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: string;
 };
 
