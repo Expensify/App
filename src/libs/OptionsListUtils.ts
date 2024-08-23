@@ -2043,7 +2043,7 @@ function getOptions(
         if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
             continue;
         }
-        personalDetailOption.isBold = false;
+        personalDetailOption.isBold = shouldUseBoldText(personalDetailOption);
 
         personalDetailsOptions.push(personalDetailOption);
     }
