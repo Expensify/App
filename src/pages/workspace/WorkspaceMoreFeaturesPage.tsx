@@ -96,7 +96,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     // TODO remove this when feature will be fully done, and move spend item inside spendItems array
     if (canUseWorkspaceFeeds) {
-        spendItems.splice(1, 0, {
+        spendItems.push({
             icon: Illustrations.HandCard,
             titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
@@ -113,7 +113,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
         });
-        spendItems.splice(2, 0, {
+        spendItems.push({
             icon: Illustrations.CompanyCard,
             titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
             subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
@@ -124,15 +124,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                if (isEnabled) {
-                    if (!isControlPolicy(policy)) {
-                        Navigation.navigate(
-                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                        );
-                        return;
-                    }
-
-                    Policy.enableCompanyCards(policyID, true);
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                    );
                     return;
                 }
                 Policy.enableCompanyCards(policyID, isEnabled);

@@ -1,5 +1,5 @@
 type EnablePolicyCompanyCardsParams = {
-    authToken: string;
+    authToken?: string | null;
     policyID: string;
     enabled: boolean;
 };

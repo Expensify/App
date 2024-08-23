@@ -2725,9 +2725,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
 
 function enableCompanyCards(policyID: string, enabled: boolean) {
     const authToken = NetworkStore.getAuthToken();
-    if (!authToken) {
-        return;
-    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
