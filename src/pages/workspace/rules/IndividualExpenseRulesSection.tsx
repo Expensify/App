@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -33,6 +35,7 @@ type IndividualExpenseRulesMenuItem = {
     title: string;
     descriptionTranslationKey: TranslationPaths;
     action: () => void;
+    pendingAction?: PendingAction;
 };
 
 function IndividualExpenseRulesSectionSubtitle({policy, translate, styles}: IndividualExpenseRulesSectionSubtitleProps) {
@@ -115,21 +118,25 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             title: maxExpenseAmountNoReceiptText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
         },
         {
             title: maxExpenseAmountText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAmount',
             action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
             title: maxExpenseAgeText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.maxExpenseAge',
             action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
             title: billableModeText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.billableDefault',
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.defaultBillable,
         },
     ];
 
@@ -151,27 +158,31 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         >
             <View style={[styles.mt3, styles.gap3]}>
                 {individualExpenseRulesItems.map((item) => (
-                    <MenuItemWithTopDescription
-                        key={translate(item.descriptionTranslationKey)}
-                        shouldShowRightIcon
-                        title={item.title}
-                        description={translate(item.descriptionTranslationKey)}
-                        onPress={item.action}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        numberOfLinesTitle={2}
-                    />
+                    <OfflineWithFeedback pendingAction={item.pendingAction}>
+                        <MenuItemWithTopDescription
+                            key={translate(item.descriptionTranslationKey)}
+                            shouldShowRightIcon
+                            title={item.title}
+                            description={translate(item.descriptionTranslationKey)}
+                            onPress={item.action}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            numberOfLinesTitle={2}
+                        />
+                    </OfflineWithFeedback>
                 ))}
 
                 <View style={[styles.mt3]}>
-                    <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
-                        <Switch
-                            isOn={areEReceiptsEnabled}
-                            accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
-                            onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
-                            disabled={policyCurrency !== CONST.CURRENCY.USD}
-                        />
-                    </View>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
+                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
+                            <Switch
+                                isOn={areEReceiptsEnabled}
+                                accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                                onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                                disabled={policyCurrency !== CONST.CURRENCY.USD}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
                     <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
                         <TextLink
