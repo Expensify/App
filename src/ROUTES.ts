@@ -928,6 +928,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string, bankName: string) => `settings/workspaces/${policyID}/company-cards/${bankName}/assign-card` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,

@@ -1194,6 +1194,13 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        bankName: string;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
