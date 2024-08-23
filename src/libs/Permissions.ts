@@ -36,6 +36,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -52,4 +56,5 @@ export default {
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
+    canUseWorkspaceRules,
 };
