@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -70,6 +71,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
@@ -171,18 +173,24 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
     };
 
-    const getMemberOptions = (): ListItem[] => {
-        let result: ListItem[] = [];
-
-        const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
-
-        const shouldEnableSearch = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    /** Include the search bar when there are 8 or more members in the selection list */
+    const updateShouldShowTextInput = (listItemsNumber: number) => {
+        const shouldEnableSearch = listItemsNumber >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
         if (shouldShowTextInput !== shouldEnableSearch) {
             setShouldShowTextInput(shouldEnableSearch);
             if (!shouldEnableSearch) {
                 setSearchValue('');
             }
         }
+    };
+
+    const getMemberOptions = (): ListItem[] => {
+        let result: ListItem[] = [];
+
+        const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
+
+        // a counter for updateShouldShowTextInput logic
+        let listItemsNumber = 0;
 
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
@@ -198,6 +206,15 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 details.accountID === report.ownerAccountID;
+
+            const isPendingDeletion = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            // Increment the listItemsNumber if the member is not pending deletion or if the app is offline.
+            // When offline, optimistically deleted members are still displayed (with strikethrough)
+            // Therefore, we need to include them for shouldShowTextInput logic.
+            if (!isPendingDeletion || isOffline) {
+                listItemsNumber++;
+            }
 
             result.push({
                 keyForList: String(accountID),
@@ -218,6 +235,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 errors: pendingChatMember?.errors,
             });
         });
+
+        updateShouldShowTextInput(listItemsNumber);
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 

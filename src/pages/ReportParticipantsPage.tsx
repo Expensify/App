@@ -18,6 +18,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionList/type
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,7 +55,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
-
+    const {isOffline} = useNetwork();
     const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
     const [searchValue, setSearchValue] = useState('');
 
@@ -69,17 +70,23 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         setSelectedMembers([]);
     }, [isFocused]);
 
-    const getUsers = useCallback((): MemberOption[] => {
-        let result: MemberOption[] = [];
-        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
-
-        const shouldEnableSearch = chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    /** Include the search bar when there are 8 or more members in the selection list */
+    const updateShouldShowTextInput = (listItemsNumber: number) => {
+        const shouldEnableSearch = listItemsNumber >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
         if (shouldShowTextInput !== shouldEnableSearch) {
             setShouldShowTextInput(shouldEnableSearch);
             if (!shouldEnableSearch) {
                 setSearchValue('');
             }
         }
+    };
+
+    const getUsers = useCallback((): MemberOption[] => {
+        let result: MemberOption[] = [];
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
+
+        // a counter for updateShouldShowTextInput logic
+        let listItemsNumber = 0;
 
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
@@ -100,12 +107,21 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
             const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
 
+            const isPendingDeletion = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            // Increment the listItemsNumber if the member is not pending deletion or if the app is offline.
+            // When offline, optimistically deleted members are still displayed (with strikethrough)
+            // Therefore, we need to include them for shouldShowTextInput logic.
+            if (!isPendingDeletion || isOffline) {
+                listItemsNumber++;
+            }
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
-                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isDisabled: isPendingDeletion,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -121,9 +137,11 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             });
         });
 
+        updateShouldShowTextInput(listItemsNumber);
+
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
+    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple, updateShouldShowTextInput]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
