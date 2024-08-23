@@ -31,12 +31,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
 const lottieRef = useRef<LottieView>(null);
     
     useEffect(() => {
-        let interactionHandle: {
-            then: (onfulfilled?: () => any, onrejected?: () => any) => Promise<any>;
-            done: (...args: any[]) => any;
-            cancel: () => void;
-        };
-        interactionHandle = InteractionManager.runAfterInteractions(() => {
+        const interactionHandle = InteractionManager.runAfterInteractions(() => {
             setLoaded(true);
         });
 
