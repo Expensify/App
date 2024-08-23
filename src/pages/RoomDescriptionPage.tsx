@@ -104,7 +104,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             isMarkdownEnabled
                         />
                     </View>
-                </FormProvider>
+                </FormProvider>)}
                 {!canEdit && (
                     <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
                         <RenderHTML html={Parser.replace(description)} />
