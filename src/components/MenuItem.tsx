@@ -322,6 +322,9 @@ type MenuItemBaseProps = {
     renderTooltipContent?: () => ReactNode;
 
     shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Should selected item be marked with checkmark */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -418,6 +421,7 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        shouldShowSelectedItemCheck = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -802,6 +806,13 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
+                                                {shouldShowSelectedItemCheck && isSelected && (
+                                                    <Icon
+                                                        src={Expensicons.Checkmark}
+                                                        fill={theme.iconSuccessFill}
+                                                        additionalStyles={styles.alignSelfCenter}
+                                                    />
+                                                )}
                                             </View>
                                         </View>
                                         {!!errorText && (

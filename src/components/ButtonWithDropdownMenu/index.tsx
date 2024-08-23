@@ -40,6 +40,7 @@ function ButtonWithDropdownMenu<IValueType>({
     wrapperStyle,
     useKeyboardShortcuts = false,
     defaultSelectedIndex = 0,
+    shouldShowSelectedItemCheck = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -172,6 +173,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
+                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}

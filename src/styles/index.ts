@@ -5155,7 +5155,7 @@ const styles = (theme: ThemeColors) =>
 
         importColumnCard: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
             flexWrap: 'wrap',
         },

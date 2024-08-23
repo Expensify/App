@@ -113,8 +113,10 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload]}>{translate('spreadsheet.upload')}</Text>
-                <Text style={[styles.subTextFileUpload]}>{isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}</Text>
+                <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
+                <Text style={[styles.subTextFileUpload, styles.textSupporting]}>
+                    {isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop')}
+                </Text>
             </View>
             <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
                 {({openPicker}) => (
@@ -123,7 +125,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
-                        style={[styles.p9]}
+                        style={[styles.pt9]}
                         isLoading={isReadingFile}
                         onPress={() => {
                             openPicker({
@@ -178,7 +180,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />
                                         <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload]}>{translate('common.dropMessage')}</Text>
+                                        <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{translate('common.dropMessage')}</Text>
                                     </View>
                                 </View>
                             </DragAndDropConsumer>

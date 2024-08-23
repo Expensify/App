@@ -1,11 +1,14 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import Text from './Text';
 
 function findColumnName(header: string): string {
@@ -149,11 +152,13 @@ type ImportColumnProps = {
 function ImportColumn({column, containsHeader, columnName, columnRoles, columnIndex}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
-    const options = columnRoles.map((item) => ({
+    const options: Array<DropdownOption<string>> = columnRoles.map((item) => ({
         text: item.text,
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
+        isSelected: spreadsheet?.columns[columnIndex] === item.value,
     }));
 
     const columnValuesString = column
@@ -172,15 +177,19 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    const columnHeader = containsHeader ? column[0] : translate('spreadsheet.column', columnName);
+
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
-            <Text style={styles.textSupporting}>{containsHeader ? column[0] : translate('spreadsheet.column', columnName)}</Text>
+            <Text style={styles.textSupporting}>{columnHeader}</Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <Text style={[styles.flex1, styles.flexWrap]}>{columnValuesString}</Text>
 
                 <View style={styles.ml2}>
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
+                        shouldShowSelectedItemCheck
+                        menuHeaderText={columnHeader}
                         isSplitButton={false}
                         onOptionSelected={(option) => {
                             setColumnName(columnIndex, option.value);

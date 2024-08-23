@@ -96,6 +96,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
+
+    /** Whether selected items should be marked as selected */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 export type {
