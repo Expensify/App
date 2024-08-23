@@ -2879,7 +2879,7 @@ export default {
             },
             companyCards: {
                 title: 'Company Cards',
-                subtitle: 'Import spend from existing company cards',
+                subtitle: 'Import spend from existing company cards.',
                 feed: {
                     title: 'Import company cards',
                     features: {
