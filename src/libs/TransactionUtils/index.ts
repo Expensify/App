@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionMergeParams} from '@libs/API/parameters';
-import {isCorporateCard, isExpensifyCard} from '@libs/CardUtils';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -507,18 +506,18 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction?.cardID) {
-        return false;
-    }
-    return isExpensifyCard(transaction.cardID);
+    return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? -1;
-    return isCorporateCard(cardID);
+    return !!transaction?.managedCard;
+}
+
+function getCardName(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.cardName ?? '';
 }
 
 /**
@@ -732,6 +731,15 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
     }
 
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING);
+}
+
+/**
+ * Checks if any violations for the provided transaction are of modifiedAmount or modifiedDate
+ */
+function hasModifiedAmountOrDateViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT || violation.name === CONST.VIOLATIONS.MODIFIED_DATE,
+    );
 }
 
 /**
@@ -1107,6 +1115,7 @@ export {
     hasViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
+    hasModifiedAmountOrDateViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
@@ -1116,6 +1125,7 @@ export {
     buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
+    getCardName,
 };
 
 export type {TransactionChanges};

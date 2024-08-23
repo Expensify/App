@@ -97,7 +97,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
-        shouldShowListEmptyContent = false,
+        shouldShowListEmptyContent = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
