@@ -125,26 +125,9 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
 
 function buildPolicyImportCategories(policyID: string, categories: readonly PolicyCategory[]) {
     const oldCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category.name] = {
-            name: category.name,
-            enabled: category.enabled,
-        };
-        return acc;
-    }, {});
 
     const onyxData: OnyxData = {
         successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: optimisticCategoryMap,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-                value: null,
-            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
