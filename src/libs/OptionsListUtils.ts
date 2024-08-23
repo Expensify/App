@@ -2479,8 +2479,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
-function sortItemsAlphabetically<T extends HasText>(membersList: T[]): T[] {
-    return membersList.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+function sortAlphabetically<T extends HasText>(items: T[]): T[];
+function sortAlphabetically<T extends Record<TKey, string | undefined>, TKey extends keyof T>(items: T[], key: TKey): T[];
+function sortAlphabetically<T extends Record<TKey, string | undefined>, TKey extends keyof T>(items: T[], key: TKey = 'text' as TKey): T[] {
+    return items.sort((a, b) => (a[key] ?? '').toLowerCase().localeCompare((b[key] ?? '').toLowerCase()));
 }
 
 function getEmptyOptions(): Options {
@@ -2524,7 +2526,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    sortItemsAlphabetically,
+    sortAlphabetically,
     sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
