@@ -6538,7 +6538,7 @@ function getPayMoneyRequestParams(
     const failureData: OnyxUpdate[] = [];
     const shouldCreatePolicy = !activePolicy || !PolicyUtils.isPolicyAdmin(activePolicy) || !PolicyUtils.isPaidGroupPolicy(activePolicy);
 
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && shouldCreatePolicy) {
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && shouldCreatePolicy) {
         payerPolicyID = Policy.generatePolicyID();
         const {
             optimisticData: policyOptimisticData,
