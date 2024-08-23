@@ -996,30 +996,48 @@ describe('ReportUtils', () => {
     describe('getGroupChatName tests', () => {
         afterEach(() => Onyx.clear());
 
+        const fourParticipants = [
+            {accountID: 1, login: "email1@test.com"},
+            {accountID: 2, login: "email2@test.com"},
+            {accountID: 3, login: "email3@test.com"},
+            {accountID: 4, login: "email4@test.com"},
+        ]
+
+        const eightParticipants = [
+            {accountID: 1, login: "email1@test.com"},
+            {accountID: 2, login: "email2@test.com"},
+            {accountID: 3, login: "email3@test.com"},
+            {accountID: 4, login: "email4@test.com"},
+            {accountID: 5, login: "email5@test.com"},
+            {accountID: 6, login: "email6@test.com"},
+            {accountID: 7, login: "email7@test.com"},
+            {accountID: 8, login: "email8@test.com"},
+        ]
+
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName([1, 2, 3, 4])).toEqual('Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName([1, 2, 3, 4], true)).toEqual('Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName([1, 2, 3, 4, 5, 6, 7, 8], true)).toEqual('Five, Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName([1, 2, 3, 4, 5, 6, 7, 8], false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(ReportUtils.getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName([1, 2, 3, 4], true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
