@@ -1,8 +1,8 @@
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import {View, InteractionManager} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
@@ -22,10 +22,30 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     useNetwork({onReconnect: () => setIsError(false)});
 
     const [animationFile, setAnimationFile] = useState<string | AnimationObject | {uri: string}>();
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
+
+const lottieRef = useRef<LottieView>(null);
+    
+    useEffect(() => {
+        let interactionHandle: {
+            then: (onfulfilled?: () => any, onrejected?: () => any) => Promise<any>;
+            done: (...args: any[]) => any;
+            cancel: () => void;
+        };
+        interactionHandle = InteractionManager.runAfterInteractions(() => {
+            setLoaded(true);
+        });
+
+        return () => {
+            if (interactionHandle) {
+                interactionHandle.cancel();
+            }
+        };
+    }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
@@ -33,7 +53,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     // we'll just render an empty view as the fallback to prevent
     // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
     // 2. heavy rendering, see issue: https://github.com/Expensify/App/issues/34696
-    if (isError || appState.isBackground || !animationFile || !isSplashHidden) {
+    if (isError || appState.isBackground || !animationFile || !isSplashHidden || !loaded) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
