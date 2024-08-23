@@ -3418,6 +3418,24 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: titleFieldValues,
                 },
+                pendingFields: {
+                    shouldShowCustomReportTitleOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    shouldShowCustomReportTitleOption: null,
+                    fieldList: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3431,6 +3449,14 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
                 },
+                pendingFields: {
+                    shouldShowCustomReportTitleOption: null,
+                    fieldList: null,
+                },
+                errorFields: {
+                    shouldShowCustomReportTitleOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3442,6 +3468,7 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3463,6 +3490,22 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousFieldList, defaultValue: customName},
                 },
+                pendingFields: {
+                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    fieldList: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3475,6 +3518,12 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
                 },
+                pendingFields: {
+                    fieldList: null,
+                },
+                errorFields: {
+                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3486,6 +3535,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
 
     API.write(WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3507,6 +3557,22 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousFieldList, deletable: !enforced},
                 },
+                pendingFields: {
+                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    fieldList: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3519,6 +3585,12 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
                 },
+                pendingFields: {
+                    fieldList: null,
+                },
+                errorFields: {
+                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3530,6 +3602,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
 
     API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_MEMBER_CREATED_TITLE, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3548,6 +3621,22 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 preventSelfApproval,
+                pendingFields: {
+                    preventSelfApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    preventSelfApproval: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3558,6 +3647,12 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 preventSelfApproval: policy?.preventSelfApproval,
+                pendingFields: {
+                    preventSelfApproval: null,
+                },
+                errorFields: {
+                    preventSelfApproval: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3569,6 +3664,7 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
 
     API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3591,6 +3687,22 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
                 autoApproval: {
                     limit: parsedLimit,
                 },
+                pendingFields: {
+                    autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    autoApproval: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3603,6 +3715,12 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
                 autoApproval: {
                     limit: policy?.autoApproval?.limit,
                 },
+                pendingFields: {
+                    autoApproval: null,
+                },
+                errorFields: {
+                    autoApproval: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3614,6 +3732,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
 
     API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3636,6 +3755,22 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
                 autoApproval: {
                     auditRate: parsedAuditRate,
                 },
+                pendingFields: {
+                    autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    autoApproval: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3648,6 +3783,12 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
                 autoApproval: {
                     auditRate: policy?.autoApproval?.auditRate,
                 },
+                pendingFields: {
+                    autoApproval: null,
+                },
+                errorFields: {
+                    autoApproval: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3659,6 +3800,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
 
     API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3675,6 +3817,22 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoApprovalOptions: enabled,
+                pendingFields: {
+                    shouldShowAutoApprovalOptions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    shouldShowAutoApprovalOptions: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3685,6 +3843,12 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoApprovalOptions: !enabled,
+                pendingFields: {
+                    shouldShowAutoApprovalOptions: null,
+                },
+                errorFields: {
+                    shouldShowAutoApprovalOptions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3696,6 +3860,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
@@ -3725,6 +3890,9 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
                 autoReimbursement: {
                     limit: parsedLimit,
                 },
+                pendingFields: {
+                    autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
     ];
@@ -3744,6 +3912,10 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
                 autoReimbursement: {
                     limit: parsedLimit,
                 },
+                pendingFields: {
+                    autoReimbursement: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3754,6 +3926,12 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReimbursement: policy?.autoReimbursement,
+                pendingFields: {
+                    autoReimbursement: null,
+                },
+                errorFields: {
+                    autoReimbursement: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3787,6 +3965,28 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
                 autoReimbursement: {
                     limit: enabled ? policy?.autoReimbursement?.limit : CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
                 },
+                pendingFields: {
+                    shouldShowAutoReimbursementLimitOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                shouldShowAutoReimbursementLimitOption: enabled,
+                autoReimbursement: {
+                    limit: enabled ? policy?.autoReimbursement?.limit : CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
+                },
+                pendingFields: {
+                    shouldShowAutoReimbursementLimitOption: null,
+                    autoReimbursement: null,
+                },
+                errorFields: null,
             },
         },
     ];
@@ -3800,6 +4000,14 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
                 autoReimbursement: {
                     limit: policy?.autoReimbursement?.limit,
                 },
+                pendingFields: {
+                    shouldShowAutoReimbursementLimitOption: null,
+                    autoReimbursement: null,
+                },
+                errorFields: {
+                    shouldShowAutoReimbursementLimitOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    autoReimbursement: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
             },
         },
     ];
@@ -3811,6 +4019,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }
