@@ -308,32 +308,6 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = () => {
-    const transitionEndListeners: Listener[] = [];
-    const triggerTransitionEnd = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
 async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
@@ -375,7 +349,6 @@ export {
     expectAPICommandToHaveBeenCalled,
     expectAPICommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
-    createAddListenerMock,
     navigateToSidebarOption,
     beforeAllSetupUITests,
 };
