@@ -168,7 +168,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         });
 
         const shouldShowHoldOption =
-            !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && TransactionUtils.areRequestsInTransactionsUnsubmitted(selectedTransactionsKeys);
+            !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && !TransactionUtils.areRequestsInTransactionsUnsubmitted(selectedTransactionsKeys);
 
         if (shouldShowHoldOption) {
             options.push({
