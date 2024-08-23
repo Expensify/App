@@ -71,15 +71,18 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     }, [isFocused]);
 
     /** Include the search bar when there are 8 or more members in the selection list */
-    const updateShouldShowTextInput = (listItemsNumber: number) => {
-        const shouldEnableSearch = listItemsNumber >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-        if (shouldShowTextInput !== shouldEnableSearch) {
-            setShouldShowTextInput(shouldEnableSearch);
-            if (!shouldEnableSearch) {
-                setSearchValue('');
+    const updateShouldShowTextInput = useCallback(
+        (listItemsNumber: number) => {
+            const shouldEnableSearch = listItemsNumber >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+            if (shouldShowTextInput !== shouldEnableSearch) {
+                setShouldShowTextInput(shouldEnableSearch);
+                if (!shouldEnableSearch) {
+                    setSearchValue('');
+                }
             }
-        }
-    };
+        },
+        [shouldShowTextInput],
+    );
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
