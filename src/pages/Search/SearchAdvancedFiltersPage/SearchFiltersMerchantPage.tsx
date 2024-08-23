@@ -1,11 +1,13 @@
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
@@ -15,28 +17,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
-function SearchFiltersDatePage() {
+function SearchFiltersMerchantPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_AFTER];
-    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.DATE_BEFORE];
+    const merchant = searchAdvancedFiltersForm?.[FILTER_KEYS.MERCHANT];
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const updateMerchantFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersDatePage.displayName}
+            testID={SearchFiltersMerchantPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('common.date')}
+                title={translate('common.merchant')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
@@ -44,31 +47,28 @@ function SearchFiltersDatePage() {
             <FormProvider
                 style={[styles.flex1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                onSubmit={updateDateFilter}
+                onSubmit={updateMerchantFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={FILTER_KEYS.DATE_AFTER}
-                    label={translate('search.filters.date.after')}
-                    defaultValue={dateAfter}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                />
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={FILTER_KEYS.DATE_BEFORE}
-                    label={translate('search.filters.date.before')}
-                    defaultValue={dateBefore}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                />
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={FILTER_KEYS.MERCHANT}
+                        name={FILTER_KEYS.MERCHANT}
+                        defaultValue={merchant}
+                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
             </FormProvider>
         </ScreenWrapper>
     );
 }
 
-SearchFiltersDatePage.displayName = 'SearchFiltersDatePage';
+SearchFiltersMerchantPage.displayName = 'SearchFiltersMerchantPage';
 
-export default SearchFiltersDatePage;
+export default SearchFiltersMerchantPage;
