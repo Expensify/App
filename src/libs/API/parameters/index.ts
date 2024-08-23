@@ -279,3 +279,4 @@ export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyC
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
