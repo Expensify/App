@@ -1403,7 +1403,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  * Checks if the user can only comment in the provided report (auditor role)
  */
 
-function isOnlyAllowedToComment(report: OnyxEntry<Report>): boolean {
+function isAuditor(report: OnyxEntry<Report>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR);
     }
@@ -1431,7 +1431,7 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
-    if (isOnlyAllowedToComment(report)) {
+    if (isAuditor(report)) {
         return true;
     }
 
@@ -7018,7 +7018,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isChatThread(report) &&
         !isEmpty(policy) &&
         hasParticipantInArray(report, [currentUserAccountID ?? 0]) &&
-        !isOnlyAllowedToComment(report)
+        !isAuditor(report)
     );
 }
 
@@ -8024,7 +8024,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
-    isOnlyAllowedToComment,
+    isAuditor,
 };
 
 export type {
