@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -69,8 +68,9 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-                <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
-                {canEdit && (<FormProvider
+            <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
+            {canEdit && (
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
                     onSubmit={submitForm}
@@ -103,12 +103,13 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             isMarkdownEnabled
                         />
                     </View>
-                </FormProvider>)}
-                {!canEdit && (
-                    <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
-                        <RenderHTML html={Parser.replace(description)} />
-                    </ScrollView>
-                )}
+                </FormProvider>
+            )}
+            {!canEdit && (
+                <ScrollView style={[styles.flexGrow1, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={Parser.replace(description)} />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }
