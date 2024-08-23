@@ -46,11 +46,11 @@ Generally, these errors indicate that there is a credentials issue.
 
 If these general troubleshooting steps don’t work, reach out to Concierge and have the following information ready to provide:
 
-    a. What version of QuickBooks Desktop do you have (Enterprise 2016, Pro 2014, etc.)?
-    b. Is your QuickBooks program installed on your computer or a remote network/drive?
-    c. Is your QuickBooks company file installed on your computer or a remote network/drive?
-    d. Is your Web Connector installed on your computer or a remote network/drive?
-    e. If any of the above are on a remote option, is there a company that runs that remote environment? If so, who (ie: RightNetworks, SwissNet, Cloud9, etc.)?
+1. What version of QuickBooks Desktop do you have (Enterprise 2016, Pro 2014, etc.)?
+2. Is your QuickBooks program installed on your computer or a remote network/drive?
+3. Is your QuickBooks company file installed on your computer or a remote network/drive?
+4. Is your Web Connector installed on your computer or a remote network/drive?
+5. If any of the above are on a remote option, is there a company that runs that remote environment? If so, who (ie: RightNetworks, SwissNet, Cloud9, etc.)?
 
 # Import issue or missing categories and/or tags
 
