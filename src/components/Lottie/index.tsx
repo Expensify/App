@@ -28,8 +28,6 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
-const lottieRef = useRef<LottieView>(null);
-    
     useEffect(() => {
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             setLoaded(true);
