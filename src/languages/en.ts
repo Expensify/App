@@ -4210,6 +4210,7 @@ export default {
         expand: 'Expand',
         mute: 'Mute',
         unmute: 'Unmute',
+        normal: 'Normal',
     },
     exitSurvey: {
         header: 'Before you go',
