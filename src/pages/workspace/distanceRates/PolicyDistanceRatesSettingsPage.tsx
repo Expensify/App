@@ -95,7 +95,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <FullPageBlockingView>
+                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <View>
                             {defaultUnit && (

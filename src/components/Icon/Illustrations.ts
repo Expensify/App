@@ -34,6 +34,7 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
@@ -86,6 +87,7 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
@@ -145,6 +147,7 @@ export {
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,
+    ToddWithPhones,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,
@@ -214,4 +217,5 @@ export {
     Tire,
     BigVault,
     Filters,
+    Rules,
 };
