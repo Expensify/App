@@ -7708,6 +7708,17 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+/**
+ * Checks if the user has missing bank account for the invoice room.
+ */
+function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
+    const invoiceReport = getReport(iouReportID);
+    const invoiceRoomReport = getReport(invoiceReport?.chatReportID ?? '');
+    const policy = getPolicy(invoiceRoomReport?.policyID);
+
+    return invoiceRoomReport?.ownerAccountID === currentUserAccountID && isEmptyObject(policy?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -8012,6 +8023,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    hasMissingInvoiceBankAccount,
 };
 
 export type {
