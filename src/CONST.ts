@@ -2091,6 +2091,7 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_INVOICES_ENABLED: 'areInvoicesEnabled',
             ARE_TAXES_ENABLED: 'tax',
@@ -2434,6 +2435,7 @@ const CONST = {
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
+        WORKSPACE_COMPANY_CARDS: 'WorkspaceCompanyCards',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
         WORKSPACE_FEATURES: 'WorkspaceFeatures',
@@ -4189,7 +4191,7 @@ const CONST = {
 
     VIDEO_PLAYER: {
         POPOVER_Y_OFFSET: -30,
-        PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
+        PLAYBACK_SPEEDS: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
@@ -5484,6 +5486,14 @@ const CONST = {
                 title: 'workspace.upgrade.taxCodes.title' as const,
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
+            },
+            companyCards: {
+                id: 'companyCards' as const,
+                alias: 'company-cards',
+                name: 'Company Cards',
+                title: 'workspace.upgrade.companyCards.title' as const,
+                description: 'workspace.upgrade.companyCards.description' as const,
+                icon: 'CompanyCard',
             },
             rules: {
                 id: 'rules' as const,
