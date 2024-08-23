@@ -745,7 +745,7 @@ export default {
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText = [];
+            const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} escaneando`);
             }

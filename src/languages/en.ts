@@ -754,7 +754,7 @@ export default {
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
         expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText = [];
+            const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} scanning`);
             }
