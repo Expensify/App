@@ -1119,6 +1119,13 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        bankName: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
@@ -1194,12 +1201,8 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+    [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-        policyID: string;
-        bankName: string;
     };
 };
 

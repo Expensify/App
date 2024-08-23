@@ -46,6 +46,7 @@ function SearchFiltersCurrencyPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('search.filters.currency')}
