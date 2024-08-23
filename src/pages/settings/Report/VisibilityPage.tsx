@@ -95,6 +95,7 @@ function VisibilityPage({report}: VisibilityProps) {
                         if (!shouldGoBackToDetailsPage.current) {
                             return;
                         }
+                        shouldGoBackToDetailsPage.current = false;
                         ReportUtils.goBackToDetailsPage(report);
                     }}
                     onCancel={hideModal}
