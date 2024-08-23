@@ -552,7 +552,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 PromotedActions.hold({
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
-                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
                 }),
             );
         }

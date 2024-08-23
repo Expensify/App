@@ -29,7 +29,7 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROM
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
+    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -70,7 +70,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID}) => ({
+    hold: ({isTextHold, reportAction}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -78,15 +78,14 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
             if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportAction?.reportID ?? ''));
                 return;
             }
 
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(reportAction?.reportID ?? ''));
         },
     }),
 } satisfies PromotedActionsType;
