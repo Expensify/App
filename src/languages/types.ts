@@ -305,7 +305,7 @@ type ReimbursementRateParams = {unit: Unit};
 
 type ConfirmHoldExpenseParams = {transactionCount: number};
 
-type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
+type ChangeFieldParams = {oldValue?: string; newValue?: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 

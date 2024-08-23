@@ -456,7 +456,7 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
     const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
 
     Object.values(iouReport.fieldList ?? {}).forEach((field) => {
-        if (excludedFields.includes(field.fieldID) || !!field.value || !!field.defaultValue) {
+        if (excludedFields.includes(field.fieldID) || !!field.value) {
             return;
         }
         // in case of missing field violation the empty object is indicator.

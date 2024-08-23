@@ -90,7 +90,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         Navigation.dismissModal(report?.reportID);
     };
 
-    const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
+    const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value;
 
     const menuItems: ThreeDotsMenuItem[] = [];
 

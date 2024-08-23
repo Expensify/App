@@ -90,7 +90,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     return null;
                                 }
 
-                                const fieldValue = reportField.value ?? reportField.defaultValue;
+                                const fieldValue = reportField.value;
                                 const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
                                 const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
