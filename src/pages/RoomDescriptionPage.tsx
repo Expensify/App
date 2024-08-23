@@ -69,7 +69,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={RoomDescriptionPage.displayName}
         >
-            <FullPageNotFoundView>
                 <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
