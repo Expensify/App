@@ -3777,7 +3777,7 @@ const styles = (theme: ThemeColors) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: variables.optionRowHeight,
+            minHeight: variables.optionRowHeight,
         },
 
         chatFooterBanner: {
@@ -4711,7 +4711,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerStatusBarContainer: {
-            minHeight: variables.componentSizeNormal,
+            minHeight: variables.componentSizeSmall,
         },
 
         walletIllustration: {

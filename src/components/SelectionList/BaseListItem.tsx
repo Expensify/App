@@ -54,7 +54,7 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item);
+            return rightHandSideComponent(item, isFocused);
         }
 
         return rightHandSideComponent;
