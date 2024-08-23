@@ -307,7 +307,8 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 
     const parameters = {
         policyID,
-        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled}))]),
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': category['GL Code']}))]),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET, parameters, onyxData);

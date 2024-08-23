@@ -7,10 +7,12 @@ import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,13 +55,27 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const [containsHeader, setContainsHeader] = useState(false);
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = [
-        {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-        {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
-        {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
-    ];
+    const isControl = isControlPolicy(policy);
+
+    const getColumnRoles = (): ColumnRole[] => {
+        const roles = [];
+        roles.push(
+            {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+            {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
+            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
+        );
+
+        if (isControl) {
+            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE, isRequired: true});
+        }
+
+        return roles;
+    };
+
+    const columnRoles = getColumnRoles();
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
@@ -90,12 +106,16 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         validate();
         const columns = Object.values(spreadsheet?.columns ?? {});
         const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+        const categoriesGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
         const categoriesEnabledColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ENABLED);
         const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
         const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
+        const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
         const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => ({
             name,
             enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] : '',
         }));
 
         if (categories) {
