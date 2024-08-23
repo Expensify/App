@@ -49,11 +49,10 @@ type WorkspaceCompanyCardFeedSelectorPageProps = StackScreenProps<SettingsNaviga
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
-    // const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // TODO: use data form onyx instead of mocked one whe API is implemented
+    // TODO: use data form onyx instead of mocked one when API is implemented
     // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
