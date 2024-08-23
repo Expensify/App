@@ -1,5 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import ROUTES from '@src/ROUTES';
 import type {SearchStatusMenuItem} from './SearchStatusMenu';
 
 type SearchStatusMenuNarrowProps = {
@@ -63,17 +65,16 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
     const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
 
     return (
-        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+        <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
                 ref={buttonRef}
-                style={[styles.tabSelectorButton, styles.ph5]}
                 wrapperStyle={styles.flex1}
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
@@ -93,6 +94,10 @@ function SearchStatusMenuNarrow({statusMenuItems, activeItemIndex, title}: Searc
                     </Animated.View>
                 )}
             </PressableWithFeedback>
+            <Button
+                icon={Expensicons.Filters}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+            />
             <PopoverMenu
                 menuItems={popoverMenuItems}
                 isVisible={isPopoverVisible}
