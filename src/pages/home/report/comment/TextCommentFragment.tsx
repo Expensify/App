@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
-import React, {memo, useMemo, useEffect} from 'react';
+import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
