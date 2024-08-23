@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -215,6 +216,17 @@ function FormProvider(
         onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
+    const isFocusedRef = useRef(true);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
+
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
             Object.keys(inputValues).forEach((inputID) => {
@@ -332,7 +344,7 @@ function FormProvider(
                                 return;
                             }
                             setTouchedInput(inputID);
-                            if (shouldValidateOnBlur) {
+                            if (shouldValidateOnBlur && isFocusedRef.current) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
