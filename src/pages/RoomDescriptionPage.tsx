@@ -109,7 +109,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                         <RenderHTML html={Parser.replace(description)} />
                     </ScrollView>
                 )}
-            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
