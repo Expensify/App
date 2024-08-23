@@ -1,5 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -49,14 +48,6 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
         [currencies, currentCurrency],
     );
 
-    const isFocused = useIsFocused();
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        onClose?.();
-    }, [isFocused, onClose]);
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -67,6 +58,9 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
             onBackdropPress={() => {
                 Navigation.dismissModal();
+                setTimeout(() => {
+                    onClose?.();
+                }, 50);
             }}
             useNativeDriver
         >
