@@ -116,11 +116,12 @@ function MoneyRequestPreviewContent({
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isApproved = ReportUtils.isReportApproved(iouReport);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
-    const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
+    const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(
@@ -132,7 +133,7 @@ function MoneyRequestPreviewContent({
     );
 
     // Remove settled transactions from duplicates
-    const duplicates = TransactionUtils.removeSettledTransactions(allDuplicates);
+    const duplicates = useMemo(() => TransactionUtils.removeSettledTransactions(allDuplicates), [allDuplicates]);
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = allDuplicates.length === duplicates.length;
@@ -444,7 +445,7 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransactionPage && !isSettled && shouldShowKeepButton && (
+            {isReviewDuplicateTransactionPage && !isSettled && !isApproved && shouldShowKeepButton && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
