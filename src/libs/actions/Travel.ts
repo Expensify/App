@@ -18,14 +18,26 @@ function acceptSpotnanaTerms() {
             },
         },
     ];
+    const error = new Error('Failed to generate spotnana token.');
 
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken) : buildTravelDotURL()))
-            .catch(() => buildTravelDotURL()),
-        (travelDotURL) => travelDotURL,
-    );
+    return new Promise((_, reject) => {
+        asyncOpenURL(
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
+                .then((response) => {
+                    if (!response?.spotnanaToken) {
+                        reject(error);
+                        throw error;
+                    }
+                    return buildTravelDotURL(response.spotnanaToken);
+                })
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
+            (travelDotURL) => travelDotURL ?? '',
+        );
+    });
 }
 
 // eslint-disable-next-line import/prefer-default-export

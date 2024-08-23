@@ -10,7 +10,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),

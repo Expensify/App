@@ -1,8 +1,8 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
+import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
@@ -30,7 +31,7 @@ import withNavigationFallback from './withNavigationFallback';
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
-        paddingBottom?: DimensionValue;
+        paddingBottom?: ViewStyle['paddingBottom'];
     };
     didScreenTransitionEnd: boolean;
 };
@@ -99,6 +100,9 @@ type ScreenWrapperProps = {
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+    /** Overrides the focus trap default settings */
+    focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
 type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
@@ -126,6 +130,7 @@ function ScreenWrapper(
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
+        focusTrapSettings,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -138,6 +143,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
+    const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
@@ -214,7 +220,7 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (
@@ -242,7 +248,7 @@ function ScreenWrapper(
                 }
 
                 return (
-                    <FocusTrapForScreens>
+                    <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
                         <View
                             ref={ref}
                             style={[styles.flex1, {minHeight}]}

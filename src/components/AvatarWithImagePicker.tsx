@@ -43,6 +43,7 @@ type MenuItem = {
     icon: IconAsset;
     text: string;
     onSelected: () => void;
+    shouldCallAfterModalHide?: boolean;
 };
 
 type AvatarWithImagePickerProps = {
@@ -259,7 +260,7 @@ function AvatarWithImagePicker({
      * Create menu items list for avatar menu
      */
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
-        const menuItems = [
+        const menuItems: MenuItem[] = [
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
@@ -271,6 +272,7 @@ function AvatarWithImagePicker({
                         onPicked: showAvatarCropModal,
                     });
                 },
+                shouldCallAfterModalHide: true,
             },
         ];
 
@@ -349,6 +351,7 @@ function AvatarWithImagePicker({
                                             }
                                             onViewPhotoPress();
                                         },
+                                        shouldCallAfterModalHide: true,
                                     });
                                 }
 

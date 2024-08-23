@@ -74,7 +74,7 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for userSubmitter to add expenses.
+                // Waiting for userSubmitter to add expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -88,10 +88,9 @@ describe('libs/NextStepUtils', () => {
                     },
                     {
                         text: 'add',
-                        type: 'strong',
                     },
                     {
-                        text: ' expenses.',
+                        text: ' %expenses.',
                     },
                 ];
 
@@ -114,15 +113,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: 'automatically submit later today',
-                            type: 'strong',
+                            text: ' later today',
                         },
                     ];
 
@@ -145,15 +143,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: 'automatically submit on Sunday',
-                            type: 'strong',
+                            text: ' on Sunday',
                         },
                     ];
 
@@ -176,15 +173,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: 'automatically submit on the 1st and 16th of each month',
-                            type: 'strong',
+                            text: ' on the 1st and 16th of each month',
                         },
                     ];
 
@@ -207,15 +203,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: 'automatically submit on the 2nd of each month',
-                            type: 'strong',
+                            text: ' on the 2nd of each month',
                         },
                     ];
 
@@ -239,15 +234,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: `automatically submit on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
-                            type: 'strong',
+                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
                         },
                     ];
 
@@ -273,15 +267,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: `automatically submit on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
-                            type: 'strong',
+                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
                         },
                     ];
 
@@ -305,15 +298,14 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
-                            text: "'s %expenses to ",
+                            text: ' %expenses to automatically submit',
                         },
                         {
-                            text: `automatically submit at the end of their trip`,
-                            type: 'strong',
+                            text: ` at the end of their trip`,
                         },
                     ];
 
@@ -330,7 +322,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('manual', () => {
-                    // Waiting for userSubmitter to add expenses.
+                    // Waiting for userSubmitter to add expense(s).
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -344,10 +336,9 @@ describe('libs/NextStepUtils', () => {
                         },
                         {
                             text: 'add',
-                            type: 'strong',
                         },
                         {
-                            text: ' expenses.',
+                            text: ' %expenses.',
                         },
                     ];
 
@@ -383,7 +374,6 @@ describe('libs/NextStepUtils', () => {
                     },
                     {
                         text: 'pay',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -413,7 +403,6 @@ describe('libs/NextStepUtils', () => {
                     },
                     {
                         text: 'approve',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -451,7 +440,6 @@ describe('libs/NextStepUtils', () => {
                     },
                     {
                         text: 'approve',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -475,7 +463,7 @@ describe('libs/NextStepUtils', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ];
 
@@ -495,7 +483,7 @@ describe('libs/NextStepUtils', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ];
 
@@ -521,7 +509,6 @@ describe('libs/NextStepUtils', () => {
                     },
                     {
                         text: 'pay',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -547,7 +534,7 @@ describe('libs/NextStepUtils', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ];
 

@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 let currentUserEmail = '';
@@ -40,6 +40,12 @@ let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
+});
+
+let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -170,13 +176,17 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    address: {
-                        street: PersonalDetailsUtils.getFormattedStreet(street, street2),
-                        city,
-                        state,
-                        zip,
-                        country,
-                    },
+                    addresses: [
+                        ...(privatePersonalDetails?.addresses ?? []),
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(street, street2),
+                            city,
+                            state,
+                            zip,
+                            country,
+                            current: true,
+                        },
+                    ],
                 },
             },
         ],

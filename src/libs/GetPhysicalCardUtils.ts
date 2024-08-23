@@ -9,7 +9,8 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
 
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
-    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
+    const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
+    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
@@ -55,7 +56,8 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  * @returns
  */
 function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
-    const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
+    const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
+    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
 
     return {
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -78,13 +80,13 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
  * @param draftValues
  * @returns
  */
-function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm>): PrivatePersonalDetails {
+function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): PrivatePersonalDetails {
     const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues ?? {};
     return {
         legalFirstName,
         legalLastName,
         phoneNumber,
-        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
+        addresses: [...(privatePersonalDetails?.addresses ?? []), {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
     };
 }
 

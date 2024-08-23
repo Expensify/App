@@ -331,7 +331,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 }
             }
 
-            const isSelected = selectedEmployees.includes(accountID);
+            const isSelected = selectedEmployees.includes(accountID) && canSelectMultiple;
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
@@ -384,6 +384,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         session?.accountID,
         translate,
         styles.cursorDefault,
+        canSelectMultiple,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
@@ -516,6 +517,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                        isDisabled={!selectedEmployees.length}
                     />
                 ) : (
                     <Button
@@ -588,7 +590,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
-                            shouldDebounceRowSelect={!isPolicyAdmin}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}

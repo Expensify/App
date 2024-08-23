@@ -136,15 +136,19 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
+    const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = useMemo(() => {
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
-        return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
-    }, [report, isGroupChat, isSystemChat]);
+        return ReportUtils.getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
+    }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return [];
+        }
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
@@ -219,12 +223,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const leaveChat = useCallback(() => {
         Navigation.dismissModal();
-        if (isRootGroupChat) {
-            Report.leaveGroupChat(report.reportID);
-            return;
-        }
-        const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-        Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        Navigation.isNavigationReady().then(() => {
+            if (isRootGroupChat) {
+                Report.leaveGroupChat(report.reportID);
+                return;
+            }
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
@@ -307,7 +313,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin)) {
+                    if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
@@ -443,6 +449,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         leaveChat,
@@ -680,8 +687,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         setIsDeleteModalVisible(false);
 
         if (caseID === CASES.DEFAULT) {
-            Task.deleteTask(report);
-            navigateBackToAfterDelete.current = undefined;
+            navigateBackToAfterDelete.current = Task.deleteTask(report);
             return;
         }
 
@@ -784,6 +790,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onModalHide={() => {
                         // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
                         if (!isTransactionDeleted.current) {
+                            if (caseID === CASES.DEFAULT) {
+                                if (navigateBackToAfterDelete.current) {
+                                    Navigation.goBack(navigateBackToAfterDelete.current);
+                                } else {
+                                    Navigation.dismissModal();
+                                }
+                            }
                             return;
                         }
 

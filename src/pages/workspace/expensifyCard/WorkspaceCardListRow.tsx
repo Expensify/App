@@ -19,7 +19,7 @@ type WorkspacesListRowProps = {
     name: string;
 
     /** Cardholder personal details */
-    cardholder: PersonalDetails;
+    cardholder?: PersonalDetails | null;
 
     /** Card limit */
     limit: number;
@@ -38,8 +38,8 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency}: 
         <View style={[styles.flexRow, styles.gap5, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.flex5, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={getDefaultAvatarURL(cardholder.accountID)}
-                    avatarID={cardholder.accountID}
+                    source={getDefaultAvatarURL(cardholder?.accountID)}
+                    avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />

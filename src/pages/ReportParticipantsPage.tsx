@@ -23,7 +23,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -51,7 +50,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
-    const isIOUReport = ReportUtils.isIOUReport(report);
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
@@ -64,18 +62,13 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat && !isIOUReport;
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
-            if (!details) {
-                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
-                return;
-            }
 
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID);
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
@@ -107,7 +100,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat, isIOUReport]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -270,6 +263,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
@@ -358,13 +352,13 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
-                        shouldDebounceRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator

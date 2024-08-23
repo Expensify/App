@@ -100,11 +100,11 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleTx: TranslationPaths}} = {
-    all: {icon: Illustrations.MoneyReceipts, titleTx: 'common.expenses'},
-    shared: {icon: Illustrations.SendMoney, titleTx: 'common.shared'},
-    drafts: {icon: Illustrations.Pencil, titleTx: 'common.drafts'},
-    finished: {icon: Illustrations.CheckmarkCircle, titleTx: 'common.finished'},
+const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleText: TranslationPaths}} = {
+    all: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
+    shared: {icon: Illustrations.SendMoney, titleText: 'common.shared'},
+    drafts: {icon: Illustrations.Pencil, titleText: 'common.drafts'},
+    finished: {icon: Illustrations.CheckmarkCircle, titleText: 'common.finished'},
 };
 
 function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
@@ -132,7 +132,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         [data, selectedTransactions],
     );
     const {status} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleTx);
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
@@ -157,9 +157,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 }
 
                 const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
-                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
-                    setDownloadErrorModalOpen?.();
-                });
+                SearchActions.exportSearchItemsToCSV(
+                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
+                    () => {
+                        setDownloadErrorModalOpen?.();
+                    },
+                );
             },
         });
 
@@ -247,6 +250,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
         return options;
     }, [
+        queryJSON,
         status,
         selectedTransactionsKeys,
         selectedTransactions,

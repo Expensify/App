@@ -21,6 +21,12 @@ type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
 
     /** Callback to fire when a currency is selected */
     onSelect: (item: CurrencyListItem) => void;
+
+    /** The array of selected currencies. This prop should be used when multiple currencies can be selected */
+    selectedCurrencies?: string[];
+
+    /** Whether this is a multi-select list */
+    canSelectMultiple?: boolean;
 };
 
 export type {CurrencyListItem, CurrencySelectionListProps, CurrencySelectionListOnyxProps};

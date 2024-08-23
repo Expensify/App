@@ -2,6 +2,7 @@ import React from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -15,23 +16,29 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const config = policy?.connections?.intacct?.config;
     const entityID = config?.entity ?? '';
+    const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
 
-    const sections =
-        policy?.connections?.intacct?.data?.entities.map((entity) => ({
+    const sections = [
+        {
+            text: translate('workspace.common.topLevel'),
+            value: translate('workspace.common.topLevel'),
+            keyForList: '',
+            isSelected: entityID === '',
+        },
+    ];
+    policy?.connections?.intacct?.data?.entities.forEach((entity) => {
+        sections.push({
             text: entity.name,
             value: entity.name,
             keyForList: entity.id,
             isSelected: entity.id === entityID,
-        })) ?? [];
+        });
+    });
 
     const saveSelection = ({keyForList}: ListItem) => {
-        if (!keyForList) {
-            return;
-        }
-
-        updateSageIntacctEntity(policyID, keyForList ?? '');
+        updateSageIntacctEntity(policyID, keyForList ?? '', entityID);
         Navigation.goBack();
     };
 

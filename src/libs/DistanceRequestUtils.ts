@@ -210,7 +210,11 @@ function getDistanceMerchant(
  * @returns The rate and unit in RateAndUnit object.
  */
 function getRateForP2P(currency: string): RateAndUnit {
-    return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
+    const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
+    return {
+        ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
+        currency: currencyWithExistingRate,
+    };
 }
 
 /**
@@ -244,7 +248,7 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 /**
  * Returns custom unit rate ID for the distance transaction
  */
-function getCustomUnitRateID(reportID: string) {
+function getCustomUnitRateID(reportID: string, shouldUseDefault?: boolean) {
     const allReports = ReportConnection.getAllReports();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -255,7 +259,7 @@ function getCustomUnitRateID(reportID: string) {
         const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? '-1';
         const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
-        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
+        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID && !shouldUseDefault) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '-1';

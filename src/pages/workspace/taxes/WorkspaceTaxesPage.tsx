@@ -111,7 +111,7 @@ function WorkspaceTaxesPage({
                 text: value.name,
                 alternateText: textForDefault(key, value),
                 keyForList: key,
-                isSelected: !!selectedTaxesIDs.includes(key),
+                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
                 isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
@@ -119,7 +119,7 @@ function WorkspaceTaxesPage({
                 rightElement: <ListItemRightCaretWithLabel labelText={!value.isDisabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs, translate]);
+    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -138,7 +138,9 @@ function WorkspaceTaxesPage({
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter((tax) => tax.keyForList !== defaultExternalID && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const taxesToSelect = taxesList.filter(
+            (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
         setSelectedTaxesIDs((prev) => {
             if (prev.length === taxesToSelect.length) {
                 return [];
@@ -246,6 +248,7 @@ function WorkspaceTaxesPage({
             pressOnEnter
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            isDisabled={!selectedTaxesIDs.length}
         />
     );
 

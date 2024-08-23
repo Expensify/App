@@ -57,6 +57,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -67,7 +68,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const isAdmin = policy?.employeeList?.[member.email].role === CONST.REPORT.ROLE.ADMIN;
+                const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
 
                 return {
                     text: member.displayName,
@@ -88,7 +89,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (approvalWorkflow?.availableMembers) {
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
-                    const isAdmin = policy?.employeeList?.[member.email].role === CONST.REPORT.ROLE.ADMIN;
+                    const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
                     const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
@@ -129,32 +130,37 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
         Workflow.setApprovalWorkflowMembers(members);
 
-        const firstApprover = approvalWorkflow?.approvers?.[0]?.email;
-        if (approvalWorkflow?.isBeingEdited && firstApprover) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID));
+        if (route.params.backTo) {
+            Navigation.navigate(route.params.backTo);
+            return;
         }
-    }, [approvalWorkflow?.approvers, approvalWorkflow?.isBeingEdited, route.params.policyID, selectedMembers]);
+
+        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        } else {
+            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+        }
+    }, [approvalWorkflow, route.params.backTo, route.params.policyID, selectedMembers]);
 
     const goBack = useCallback(() => {
-        if (!approvalWorkflow?.isBeingEdited) {
+        if (isInitialCreationFlow) {
             Workflow.clearApprovalWorkflow();
         }
         Navigation.goBack();
-    }, [approvalWorkflow?.isBeingEdited]);
+    }, [isInitialCreationFlow]);
 
     const nextButton = useMemo(
         () => (
             <FormAlertWithSubmitButton
                 isDisabled={!selectedMembers.length}
-                buttonText={translate('common.next')}
+                buttonText={isInitialCreationFlow ? translate('common.next') : translate('common.save')}
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
         ),
-        [nextStep, selectedMembers.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [isInitialCreationFlow, nextStep, selectedMembers.length, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     const toggleMember = (member: SelectionListMember) => {
@@ -184,7 +190,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         title={translate('workflowsExpensesFromPage.title')}
                         onBackButtonPress={goBack}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                    )}
                     <SelectionList
                         canSelectMultiple
                         sections={sections}

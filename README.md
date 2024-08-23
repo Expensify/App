@@ -230,19 +230,20 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```jsx
     npm i && npm run pod-install
     ```
-7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
-8. Upon completion, the generated source map can be found at:
+4. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
 2. Launch the app in production mode.
-2. Navigate to the feature you wish to profile.
-3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
-4. Close the menu and interact with the app.
-5. After completing your interactions, tap with four fingers again and select to stop profiling.
-6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+3. Navigate to the feature you wish to profile.
+4. Initiate the profiling session by tapping with four fingers (on mobile) or `cmd+d` (on web) to open the menu and selecting **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. After completing your interactions, tap with four fingers or `cmd+d` again and select to stop profiling.
+7. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
 
 Build info:
 ```jsx
@@ -265,6 +266,7 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))

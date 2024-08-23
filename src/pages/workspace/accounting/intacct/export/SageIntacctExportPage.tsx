@@ -63,7 +63,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctExportPage.displayName}
             headerTitle="workspace.accounting.export"
-            headerSubtitle={getCurrentSageIntacctEntityName(policy)}
+            headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

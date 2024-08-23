@@ -18,8 +18,8 @@ type RoomHeaderAvatarsProps = {
 
 function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
-        if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
-            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
+        if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, icon.id.toString()));
             return;
         }
 

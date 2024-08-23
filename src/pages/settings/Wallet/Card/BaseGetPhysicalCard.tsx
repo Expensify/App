@@ -140,12 +140,12 @@ function BaseGetPhysicalCard({
         }
 
         // Redirect user to previous steps of the flow if he hasn't finished them yet
-        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
+        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails));
         isRouteSet.current = true;
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     const onSubmit = useCallback(() => {
-        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
+        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails);
@@ -156,7 +156,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
-    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken]);
+    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken, privatePersonalDetails]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}

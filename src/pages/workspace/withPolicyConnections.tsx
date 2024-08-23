@@ -1,8 +1,10 @@
-import React, {useEffect} from 'react';
+import isBoolean from 'lodash/isBoolean';
+import React, {useEffect, useState} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -30,7 +32,18 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             initWithStoredValues: false,
         });
         const isConnectionDataFetchNeeded =
-            !isOffline && props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+            !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+
+        const [isFetchingData, setIsFetchingData] = useState(false);
+
+        const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
+
+        useEffect(() => {
+            if (prevHasConnectionsDataBeenFetched !== undefined || !isBoolean(hasConnectionsDataBeenFetched)) {
+                return;
+            }
+            setIsFetchingData(false);
+        }, [hasConnectionsDataBeenFetched, prevHasConnectionsDataBeenFetched]);
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
@@ -38,11 +51,11 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
                 return;
             }
-
+            setIsFetchingData(true);
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if (isConnectionDataFetchNeeded && shouldBlockView) {
+        if ((isConnectionDataFetchNeeded || isFetchingData) && shouldBlockView) {
             return <FullScreenLoadingIndicator />;
         }
 

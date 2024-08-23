@@ -32,15 +32,25 @@ function logRequestDetails(message: string, request: Request, response?: Respons
         logParams.requestID = response.requestID;
     }
 
-    Log.info(message, false, logParams);
+    const extraData: Record<string, unknown> = {};
+    /**
+     * We don't want to log the request and response data for AuthenticatePusher
+     * requests because they contain sensitive information.
+     */
+    if (request.command !== 'AuthenticatePusher') {
+        extraData.request = request;
+        extraData.response = response;
+    }
+
+    Log.info(message, false, logParams, false, extraData);
 }
 
 const Logging: Middleware = (response, request) => {
     const startTime = Date.now();
-    logRequestDetails('Making API request', request);
+    logRequestDetails('[Network] Making API request', request);
     return response
         .then((data) => {
-            logRequestDetails(`Finished API request in ${Date.now() - startTime}ms`, request, data);
+            logRequestDetails(`[Network] Finished API request in ${Date.now() - startTime}ms`, request, data);
             return data;
         })
         .catch((error: HttpsError) => {

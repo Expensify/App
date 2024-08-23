@@ -1,22 +1,23 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-index b4cfb3d..7aa00e5 100644
+index b4cfb3d..fdfae56 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-@@ -49,6 +49,9 @@ static void RCTPerformMountInstructions(
- {
-   SystraceSection s("RCTPerformMountInstructions");
+@@ -265,6 +265,9 @@ static void RCTPerformMountInstructions(
  
+   auto surfaceId = mountingCoordinator.getSurfaceId();
+   
 +  [CATransaction begin];
 +  [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 +
-   for (const auto &mutation : mutations) {
-     switch (mutation.type) {
-       case ShadowViewMutation::Create: {
-@@ -147,6 +150,7 @@ static void RCTPerformMountInstructions(
-       }
-     }
-   }
+   mountingCoordinator.getTelemetryController().pullTransaction(
+       [&](const MountingTransaction &transaction, const SurfaceTelemetry &surfaceTelemetry) {
+         [self.delegate mountingManager:self willMountComponentsWithRootTag:surfaceId];
+@@ -278,6 +281,8 @@ static void RCTPerformMountInstructions(
+         _observerCoordinator.notifyObserversMountingTransactionDidMount(transaction, surfaceTelemetry);
+         [self.delegate mountingManager:self didMountComponentsWithRootTag:surfaceId];
+       });
++  
 +  [CATransaction commit];
  }
  
- @implementation RCTMountingManager {
+ - (void)setIsJSResponder:(BOOL)isJSResponder

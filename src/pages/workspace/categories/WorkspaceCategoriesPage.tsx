@@ -23,6 +23,7 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +61,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '-1';
     const backTo = route.params?.backTo;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
+    const policy = usePolicy(policyId);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -94,14 +95,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return {
                     text: value.name,
                     keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name],
+                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
                     isDisabled,
                     pendingAction: value.pendingAction,
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 };
             }),
-        [policyCategories, selectedCategories, translate],
+        [policyCategories, selectedCategories, canSelectMultiple, translate],
     );
 
     const toggleCategory = useCallback((category: PolicyOption) => {
@@ -232,6 +233,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    isDisabled={!selectedCategoriesArray.length}
                 />
             );
         }
@@ -331,7 +333,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || categoryList.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

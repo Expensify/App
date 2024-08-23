@@ -57,47 +57,20 @@ type SectionObject = {
     items: Item[];
 };
 
-// TODO: remove when Onyx data is available
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const mockedCardsList = {
-    test1: {
-        cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
-        name: 'Test 1',
-        limit: 1000,
-        lastFourPAN: '1234',
-    },
-    test2: {
-        cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
-        name: 'Test 2',
-        limit: 2000,
-        lastFourPAN: '1234',
-    },
-    test3: {
-        cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
-        name: 'Test 3',
-        limit: 3000,
-        lastFourPAN: '1234',
-    },
-};
-
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
-    const policyID = policy?.id ?? '';
-    // @ts-expect-error a new props will be added during feed api implementation
-    const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}${CONST.EXPENSIFY_CARD.BANK}`);
-    // Uncomment this line for testing disabled toggle feature - for c+
-    // const [cardsList = mockedCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-
+    const policyID = policy?.id;
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
@@ -111,17 +84,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areDistanceRatesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
-                DistanceRate.enablePolicyDistanceRates(policy?.id ?? '-1', isEnabled);
-            },
-        },
-        {
-            icon: Illustrations.Workflows,
-            titleTranslationKey: 'workspace.moreFeatures.workflows.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
-            isActive: policy?.areWorkflowsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
-            action: (isEnabled: boolean) => {
-                Policy.enablePolicyWorkflows(policy?.id ?? '-1', isEnabled);
+                if (!policyID) {
+                    return;
+                }
+                DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
     ];
@@ -136,13 +102,70 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
             disabled: !isEmptyObject(cardsList),
             action: (isEnabled: boolean) => {
-                Policy.enableExpensifyCard(policy?.id ?? '-1', isEnabled);
+                if (!policyID) {
+                    return;
+                }
+                Policy.enableExpensifyCard(policyID, isEnabled);
             },
             disabledAction: () => {
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
         });
     }
+
+    const manageItems: Item[] = [
+        {
+            icon: Illustrations.Workflows,
+            titleTranslationKey: 'workspace.moreFeatures.workflows.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
+            isActive: policy?.areWorkflowsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                Policy.enablePolicyWorkflows(policyID, isEnabled);
+            },
+        },
+    ];
+
+    // TODO remove this when feature will be fully done, and move manage item inside manageItems array
+    if (canUseWorkspaceRules) {
+        manageItems.splice(1, 0, {
+            icon: Illustrations.Rules,
+            titleTranslationKey: 'workspace.moreFeatures.rules.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
+            isActive: policy?.areRulesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areRulesEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                Policy.enablePolicyRules(policyID, isEnabled);
+            },
+        });
+    }
+
+    const earnItems: Item[] = [
+        {
+            icon: Illustrations.InvoiceBlue,
+            titleTranslationKey: 'workspace.moreFeatures.invoices.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.invoices.subtitle',
+            isActive: policy?.areInvoicesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areInvoicesEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                Policy.enablePolicyInvoicing(policyID, isEnabled);
+            },
+        },
+    ];
 
     const organizeItems: Item[] = [
         {
@@ -153,11 +176,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 if (hasAccountingConnection) {
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Category.enablePolicyCategories(policy?.id ?? '-1', isEnabled);
+                Category.enablePolicyCategories(policyID, isEnabled);
             },
         },
         {
@@ -168,11 +194,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 if (hasAccountingConnection) {
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Tag.enablePolicyTags(policy?.id ?? '-1', isEnabled);
+                Tag.enablePolicyTags(policyID, isEnabled);
             },
         },
         {
@@ -183,17 +212,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 if (hasAccountingConnection) {
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Policy.enablePolicyTaxes(policy?.id ?? '-1', isEnabled);
+                Policy.enablePolicyTaxes(policyID, isEnabled);
             },
         },
-    ];
-
-    if (canUseReportFieldsFeature) {
-        organizeItems.push({
+        {
             icon: Illustrations.Pencil,
             titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
             subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
@@ -201,6 +230,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 if (hasAccountingConnection) {
                     setIsOrganizeWarningModalOpen(true);
                     return;
@@ -218,8 +250,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 setIsReportFieldsWarningModalOpen(true);
             },
-        });
-    }
+        },
+    ];
 
     const integrateItems: Item[] = [
         {
@@ -229,15 +261,23 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
                 if (hasAccountingConnection) {
                     setIsIntegrateWarningModalOpen(true);
                     return;
                 }
-                Policy.enablePolicyConnections(policy?.id ?? '-1', isEnabled);
+                Policy.enablePolicyConnections(policyID, isEnabled);
             },
             disabled: hasAccountingConnection,
             errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
-            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                Policy.clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            },
         },
     ];
 
@@ -246,6 +286,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
             items: spendItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
+            items: manageItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.earnSection.subtitle',
+            items: earnItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
@@ -339,6 +389,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
                         setIsOrganizeWarningModalOpen(false);
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }}
@@ -351,6 +404,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
                         setIsIntegrateWarningModalOpen(false);
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }}
@@ -364,6 +420,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     title={translate('workspace.reportFields.disableReportFields')}
                     isVisible={isReportFieldsWarningModalOpen}
                     onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
                         setIsReportFieldsWarningModalOpen(false);
                         Policy.enablePolicyReportFields(policyID, false);
                     }}

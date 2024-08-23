@@ -53,7 +53,7 @@ class OpenAIUtils {
                     continue;
                 }
                 response += message.content
-                    .map((contentBlock) => this.isTextContentBlock(contentBlock))
+                    .map((contentBlock) => this.isTextContentBlock(contentBlock) && contentBlock.text.value)
                     .join('\n')
                     .trim();
                 console.log('Parsed assistant response:', response);

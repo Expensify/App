@@ -121,6 +121,12 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         mutationObserverRef.current?.disconnect();
 
         const mutationObserver = new MutationObserver(() => {
+            // When the list is hidden, the size will be 0.
+            // Ignore the callback if the list is hidden because scrollOffset will always be 0.
+            if (!getScrollableNode(scrollRef.current)?.clientHeight) {
+                return;
+            }
+
             // This needs to execute after scroll events are dispatched, but
             // in the same tick to avoid flickering. rAF provides the right timing.
             requestAnimationFrame(() => {

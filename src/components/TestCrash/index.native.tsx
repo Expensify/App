@@ -18,7 +18,7 @@ function TestCrash() {
 
     return (
         <View>
-            {isCrashlyticsDebugEnabled ? (
+            {isCrashlyticsDebugEnabled || !__DEV__ ? (
                 <TestToolRow title={toolRowTitle}>
                     <Button
                         small
