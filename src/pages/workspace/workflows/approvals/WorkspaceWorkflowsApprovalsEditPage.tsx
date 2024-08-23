@@ -87,6 +87,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             availableMembers: [...currentApprovalWorkflow.members, ...(workflows.at(0)?.members ?? [])],
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             isLoading: false,
+            errors: null,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [initialApprovalWorkflow, personalDetails, policy, route.params.firstApproverEmail, route.params.policyID]);

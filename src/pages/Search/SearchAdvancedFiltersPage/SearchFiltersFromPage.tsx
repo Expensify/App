@@ -21,6 +21,7 @@ function SearchFiltersFromPage() {
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={translate('common.from')} />
             <View style={[styles.flex1]}>
