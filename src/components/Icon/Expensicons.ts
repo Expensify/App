@@ -182,6 +182,7 @@ import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
+import UserEye from '@assets/images/user-eye.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
@@ -192,7 +193,6 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
-import UserEye from '@assets/images/user-eye.svg';
 
 export {
     ActiveRoomAvatar,
