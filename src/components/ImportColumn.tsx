@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Text from './Text';
 
-const findColumnName = (header: string) => {
+function findColumnName(header: string): string {
     let attribute = '';
     const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
     switch (formattedHeader) {
@@ -113,20 +113,36 @@ const findColumnName = (header: string) => {
     }
 
     return attribute;
-};
+}
 
 type ColumnRole = {
+    /** Translated text to be displayed */
     text: string;
+
+    /** Unique value of the option */
     value: string;
+
+    /** Used for any additional text - e.g. if the field is required */
     description?: string;
+
+    /** Whether the column is required for import */
     isRequired?: boolean;
 };
 
 type ImportColumnProps = {
+    /** It is an array of all values in specific column */
     column: string[];
+
+    /** Whether column contains header (user choice) */
     containsHeader: boolean;
+
+    /** It is column[0] when containsHeader = true or it is Column A, B, C,... otherwise */
     columnName: string;
+
+    /** Array of all possible column roles for specific data import */
     columnRoles: ColumnRole[];
+
+    /** Index of the column in the spreadsheet */
     columnIndex: number;
 };
 

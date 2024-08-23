@@ -94,11 +94,12 @@ function ButtonWithDropdownMenu<IValueType>({
             isActive: useKeyboardShortcuts,
         },
     );
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
 
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <>
+                <View style={[splitButtonWrapperStyle, style]}>
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
@@ -144,7 +145,7 @@ function ButtonWithDropdownMenu<IValueType>({
                             </View>
                         </Button>
                     )}
-                </>
+                </View>
             ) : (
                 <Button
                     success={success}

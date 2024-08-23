@@ -3,7 +3,6 @@ import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
-import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +20,7 @@ import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
@@ -102,7 +102,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         <>
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ImageSVG
-                    src={SpreadsheetComputer}
+                    src={Expensicons.SpreadsheetComputer}
                     contentFit="contain"
                     width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                     height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
@@ -172,7 +172,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                                     <View style={styles.fileUploadImageWrapper(fileTopPosition)}>
                                         <ImageSVG
-                                            src={SpreadsheetComputer}
+                                            src={Expensicons.SpreadsheetComputer}
                                             contentFit="contain"
                                             width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
