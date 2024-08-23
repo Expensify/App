@@ -27,11 +27,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {SearchQueryJSON} from './types';
+import type {SearchQueryJSON, SearchStatus} from './types';
 
 type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
     subtitleStyles?: StyleProp<TextStyle>;
@@ -100,22 +100,12 @@ type SearchPageHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-type HeaderContent = {
-    icon: IconAsset;
-    titleText: TranslationPaths;
+const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleText: TranslationPaths}} = {
+    all: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
+    shared: {icon: Illustrations.SendMoney, titleText: 'common.shared'},
+    drafts: {icon: Illustrations.Pencil, titleText: 'common.drafts'},
+    finished: {icon: Illustrations.CheckmarkCircle, titleText: 'common.finished'},
 };
-
-function getHeaderContent(type: SearchDataTypes): HeaderContent {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        default:
-            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
-    }
-}
 
 function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
@@ -141,10 +131,10 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 .map((item) => item.reportID),
         [data, selectedTransactions],
     );
-    const {status, type} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
+    const {status} = queryJSON;
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
+    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
     const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
@@ -167,9 +157,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 }
 
                 const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
-                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
-                    setDownloadErrorModalOpen?.();
-                });
+                SearchActions.exportSearchItemsToCSV(
+                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
+                    () => {
+                        setDownloadErrorModalOpen?.();
+                    },
+                );
             },
         });
 
@@ -257,6 +250,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
         return options;
     }, [
+        queryJSON,
         status,
         selectedTransactionsKeys,
         selectedTransactions,

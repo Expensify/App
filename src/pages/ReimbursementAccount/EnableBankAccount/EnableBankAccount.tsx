@@ -42,7 +42,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
     const achData = reimbursementAccount?.achData ?? {};
     const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
     const isUsingExpensifyCard = user?.isUsingExpensifyCard;
-    const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
+    const formattedBankAccountNumber = achData.accountNumber ? `${translate('bankAccount.accountEnding')} ${achData.accountNumber.slice(-4)}` : '';
     const bankAccountOwnerName = achData.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;

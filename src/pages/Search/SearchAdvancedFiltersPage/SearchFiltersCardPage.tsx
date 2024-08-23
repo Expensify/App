@@ -88,6 +88,7 @@ function SearchFiltersCardPage() {
             testID={SearchFiltersCardPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('common.card')}

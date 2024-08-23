@@ -129,3 +129,6 @@ web-build/
 
 # Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
 .sourcemaps/
+
+# Jeykll
+docs/.bundle
