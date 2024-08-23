@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Xero from '@libs/actions/connections/Xero';
-import {getTrackingCategories} from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -28,7 +27,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 
     const menuItems = useMemo(() => {
-        const trackingCategories = getTrackingCategories(policy);
+        const trackingCategories = Xero.getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
             id: category.id,
             description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
