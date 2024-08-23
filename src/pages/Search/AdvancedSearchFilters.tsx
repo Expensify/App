@@ -209,6 +209,12 @@ function AdvancedSearchFilters() {
                 description: 'common.to' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, translate),
+                description: 'search.filters.has' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+                shouldHide: searchAdvancedFilters?.type !== CONST.SEARCH.DATA_TYPES.CHAT,
+            },
         ],
         [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
     );

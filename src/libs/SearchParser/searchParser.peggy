@@ -150,6 +150,7 @@ multiselectKey "multiselect key"
       / "taxRate"
       / "cardID"
       / "from"
+      / "has"
     )
 
 identifier = parts:(quotedString / alphanumeric)+ { return parts.join(""); }
