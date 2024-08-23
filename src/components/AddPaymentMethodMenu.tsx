@@ -85,22 +85,22 @@ function AddPaymentMethodMenu({
 
     const completeEngagement = useCallback(
         (paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) => {
-            if (isInviteOnboardingComplete || !introSelected?.choice) {
+            if (isInviteOnboardingComplete) {
                 return;
             }
 
-            let choice = introSelected.choice;
+            let onboardingPurpose = introSelected.choice;
             if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.PAYMENT_SELECTED.BBA) {
-                choice = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+                onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
             }
 
             if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.PAYMENT_SELECTED.BBA) {
-                choice = CONST.ONBOARDING_CHOICES.SUBMIT;
+                onboardingPurpose = CONST.ONBOARDING_CHOICES.SUBMIT;
             }
 
             ReportUserActions.completeOnboarding(
-                choice,
-                CONST.ONBOARDING_MESSAGES[choice],
+                onboardingPurpose,
+                CONST.ONBOARDING_MESSAGES[onboardingPurpose],
                 {
                     firstName: personalDetail.firstName ?? '',
                     lastName: personalDetail.lastName ?? '',
