@@ -449,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
@@ -475,7 +475,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
     });
 }
 
