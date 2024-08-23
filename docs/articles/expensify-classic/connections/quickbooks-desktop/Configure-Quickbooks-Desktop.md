@@ -16,13 +16,13 @@ The following steps will determine how data will be exported from Expensify to Q
 - **Date**: You can choose either the report’s submitted date, the report’s exported date, or the date of the last expense on the report when exporting reports to QuickBooks Desktop.
 - **Unique reference numbers**: Enable this to allow the use of a unique reference number for each transaction. Disable this to use the same Report ID for all expenses from a certain report.
 - **Reimbursable expenses**: Reimbursable options include:
-    - **Vendor Bill (recommended)**: A single itemized vendor bill for each Expensify report. An A/P account is required to export to a vendor bill.
-    - **Check**: A single itemized check for each Expensify report.
-    - **Journal Entry**: A single itemized journal entry for each Expensify report.
+        - **Vendor Bill (recommended)**: A single itemized vendor bill for each Expensify report. An A/P account is required to export to a vendor bill.
+        - **Check**: A single itemized check for each Expensify report.
+        - **Journal Entry**: A single itemized journal entry for each Expensify report.
 - **Non-reimbursable expenses**: Non-reimbursable options include:
-    - **Vendor Bill**: Each Expensify report results in a single itemized vendor bill. The bill is associated with the “vendor,” which is the individual responsible for creating or submitting the report in Expensify.
-    - **Credit Card expenses**: Each expense appears as a separate credit card transaction with a post date that matches your credit card statement. If you centrally manage company cards through your domain, you can export expenses from each card to a specific QuickBooks account by clicking Edit Exports next to each user’s card. To display the merchant name in the payee field in QuickBooks Desktop, ensure that a matching Vendor exists in QuickBooks. Expensify searches for an exact match during export. If no match is found, the payee is mapped to a Credit Card Misc. Vendor created by Expensify.
-    - **Debit Card expenses**: Expenses are exported as individual itemized checks for each Expensify report. The check is written to the “vendor,” which is the person who created or submitted the report in Expensify.
+        - **Vendor Bill**: Each Expensify report results in a single itemized vendor bill. The bill is associated with the “vendor,” which is the individual responsible for creating or submitting the report in Expensify.
+        - **Credit Card expenses**: Each expense appears as a separate credit card transaction with a post date that matches your credit card statement. If you centrally manage company cards through your domain, you can export expenses from each card to a specific QuickBooks account by clicking Edit Exports next to each user’s card. To display the merchant name in the payee field in QuickBooks Desktop, ensure that a matching Vendor exists in QuickBooks. Expensify searches for an exact match during export. If no match is found, the payee is mapped to a Credit Card Misc. Vendor created by Expensify.
+        - **Debit Card expenses**: Expenses are exported as individual itemized checks for each Expensify report. The check is written to the “vendor,” which is the person who created or submitted the report in Expensify.
 
 # Step 2: Configure coding/import settings
 
