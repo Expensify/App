@@ -997,22 +997,22 @@ describe('ReportUtils', () => {
         afterEach(() => Onyx.clear());
 
         const fourParticipants = [
-            {accountID: 1, login: "email1@test.com"},
-            {accountID: 2, login: "email2@test.com"},
-            {accountID: 3, login: "email3@test.com"},
-            {accountID: 4, login: "email4@test.com"},
-        ]
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+        ];
 
         const eightParticipants = [
-            {accountID: 1, login: "email1@test.com"},
-            {accountID: 2, login: "email2@test.com"},
-            {accountID: 3, login: "email3@test.com"},
-            {accountID: 4, login: "email4@test.com"},
-            {accountID: 5, login: "email5@test.com"},
-            {accountID: 6, login: "email6@test.com"},
-            {accountID: 7, login: "email7@test.com"},
-            {accountID: 8, login: "email8@test.com"},
-        ]
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+            {accountID: 5, login: 'email5@test.com'},
+            {accountID: 6, login: 'email6@test.com'},
+            {accountID: 7, login: 'email7@test.com'},
+            {accountID: 8, login: 'email8@test.com'},
+        ];
 
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
