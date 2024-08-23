@@ -4,8 +4,8 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
-// import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import UserListItem from '@components/SelectionList/UserListItem';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+// import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -36,12 +36,12 @@ function getSelectedOptionData(option: Option): OptionData {
 }
 
 type SearchFiltersParticipantsSelectorProps = {
-    initialAccountIDs: string[];
-    onFiltersUpdate: (accountIDs: string[]) => void;
+    initialIDs: string[];
+    onFiltersUpdate: (initialIDs: string[]) => void;
     isScreenTransitionEnd: boolean;
 };
 
-function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
+function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
@@ -91,20 +91,20 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
         if (chatOptions.currentUserOption && !isCurrentUserSelected) {
             const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
             newSections.push({
-                title: '',
+                title: 'you',
                 data: [{...chatOptions.currentUserOption, text: formattedName}],
                 shouldShow: true,
             });
         }
 
         newSections.push({
-            title: '',
+            title: 'recent',
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
         newSections.push({
-            title: '',
+            title: 'people',
             data: chatOptions.personalDetails,
             shouldShow: chatOptions.personalDetails.length > 0,
         });
@@ -120,39 +120,86 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
+        // console.log(JSON.stringify(chatOptions.personalDetails));
+        if (!initialIDs || initialIDs.length === 0 || !chatOptions.personalDetails) {
             return;
         }
 
-        const preSelectedOptions = initialAccountIDs
+        // const preSelectedOptions = initialAccountIDs
+        //     .map((accountID) => {
+        //         const participant = personalDetails[accountID];
+        //         if (!participant) {
+        //             return;
+        //         }
+
+        //         return getSelectedOptionData(participant);
+        //     })
+        //     .filter((option): option is NonNullable<OptionData> => {
+        //         return !!option;
+        //     });
+
+        const preSelectedUsers: OptionData[] = initialIDs
             .map((accountID) => {
-                const participant = personalDetails[accountID];
-                if (!participant) {
+                if (accountID === `${chatOptions.currentUserOption?.accountID}`) {
+                    return chatOptions.currentUserOption;
+                }
+                const participantUser = chatOptions.personalDetails.filter((opt) => {
+                    return `${opt.accountID}` === accountID;
+                })[0];
+                if (!participantUser) {
                     return;
                 }
-
-                return getSelectedOptionData(participant);
+                return getSelectedOptionData(participantUser);
             })
             .filter((option): option is NonNullable<OptionData> => {
                 return !!option;
             });
 
+        const preSelectedReports: OptionData[] = initialIDs
+            .map((reportID: string) => {
+                const participantReport = chatOptions.recentReports.filter((opt) => {
+                    return opt.reportID === reportID;
+                })[0];
+                if (!participantReport) {
+                    return;
+                }
+                return getSelectedOptionData(participantReport);
+            })
+            .filter((option): option is NonNullable<OptionData> => {
+                return !!option;
+            });
+
+        const preSelectedOptions = [...preSelectedUsers, ...preSelectedReports];
+        // NOT INCLUDED: THE USER, REPORTS
+        // console.log('PreSelected', JSON.stringify(preSelectedOptions));
+        // console.log(!!preSelectedOptions[0]);
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs, personalDetails]);
+    }, [chatOptions.personalDetails, chatOptions.recentReports, chatOptions.currentUserOption, initialIDs]);
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
+    // useEffect(() => {
+    //     // const [report] = useOnyx(ONYXKEYS.COLLECTIONS_REPORT${option.reportID});
+    //     // console.warn(JSON.stringify(report));
+    //     // console.warn(JSON.stringify(selectedOptions));
+    //     let rep;
+    //     if (selectedOptions.length > 0) {
+    //         rep = ReportUtils.getReport(selectedOptions[0]?.reportID);
+    //         // eslint-disable-next-line no-console
+    //         // console.warn(JSON.stringify(rep));
+    //     }
+    // }, [selectedOptions]);
+
     const handleParticipantSelection = useCallback(
         (option: Option) => {
             const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+                if (selectedOption.accountID && selectedOption.accountID !== 0 && selectedOption.accountID === option?.accountID) {
                     return true;
                 }
 
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
+                if (selectedOption.reportID && selectedOption.reportID !== '' && selectedOption.reportID === option?.reportID) {
                     return true;
                 }
 
@@ -175,9 +222,11 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
             text={translate('common.save')}
             pressOnEnter
             onPress={() => {
-                const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-                onFiltersUpdate(selectedAccountIDs);
-
+                const selectedAccountIDs = selectedOptions
+                    .map((option) => (option.accountID && option.accountID !== 0 ? option.accountID.toString() : undefined))
+                    .filter(Boolean) as string[];
+                const selectedReportIDs = selectedOptions.map((option) => (option.reportID && option.reportID !== '' ? option.reportID.toString() : undefined)).filter(Boolean) as string[];
+                onFiltersUpdate([...selectedAccountIDs, ...selectedReportIDs]);
                 Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
             }}
             large
@@ -185,13 +234,13 @@ function SearchFiltersChatsSelector({initialAccountIDs, onFiltersUpdate, isScree
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialIDs || !personalDetails;
 
     return (
         <SelectionList
             canSelectMultiple
             sections={sections}
-            ListItem={UserListItem}
+            ListItem={InviteMemberListItem}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             headerMessage={headerMessage}
             textInputValue={searchTerm}

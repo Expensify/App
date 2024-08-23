@@ -26,17 +26,18 @@ function SearchFiltersInPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             onEntryTransitionEnd={handleScreenTransitionEnd}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={translate('common.in')} />
             <View style={[styles.flex1]}>
                 <SearchFiltersChatsSelector
                     isScreenTransitionEnd={isScreenTransitionEnd}
-                    onFiltersUpdate={(selectedAccountIDs) => {
+                    onFiltersUpdate={(initialIDs) => {
                         SearchActions.updateAdvancedFilters({
-                            in: selectedAccountIDs,
+                            in: initialIDs,
                         });
                     }}
-                    initialAccountIDs={searchAdvancedFiltersForm?.in ?? []}
+                    initialIDs={searchAdvancedFiltersForm?.in ?? []}
                 />
             </View>
         </ScreenWrapper>

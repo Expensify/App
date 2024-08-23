@@ -73,6 +73,12 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filterArray.join(', ');
     }
 
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN && filters.in) {
+        const filterIDs = filters.in ?? [];
+
+        return filterIDs.join(', ');
+    }
+
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
         return filters[fieldName];
     }
@@ -191,7 +197,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
             {
-                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.in ?? [], personalDetails),
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, translate),
                 description: 'common.in' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
             },
