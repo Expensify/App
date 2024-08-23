@@ -225,31 +225,33 @@ function AdvancedSearchFilters() {
     };
 
     return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
-            <View>
-                {advancedFilters.map((item) => {
-                    const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-                    if (item.shouldHide) {
-                        return undefined;
-                    }
-                    return (
-                        <MenuItemWithTopDescription
-                            key={item.description}
-                            title={item.title}
-                            description={translate(item.description)}
-                            shouldShowRightIcon
-                            onPress={onPress}
-                        />
-                    );
-                })}
-            </View>
+        <>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
+                <View>
+                    {advancedFilters.map((item) => {
+                        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
+                        if (item.shouldHide) {
+                            return undefined;
+                        }
+                        return (
+                            <MenuItemWithTopDescription
+                                key={item.description}
+                                title={item.title}
+                                description={translate(item.description)}
+                                shouldShowRightIcon
+                                onPress={onPress}
+                            />
+                        );
+                    })}
+                </View>
+            </ScrollView>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
-        </ScrollView>
+        </>
     );
 }
 

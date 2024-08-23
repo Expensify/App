@@ -38,6 +38,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -97,8 +98,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
-                          shouldCallAfterModalHide: true,
+                          onSelected: () => Modal.close(() => startIntegrationFlow({name: connectedIntegration})),
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: true,
@@ -115,8 +115,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
-                shouldCallAfterModalHide: true,
+                onSelected: () => Modal.close(() => setIsDisconnectModalOpen(true)),
             },
         ],
         [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
