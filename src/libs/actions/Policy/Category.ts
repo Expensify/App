@@ -124,8 +124,6 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
 }
 
 function buildPolicyImportCategories(policyID: string, categories: readonly PolicyCategory[]) {
-    const oldCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-
     const onyxData: OnyxData = {
         successData: [
             {
@@ -146,11 +144,6 @@ function buildPolicyImportCategories(policyID: string, categories: readonly Poli
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: oldCategories,
             },
         ],
     };
