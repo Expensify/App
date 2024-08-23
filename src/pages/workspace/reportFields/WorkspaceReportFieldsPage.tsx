@@ -57,7 +57,7 @@ function WorkspaceReportFieldsPage({
         params: {policyID},
     },
 }: WorkspaceReportFieldsPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -78,7 +78,7 @@ function WorkspaceReportFieldsPage({
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
         ReportField.openPolicyReportFieldsPage(policyID);
@@ -297,7 +297,7 @@ function WorkspaceReportFieldsPage({
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}

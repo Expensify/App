@@ -370,7 +370,7 @@ function ReportPreview({
                     scanningReceipts: numberOfScanningReceipts,
                     pendingReceipts: numberOfPendingRequests,
                 },
-                numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                numberOfRequests,
             ),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
@@ -392,7 +392,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
+                        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}

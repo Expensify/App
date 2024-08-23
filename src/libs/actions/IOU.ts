@@ -161,13 +161,6 @@ Onyx.connect({
     },
 });
 
-let allReportsDraft: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReportsDraft = value),
-});
-
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -274,21 +267,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
-
-/**
- * Get the report or draft report given a reportID
- */
-function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<OnyxTypes.Report> {
-    const allReports = ReportConnection.getAllReports();
-    if (!allReports && !allReportsDraft) {
-        return undefined;
-    }
-
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    return report ?? draftReport;
-}
 
 /**
  * Find the report preview action from given chat report and iou report
@@ -2524,11 +2502,13 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
-    if (!hasPendingWaypoints) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -2806,7 +2786,7 @@ function getUpdateTrackExpenseParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, ReportUtils.isExpenseReport(transactionThread)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(transaction, transactionChanges, policy, false),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2830,11 +2810,13 @@ function getUpdateTrackExpenseParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy);
-    if (!hasPendingWaypoints) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -3144,9 +3126,9 @@ function updateMoneyRequestDistanceRate(
     };
     const allReports = ReportConnection.getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
-    if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
+    if (ReportUtils.isTrackExpenseReport(transactionThreadReport) && ReportUtils.isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
@@ -3474,7 +3456,7 @@ function requestMoney(
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
@@ -3659,7 +3641,7 @@ function trackExpense(
     linkedTrackedExpenseReportID?: string,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
@@ -5032,7 +5014,7 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const optimisticReceipt: Receipt = {
@@ -6417,7 +6399,7 @@ function getReportFromHoldRequestsOnyxData(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
 
-        const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
+        const heldReport = ReportUtils.getReportOrDraftReport(holdReportAction.childReportID);
         if (heldReport) {
             optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
 
@@ -6860,7 +6842,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedI
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).some((action) => {
-        const iouReport = getReportOrDraftReport(action.childReportID ?? '-1');
+        const iouReport = ReportUtils.getReportOrDraftReport(action.childReportID ?? '-1');
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
@@ -6894,7 +6876,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
 
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
-    const chatReport = getReportOrDraftReport(expenseReport?.chatReportID);
+    const chatReport = ReportUtils.getReportOrDraftReport(expenseReport?.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -7131,7 +7113,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     }
 
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = ReportUtils.getReportOrDraftReport(expenseReport.parentReportID);
     const policy = PolicyUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
@@ -7479,7 +7461,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = ReportUtils.isMoneyRequestReport(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     let participants: Participant[] = [];

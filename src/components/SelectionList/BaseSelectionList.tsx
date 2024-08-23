@@ -97,7 +97,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
-        shouldShowListEmptyContent = false,
+        shouldShowListEmptyContent = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -687,11 +687,12 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-                    {(((!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound')) && !!headerMessage) || flattenedSections.allOptions.length === 0) && (
-                        <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
-                        </View>
-                    )}
+                    {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+                        !!headerMessage && (
+                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                            </View>
+                        )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 ? (
                         renderListEmptyContent()
