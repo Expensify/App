@@ -70,7 +70,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             testID={RoomDescriptionPage.displayName}
         >
                 <HeaderWithBackButton title={translate('reportDescriptionPage.roomDescription')} />
-                <FormProvider
+                {canEdit && (<FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
                     onSubmit={submitForm}
