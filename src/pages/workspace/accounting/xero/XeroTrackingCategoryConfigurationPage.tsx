@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as Xero from '@libs/actions/connections/Xero';
 import {getTrackingCategories} from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,15 +53,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
-                onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
-                        policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.XERO,
-                        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
-                        !xeroConfig?.importTrackingCategories,
-                        xeroConfig?.importTrackingCategories,
-                    )
-                }
+                onToggle={() => Xero.updateXeroImportTrackingCategories(policyID, !xeroConfig?.importTrackingCategories, xeroConfig?.importTrackingCategories)}
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}

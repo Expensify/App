@@ -124,9 +124,42 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
     return {optimisticData, failureData, successData};
 }
 
-function updateXeroImportTrackingCategories() {}
+function updateXeroImportTrackingCategories(
+    policyID: string,
+    importTrackingCategories: Partial<Connections['xero']['config']['importTrackingCategories']>,
+    oldImportTrackingCategories?: Partial<Connections['xero']['config']['importTrackingCategories']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(importTrackingCategories),
+        idempotencyKey: String(CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES),
+    };
 
-function updateXeroImportTaxRates() {}
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(
+        policyID,
+        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+        importTrackingCategories,
+        oldImportTrackingCategories,
+    );
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_IMPORT_TRACKING_CATEGORIES, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroImportTaxRates(
+    policyID: string,
+    importTaxesRate: Partial<Connections['xero']['config']['importTaxRates']>,
+    oldImportTaxesRate?: Partial<Connections['xero']['config']['importTaxRates']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(importTaxesRate),
+        idempotencyKey: String(CONST.XERO_CONFIG.IMPORT_TAX_RATES),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES, importTaxesRate, oldImportTaxesRate);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_IMPORT_TAX_RATES, parameters, {optimisticData, failureData, successData});
+}
 
 function updateXeroTenantID(policyID: string, settingValue: string, oldSettingValue?: string) {
     const parameters: UpdateXeroGenericTypeParams = {
@@ -140,6 +173,16 @@ function updateXeroTenantID(policyID: string, settingValue: string, oldSettingVa
     API.write(WRITE_COMMANDS.UPDATE_XERO_TENANT_ID, parameters, {optimisticData, successData, failureData});
 }
 
-function updateXeroMappings() {}
+function updateXeroMappings(policyID: string, mappingValue: Partial<Connections['xero']['config']['mappings']>, oldMappingValue?: Partial<Connections['xero']['config']['mappings']>) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(mappingValue),
+        idempotencyKey: String(CONST.XERO_CONFIG.MAPPINGS),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.MAPPINGS, mappingValue, oldMappingValue);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_MAPPING, parameters, {optimisticData, failureData, successData});
+}
 
 export {getXeroSetupLink, getTrackingCategories, updateXeroImportTrackingCategories, updateXeroImportTaxRates, updateXeroTenantID, updateXeroMappings};
