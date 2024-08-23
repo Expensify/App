@@ -350,8 +350,9 @@ function endSignOnTransition() {
  * @param [policyName] Optional, custom policy name we will use for created workspace
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false) {
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
     const policyID = Policy.generatePolicyID();
     Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
@@ -361,7 +362,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
 }
@@ -448,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
@@ -474,7 +475,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
     });
 }
 

@@ -253,6 +253,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={WorkspaceNewRoomPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             {({insets}) =>
                 workspaceOptions.length === 0 ? (

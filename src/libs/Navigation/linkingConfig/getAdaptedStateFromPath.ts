@@ -21,7 +21,15 @@ import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForSta
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
-const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS, SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE] satisfies Screen[];
+const RHP_SCREENS_OPENED_FROM_LHN = [
+    SCREENS.SETTINGS.SHARE_CODE,
+    SCREENS.SETTINGS.PROFILE.STATUS,
+    SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
+    SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.SETTINGS.EXIT_SURVEY.REASON,
+    SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
+    SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
+] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
@@ -116,11 +124,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-                if (isRHPinState) {
-                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
-                }
+                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
             }
 
             // If we know that backTo targets the root route (central pane or full screen) we want to use it.
@@ -151,7 +155,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     // check for valid reportID in the route params
     // if the reportID is valid, we should navigate back to screen report in CPN
     const reportID = (route.params as Record<string, string | undefined>)?.reportID;
-    if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+    if (ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
         return {name: SCREENS.REPORT, params: {reportID}};
     }
 }

@@ -21,7 +21,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpa
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
             gradientOpacityEnabled={gradientOpacityEnabled}
-            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
             renderSkeletonItem={() => (
                 <>
                     <Circle

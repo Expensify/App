@@ -620,11 +620,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -664,6 +664,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAX_CODE]: {
         policyID: string;
         taxID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
@@ -773,6 +779,12 @@ type RoomInviteNavigatorParamList = {
 
 type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: {
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: {
         iouType: IOUType;
         transactionID: string;
         reportID: string;
@@ -1096,6 +1108,7 @@ type TravelNavigatorParamList = {
 type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: string;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
@@ -1111,6 +1124,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
         policyID: string;
@@ -1118,10 +1132,12 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;
         approverIndex?: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
@@ -1176,6 +1192,9 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
     };
 };
@@ -1263,6 +1282,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
+            policyID?: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
@@ -1276,6 +1296,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
+            readonly?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };

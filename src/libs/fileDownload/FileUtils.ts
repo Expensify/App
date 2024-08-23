@@ -256,6 +256,24 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
     });
 }
 
+/** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
+function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
+    return fetch(fileUri)
+        .then((file) => file.arrayBuffer())
+        .then((arrayBuffer) => {
+            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+
+            const hexString = Array.from(uintArray)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            return hexString;
+        })
+        .then((hexSignature) => {
+            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+        });
+}
+
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -318,6 +336,7 @@ export {
     isImage,
     getFileResolution,
     isHighResolutionImage,
+    verifyFileFormat,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
 };

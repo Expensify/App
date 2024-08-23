@@ -14,11 +14,13 @@ import type {
     DeleteWorkspaceParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
+    EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
@@ -40,6 +42,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
+import type SetPolicyRulesEnabledParams from '@libs/API/parameters/SetPolicyRulesEnabledParams';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -202,11 +205,30 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
+// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
-
+    const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
     return primaryPolicy ?? activeAdminWorkspaces[0];
+}
+
+/** Check if the policy has invoicing company details */
+// eslint-disable-next-line react/no-unused-prop-types,@typescript-eslint/no-unused-vars
+function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
+    // TODO: uncomment when invoicing details inside a policy are supported.
+    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
+    return true;
+}
+
+/**
+ * Returns a primary invoice workspace for the user
+ */
+function getInvoicePrimaryWorkspace(activePolicyID?: OnyxEntry<string>): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
+    }
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 }
 
 /**
@@ -429,7 +451,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
-    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+    const value = JSON.stringify({autoReportingOffset});
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -1017,6 +1039,9 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
     const customUnitID = distanceUnit?.customUnitID;
     const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    const currencyPendingAction = currency !== policy?.outputCurrency ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+    const namePendingAction = name !== policy?.name ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+
     const currentRates = distanceUnit?.rates ?? {};
     const optimisticRates: Record<string, Rate> = {};
     const finallyRates: Record<string, Rate> = {};
@@ -1052,12 +1077,14 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
 
                 pendingFields: {
                     ...policy.pendingFields,
-                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(namePendingAction !== undefined && {name: namePendingAction}),
+                    ...(currencyPendingAction !== undefined && {outputCurrency: currencyPendingAction}),
                 },
 
                 // Clear errorFields in case the user didn't dismiss the general settings error
                 errorFields: {
-                    generalSettings: null,
+                    name: null,
+                    outputCurrency: null,
                 },
                 name,
                 outputCurrency: currency,
@@ -1078,7 +1105,8 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    generalSettings: null,
+                    name: null,
+                    outputCurrency: null,
                 },
                 ...(customUnitID && {
                     customUnits: {
@@ -1092,14 +1120,20 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
         },
     ];
 
+    const errorFields: Policy['errorFields'] = {
+        name: namePendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+    };
+
+    if (!errorFields.name && currencyPendingAction) {
+        errorFields.outputCurrency = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage');
+    }
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errorFields: {
-                    generalSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
-                },
+                errorFields,
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
@@ -1259,12 +1293,29 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 address: newAddress,
+                pendingFields: {
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                address: newAddress,
+                pendingFields: {
+                    address: null,
+                },
             },
         },
     ];
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
         optimisticData,
+        finallyData,
     });
 }
 
@@ -1576,7 +1627,9 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -1653,6 +1706,9 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     autoReporting: null,
                     approvalMode: null,
                     reimbursementChoice: null,
+                    name: null,
+                    outputCurrency: null,
+                    address: null,
                 },
             },
         },
@@ -1664,6 +1720,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -1684,6 +1741,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 pendingAction: null,
                 pendingChatMembers: [],
+                isOptimisticReport: false,
             },
         },
         {
@@ -1703,6 +1761,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -2015,15 +2074,57 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
-function openPolicyExpensifyCardsPage(policyID: string) {
+function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
         authToken,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params);
+    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params, {optimisticData, successData, failureData});
+}
+
+function openPolicyEditCardLimitTypePage(policyID: string, cardID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyEditCardLimitTypePageParams = {
+        policyID,
+        authToken,
+        cardID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE, params);
 }
 
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
@@ -2621,7 +2722,7 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
+function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2664,7 +2765,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
         navigateWhenEnableFeature(policyID);
     }
 }
@@ -2874,6 +2975,68 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
+const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+    maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+};
+
+function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect = false) {
+    const policy = getPolicy(policyID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areRulesEnabled: enabled,
+                    ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
+                    pendingFields: {
+                        areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areRulesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areRulesEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
+                              maxExpenseAmount: policy?.maxExpenseAmount,
+                              maxExpenseAge: policy?.maxExpenseAge,
+                          }
+                        : {}),
+                    pendingFields: {
+                        areRulesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout() && !disableRedirect) {
+        navigateWhenEnableFeature(policyID);
+    }
+}
+
 function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
@@ -2885,10 +3048,10 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes,
+                            pendingFields: {
+                                taxEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
                         },
-                    },
-                    pendingFields: {
-                        customUnits: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -2898,8 +3061,12 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        customUnits: null,
+                    customUnits: {
+                        [customUnitID]: {
+                            pendingFields: {
+                                taxEnabled: null,
+                            },
+                        },
                     },
                 },
             },
@@ -2912,6 +3079,9 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
+                            errorFields: {
+                                taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -2928,6 +3098,55 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
         }),
     };
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
+}
+
+function enablePolicyInvoicing(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areInvoicesEnabled: enabled,
+                    pendingFields: {
+                        areInvoicesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areInvoicesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areInvoicesEnabled: !enabled,
+                    pendingFields: {
+                        areInvoicesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyInvoicingParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
+
+    // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+    // if (enabled && getIsNarrowLayout()) {
+    //     navigateWhenEnableFeature(policyID);
+    // }
 }
 
 function openPolicyMoreFeaturesPage(policyID: string) {
@@ -3215,6 +3434,7 @@ export {
     enablePolicyTaxes,
     enablePolicyWorkflows,
     enableDistanceRequestTax,
+    enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,
     openPolicyInitialPage,
@@ -3231,6 +3451,7 @@ export {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
     getPrimaryPolicy,
+    getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
     buildPolicyData,
@@ -3238,9 +3459,12 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
+    openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
+    hasInvoicingDetails,
+    enablePolicyRules,
 };
 
 export type {NewCustomUnit};

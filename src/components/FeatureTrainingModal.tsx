@@ -142,7 +142,7 @@ function FeatureTrainingModal({
                         url={videoURL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
+                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
                         isLooping
@@ -204,7 +204,7 @@ function FeatureTrainingModal({
                         <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                             <View style={[styles.mt5, styles.mh5]}>
-                                {title && description && (
+                                {!!title && !!description && (
                                     <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
@@ -220,7 +220,7 @@ function FeatureTrainingModal({
                                         onInputChange={toggleWillShowAgain}
                                     />
                                 )}
-                                {helpText && (
+                                {!!helpText && (
                                     <Button
                                         large
                                         style={[styles.mb3]}

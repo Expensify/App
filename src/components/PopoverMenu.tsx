@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -8,6 +8,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -16,6 +17,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type BaseModalProps from './Modal/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
@@ -34,6 +36,11 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
+
+    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+     */
+    shouldCallAfterModalHide?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -83,6 +90,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
      * */
     shouldEnableNewFocusManagement?: boolean;
+
+    /** How to re-focus after the modal is dismissed */
+    restoreFocusType?: BaseModalProps['restoreFocusType'];
 };
 
 function PopoverMenu({
@@ -106,6 +116,7 @@ function PopoverMenu({
     withoutOverlay = false,
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
+    restoreFocusType,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -123,6 +134,11 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCallAfterModalHide) {
+            Modal.close(() => {
+                onItemSelected(selectedItem, index);
+                selectedItem.onSelected?.();
+            });
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -189,7 +205,10 @@ function PopoverMenu({
         setFocusedIndex(-1);
     };
 
-    useEffect(() => {
+    // When the menu items are changed, we want to reset the sub-menu to make sure
+    // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
+    // We use useLayoutEffect so the reset happens before the repaint
+    useLayoutEffect(() => {
         if (menuItems.length === 0) {
             return;
         }
@@ -218,6 +237,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
@@ -253,7 +273,9 @@ function PopoverMenu({
                             success={item.success}
                             containerStyle={item.containerStyle}
                             shouldRenderTooltip={item.shouldRenderTooltip}
-                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipAnchorAlignment={item.tooltipAnchorAlignment}
+                            tooltipShiftHorizontal={item.tooltipShiftHorizontal}
+                            tooltipShiftVertical={item.tooltipShiftVertical}
                             tooltipWrapperStyle={item.tooltipWrapperStyle}
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}

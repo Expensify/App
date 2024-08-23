@@ -68,7 +68,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
                     sections={[{data: items}]}
                     ListItem={RadioListItem}
                     onSelectRow={changeRole}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                 />
             </View>

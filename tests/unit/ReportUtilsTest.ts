@@ -856,10 +856,10 @@ describe('ReportUtils', () => {
 
         it('should return correctly all ancestors of a thread report', () => {
             const resultAncestors = [
-                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false},
-                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false},
-                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false},
-                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false},
+                {report: reports[0], reportAction: reportActions[0], shouldDisplayNewMarker: false},
+                {report: reports[1], reportAction: reportActions[1], shouldDisplayNewMarker: false},
+                {report: reports[2], reportAction: reportActions[2], shouldDisplayNewMarker: false},
+                {report: reports[3], reportAction: reportActions[3], shouldDisplayNewMarker: false},
             ];
 
             expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
@@ -909,7 +909,7 @@ describe('ReportUtils', () => {
             });
 
             const report: Report = {
-                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
             };
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();

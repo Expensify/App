@@ -23,11 +23,13 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -55,13 +57,13 @@ function WorkspaceReportFieldsPage({
         params: {policyID},
     },
 }: WorkspaceReportFieldsPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
@@ -76,13 +78,15 @@ function WorkspaceReportFieldsPage({
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
         ReportField.openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
+
+    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     useFocusEffect(fetchReportFields);
 
@@ -100,26 +104,28 @@ function WorkspaceReportFieldsPage({
 
         return [
             {
-                data: Object.values(filteredPolicyFieldList).map((reportField) => ({
-                    value: reportField.name,
-                    fieldID: reportField.fieldID,
-                    keyForList: String(reportField.fieldID),
-                    orderWeight: reportField.orderWeight,
-                    pendingAction: reportField.pendingAction,
-                    isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
-                    isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    text: reportField.name,
-                    rightElement: (
-                        <ListItemRightCaretWithLabel
-                            shouldShowCaret={false}
-                            labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
-                        />
-                    ),
-                })),
+                data: Object.values(filteredPolicyFieldList)
+                    .sort((a, b) => localeCompare(a.name, b.name))
+                    .map((reportField) => ({
+                        value: reportField.name,
+                        fieldID: reportField.fieldID,
+                        keyForList: String(reportField.fieldID),
+                        orderWeight: reportField.orderWeight,
+                        pendingAction: reportField.pendingAction,
+                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
+                        isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        text: reportField.name,
+                        rightElement: (
+                            <ListItemRightCaretWithLabel
+                                shouldShowCaret={false}
+                                labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
+                            />
+                        ),
+                    })),
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, translate]);
+    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
@@ -269,7 +275,7 @@ function WorkspaceReportFieldsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || reportFieldsSections[0].data.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -291,7 +297,7 @@ function WorkspaceReportFieldsPage({
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}

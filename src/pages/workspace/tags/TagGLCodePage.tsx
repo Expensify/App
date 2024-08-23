@@ -20,11 +20,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 type WorkspaceEditTagGLCodePageOnyxProps = {
     /** Collection of categories attached to a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
@@ -45,7 +45,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [glCode, route.params.policyID, tagName, orderWeight],
     );
