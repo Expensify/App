@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -250,17 +250,9 @@ function AmountForm(
                     }
                     textInput.current = ref;
                 }}
-                selection={selection}
-                onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-                    if (!shouldUpdateSelection) {
-                        return;
-                    }
-                    setSelection(e.nativeEvent.selection);
-                }}
                 prefixCharacter={currency}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                onKeyPress={textInputKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
