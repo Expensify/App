@@ -167,7 +167,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
                         <Switch
                             isOn={areEReceiptsEnabled}
-                            accessibilityLabel={translate('workspace.categories.enableCategory')}
+                            accessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                             onToggle={() => PolicyActions.setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
                             disabled={policyCurrency !== CONST.CURRENCY.USD}
                         />
