@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -8,6 +9,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -47,6 +49,14 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
         [currencies, currentCurrency],
     );
 
+    const isFocused = useIsFocused();
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        onClose?.();
+    }, [isFocused, onClose]);
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -55,6 +65,9 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onModalHide={onClose}
             hideModalContentWhileAnimating
             innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
+            onBackdropPress={() => {
+                Navigation.dismissModal();
+            }}
             useNativeDriver
         >
             <ScreenWrapper
