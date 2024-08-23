@@ -17,7 +17,9 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeeds} from '@src/types/onyx';
 
@@ -74,8 +76,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         ),
     }));
 
-    // TODO: pass the specific route of the Card List page to go back when it's merged https://github.com/Expensify/App/pull/47719
-    const goBack = () => Navigation.goBack();
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
     const selectFeed = (feed: CardFeedListItem) => {
         Card.updateSelectedFeed(feed.value, policyID);
@@ -85,8 +86,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            // TODO: uncomment when ARE_COMPANY_CARDS_ENABLED feature is available https://github.com/Expensify/App/pull/47719
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceCompanyCardFeedSelectorPage.displayName}
