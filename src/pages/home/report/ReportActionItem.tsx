@@ -722,6 +722,7 @@ function ReportActionItem({
                                 action={action}
                                 draftMessage={draftMessage}
                                 reportID={report.reportID}
+                                policyID={report.policyID}
                                 index={index}
                                 ref={textInputRef}
                                 shouldDisableEmojiPicker={
