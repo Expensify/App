@@ -154,7 +154,6 @@ function ButtonWithDropdownMenu<IValueType>({
                     style={[styles.w100, style]}
                     isLoading={isLoading}
                     text={selectedItem.text}
-                    icon={selectedItem.icon}
                     onPress={(event) => onPress(event, options[0].value)}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
