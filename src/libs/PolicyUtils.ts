@@ -1000,6 +1000,7 @@ export {
     getTagLists,
     getTaxByID,
     getUnitRateValue,
+    getRateDisplayValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     hasSyncError,
