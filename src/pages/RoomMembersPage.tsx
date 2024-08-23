@@ -69,6 +69,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
+    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
+
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
@@ -174,6 +176,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
 
+        const shouldEnableSearch = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        if (shouldShowTextInput !== shouldEnableSearch) {
+            setShouldShowTextInput(shouldEnableSearch);
+            if (!shouldEnableSearch) {
+                setSearchValue('');
+            }
+        }
+
         participants.forEach((accountID) => {
             const details = personalDetails[accountID];
 
@@ -229,15 +239,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     }, [report?.policyID, policies]);
 
     const data = getMemberOptions();
-
-    const shouldShowTextInput = data.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            return;
-        }
-        setSearchValue('');
-    }, [shouldShowTextInput]);
 
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
 

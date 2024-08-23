@@ -55,6 +55,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
+    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
@@ -71,6 +72,15 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
         const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
+
+        const shouldEnableSearch = chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        if (shouldShowTextInput !== shouldEnableSearch) {
+            setShouldShowTextInput(shouldEnableSearch);
+            if (!shouldEnableSearch) {
+                setSearchValue('');
+            }
+        }
+
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
@@ -116,15 +126,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
-
-    const shouldShowTextInput = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            return;
-        }
-        setSearchValue('');
-    }, [shouldShowTextInput]);
 
     /**
      * Add user from the selectedMembers list
