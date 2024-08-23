@@ -3777,7 +3777,7 @@ const styles = (theme: ThemeColors) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: variables.optionRowHeight,
+            minHeight: variables.optionRowHeight,
         },
 
         chatFooterBanner: {
@@ -4253,7 +4253,7 @@ const styles = (theme: ThemeColors) =>
         tabText: (isSelected: boolean) =>
             ({
                 marginLeft: 8,
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+                ...(isSelected ? FontUtils.fontFamily.platform.EXP_NEUE_BOLD : FontUtils.fontFamily.platform.EXP_NEUE),
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightNormal,
                 fontSize: variables.fontSizeNormal,

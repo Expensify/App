@@ -1200,6 +1200,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES]: {
+        policyID: string;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
