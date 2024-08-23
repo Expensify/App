@@ -128,7 +128,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
-                    isSubmitDisabled={!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
+                    isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
