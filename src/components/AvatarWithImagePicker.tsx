@@ -11,7 +11,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -44,6 +43,7 @@ type MenuItem = {
     icon: IconAsset;
     text: string;
     onSelected: () => void;
+    shouldCallAfterModalHide?: boolean;
 };
 
 type AvatarWithImagePickerProps = {
@@ -260,19 +260,19 @@ function AvatarWithImagePicker({
      * Create menu items list for avatar menu
      */
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
-        const menuItems = [
+        const menuItems: MenuItem[] = [
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () =>
-                    Modal.close(() => {
-                        if (Browser.isSafari()) {
-                            return;
-                        }
-                        openPicker({
-                            onPicked: showAvatarCropModal,
-                        });
-                    }),
+                onSelected: () => {
+                    if (Browser.isSafari()) {
+                        return;
+                    }
+                    openPicker({
+                        onPicked: showAvatarCropModal,
+                    });
+                },
+                shouldCallAfterModalHide: true,
             },
         ];
 
@@ -344,14 +344,14 @@ function AvatarWithImagePicker({
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () =>
-                                            Modal.close(() => {
-                                                if (typeof onViewPhotoPress !== 'function') {
-                                                    show();
-                                                    return;
-                                                }
-                                                onViewPhotoPress();
-                                            }),
+                                        onSelected: () => {
+                                            if (typeof onViewPhotoPress !== 'function') {
+                                                show();
+                                                return;
+                                            }
+                                            onViewPhotoPress();
+                                        },
+                                        shouldCallAfterModalHide: true,
                                     });
                                 }
 
