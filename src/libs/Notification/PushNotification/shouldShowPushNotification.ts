@@ -1,4 +1,4 @@
-import type {PushPayload} from '@ua/react-native-airship';
+import type {JsonObject, PushPayload} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as Report from '@userActions/Report';
@@ -10,15 +10,15 @@ import type {PushNotificationData} from './NotificationType';
 export default function shouldShowPushNotification(pushPayload: PushPayload): boolean {
     Log.info('[PushNotification] push notification received', false, {pushPayload});
 
-    let payload = pushPayload.extras?.payload;
+    let payload = pushPayload.extras.payload;
 
     // The payload is string encoded on Android
     if (typeof payload === 'string') {
         try {
-            payload = JSON.parse(payload) as string;
+            payload = JSON.parse(payload) as JsonObject;
         } catch {
             Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
-            payload = {};
+            payload = undefined;
         }
     }
 

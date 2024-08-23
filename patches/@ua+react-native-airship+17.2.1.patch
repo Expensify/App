@@ -1,13 +1,12 @@
-diff --git a/node_modules/@ua/react-native-airship/src/types.ts b/node_modules/@ua/react-native-airship/src/types.ts
-index 1514436..cec598f 100644
---- a/node_modules/@ua/react-native-airship/src/types.ts
-+++ b/node_modules/@ua/react-native-airship/src/types.ts
-@@ -7,7 +7,7 @@ export type JsonValue =
-   | JsonArray;
- 
+diff --git a/node_modules/@ua/react-native-airship/lib/typescript/types.d.ts b/node_modules/@ua/react-native-airship/lib/typescript/types.d.ts
+index 9e21186..1e7f466 100644
+--- a/node_modules/@ua/react-native-airship/lib/typescript/types.d.ts
++++ b/node_modules/@ua/react-native-airship/lib/typescript/types.d.ts
+@@ -1,6 +1,6 @@
+ export type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
  export type JsonObject = {
--  [key: string]: JsonValue;
-+  [key: string]: JsonValue | undefined;
+-    [key: string]: JsonValue;
++    [key: string]: JsonValue | undefined;
  };
- 
  export type JsonArray = JsonValue[];
+ export interface ChannelCreatedEvent {
