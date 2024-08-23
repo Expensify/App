@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -141,6 +141,29 @@ function AmountForm(
         [amountMaxLength, currentAmount, decimals, onInputChange, selection],
     );
 
+    /**
+     * Set a new amount value properly formatted
+     *
+     * @param text - Changed text from user input
+     */
+    const setFormattedAmount = (text: string) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(text);
+        const replacedCommasAmount = MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+        const withLeadingZero = MoneyRequestUtils.addLeadingZero(replacedCommasAmount);
+
+        if (!MoneyRequestUtils.validateAmount(withLeadingZero, decimals, amountMaxLength)) {
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
+        }
+
+        const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(withLeadingZero);
+        const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+        setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+        onInputChange?.(strippedAmount);
+    };
+
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
@@ -217,7 +240,7 @@ function AmountForm(
             <TextInput
                 label={label}
                 value={formattedAmount}
-                onChangeText={setNewAmount}
+                onChangeText={setFormattedAmount}
                 ref={(ref: BaseTextInputRef) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
@@ -237,6 +260,8 @@ function AmountForm(
                 prefixCharacter={currency}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                onKeyPress={textInputKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
+                inputMode={CONST.INPUT_MODE.DECIMAL}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
