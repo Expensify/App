@@ -1,3 +1,4 @@
+import CompanyCardsIllustration from '@assets/images/companyCards/cardIllustration.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
@@ -220,4 +221,5 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
+    CompanyCardsIllustration,
 };
