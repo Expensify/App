@@ -19,6 +19,7 @@ import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
@@ -293,7 +294,7 @@ function Composer(
             return;
         }
 
-        const currentText = textInput.current.innerText;
+        const currentText = textInput.current.value;
         textInput.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
@@ -416,7 +417,7 @@ function Composer(
                             return;
                         }
 
-                        textInput.current.focus();
+                        focusComposerWithDelay(textInput.current)(true);
                     });
 
                     props.onFocus?.(e);

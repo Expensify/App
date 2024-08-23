@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
-import React, {memo, useMemo} from 'react';
+import React, {memo, useMemo, useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import Performance from '@libs/Performance';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -52,6 +53,10 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
+
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.MESSAGE_SENT, {message: text});
+    }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
