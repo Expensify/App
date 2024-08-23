@@ -212,7 +212,6 @@ function SettlementButton({
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
         if (canUseWallet || (isExpenseReport && shouldShowPaywithExpensifyOption)) {
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
         }
 
         if (shouldShowPayElsewhereOption) {
