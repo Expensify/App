@@ -384,6 +384,7 @@ const CONST = {
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         WORKSPACE_RULES: 'workspaceRules',
+        COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
