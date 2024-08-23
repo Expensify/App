@@ -51,7 +51,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     style={[styles.flexGrow1, styles.mh5, styles.mt5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
-                        PolicyActions.setPolicyAutomaticApprovalRate(auditRatePercentage, policyID);
+                        PolicyActions.setPolicyAutomaticApprovalRate(policyID, auditRatePercentage);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
