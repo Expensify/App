@@ -26,6 +26,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -49,8 +50,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '-1';
     const policy = usePolicy(policyID);
@@ -193,7 +196,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
-                <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                     {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
                             medium
@@ -285,6 +288,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems = [
+            {
+                icon: Expensicons.Table,
+                text: translate('common.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID));
+                },
+            },
+        ];
+
+        return menuItems;
+    }, [policyID, translate, isOffline]);
+
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
             {isConnectedToAccounting ? (
@@ -333,6 +354,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         }
                         Navigation.goBack();
                     }}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -385,6 +409,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <ConfirmModal
+                    isVisible={isOfflineModalVisible}
+                    onConfirm={() => setIsOfflineModalVisible(false)}
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.thisFeatureRequiresInternet')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

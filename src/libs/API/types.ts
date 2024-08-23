@@ -131,6 +131,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
     IMPORT_CATEGORIES_SREADSHEET: 'ImportCategoriesSpreadsheet',
+    IMPORT_TAGS_SREADSHEET: 'ImportTagsSpreadsheet',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
@@ -457,6 +458,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
+    [WRITE_COMMANDS.IMPORT_TAGS_SREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;

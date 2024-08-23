@@ -672,6 +672,7 @@ export default {
         importFailedDescription: 'La importación ha fallado. Por favor, revise los errores e inténtelo de nuevo',
         importFailedTitle: 'Importación fallida',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importSuccessfullTitle: 'Importar categorías',
     },
     receipt: {
@@ -3063,6 +3064,9 @@ export default {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            importTags: 'Importar categorías',
+            importedTagsMessage: (columnCounts: number) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',

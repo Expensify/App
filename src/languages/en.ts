@@ -678,6 +678,7 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Oops! There was an issue with your upload.',
         importFailedDescription: 'Please ensure all fields are correctly filled and try again. If the problem persists, please reach out to Concierge.',
     },
@@ -3015,6 +3016,9 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            importTags: 'Import tags',
+            importedTagsMessage: (columnCounts: number) =>
+                `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',

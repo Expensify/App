@@ -802,6 +802,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
         getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
     },
+    WORKSPACE_TAGS_IMPORT: {
+        route: 'settings/workspaces/:policyID/tags/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import` as const,
+    },
+    WORKSPACE_TAGS_IMPORTED: {
+        route: 'settings/workspaces/:policyID/tags/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
+    },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
