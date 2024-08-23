@@ -90,6 +90,9 @@ type SelectionScreenProps<T = string> = {
 
     /** Used for dynamic header title translation with parameters */
     headerTitleAlreadyTranslated?: string;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 };
 
 function SelectionScreen<T = string>({
@@ -114,6 +117,7 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
+    shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,8 +155,9 @@ function SelectionScreen<T = string>({
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     >
                         <ErrorMessageRow
                             errors={errors}

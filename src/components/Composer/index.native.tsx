@@ -1,10 +1,12 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,6 +22,7 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 function Composer(
     {
         onClear: onClearProp = () => {},
+        onPasteFile = () => {},
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
@@ -44,6 +47,15 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+
+    useEffect(() => {
+        if (autoFocus === !!autoFocusInputRef.current) {
+            return;
+        }
+        inputCallbackRef(autoFocus ? textInput.current : null);
+    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
     /**
      * Set the TextInput Ref
      * @param {Element} el
@@ -53,6 +65,10 @@ function Composer(
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
+        }
+
+        if (autoFocus) {
+            inputCallbackRef(el);
         }
 
         // This callback prop is used by the parent component using the constructor to
@@ -68,6 +84,20 @@ function Composer(
             onClearProp(nativeEvent.text);
         },
         [onClearProp],
+    );
+
+    const pasteFile = useCallback(
+        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
+            const clipboardContent = e.nativeEvent.items[0];
+            if (clipboardContent.type === 'text/plain') {
+                return;
+            }
+            const fileURI = clipboardContent.data;
+            const fileName = fileURI.split('/').pop();
+            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            onPasteFile(file);
+        },
+        [onPasteFile],
     );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
@@ -90,6 +120,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onPaste={pasteFile}
             onBlur={(e) => {
                 if (!isFocused) {
                     // eslint-disable-next-line react-compiler/react-compiler

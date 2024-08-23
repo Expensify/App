@@ -110,18 +110,20 @@ function PolicyDistanceRatesPage({
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
                     keyForList: value.customUnitRateID ?? '',
-                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
+                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
                         value.pendingAction ??
                         value.pendingFields?.rate ??
                         value.pendingFields?.enabled ??
                         value.pendingFields?.currency ??
+                        value.pendingFields?.taxRateExternalID ??
+                        value.pendingFields?.taxClaimablePercentage ??
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction],
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate, policy?.pendingAction, canSelectMultiple],
     );
 
     const addRate = () => {
@@ -336,6 +338,7 @@ function PolicyDistanceRatesPage({
                 )}
                 <ConfirmModal
                     onConfirm={() => setIsWarningModalVisible(false)}
+                    onCancel={() => setIsWarningModalVisible(false)}
                     isVisible={isWarningModalVisible}
                     title={translate('workspace.distanceRates.oopsNotSoFast')}
                     prompt={translate('workspace.distanceRates.workspaceNeeds')}

@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -54,7 +54,7 @@ type IOURequestStepConfirmationOnyxProps = {
     policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** The tag configuration of the report's policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &

@@ -16,6 +16,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -93,11 +95,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
+    const hasSyncError = PolicyUtils.hasSyncError(policy);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseWorkspaceRules} = usePermissions();
     const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -162,7 +166,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
+    const hasGeneralSettingsError =
+        !isEmptyObject(policy?.errorFields?.name ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.address ?? {});
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -301,19 +309,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
+            brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-            // brickRoadIndicator should be set when API will be ready
-            brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.RULES,
         });
     }
@@ -406,7 +411,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.resetToHome();
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
+                        } else {
+                            Navigation.dismissModal();
+                        }
+                    }}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />

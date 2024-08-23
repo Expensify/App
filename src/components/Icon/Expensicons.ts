@@ -24,6 +24,7 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Bolt from '@assets/images/bolt.svg';
+import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -214,6 +215,7 @@ export {
     Bell,
     BellSlash,
     Bolt,
+    Box,
     Briefcase,
     Bug,
     Building,

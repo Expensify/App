@@ -46,7 +46,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
             <PressableWithSecondaryInteraction
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(childReportID);
-                    Timing.start(CONST.TIMING.SWITCH_REPORT_THREAD);
+                    Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

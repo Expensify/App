@@ -93,7 +93,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 orderWeight: policyTagList.orderWeight,
                 text: PolicyUtils.getCleanedTagName(policyTagList.name),
                 keyForList: String(policyTagList.orderWeight),
-                isSelected: selectedTags[policyTagList.name],
+                isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
                 pendingAction: getPendingAction(policyTagList),
                 enabled: true,
                 required: policyTagList.required,
@@ -110,14 +110,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             value: tag.name,
             text: PolicyUtils.getCleanedTagName(tag.name),
             keyForList: tag.name,
-            isSelected: selectedTags[tag.name],
+            isSelected: selectedTags[tag.name] && canSelectMultiple,
             pendingAction: tag.pendingAction,
             errors: tag.errors ?? undefined,
             enabled: tag.enabled,
             isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, translate]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate]);
 
     const tagListKeyedByName = useMemo(
         () =>
@@ -347,7 +347,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || tagList.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleTag || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
