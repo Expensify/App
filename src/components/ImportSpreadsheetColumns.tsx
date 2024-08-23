@@ -24,6 +24,7 @@ type ImportSpreadsheetColumnsProps = {
     importFunction: () => void;
     errors?: Errors | null;
     isButtonLoading?: boolean;
+    headerText: string;
 };
 
 function ImportSpreeadsheetColumns({
@@ -35,6 +36,7 @@ function ImportSpreeadsheetColumns({
     errors,
     importFunction,
     isButtonLoading,
+    headerText,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,7 +46,7 @@ function ImportSpreeadsheetColumns({
         <>
             <ScrollView style={styles.mh5}>
                 <View>
-                    <RenderHTML html={Parser.replace(translate('workspace.categories.importedCategoriesMessage', spreadsheetColumns?.length))} />
+                    <RenderHTML html={Parser.replace(headerText)} />
 
                     <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text>{translate('spreadsheet.fileContainsHeader')}</Text>

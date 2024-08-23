@@ -671,7 +671,7 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
         importFailedDescription: 'La importación ha fallado. Por favor, revise los errores e inténtelo de nuevo',
         importFailedTitle: 'Importación fallida',
-        importSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importSuccessfullTitle: 'Importar categorías',
     },
     receipt: {

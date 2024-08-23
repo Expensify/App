@@ -147,6 +147,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 errors={validate()}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
+                headerText={translate('workspace.categories.importedCategoriesMessage', spreadsheetColumns?.length)}
             />
 
             <ConfirmModal

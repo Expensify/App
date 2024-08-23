@@ -131,7 +131,10 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importSuccessfullDescription', categoriesLength)},
+                    importFinalModal: {
+                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', categoriesLength),
+                    },
                 },
             },
         ],
