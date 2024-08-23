@@ -31,7 +31,6 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
-import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -89,7 +88,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -177,12 +176,11 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
-    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
-    // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
+    const isDataLoaded = searchResults?.data !== undefined;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
+
+    const isSearchResultsEmpty = !searchResults || SearchUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
@@ -205,14 +203,16 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         );
     }
 
-    if (searchResults === undefined) {
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (searchResults === undefined || type === undefined) {
         Log.alert('[Search] Undefined search type');
         return null;
     }
 
-    const ListItem = SearchUtils.getListItem(status);
-    const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
-    const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);
+    const ListItem = SearchUtils.getListItem(type, status);
+    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
@@ -224,10 +224,6 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
-                />
-                <SearchStatusBar
-                    type={type}
-                    status={status}
                 />
                 <EmptySearchView type={type} />
             </>
@@ -285,7 +281,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     };
 
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = status !== CONST.SEARCH.STATUS.EXPENSE.ALL;
+        const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -322,10 +318,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-            <SearchStatusBar
-                type={type}
-                status={status}
-            />
+
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
