@@ -531,6 +531,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT]: Parameters.SetWorkspaceReimbursementParams;
     [WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE]: Parameters.SetPolicyDefaultReportTitleParams;
+    [WRITE_COMMANDS.SET_POLICY_PREVENT_MEMBER_CREATED_TITLE]: Parameters.SetPolicyPreventMemberCreatedTitleParams;
     [WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL]: Parameters.SetPolicyPreventSelfApprovalParams;
     [WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT]: Parameters.SetPolicyAutomaticApprovalLimitParams;
     [WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE]: Parameters.SetPolicyAutomaticApprovalRateParams;
