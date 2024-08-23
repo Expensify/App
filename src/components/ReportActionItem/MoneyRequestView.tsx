@@ -186,7 +186,7 @@ function MoneyRequestView({
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
-    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report) && !readonly;
+    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
     const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
@@ -344,8 +344,8 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}
-                    interactive={canEditDistance}
-                    shouldShowRightIcon={canEditDistance}
+                    interactive={canEditDistance && !readonly}
+                    shouldShowRightIcon={canEditDistance && !readonly}
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
@@ -370,8 +370,8 @@ function MoneyRequestView({
             <MenuItemWithTopDescription
                 description={translate('common.distance')}
                 title={transactionMerchant}
-                interactive={canEditDistance}
-                shouldShowRightIcon={canEditDistance}
+                interactive={canEditDistance && !readonly}
+                shouldShowRightIcon={canEditDistance && !readonly}
                 titleStyle={styles.flex1}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))}
             />
@@ -428,8 +428,8 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
                     title={TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index)}
-                    interactive={canEdit}
-                    shouldShowRightIcon={canEdit}
+                    interactive={canEdit && !readonly}
+                    shouldShowRightIcon={canEdit && !readonly}
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report?.reportID ?? '-1'))
@@ -501,7 +501,7 @@ function MoneyRequestView({
                 {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
-                        disabled={!canEditReceipt}
+                        disabled={!canEditReceipt || readonly}
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -524,8 +524,8 @@ function MoneyRequestView({
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
-                        interactive={canEditAmount}
-                        shouldShowRightIcon={canEditAmount}
+                        interactive={canEditAmount && !readonly}
+                        shouldShowRightIcon={canEditAmount && !readonly}
                         onPress={() =>
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
                         }
@@ -538,8 +538,8 @@ function MoneyRequestView({
                         description={translate('common.description')}
                         shouldParseTitle
                         title={updatedTransactionDescription ?? transactionDescription}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
+                        interactive={canEdit && !readonly}
+                        shouldShowRightIcon={canEdit && !readonly}
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
@@ -557,8 +557,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
                             title={updatedTransaction?.modifiedMerchant ?? merchantTitle}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
+                            interactive={canEditMerchant && !readonly}
+                            shouldShowRightIcon={canEditMerchant && !readonly}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
@@ -574,8 +574,8 @@ function MoneyRequestView({
                     <MenuItemWithTopDescription
                         description={translate('common.date')}
                         title={transactionDate}
-                        interactive={canEditDate}
-                        shouldShowRightIcon={canEditDate}
+                        interactive={canEditDate && !readonly}
+                        shouldShowRightIcon={canEditDate && !readonly}
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1' ?? '-1'))
@@ -589,8 +589,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={updatedTransaction?.category ?? transactionCategory}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEdit && !readonly}
+                            shouldShowRightIcon={canEdit && !readonly}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
@@ -616,8 +616,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
-                            interactive={canEditTaxFields}
-                            shouldShowRightIcon={canEditTaxFields}
+                            interactive={canEditTaxFields && !readonly}
+                            shouldShowRightIcon={canEditTaxFields && !readonly}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
@@ -632,8 +632,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={translate('iou.taxAmount')}
-                            interactive={canEditTaxFields}
-                            shouldShowRightIcon={canEditTaxFields}
+                            interactive={canEditTaxFields && !readonly}
+                            shouldShowRightIcon={canEditTaxFields && !readonly}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
@@ -671,7 +671,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
-                            disabled={!canEdit}
+                            disabled={!canEdit || readonly}
                         />
                     </View>
                 )}
