@@ -5,7 +5,7 @@
 //
 // query: entry point for the parser and rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
 // filterList: rule to process the array of filters returned by the filter rule. It takes head and tail as arguments, filters it for null values and builds the AST.
-// filter: abstract rule to simplify the filterList rule.It takes all filter tyepes.
+// filter: abstract rule to simplify the filterList rule. It takes all filter types.
 // defaultFilter: rule to process the default values returned by the defaultKey rule. It updates the default values object.
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
 // multiSelectFilter: rule to process the multi-select values returned by the multiselectKey rule. It builds multiselect filter Object.
