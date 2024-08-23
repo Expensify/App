@@ -45,55 +45,7 @@ type ListenerMock = {
     addListener: jest.Mock;
 };
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- * Details: https://github.com/jestjs/jest/issues/2567
- */
-const createAddListenerMock = (): ListenerMock => {
-    const transitionEndListeners: Array<() => void> = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
-    transitionEndCB = triggerTransitionEnd;
-
-    const useNavigation = () =>
-        ({
-            navigate: jest.fn(),
-            ...actualNav.useNavigation,
-            getState: () => ({
-                routes: [],
-            }),
-            addListener,
-        } as typeof NativeNavigation.useNavigation);
-
-    return {
-        ...actualNav,
-        useNavigation,
-        getState: () => ({
-            routes: [],
-        }),
-    } as typeof NativeNavigation;
-});
+jest.mock('@react-navigation/native');
 
 beforeAll(() => {
     TestHelper.beforeAllSetupUITests();

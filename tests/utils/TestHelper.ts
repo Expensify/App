@@ -1,6 +1,5 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
-import type {Listener} from 'onfido-sdk-ui/types/shared/EventEmitter';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
