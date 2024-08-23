@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.24-0",
+  "version": "9.0.24-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -290,6 +290,7 @@
     "jest-cli": "29.4.1",
     "jest-environment-jsdom": "^29.4.1",
     "jest-transformer-svg": "^2.0.1",
+    "link": "^2.1.1",
     "memfs": "^4.6.0",
     "onchange": "^7.1.0",
     "openai": "^4.47.2",
