@@ -82,7 +82,7 @@ function CardListItem<TItem extends ListItem>({
                         {!!item.lastFourPAN && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={translate('subscription.cardSection.cardEnding', {cardNumber: item.lastFourPAN})}
+                                text={`${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}`}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
