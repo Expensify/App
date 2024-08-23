@@ -69,7 +69,10 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.between', {
+                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
+                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
+            });
         }
         if (lessThan) {
             return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));

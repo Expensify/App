@@ -67,12 +67,14 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportIntegrationMessageTranslationParams,
+    ReportMemberRoleParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    SearchFilterAmountBetweenParams,
     SetTheDistanceParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
@@ -95,6 +97,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdateReportMemberRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
@@ -754,8 +757,8 @@ export default {
             }
             return {
                 one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
-                other: (count: number) => statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`,
-            }
+                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
         },
         deleteExpense: () => ({
             one: `Eliminar gasto`,
@@ -3826,7 +3829,7 @@ export default {
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} y ${lessThan}`,
+                between: ({greaterThan, lessThan}: SearchFilterAmountBetweenParams) => `Entre ${greaterThan} y ${lessThan}`,
             },
         },
         expenseType: 'Tipo de gasto',
@@ -3962,11 +3965,11 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
-                integrationSyncFailed: (label: string, errorMessage: string) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
-                addEmployee: (email: string, role: string) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
-                updateRole: (email: string, currentRole: string, newRole: string) =>
+                integrationSyncFailed: ({label, errorMessage}: ReportIntegrationMessageTranslationParams) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
+                addEmployee: ({email, role}: ReportMemberRoleParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
+                updateRole: ({email, currentRole, newRole}: UpdateReportMemberRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
-                removeMember: (email: string, role: string) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removeMember: ({email, role}: ReportMemberRoleParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
             },
         },
     },

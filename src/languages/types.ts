@@ -386,6 +386,22 @@ type ApprovalWorkflowErrorParams = {
     name2: string;
 };
 
+type SearchFilterAmountBetweenParams = {
+    greaterThan: string;
+    lessThan: string;
+};
+
+type ReportMemberRoleParams = {
+    email: string;
+    role: string;
+};
+
+type UpdateReportMemberRoleParams = {
+    email: string;
+    currentRole: string;
+    newRole: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -512,4 +528,7 @@ export type {
     StatementPageTitleTranslationParams,
     ReportIntegrationMessageTranslationParams,
     ApprovalWorkflowErrorParams,
+    SearchFilterAmountBetweenParams,
+    ReportMemberRoleParams,
+    UpdateReportMemberRoleParams,
 };
