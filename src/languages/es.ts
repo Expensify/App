@@ -672,6 +672,7 @@ export default {
         importFailedDescription: 'La importación ha fallado. Por favor, revise los errores e inténtelo de nuevo',
         importFailedTitle: 'Importación fallida',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importMembersSuccessfullDescription: (members: number) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importSuccessfullTitle: 'Importar categorías',
     },
     receipt: {
@@ -3140,6 +3141,9 @@ export default {
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
+            importMembers: 'Importar miembros',
+            importedMembersMessage: (columnCounts: number) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Email* junto a la columna que contiene correos electrónicos. También puede seleccionar *Role* junto a la columna que establece los roles de los usuarios.`,
         },
         accounting: {
             settings: 'configuración',

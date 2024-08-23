@@ -10,6 +10,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,6 +23,7 @@ import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmplo
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
 
@@ -165,6 +167,36 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         },
     });
     return announceRoomMembers;
+}
+/**
+ * Updates the import spreadsheet data according to the result of the import
+ */
+function updateImportSpreadsheetData(membersLength: number) {
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importSuccessfullTitle'), prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', membersLength)},
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
+            },
+        ],
+    };
+
+    return onyxData;
 }
 
 /**
@@ -639,6 +671,22 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     API.write(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
+type PolicyMember = {
+    email: string;
+    role: string;
+};
+
+function importPolicyMembers(policyID: string, members: PolicyMember[]) {
+    const onyxData = updateImportSpreadsheetData(members.length);
+
+    const parameters = {
+        policyID,
+        employees: JSON.stringify([...members.map((member) => ({email: member.email, role: member.role}))]),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SREADSHEET, parameters, onyxData);
+}
+
 /**
  * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
@@ -849,6 +897,7 @@ export {
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
+    importPolicyMembers,
 };
 
 export type {NewCustomUnit};

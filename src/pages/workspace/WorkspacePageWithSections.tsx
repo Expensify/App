@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
@@ -36,7 +37,8 @@ type WorkspacePageWithSectionsOnyxProps = {
 };
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    WorkspacePageWithSectionsOnyxProps & {
+    WorkspacePageWithSectionsOnyxProps &
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -59,9 +61,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Option to show the loading page while the API is calling */
         shouldShowLoading?: boolean;
-
-        /** Should show the back button. It is used when in RHP. */
-        shouldShowBackButton?: boolean;
 
         /** Whether the offline indicator should be shown in wide screen devices */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -90,9 +89,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
-
-        /** Callback to be called when the back button is pressed */
-        onBackButtonPress?: () => void;
     };
 
 function fetchData(policyID: string, skipVBBACal?: boolean) {
@@ -126,6 +122,9 @@ function WorkspacePageWithSections({
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
     onBackButtonPress,
+    shouldShowThreeDotsButton,
+    threeDotsMenuItems,
+    threeDotsAnchorPosition,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '-1';
@@ -189,6 +188,9 @@ function WorkspacePageWithSections({
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
+                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {headerContent}
                 </HeaderWithBackButton>

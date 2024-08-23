@@ -26,6 +26,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -68,10 +69,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
+    const {windowWidth} = useWindowDimensions();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
@@ -506,7 +509,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return null;
         }
         return (
-            <View style={styles.w100}>
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
                 {(shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
@@ -534,6 +537,24 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         );
     };
 
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems = [
+            {
+                icon: Expensicons.Table,
+                text: translate('common.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
+                },
+            },
+        ];
+
+        return menuItems;
+    }, [policyID, translate, isOffline]);
+
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
@@ -546,6 +567,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowThreeDotsButton
+            threeDotsMenuItems={threeDotsMenuItems}
+            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (selectionMode?.isEnabled) {
@@ -559,6 +583,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    <ConfirmModal
+                        isVisible={isOfflineModalVisible}
+                        onConfirm={() => setIsOfflineModalVisible(false)}
+                        title={translate('common.youAppearToBeOffline')}
+                        prompt={translate('common.thisFeatureRequiresInternet')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
+
                     <ConfirmModal
                         danger
                         title={translate('workspace.people.removeMembersTitle')}

@@ -678,6 +678,7 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importMembersSuccessfullDescription: (members: number) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importFailedTitle: 'Oops! There was an issue with your upload.',
         importFailedDescription: 'Please ensure all fields are correctly filled and try again. If the problem persists, please reach out to Concierge.',
     },
@@ -3092,6 +3093,9 @@ export default {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
+            importMembers: 'Import members',
+            importedMembersMessage: (columnCounts: number) =>
+                `We found *${columnCounts} columns* in your spreadsheet. Select *Email* next to the column that contains emails. You can also select *Role* next to the column that sets users roles.`,
         },
         card: {
             header: 'Unlock free Expensify Cards',
