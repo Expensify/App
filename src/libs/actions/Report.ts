@@ -487,8 +487,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     };
 
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const shouldUpdateNotificationPrefernece = !isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
-    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (shouldUpdateNotificationPrefernece) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
@@ -542,6 +543,17 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: successReportActions,
         },
     ];
+
+    if (shouldUpdateNotificationPrefernece) {
+        // optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            },
+        });
+    }
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -1226,6 +1238,11 @@ function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
  * Sets the last read time on a report
  */
 function markCommentAsUnread(reportID: string, reportActionCreated: string) {
+    if (reportID === '-1') {
+        Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
+        return;
+    }
+
     const reportActions = allReportActions?.[reportID];
 
     // Find the latest report actions from other users
@@ -2035,19 +2052,47 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
     }
 
     const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
+    const optimisticDescriptionUpdatedReportAction = ReportUtils.buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
+    const report = ReportUtils.getReport(reportID);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            value: {
+                description: parsedDescription,
+                pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                lastActorAccountID: currentUserAccountID,
+                lastVisibleActionCreated: optimisticDescriptionUpdatedReportAction.created,
+                lastMessageText: (optimisticDescriptionUpdatedReportAction?.message as Message[])?.[0]?.text,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: optimisticDescriptionUpdatedReportAction,
+            },
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: previousValue, pendingFields: {description: null}},
+            value: {
+                description: previousValue,
+                pendingFields: {description: null},
+                lastActorAccountID: report?.lastActorAccountID,
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+                lastMessageText: report?.lastMessageText,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: null,
+            },
         },
     ];
     const successData: OnyxUpdate[] = [
@@ -2056,9 +2101,16 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {pendingFields: {description: null}},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticDescriptionUpdatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
     ];
 
-    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription};
+    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription, reportActionID: optimisticDescriptionUpdatedReportAction.reportActionID};
 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData, successData});
     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
@@ -2257,7 +2309,9 @@ function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
-    deleteReport(reportID, shouldDeleteChildReports);
+    InteractionManager.runAfterInteractions(() => {
+        deleteReport(reportID, shouldDeleteChildReports);
+    });
 }
 
 /**

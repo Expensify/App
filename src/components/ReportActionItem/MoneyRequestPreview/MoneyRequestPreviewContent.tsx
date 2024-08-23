@@ -269,9 +269,10 @@ function MoneyRequestPreviewContent({
     // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
     const splitShare = useMemo(
         () =>
-            shouldShowSplitShare &&
-            (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
+            shouldShowSplitShare
+                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                  IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                : 0,
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
 
@@ -387,9 +388,9 @@ function MoneyRequestPreviewContent({
                                                     <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>
                                                 )}
                                             </View>
-                                            {splitShare && (
+                                            {!!splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency)})}
+                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare, requestCurrency)})}
                                                 </Text>
                                             )}
                                         </View>

@@ -12,7 +12,9 @@ type CreateWorkspaceApprovalParams = {
     employees: string;
 };
 
-type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
+type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams & {
+    defaultApprover?: string;
+};
 
 type RemoveWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 
