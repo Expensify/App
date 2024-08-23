@@ -2157,7 +2157,7 @@ export default {
             reportFields: 'Campos de informe',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
-            invoices: 'Enviar facturas',
+            invoices: 'Facturas',
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
@@ -3809,7 +3809,6 @@ export default {
             },
         },
         expenseType: 'Tipo de gasto',
-        invoices: 'Facturas',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
