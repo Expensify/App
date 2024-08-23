@@ -10,6 +10,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -32,6 +33,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]} />
+                <WorkspaceCompanyCardPageEmptyState route={route} />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
