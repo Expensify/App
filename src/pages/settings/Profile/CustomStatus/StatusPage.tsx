@@ -189,6 +189,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             onModalHide={() => {
                                 inputRef.current?.focus();
                             }}
+                            shouldPassActiveEmoji={false}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />
