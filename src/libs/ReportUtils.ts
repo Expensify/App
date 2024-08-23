@@ -2586,6 +2586,10 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
+    if (isInvoiceRoom(optionOrReport) && optionOrReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(optionOrReport?.policyID)?.invoice?.bankAccount ?? {})) {
+        return true;
+    }
+
     return false;
 }
 
