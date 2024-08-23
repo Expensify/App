@@ -18,6 +18,7 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
             payload = JSON.parse(payload) as string;
         } catch {
             Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
+            payload = {};
         }
     }
 
