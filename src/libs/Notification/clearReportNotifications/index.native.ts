@@ -8,12 +8,18 @@ import type ClearReportNotifications from './types';
 const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     let payload = pushPayload.extras.payload;
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload) as string;
+        try {
+            payload = JSON.parse(payload) as string;
+        } catch {
+            Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
+            payload = undefined;
+        }
     }
-    const data = payload as PushNotificationData;
+
+    const data = payload ? (payload as PushNotificationData) : undefined;
     return {
         notificationID: pushPayload.notificationId,
-        reportID: String(data.reportID),
+        reportID: String(data?.reportID),
     };
 };
 
