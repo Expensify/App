@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -39,11 +38,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
 let transitionEndCB: () => void;
-
-type ListenerMock = {
-    triggerTransitionEnd: () => void;
-    addListener: jest.Mock;
-};
 
 jest.mock('@react-navigation/native');
 
