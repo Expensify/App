@@ -87,6 +87,10 @@ const CONST = {
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
+    POLICY_BILLABLE_MODES: {
+        BILLABLE: 'billable',
+        NON_BILLABLE: 'nonBillable',
+    },
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],

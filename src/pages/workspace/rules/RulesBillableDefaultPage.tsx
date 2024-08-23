@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -30,29 +29,24 @@ function RulesBillableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [defaultBillable, setDefaultBillable] = useState(policy?.defaultBillable ?? false);
-
     const billableModes = [
         {
             value: true,
             text: translate(`workspace.rules.individualExpenseRules.billable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.billableDescription`),
-            keyForList: 'billable',
-            isSelected: defaultBillable,
+            keyForList: CONST.POLICY_BILLABLE_MODES.BILLABLE,
+            isSelected: policy?.defaultBillable,
         },
         {
             value: false,
             text: translate(`workspace.rules.individualExpenseRules.nonBillable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.nonBillableDescription`),
-            keyForList: 'nonBillable',
-            isSelected: !defaultBillable,
+            keyForList: CONST.POLICY_BILLABLE_MODES.NON_BILLABLE,
+            isSelected: !policy?.defaultBillable,
         },
     ];
 
-    const handleOnSubmit = () => {
-        Policy.setPolicyBillableMode(policyID, defaultBillable);
-        Navigation.goBack();
-    };
+    const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
     const handleOnPressTagsLink = () => {
         if (policy?.areTagsEnabled) {
@@ -91,15 +85,13 @@ function RulesBillableDefaultPage({
                 <SelectionList
                     sections={[{data: billableModes}]}
                     ListItem={RadioListItem}
-                    onSelectRow={(item) => setDefaultBillable(item.value)}
+                    onSelectRow={(item) => {
+                        Policy.setPolicyBillableMode(policyID, item.value);
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}
-                />
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.save')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    onSubmit={handleOnSubmit}
-                    enabledWhenOffline
+                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
