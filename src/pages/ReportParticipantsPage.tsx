@@ -68,19 +68,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         setSelectedMembers([]);
     }, [isFocused]);
 
-    const shouldShowTextInput = useMemo(() => {
-        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
-        return chatParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-    }, [report, personalDetails]);
-
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            return;
-        }
-
-        setSearchValue('');
-    }, [shouldShowTextInput]);
-
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
         const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
@@ -129,6 +116,15 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
+
+    const shouldShowTextInput = participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+
+    useEffect(() => {
+        if (shouldShowTextInput) {
+            return;
+        }
+        setSearchValue('');
+    }, [shouldShowTextInput]);
 
     /**
      * Add user from the selectedMembers list

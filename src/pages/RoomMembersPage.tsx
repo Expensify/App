@@ -73,23 +73,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
-    const shouldShowTextInput = useMemo(() => {
-        if (!didLoadRoomMembers) {
-            return false;
-        }
-
-        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
-        return participants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-    }, [report, didLoadRoomMembers]);
-
-    useEffect(() => {
-        if (shouldShowTextInput) {
-            return;
-        }
-
-        setSearchValue('');
-    }, [shouldShowTextInput]);
-
     useEffect(
         () => () => {
             SearchInputManager.searchInput = '';
@@ -244,7 +227,18 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
         return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
+
     const data = getMemberOptions();
+
+    const shouldShowTextInput = data.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+
+    useEffect(() => {
+        if (shouldShowTextInput) {
+            return;
+        }
+        setSearchValue('');
+    }, [shouldShowTextInput]);
+
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
 
     const bulkActionsButtonOptions = useMemo(() => {
