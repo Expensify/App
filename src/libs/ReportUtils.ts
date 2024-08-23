@@ -6900,7 +6900,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     const isRequestSettled = isSettled(originalMessage?.IOUReportID);
     const isApproved = isReportApproved(iouReport);
     if (isRequestSettled) {
-        return Localize.translateLocal('iou.payerSettled', {
+        return Localize.translateLocal(hasMissingInvoiceBankAccount(IOUReportID ?? '') ? 'iou.payerSettledWithMissingBankAccount' : 'iou.payerSettled', {
             amount: formattedAmount,
         });
     }
@@ -7717,6 +7717,11 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
  */
 function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     const invoiceReport = getReport(iouReportID);
+
+    if (!isInvoiceReport(invoiceReport)) {
+        return false;
+    }
+
     const invoiceRoomReport = getReport(invoiceReport?.chatReportID ?? '');
     const policy = getPolicy(invoiceRoomReport?.policyID);
 
