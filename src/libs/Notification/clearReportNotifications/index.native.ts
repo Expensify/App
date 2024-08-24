@@ -1,4 +1,4 @@
-import type {PushPayload} from '@ua/react-native-airship';
+import type {JsonObject, PushPayload} from '@ua/react-native-airship';
 import Airship from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import type {PushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
@@ -9,7 +9,7 @@ const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     let payload = pushPayload.extras.payload;
     if (typeof payload === 'string') {
         try {
-            payload = JSON.parse(payload) as string;
+            payload = JSON.parse(payload) as JsonObject;
         } catch {
             Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
             payload = undefined;

@@ -1,4 +1,4 @@
-import type {PushPayload} from '@ua/react-native-airship';
+import type {JsonObject, PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
