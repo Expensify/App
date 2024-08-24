@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {StatusBar} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
+import StatusBar from '@libs/StatusBar';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
