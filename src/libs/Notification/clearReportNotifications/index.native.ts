@@ -19,7 +19,7 @@ const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     const data = payload ? (payload as PushNotificationData) : undefined;
     return {
         notificationID: pushPayload.notificationId,
-        reportID: data?.reportID ? String(data.reportID) : undefined,
+        reportID: data?.reportID !== undefined ? String(data.reportID) : undefined,
     };
 };
 
