@@ -5,7 +5,7 @@ import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
-import {useNavigation} from '@react-navigation/native'
+import {useNavigation} from '@react-navigation/native';
 import useNetwork from '@hooks/useNetwork';
 import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
