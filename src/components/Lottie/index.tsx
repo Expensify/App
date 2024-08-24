@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
@@ -5,7 +6,6 @@ import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
-import {useNavigation} from '@react-navigation/native';
 import useNetwork from '@hooks/useNetwork';
 import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +50,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         });
         return unsubscribe;
     }, [navigation]);
- 
+
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
     // If the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
