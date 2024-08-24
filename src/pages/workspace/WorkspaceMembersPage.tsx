@@ -340,7 +340,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             if (isOwner || isAdmin) {
                 roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             } else if (isAuditor) {
-                roleBadge = <Badge text={translate('common.auditor')} />
+                roleBadge = <Badge text={translate('common.auditor')} />;
             }
 
             result.push({
