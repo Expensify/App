@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
+import {StatusBar} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -14,6 +15,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,8 +45,11 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
-    const {top: safeAreaInsetsTop} = useSafeAreaInsets();
+    const {top: safeAreaInsetsTop, bottom: safeAreaInsetsBottom} = useSafeAreaInsets();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
+    const safePaddingBottomStyleValue = 'paddingBottom' in safePaddingBottomStyle ? (safePaddingBottomStyle.paddingBottom as number) : 0;
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const [headerTitleHeight, setHeaderTitleHeight] = useState(0);
 
     const {reason, backTo} = route.params;
     const {isOffline} = useNetwork({
@@ -71,7 +76,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const textStyle = styles.headerAnonymousFooter;
     const baseResponseInputContainerStyle = styles.mt7;
     const formMaxHeight = Math.floor(
-        windowHeight -
+        // windowHeight doesn't include status bar height in Android, so we need to add it here.
+        // StatusBar.currentHeight is only available on Android.
+        windowHeight +
+            (StatusBar.currentHeight ?? 0) -
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
@@ -81,8 +89,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     );
     const responseInputMaxHeight = NumberUtils.roundDownToLargestMultiple(
         formMaxHeight -
+            safeAreaInsetsBottom -
+            safePaddingBottomStyleValue -
             // Minus the height of the text component
-            textStyle.lineHeight -
+            headerTitleHeight -
             // Minus the response input margins (multiplied by 2 to create the effect of margins on top and bottom).
             // marginBottom does not work in this case because the TextInput is in a ScrollView and will push the button beneath it out of view,
             // so it's maxHeight is what dictates space between it and the button.
@@ -90,7 +100,9 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
             // Minus the approximate size of a default button
             variables.componentSizeLarge -
             // Minus the vertical margins around the form button
-            40,
+            40 -
+            // Minus the extra height for the form error text
+            20,
 
         // Round down to the largest number of full lines
         styles.baseTextInput.lineHeight,
@@ -120,7 +132,12 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
+                        <Text
+                            style={textStyle}
+                            onLayout={(e) => setHeaderTitleHeight(e.nativeEvent.layout.height)}
+                        >
+                            {translate(`exitSurvey.prompts.${reason}`)}
+                        </Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.RESPONSE}
