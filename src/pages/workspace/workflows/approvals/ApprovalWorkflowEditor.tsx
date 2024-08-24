@@ -127,7 +127,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     interactive={!approvalWorkflow.isDefault}
                 />
 
-                {approvalWorkflow.approvers.map((approver, approverIndex) => {
+                {(approvalWorkflow.approvers.length > 0 ? approvalWorkflow.approvers : [undefined]).map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const hintText = !errorText && approverHintMessage(approver, approverIndex);
                     return (
