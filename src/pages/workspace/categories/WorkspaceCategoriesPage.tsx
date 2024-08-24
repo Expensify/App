@@ -95,14 +95,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return {
                     text: value.name,
                     keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name],
+                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
                     isDisabled,
                     pendingAction: value.pendingAction,
                     errors: value.errors ?? undefined,
                     rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 };
             }),
-        [policyCategories, selectedCategories, translate],
+        [policyCategories, selectedCategories, canSelectMultiple, translate],
     );
 
     const toggleCategory = useCallback((category: PolicyOption) => {
@@ -333,7 +333,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || categoryList.length === 0 || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

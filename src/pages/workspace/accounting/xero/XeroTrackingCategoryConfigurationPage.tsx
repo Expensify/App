@@ -59,6 +59,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
                         !xeroConfig?.importTrackingCategories,
+                        xeroConfig?.importTrackingCategories,
                     )
                 }
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}

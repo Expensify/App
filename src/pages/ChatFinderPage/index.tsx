@@ -104,7 +104,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, betas, preferChatroomsOverThreads: true});
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
@@ -114,7 +114,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             userToInvite: newOptions.userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions, betas]);
+    }, [debouncedSearchValue, searchOptions]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -123,14 +123,16 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports.map((report) => ({...report, isBold: report.isUnread})),
+                data: recentReports.map((report) => {
+                    return {...report, isBold: OptionsListUtils.shouldUseBoldText(report)};
+                }),
                 shouldShow: true,
             });
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
-                data: localPersonalDetails,
+                data: localPersonalDetails.map((personalDetail) => ({...personalDetail, isBold: false})),
                 shouldShow: true,
             });
         }

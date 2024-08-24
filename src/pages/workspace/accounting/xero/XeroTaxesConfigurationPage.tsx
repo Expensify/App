@@ -33,7 +33,15 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
                 isActive={isSwitchOn}
-                onToggle={() => Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !xeroConfig?.importTaxRates)}
+                onToggle={() =>
+                    Connections.updatePolicyXeroConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.XERO_CONFIG.IMPORT_TAX_RATES,
+                        !xeroConfig?.importTaxRates,
+                        xeroConfig?.importTaxRates,
+                    )
+                }
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                 pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TAX_RATES], xeroConfig?.pendingFields)}

@@ -17,6 +17,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCurrentSearchParams} from '@libs/SearchUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -90,7 +91,8 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             const currentSearchParams = getCurrentSearchParams();
             if (currentSearchParams) {
                 const {q, ...rest} = currentSearchParams;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest}));
+                const policy = PolicyUtils.getPolicy(currentSearchParams?.policyIDs);
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest, policyIDs: policy ? currentSearchParams?.policyIDs : undefined}));
                 return;
             }
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));

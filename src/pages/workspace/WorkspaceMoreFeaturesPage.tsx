@@ -61,7 +61,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -69,13 +69,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.xero?.config?.importTaxRates ||
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
-    // @ts-expect-error a new props will be added during feed api implementation
-    const workspaceAccountID = (policy?.workspaceAccountID as string) ?? '';
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}${CONST.EXPENSIFY_CARD.BANK}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}${CONST.EXPENSIFY_CARD.BANK}`);
+    const [companyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
+    const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
 
     const spendItems: Item[] = [
         {
@@ -91,6 +92,53 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 DistanceRate.enablePolicyDistanceRates(policyID, isEnabled);
             },
         },
+    ];
+
+    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
+    if (canUseWorkspaceFeeds) {
+        spendItems.push({
+            icon: Illustrations.HandCard,
+            titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
+            isActive: policy?.areExpensifyCardsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
+            disabled: !isEmptyObject(cardsList),
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                Policy.enableExpensifyCard(policyID, isEnabled);
+            },
+            disabledAction: () => {
+                setIsDisableExpensifyCardWarningModalOpen(true);
+            },
+        });
+        spendItems.push({
+            icon: Illustrations.CompanyCard,
+            titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
+            isActive: policy?.areCompanyCardsEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
+            disabled: !isEmptyObject(companyCardsList),
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                    );
+                    return;
+                }
+                Policy.enableCompanyCards(policyID, isEnabled);
+            },
+            disabledAction: () => {
+                setIsDisableCompanyCardsWarningModalOpen(true);
+            },
+        });
+    }
+
+    const manageItems: Item[] = [
         {
             icon: Illustrations.Workflows,
             titleTranslationKey: 'workspace.moreFeatures.workflows.title',
@@ -106,23 +154,24 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
-    if (canUseWorkspaceFeeds) {
-        spendItems.splice(1, 0, {
-            icon: Illustrations.HandCard,
-            titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
-            isActive: policy?.areExpensifyCardsEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
-            disabled: !isEmptyObject(cardsList),
+    // TODO remove this when feature will be fully done, and move manage item inside manageItems array
+    if (canUseWorkspaceRules) {
+        manageItems.splice(1, 0, {
+            icon: Illustrations.Rules,
+            titleTranslationKey: 'workspace.moreFeatures.rules.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
+            isActive: policy?.areRulesEnabled ?? false,
+            pendingAction: policy?.pendingFields?.areRulesEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
                 }
-                Policy.enableExpensifyCard(policyID, isEnabled);
-            },
-            disabledAction: () => {
-                setIsDisableExpensifyCardWarningModalOpen(true);
+
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                Policy.enablePolicyRules(policyID, isEnabled);
             },
         });
     }
@@ -198,10 +247,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyTaxes(policyID, isEnabled);
             },
         },
-    ];
-
-    if (canUseReportFieldsFeature) {
-        organizeItems.push({
+        {
             icon: Illustrations.Pencil,
             titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
             subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
@@ -229,8 +275,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 setIsReportFieldsWarningModalOpen(true);
             },
-        });
-    }
+        },
+    ];
 
     const integrateItems: Item[] = [
         {
@@ -265,6 +311,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
             items: spendItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
+            items: manageItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
@@ -416,6 +467,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
                     confirmText={translate('workspace.moreFeatures.expensifyCard.disableCardButton')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.companyCards.disableCardTitle')}
+                    isVisible={isDisableCompanyCardsWarningModalOpen}
+                    onConfirm={() => {
+                        setIsDisableCompanyCardsWarningModalOpen(false);
+                        Report.navigateToConciergeChat(true);
+                    }}
+                    onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
+                    confirmText={translate('workspace.moreFeatures.companyCards.disableCardButton')}
                     cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>

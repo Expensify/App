@@ -78,7 +78,15 @@ function ButtonWithDropdownMenu<IValueType>({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
-            onPress(e, selectedItem.value);
+            if (shouldAlwaysShowDropdownMenu || options.length) {
+                if (!isSplitButton) {
+                    setIsMenuVisible(!isMenuVisible);
+                    return;
+                }
+                onPress(e, selectedItem?.value);
+            } else {
+                onPress(e, options[0]?.value);
+            }
         },
         {
             captureOnInputs: true,
