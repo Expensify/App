@@ -24,7 +24,7 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
 
     const data = payload ? (payload as PushNotificationData) : undefined;
 
-    if (!data?.reportID) {
+    if (data?.reportID === undefined) {
         Log.info('[PushNotification] Not a report action notification. Showing notification');
         return true;
     }
