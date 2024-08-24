@@ -4,10 +4,13 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+import getStateFromPath from '@navigation/getStateFromPath';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 
@@ -15,6 +18,7 @@ type OnboardingData = Onboarding | [] | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
+let onboardingInitialPath = '';
 let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
@@ -97,7 +101,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
+                        Navigation.navigate(getOnboardingInitialPath());
                     }, variables.explanationModalDelay),
             }),
     });
@@ -152,6 +156,19 @@ function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
 }
 
+function updateOnboardingLastVisitedPath(path: string) {
+    Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
+}
+
+function getOnboardingInitialPath(): Route {
+    const state = getStateFromPath(onboardingInitialPath as Route);
+    if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
+        return ROUTES.ONBOARDING_ROOT.getRoute() as Route;
+    }
+
+    return onboardingInitialPath as Route;
+}
+
 function completeHybridAppOnboarding() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -188,6 +205,18 @@ Onyx.connect({
     },
 });
 
+const onboardingLastVisitedPathConnection = Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+
+        onboardingInitialPath = value.substring(1);
+        Onyx.disconnect(onboardingLastVisitedPathConnection);
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
@@ -213,12 +242,15 @@ function resetAllChecks() {
         resolveOnboardingFlowStatus = resolve;
     });
     isLoadingReportData = true;
+    onboardingInitialPath = '';
 }
 
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     setOnboardingPurposeSelected,
+    getOnboardingInitialPath,
+    updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,

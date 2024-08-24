@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
@@ -21,6 +20,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCurrentSearchParams} from '@libs/SearchUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import linkingConfig from '@navigation/linkingConfig';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -67,7 +67,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () => {
-                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+                const {adaptedState} = getAdaptedStateFromPath(Welcome.getOnboardingInitialPath(), linkingConfig.config);
                 navigationRef.resetRoot(adaptedState);
             },
         });
