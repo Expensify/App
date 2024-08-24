@@ -18,7 +18,6 @@ function ExplanationModal() {
                 setTimeout(() => {
                     Navigation.isNavigationReady().then(() => {
                         Welcome.startOnboardingFlow();
-                        // Navigation.navigate(Welcome.getOnboardingInitialPath());
                     });
                 }, variables.welcomeVideoDelay);
             },
