@@ -10,6 +10,7 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type CompanyCards from './CompanyCards';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -114,6 +115,7 @@ export type {
     Credentials,
     Currency,
     CurrencyList,
+    CompanyCards,
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,

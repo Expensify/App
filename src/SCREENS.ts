@@ -364,6 +364,7 @@ const SCREENS = {
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
+        COMPANY_CARDS: 'Workspace_CompanyCards',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
@@ -441,6 +442,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
+        RULES: 'Policy_Rules',
     },
 
     EDIT_REQUEST: {
