@@ -24,7 +24,7 @@ type VideoPlayerThumbnailProps = {
     /** Accessibility label for the thumbnail. */
     accessibilityLabel: string;
 
-    /**  Whether the image is deleted */
+    /**  Whether the video is deleted */
     isDeleted?: boolean;
 };
 

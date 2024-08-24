@@ -25,6 +25,7 @@ type DefaultAttachmentViewProps = {
 
     icon?: IconAsset;
 
+    /**  Whether the attachment is deleted */
     isDeleted?: boolean;
 };
 
