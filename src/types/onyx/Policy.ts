@@ -1522,6 +1522,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
+        /** Whether the Company Cards feature is enabled */
+        areCompanyCardsEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
