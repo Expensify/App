@@ -17,10 +17,23 @@ asMutable(translations).default = {
         testKeyGroup: {
             testFunction: ({testVariable}) => `With variable ${testVariable}`,
         },
+        pluralisationGroup: {
+            countWithoutPluralRules: ({count}: {count: number}) => `Count value is ${count}`,
+            countWithNoCorrespondingRule: ({count}) => ({
+                one: 'One file is being downloaded.',
+                other: `Other ${count} files are being downloaded.`,
+            }),
+        },
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
+        pluralisationGroup: {
+            couthWithCorrespondingRule: ({count}: {count: number}) => ({
+                one: 'Un artículo',
+                other: `${count} artículos`,
+            }),
+        },
     }),
     [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
@@ -55,6 +68,31 @@ describe('translate', () => {
         const testVariable = 'Test Variable';
         // @ts-expect-error - TranslationPaths doesn't include testKeyGroup.testFunction as a valid key
         expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
+    });
+
+    it('Test when count value passed to function but output is string', () => {
+        const expectedValue = 'Count value is 10';
+        const count = 10;
+        // @ts-expect-error - TranslationPaths doesn't include pluralisationGroup.countWithoutPluralRules as a valid key
+        expect(Localize.translate(CONST.LOCALES.EN, 'pluralisationGroup.countWithoutPluralRules' as TranslationPaths, {count})).toBe(expectedValue);
+    });
+
+    it('Test when count value 2 passed to function but there is no rule for the key two', () => {
+        const expectedValue = 'Other 2 files are being downloaded.';
+        const count = 2;
+        // @ts-expect-error - TranslationPaths doesn't include pluralisationGroup.countWithNoCorrespondingRule as a valid key
+        expect(Localize.translate(CONST.LOCALES.EN, 'pluralisationGroup.countWithNoCorrespondingRule' as TranslationPaths, {count})).toBe(expectedValue);
+    });
+
+    it('Test when count value 0, 1, 100 passed to function', () => {
+        // @ts-expect-error - TranslationPaths doesn't include pluralisationGroup.couthWithCorrespondingRule as a valid key
+        expect(Localize.translate(CONST.LOCALES.ES, 'pluralisationGroup.couthWithCorrespondingRule' as TranslationPaths, {count: 0})).toBe('0 artículos');
+
+        // @ts-expect-error - TranslationPaths doesn't include pluralisationGroup.couthWithCorrespondingRule as a valid key
+        expect(Localize.translate(CONST.LOCALES.ES, 'pluralisationGroup.couthWithCorrespondingRule' as TranslationPaths, {count: 1})).toBe('Un artículo');
+
+        // @ts-expect-error - TranslationPaths doesn't include pluralisationGroup.couthWithCorrespondingRule as a valid key
+        expect(Localize.translate(CONST.LOCALES.ES, 'pluralisationGroup.couthWithCorrespondingRule' as TranslationPaths, {count: 100})).toBe('100 artículos');
     });
 });
 

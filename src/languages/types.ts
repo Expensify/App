@@ -253,9 +253,17 @@ type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
+type PluralizeValue = {
+    one: string;
+    other: string;
+    zero?: string;
+    two?: string;
+    few?: string;
+    many?: string;
+};
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+type TranslationBaseValue = string | string[] | ((...args: any[]) => string | PluralizeValue);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
@@ -481,4 +489,5 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    PluralizeValue,
 };

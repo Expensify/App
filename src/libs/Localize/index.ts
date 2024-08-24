@@ -70,6 +70,10 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );
 
+function isPlainObject(value: string): boolean {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 /**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
@@ -110,6 +114,35 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
+            /**
+             *
+             * is Plain object is for checking if the phraseTranslated output
+             * is an object then further check if it include the count param or not
+             * OR before checking the plain object output, we can check if we have the count
+             * param in phraseParameters
+             *
+             */
+
+            if (isPlainObject(translatedPhrase(...phraseParameters))) {
+                const phraseObject = {...(phraseParameters[0] as Record<string, unknown>)};
+
+                if ('count' in phraseObject && typeof phraseObject.count === 'number') {
+                    const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+                    const phraseTranslated = translatedPhrase(...phraseParameters);
+
+                    if (phraseTranslated && typeof phraseTranslated === 'object' && pluralRule in phraseTranslated) {
+                        return phraseTranslated[pluralRule];
+                    }
+
+                    Log.alert(`Plural form ${pluralRule} is not found for ${phraseKey}, using 'other' form`);
+                    // NOTEME fix ts error and lint error
+
+                    /* eslint-disable @typescript-eslint/no-unsafe-return */
+                    // @ts-expect-error Property 'other' does not exist on type 'string'
+                    return phraseTranslated.other;
+                }
+            }
+
             return translatedPhrase(...phraseParameters);
         }
 
