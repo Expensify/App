@@ -17,7 +17,8 @@ function ExplanationModal() {
             onNotCompleted: () => {
                 setTimeout(() => {
                     Navigation.isNavigationReady().then(() => {
-                        Navigation.navigate(Welcome.getOnboardingInitialPath());
+                        Welcome.startOnboardingFlow();
+                        // Navigation.navigate(Welcome.getOnboardingInitialPath());
                     });
                 }, variables.welcomeVideoDelay);
             },

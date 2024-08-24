@@ -3,8 +3,10 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import getStateFromPath from '@navigation/getStateFromPath';
+import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFromPath';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -50,6 +52,7 @@ function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
+let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
@@ -57,8 +60,10 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
         }
 
         if (onboarding?.hasCompletedGuidedSetupFlow) {
+            isOnboardingInProgress = false;
             onCompleted?.();
-        } else {
+        } else if (!isOnboardingInProgress) {
+            isOnboardingInProgress = true;
             onNotCompleted?.();
         }
     });
@@ -101,7 +106,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(getOnboardingInitialPath());
+                        startOnboardingFlow();
                     }, variables.explanationModalDelay),
             }),
     });
@@ -197,6 +202,17 @@ function completeHybridAppOnboarding() {
     API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
 }
 
+function startOnboardingFlow() {
+    const currentState = navigationRef.getRootState();
+    if (currentState?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
+        Navigation.closeAndNavigate(getOnboardingInitialPath());
+    } else {
+        const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+        navigationRef.resetRoot(adaptedState);
+        Navigation.navigate(getOnboardingInitialPath());
+    }
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
@@ -243,6 +259,7 @@ function resetAllChecks() {
     });
     isLoadingReportData = true;
     onboardingInitialPath = '';
+    isOnboardingInProgress = false;
 }
 
 export {
@@ -257,4 +274,5 @@ export {
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
     setOnboardingErrorMessage,
+    startOnboardingFlow,
 };

@@ -64,7 +64,6 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -83,7 +82,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
-import linkingConfig from '@navigation/linkingConfig';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -2703,10 +2701,7 @@ function openReportFromDeepLink(url: string) {
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {
                             Welcome.isOnboardingFlowCompleted({
-                                onNotCompleted: () => {
-                                    const {adaptedState} = getAdaptedStateFromPath(Welcome.getOnboardingInitialPath(), linkingConfig.config);
-                                    navigationRef.resetRoot(adaptedState);
-                                },
+                                onNotCompleted: () => Welcome.startOnboardingFlow(),
                             });
                             return;
                         }
@@ -2727,7 +2722,6 @@ function openReportFromDeepLink(url: string) {
         });
     });
 }
-
 function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
