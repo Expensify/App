@@ -501,7 +501,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         const auditorOption = {
             text: translate('workspace.people.makeAuditor'),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
-            icon: Expensicons.User,
+            icon: Expensicons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
 

@@ -376,7 +376,6 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
-        outstanding: 'Outstanding',
     },
     location: {
         useCurrent: 'Use current location',
@@ -752,10 +751,17 @@ export default {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
-            }`,
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const expenseText = `${count} ${Str.pluralize('expense', 'expenses', count)}`;
+            const statusText = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} scanning`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pending`);
+            }
+            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+        },
         deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Delete ${Str.pluralize('expense', 'expenses', count)}`,
         deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Are you sure that you want to delete ${Str.pluralize('this expense', 'these expenses', count)}?`,
         settledExpensify: 'Paid',
@@ -1429,7 +1435,7 @@ export default {
         addPaymentMethod: 'Add payment method',
         addNewDebitCard: 'Add new debit card',
         addNewBankAccount: 'Add new bank account',
-        accountLastFour: 'Account ending in',
+        accountLastFour: 'Ending in',
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
@@ -2097,7 +2103,6 @@ export default {
         viewTrip: 'View trip',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
-        trips: 'Trips',
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -2125,6 +2130,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
             profile: 'Profile',
@@ -2603,7 +2609,7 @@ export default {
                     },
                 },
                 customersOrJobs: {
-                    title: 'Customers / projects',
+                    title: 'Customers/projects',
                     subtitle: 'Choose how to handle NetSuite *customers* and *projects* in Expensify.',
                     importCustomers: 'Import customers',
                     importJobs: 'Import projects',
@@ -2618,7 +2624,7 @@ export default {
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
-                        recordTitle: 'Custom segment',
+                        recordTitle: 'Custom segment/record',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'View detailed instructions',
                         helpText: ' on configuring custom segments/records.',
@@ -2849,6 +2855,10 @@ export default {
                 title: 'Spend',
                 subtitle: 'Enable functionality that helps you scale your team.',
             },
+            manageSection: {
+                title: 'Manage',
+                subtitle: 'Add controls that help keep spend within budget.',
+            },
             earnSection: {
                 title: 'Earn',
                 subtitle: 'Enable optional functionality to streamline your revenue and get paid faster.',
@@ -2915,6 +2925,10 @@ export default {
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
+            },
+            rules: {
+                title: 'Rules',
+                subtitle: 'Configure when receipts are required, flag high spend, and more.',
             },
         },
         reportFields: {
@@ -3307,6 +3321,12 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importing custom lists';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importing subsidiaries';
+                        case 'netSuiteSyncImportVendors':
+                            return 'Importing vendors';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
                         case 'intacctImportDimensions':
@@ -3556,6 +3576,11 @@ export default {
                 description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
+            rules: {
+                title: 'Rules',
+                description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
+                onlyAvailableOnPlan: 'Rules are only available on the Control plan, starting at ',
+            },
             pricing: {
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
@@ -3586,6 +3611,16 @@ export default {
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
+        },
+        rules: {
+            individualExpenseRules: {
+                title: 'Expenses',
+                subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
+            },
+            expenseReportRules: {
+                title: 'Expense reports',
+                subtitle: 'Automate expense report compliance, approvals, and payment.',
+            },
         },
     },
     getAssistancePage: {
@@ -3732,6 +3767,11 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
+            amount: {
+                lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+            },
         },
         expenseType: 'Expense type',
     },
@@ -3865,6 +3905,7 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
+                integrationSyncFailed: (label: string, errorMessage: string) => `failed to sync with ${label} ("${errorMessage}")`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
                 updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
                 removeMember: (email: string, role: string) => `removed ${role} ${email}`,
@@ -4300,6 +4341,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            authenticatePayment: 'Authenticate payment',
             requestRefund: 'Request refund',
             requestRefundModal: {
                 phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
