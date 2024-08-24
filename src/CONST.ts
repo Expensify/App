@@ -2609,7 +2609,6 @@ const CONST = {
         PINK: 'Pink',
     },
 
-    MAP_PADDING: 50,
     MAP_MARKER_SIZE: 20,
 
     QUICK_REACTIONS: [
@@ -3972,7 +3971,7 @@ const CONST = {
     TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
-        PADDING: 50,
+        PADDING: 32,
         DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
