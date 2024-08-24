@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {isEmpty} from 'lodash';
+import {isEmpty, isNumber} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
@@ -658,14 +658,7 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
  */
 function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
     const allReports = ReportConnection.getAllReports();
-    if (!allReports && !allReportsDraft) {
-        return undefined;
-    }
-
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    return report ?? draftReport;
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 }
 
 /**
@@ -1667,14 +1660,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (isIOUReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID && currentUserAccountID !== moneyRequestReport?.ownerAccountID) {
-        return false;
-    }
-
-    if (isExpenseReport(moneyRequestReport) && currentUserAccountID !== moneyRequestReport?.managerID) {
-        return false;
-    }
-
     const policy = getPolicy(moneyRequestReport?.policyID);
     if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
@@ -2091,7 +2076,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
         });
     }
 
-    return participantsEntries.map(([accountID]) => Number(accountID));
+    return participantsEntries.map(([accountID]) => Number(accountID)).filter((accountID) => isNumber(accountID));
 }
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
@@ -3679,6 +3664,16 @@ function getReportName(
     const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     const parentReportActionMessage = ReportActionsUtils.getReportActionMessage(parentReportAction);
 
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+        return getIOUSubmittedMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+        return getIOUForwardedMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
+        return getIOUApprovedMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
@@ -4381,23 +4376,31 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function getFormattedAmount(reportID: string) {
-    const report = getReportOrDraftReport(reportID);
-    const linkedReport = isChatThread(report) ? getParentReport(report) : report;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
+function getFormattedAmount(reportAction: ReportAction) {
+    if (!ReportActionsUtils.isSubmittedAction(reportAction) && !ReportActionsUtils.isForwardedAction(reportAction) && !ReportActionsUtils.isApprovedAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
     return formattedAmount;
 }
 
-function getIOUSubmittedMessage(reportID: string) {
-    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportID)});
+function getIOUSubmittedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUApprovedMessage(reportID: string) {
-    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportID)});
+function getIOUApprovedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUForwardedMessage(reportID: string) {
-    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportID)});
+function getIOUForwardedMessage(reportAction: ReportAction) {
+    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
+    return message;
 }
 
 /**
@@ -4433,7 +4436,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `approved ${amount}`;
             break;
         case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
-            iouMessage = getIOUForwardedMessage(iouReportID);
+            iouMessage = Localize.translateLocal('iou.forwardedAmount', {amount});
             break;
         case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
             iouMessage = `unapproved ${amount}`;
@@ -5810,7 +5813,11 @@ function doesTransactionThreadHaveViolations(
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) || TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations);
+    return (
+        TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) ||
+        TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations) ||
+        TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations)
+    );
 }
 
 /**
@@ -7797,6 +7804,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
@@ -7832,6 +7840,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getReportOrDraftReport,
     getRoom,
     getRootParentReport,
     getRouteFromLink,

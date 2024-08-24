@@ -65,6 +65,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
+        | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
         | typeof SCREENS.WORKSPACE.RULES;
 };
@@ -101,7 +102,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceRules} = usePermissions();
     const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -112,6 +113,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
@@ -166,7 +168,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
+    const hasGeneralSettingsError =
+        !isEmptyObject(policy?.errorFields?.name ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.address ?? {});
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -252,6 +258,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.companyCards',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
+        });
+    }
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
@@ -310,7 +325,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canWorkspaceRules) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.rules',
             icon: Expensicons.Feed,
