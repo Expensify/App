@@ -24,6 +24,8 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const currentReportIDValue = useCurrentReportID();
+    const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
+    const isDeleted = 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -36,6 +38,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                     thumbnailUrl={thumbnailUrl}
                     videoDimensions={{width, height}}
                     videoDuration={duration}
+                    isDeleted={isDeleted}
                     onShowModalPress={() => {
                         const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
                         Navigation.navigate(route);

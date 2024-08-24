@@ -9,6 +9,7 @@ import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
@@ -53,6 +54,7 @@ type ThumbnailImageProps = {
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
+    /**  Whether the image is deleted */
     isDeleted?: boolean;
 };
 
@@ -113,23 +115,6 @@ function ThumbnailImage({
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
-    // if (isDeleted) {
-    //     const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.sidebarHover);
-
-    //     return (
-    //         <View style={[style, styles.overflowHidden, fallbackColor]}>
-    //             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-    //                 <Icon
-    //                     fill={theme.border}
-    //                     src={Expensicons.Trashcan}
-    //                     width={variables.iconSizeSuperLarge}
-    //                     height={variables.iconSizeSuperLarge}
-    //                 />
-    //             </View>
-    //         </View>
-    //     );
-    // }
-
     if (failedToLoad || previewSourceURL === '') {
         const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
 
@@ -149,23 +134,7 @@ function ThumbnailImage({
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            {isDeleted && (
-                <>
-                    <View style={[styles.pAbsolute, {zIndex: 2}]}>
-                        <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter, styles.highlightBG, {opacity: 0.8}]} />
-                    </View>
-                    <View style={[styles.pAbsolute, {zIndex: 2}]}>
-                        <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                fill={theme.iconHovered}
-                                src={Expensicons.Trashcan}
-                                width={variables.iconSizeSuperLarge}
-                                height={variables.iconSizeSuperLarge}
-                            />
-                        </View>
-                    </View>
-                </>
-            )}
+            {isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
