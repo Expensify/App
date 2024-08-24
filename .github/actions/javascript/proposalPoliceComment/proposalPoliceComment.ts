@@ -88,11 +88,10 @@ async function run() {
     } else if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
         // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
         // bot related action keyword
-        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
-        // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-        const date = new Date(payload.comment?.updated_at ?? '');
-        const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
-        extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
+        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ').at(1)?.replace('"', '');
+        // format the date like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+        const formattedDate = `${date.toISOString()?.split('.').at(0)?.replace('T', ' ')} UTC`;
+        extractedNotice = extractedNotice?.replace('{updated_timestamp}', formattedDate);
         console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
         await GithubUtils.octokit.issues.updateComment({
             ...context.repo,

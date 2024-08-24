@@ -41,8 +41,8 @@ function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
                 <TextLink
                     fontSize={variables.fontSizeLabel}
                     onPress={() => {
-                        const login = loginList?.[loginNames?.[0]] ?? {};
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0], backTo));
+                        const login = loginList?.[loginNames.at(0) ?? ''] ?? {};
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames.at(0) ?? '', backTo));
                     }}
                 >
                     {translate('bankAccount.validateAccountError.phrase4')}
