@@ -65,8 +65,8 @@ function SearchFiltersAmountPage() {
                         inputID={INPUT_IDS.GREATER_THAN}
                         name={INPUT_IDS.GREATER_THAN}
                         defaultValue={greaterThanFormattedAmount}
-                        label={translate('search.filters.amount.greaterThan')}
-                        accessibilityLabel={translate('search.filters.amount.greaterThan')}
+                        label={translate('search.filters.amount.greaterThan', {})}
+                        accessibilityLabel={translate('search.filters.amount.greaterThan', {})}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
@@ -77,8 +77,8 @@ function SearchFiltersAmountPage() {
                         inputID={INPUT_IDS.LESS_THAN}
                         name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThanFormattedAmount}
-                        label={translate('search.filters.amount.lessThan')}
-                        accessibilityLabel={translate('search.filters.amount.lessThan')}
+                        label={translate('search.filters.amount.lessThan', {})}
+                        accessibilityLabel={translate('search.filters.amount.lessThan', {})}
                         role={CONST.ROLE.PRESENTATION}
                     />
                 </View>

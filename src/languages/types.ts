@@ -1,5 +1,5 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {ConnectionName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
@@ -263,7 +263,7 @@ type PluralizeValue = {
 };
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string | PluralizeValue);
+type TranslationBaseValue = string | string[] | ((args: any) => string | PluralizeValue);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
@@ -271,7 +271,7 @@ type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 // Flattens an object and returns concatenations of all the keys of nested objects
 type FlattenObject<TObject, TPrefix extends string = ''> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
+    [TKey in keyof TObject]: TObject[TKey] extends (args: any) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
         TObject[TKey] extends any[]
@@ -365,6 +365,45 @@ type ApprovalWorkflowErrorParams = {
     name1: string;
     name2: string;
 };
+
+type ConnectionNameParams = {
+    connectionName: ConnectionName;
+};
+
+type LastSyncDateParams = {
+    connectionName: string;
+    formattedDate: string;
+};
+
+type CustomersOrJobsLabelParams = {
+    importFields: string[];
+    importType: string;
+};
+
+type ExportAgainModalDescriptionParams = {
+    reportName: string;
+    connectionName: ConnectionName;
+};
+
+type IntegrationSyncFailedParams = {label: string; errorMessage: string};
+
+type AddEmployeeParams = {email: string; role: string};
+
+type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type RemoveMemberParams = {email: string; role: string};
+
+type DateParams = {date?: string};
+
+type AmountParams = {amount?: string};
+
+type FiltersAmountBetweenParams = {greaterThan: string; lessThan: string};
+
+type StatementPageTitleParams = {year: string | number; monthName: string};
+
+type DisconnectPromptParams = {currentIntegration?: ConnectionName};
+
+type DisconnectTitleParams = {integration?: ConnectionName};
 
 export type {
     AddressLineParams,
@@ -490,4 +529,18 @@ export type {
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
     PluralizeValue,
+    ConnectionNameParams,
+    LastSyncDateParams,
+    CustomersOrJobsLabelParams,
+    ExportAgainModalDescriptionParams,
+    IntegrationSyncFailedParams,
+    AddEmployeeParams,
+    UpdateRoleParams,
+    RemoveMemberParams,
+    DateParams,
+    AmountParams,
+    FiltersAmountBetweenParams,
+    StatementPageTitleParams,
+    DisconnectPromptParams,
+    DisconnectTitleParams,
 };

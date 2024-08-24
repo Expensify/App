@@ -1,10 +1,12 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    AmountParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
@@ -18,6 +20,9 @@ import type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    ConnectionNameParams,
+    CustomersOrJobsLabelParams,
+    DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DelegateSubmitParams,
@@ -25,18 +30,24 @@ import type {
     DeleteConfirmationParams,
     DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
+    DisconnectPromptParams,
+    DisconnectTitleParams,
     DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
+    ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
+    FiltersAmountBetweenParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    IntegrationSyncFailedParams,
     IssueVirtualCardParams,
+    LastSyncDateParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -61,6 +72,7 @@ import type {
     PaySomeoneParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMemberParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -81,6 +93,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    StatementPageTitleParams,
     StepCounterParams,
     StripePaidParams,
     TaskCreatedActionParams,
@@ -94,6 +107,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
@@ -2188,7 +2202,7 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName}: ConnectionNameParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
@@ -2205,7 +2219,7 @@ export default {
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
-            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
+            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
         },
         qbo: {
@@ -2645,7 +2659,7 @@ export default {
                     importJobs: 'Importar proyectos',
                     customers: 'clientes',
                     jobs: 'proyectos',
-                    label: (importFields: string[], importType: string) => `${importFields.join(' y ')}, ${importType}`,
+                    label: ({importFields, importType}: CustomersOrJobsLabelParams) => `${importFields.join(' y ')}, ${importType}`,
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
@@ -3132,8 +3146,8 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            connectionName: (integration: ConnectionName) => {
-                switch (integration) {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Quickbooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3155,13 +3169,13 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (integration?: ConnectionName): string => {
+            disconnectTitle: ({integration}: DisconnectTitleParams): string => {
                 const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integración';
                 return `Desconectar ${integrationName}`;
             },
-            connectTitle: (integrationToConnect: ConnectionName): string => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
-            syncError: (integration?: ConnectionName): string => {
-                switch (integration) {
+            connectTitle: ({connectionName}: ConnectionNameParams): string => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
+            syncError: ({connectionName}: ConnectionNameParams): string => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'No se puede conectar a QuickBooks Online.';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3187,14 +3201,14 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+            disconnectPrompt: ({currentIntegration}: DisconnectPromptParams): string => {
                 const integrationName =
                     currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
-            connectPrompt: (integrationToConnect: ConnectionName): string =>
+            connectPrompt: ({connectionName}: ConnectionNameParams): string =>
                 `¿Estás seguro de que quieres conectar a ${
-                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'esta integración contable'
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
                 }? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
@@ -3576,7 +3590,7 @@ export default {
 
         exportAgainModal: {
             title: '¡Cuidado!',
-            description: (reportName: string, connectionName: ConnectionName) =>
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
                 `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
@@ -3763,7 +3777,7 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
-        title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
+        title: ({year, monthName}: StatementPageTitleParams) => `Estado de cuenta de ${monthName} ${year}`,
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {
@@ -3807,17 +3821,17 @@ export default {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                before: (date?: string) => `Antes de ${date ?? ''}`,
-                after: (date?: string) => `Después de ${date ?? ''}`,
+                before: ({date}: DateParams) => `Antes de ${date ?? ''}`,
+                after: ({date}: DateParams) => `Después de ${date ?? ''}`,
             },
             status: 'Estado',
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
             amount: {
-                lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
-                greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} y ${lessThan}`,
+                lessThan: ({amount}: AmountParams) => `Menos de ${amount ?? ''}`,
+                greaterThan: ({amount}: AmountParams) => `Más que ${amount ?? ''}`,
+                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Entre ${greaterThan} y ${lessThan}`,
             },
         },
         expenseType: 'Tipo de gasto',
@@ -3936,7 +3950,7 @@ export default {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -3953,11 +3967,11 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
-                integrationSyncFailed: (label: string, errorMessage: string) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
-                addEmployee: (email: string, role: string) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
-                updateRole: (email: string, currentRole: string, newRole: string) =>
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
-                removeMember: (email: string, role: string) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removeMember: ({email, role}: RemoveMemberParams) => `eliminado ${role === 'user' ? 'miembro' : 'administrador'} ${email}`,
             },
         },
     },

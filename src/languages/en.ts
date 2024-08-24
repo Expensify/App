@@ -2,11 +2,13 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    AmountParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
@@ -20,6 +22,9 @@ import type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    ConnectionNameParams,
+    CustomersOrJobsLabelParams,
+    DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DelegateSubmitParams,
@@ -27,17 +32,23 @@ import type {
     DeleteConfirmationParams,
     DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
+    DisconnectPromptParams,
+    DisconnectTitleParams,
     DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
+    ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
+    FiltersAmountBetweenParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    IntegrationSyncFailedParams,
     IssueVirtualCardParams,
+    LastSyncDateParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -62,6 +73,7 @@ import type {
     PaySomeoneParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMemberParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -82,6 +94,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    StatementPageTitleParams,
     StepCounterParams,
     StripePaidParams,
     TaskCreatedActionParams,
@@ -96,6 +109,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
@@ -2158,7 +2172,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName}: ConnectionNameParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
@@ -2175,7 +2189,7 @@ export default {
             createNewConnection: 'Create new connection',
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
-            lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
+            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2600,7 +2614,7 @@ export default {
                     importJobs: 'Import projects',
                     customers: 'customers',
                     jobs: 'projects',
-                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
+                    label: ({importFields, importType}: CustomersOrJobsLabelParams) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
@@ -3151,8 +3165,8 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            connectionName: (integration: ConnectionName) => {
-                switch (integration) {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Quickbooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3174,14 +3188,14 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: (integration?: ConnectionName): string => {
+            disconnectTitle: ({integration}: DisconnectTitleParams): string => {
                 const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
                 return `Disconnect ${integrationName}`;
             },
-            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
+            connectTitle: ({connectionName}: ConnectionNameParams): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
 
-            syncError: (integration?: ConnectionName): string => {
-                switch (integration) {
+            syncError: ({connectionName}: ConnectionNameParams): string => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3207,16 +3221,16 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+            disconnectPrompt: ({currentIntegration}: DisconnectPromptParams): string => {
                 const integrationName =
                     currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
                         ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
                         : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectPrompt: (integrationToConnect: ConnectionName): string =>
+            connectPrompt: ({connectionName}: ConnectionNameParams): string =>
                 `Are you sure you want to connect ${
-                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
@@ -3527,7 +3541,7 @@ export default {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: (reportName: string, connectionName: ConnectionName) =>
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
                 `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
@@ -3713,7 +3727,7 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
     statementPage: {
-        title: (year, monthName) => `${monthName} ${year} statement`,
+        title: ({year, monthName}: StatementPageTitleParams) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please check back soon!",
     },
     keyboardShortcutsPage: {
@@ -3757,17 +3771,17 @@ export default {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: (date?: string) => `Before ${date ?? ''}`,
-                after: (date?: string) => `After ${date ?? ''}`,
+                before: ({date}: DateParams) => `Before ${date ?? ''}`,
+                after: ({date}: DateParams) => `After ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
             amount: {
-                lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
-                greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                lessThan: ({amount}: AmountParams) => `Less than ${amount ?? ''}`,
+                greaterThan: ({amount}: AmountParams) => `Greater than ${amount ?? ''}`,
+                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
             },
         },
         expenseType: 'Expense type',
@@ -3885,7 +3899,7 @@ export default {
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
-                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
@@ -3902,10 +3916,10 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
-                integrationSyncFailed: (label: string, errorMessage: string) => `failed to sync with ${label} ("${errorMessage}")`,
-                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
-                updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
-                removeMember: (email: string, role: string) => `removed ${role} ${email}`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
+                removeMember: ({email, role}: RemoveMemberParams) => `removed ${role} ${email}`,
             },
         },
     },
