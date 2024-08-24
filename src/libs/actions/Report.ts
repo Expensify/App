@@ -2405,6 +2405,10 @@ function setIsComposerFullSize(reportID: string, isComposerFullSize: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
+function setIsEditMessageComposerFullSize(reportID: string, reportActionID: string, isComposerFullSize: boolean) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, {[reportActionID]: {isComposerFullSize}});
+}
+
 /**
  * @param action the associated report action (optional)
  * @param isRemote whether or not this notification is a remote push notification
@@ -4104,6 +4108,7 @@ export {
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
+    setIsEditMessageComposerFullSize,
     expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
