@@ -63,7 +63,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, selectedWorkspace]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
