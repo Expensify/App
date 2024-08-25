@@ -13,6 +13,9 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
         return;
     }
 
+    // In Strict Mode, the backup logic useEffect is triggered twice on mount. The restore logic is delayed because we need to connect to the onyx first,
+    // so it's possible that the restore logic is executed after creating the backup for the 2nd time which will completely clear the backup.
+    // To avoid that, we need to cancel the pending connection.
     Onyx.disconnect(connectionID);
     const newTransaction = {
         ...transaction,
