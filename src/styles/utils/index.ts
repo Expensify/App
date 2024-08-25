@@ -272,8 +272,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
-
-    return workspaceColorOptions.at(colorHash);
+    // eslint-disable-next-line rulesdir/prefer-at
+    return workspaceColorOptions[colorHash];
 }
 
 /**
@@ -292,7 +292,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors.at(colorHash);
+    return eReceiptColors.at(colorHash) ?? 'Yellow';
 }
 
 /**

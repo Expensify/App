@@ -1,5 +1,5 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import type {AuthScreensParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
@@ -62,10 +62,10 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
     }
 
     if (topmostBottomTabRoute.name === SCREENS.HOME) {
-        return {name: centralPaneName, params: {reportID: getTopMostReportIDFromRHP(state)}};
+        return {name: centralPaneName ?? ({} as keyof CentralPaneScreensParamList), params: {reportID: getTopMostReportIDFromRHP(state)}};
     }
 
-    return {name: centralPaneName};
+    return {name: centralPaneName ?? ({} as keyof CentralPaneScreensParamList)};
 }
 
 export default getMatchingCentralPaneRouteForState;

@@ -84,8 +84,11 @@ function navigateToSidebar(): Promise<void> {
 
 async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRows = screen.queryAllByAccessibilityHint(hintText);
-    fireEvent(optionRows.at(index), 'press');
+    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    if (!optionRow) {
+        return;
+    }
+    fireEvent(optionRow, 'press');
     await waitForBatchedUpdatesWithAct();
 }
 

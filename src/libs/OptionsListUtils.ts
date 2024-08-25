@@ -300,6 +300,11 @@ Onyx.connect({
         // Iterate over the report actions to build the sorted and lastVisible report actions objects
         Object.entries(allReportActions).forEach((reportActions) => {
             const reportID = reportActions[0].split('_').at(1);
+
+            if (!reportID) {
+                return;
+            }
+
             const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
@@ -312,7 +317,13 @@ Onyx.connect({
                 sortedReportActions = ReportActionUtils.getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
             }
 
-            lastReportActions[reportID] = sortedReportActions.at(0);
+            const firstReportAction = sortedReportActions.at(0);
+
+            if (!firstReportAction) {
+                return;
+            }
+
+            lastReportActions[reportID] = firstReportAction;
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
@@ -324,7 +335,11 @@ Onyx.connect({
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                     !ReportActionUtils.isResolvedActionTrackExpense(reportAction),
             );
-            lastVisibleReportActions[reportID] = reportActionsForDisplay.at(0);
+            const reportActionForDisplay = reportActionsForDisplay.at(0);
+            if (!reportActionForDisplay) {
+                return;
+            }
+            lastVisibleReportActions[reportID] = reportActionForDisplay;
         });
     },
 });
@@ -550,7 +565,7 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
 
     return showChatPreviewLine && option.lastMessageText
         ? option.lastMessageText
-        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0).login ?? '' : '');
+        : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
@@ -2368,7 +2383,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 
     const firstNonEmptyDataObj = data.at(0);
 
-    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+    return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
 function getPersonalDetailSearchTerms(item: Partial<ReportUtils.OptionData>) {

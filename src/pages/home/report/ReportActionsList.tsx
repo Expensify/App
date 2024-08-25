@@ -241,6 +241,12 @@ function ReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = 0; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
+
+            if (!reportAction) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
             if (shouldDisplayNewMarker(reportAction, index)) {
                 return reportAction.reportActionID;
             }

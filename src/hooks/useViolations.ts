@@ -106,7 +106,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
                     {
                         ...currentViolations.at(0),
                         data: {
-                            ...currentViolations.at(0).data,
+                            ...currentViolations.at(0)?.data,
                             tagName: data?.tagListName,
                         },
                     },

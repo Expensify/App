@@ -852,8 +852,10 @@ function openReport(
     if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        optimisticData.at(0).onyxMethod = Onyx.METHOD.SET;
-        optimisticData.at(0).value = {
+        // eslint-disable-next-line rulesdir/prefer-at
+        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+        // eslint-disable-next-line rulesdir/prefer-at
+        optimisticData[0].value = {
             ...optimisticReport,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...newReportObject,
@@ -885,7 +887,7 @@ function openReport(
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = participantAccountIDs.at(index);
+            const accountID = participantAccountIDs.at(index) ?? -1;
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
@@ -3325,7 +3327,7 @@ function completeOnboarding(
     // If the target report isn't opened, the permission field will not exist. So we should add the fallback permission for task report
     const fallbackPermission = isAccountIDOdd ? [CONST.REPORT.PERMISSIONS.READ] : [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE];
 
-    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail]).at(0);
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail]).at(0) ?? -1;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 

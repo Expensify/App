@@ -154,7 +154,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 }
                 if ('types' in item || 'name' in item) {
                     const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.at(preferredSkinTone) : item.code;
-                    onEmojiSelected(emoji, item);
+                    onEmojiSelected(emoji ?? '', item);
                 }
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
@@ -280,7 +280,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         }
                         setIsUsingKeyboardMovement(false);
                     }}
-                    emoji={emojiCode}
+                    emoji={emojiCode ?? ''}
                     onFocus={() => setFocusedIndex(index)}
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}

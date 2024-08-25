@@ -128,7 +128,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     if (!enabled) {
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const customUnitID = Object.keys(policy?.customUnits ?? {}).at(0);
+        const customUnitID = Object.keys(policy?.customUnits ?? {}).at(0) ?? '';
         const customUnit = customUnitID ? policy?.customUnits?.[customUnitID] : undefined;
 
         const rateEntries = Object.entries(customUnit?.rates ?? {});
@@ -148,7 +148,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
                                     rateID,
                                     {
                                         ...rate,
-                                        enabled: rateID === rateEntryToBeEnabled[0],
+                                        enabled: rateID === rateEntryToBeEnabled?.at(0),
                                     },
                                 ];
                             }),

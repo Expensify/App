@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -53,17 +54,17 @@ const promotedActions = [
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: StoryType = Template.bind({});
 Default.args = {
-    promotedActions: [promotedActions.at(0)],
+    promotedActions: [promotedActions[0]],
 };
 
 const TwoPromotedActions: StoryType = Template.bind({});
 TwoPromotedActions.args = {
-    promotedActions: [promotedActions.at(0), promotedActions.at(1)],
+    promotedActions: [promotedActions[0], promotedActions[1]],
 };
 
 const ThreePromotedActions: StoryType = Template.bind({});
 ThreePromotedActions.args = {
-    promotedActions: [promotedActions.at(0), promotedActions.at(1), promotedActions.at(2)],
+    promotedActions: [promotedActions[0], promotedActions[1], promotedActions[2]],
 };
 
 export default story;

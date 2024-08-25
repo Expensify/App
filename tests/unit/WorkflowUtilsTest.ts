@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
+/* eslint-disable rulesdir/prefer-at */
 import * as WorkflowUtils from '@src/libs/WorkflowUtils';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -319,15 +321,16 @@ describe('WorkflowUtils', () => {
             const workflows = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
-            defaultWorkflow.approvers.at(0).forwardsTo = '3@example.com';
-            defaultWorkflow.approvers.at(1).forwardsTo = '4@example.com';
-            defaultWorkflow.approvers.at(1).isInMultipleWorkflows = true;
-            defaultWorkflow.approvers.at(2).isInMultipleWorkflows = true;
+            defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
+            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
+            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
+            defaultWorkflow.approvers[1].isInMultipleWorkflows = true;
+            defaultWorkflow.approvers[2].isInMultipleWorkflows = true;
             const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
-            secondWorkflow.approvers.at(0).forwardsTo = '3@example.com';
-            secondWorkflow.approvers.at(1).forwardsTo = '4@example.com';
-            secondWorkflow.approvers.at(1).isInMultipleWorkflows = true;
-            secondWorkflow.approvers.at(2).isInMultipleWorkflows = true;
+            secondWorkflow.approvers[0].forwardsTo = '3@example.com';
+            secondWorkflow.approvers[1].forwardsTo = '4@example.com';
+            secondWorkflow.approvers[1].isInMultipleWorkflows = true;
+            secondWorkflow.approvers[2].isInMultipleWorkflows = true;
 
             expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
@@ -371,8 +374,8 @@ describe('WorkflowUtils', () => {
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
-            secondWorkflow.approvers.at(0).forwardsTo = '5@example.com';
-            secondWorkflow.approvers.at(1).forwardsTo = '6@example.com';
+            secondWorkflow.approvers[0].forwardsTo = '5@example.com';
+            secondWorkflow.approvers[1].forwardsTo = '6@example.com';
             expect(workflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
     });

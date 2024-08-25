@@ -100,9 +100,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 setDownloadButtonVisibility(initialPage !== -1);
             }
 
+            const attachment = targetAttachments.at(initialPage);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments.at(initialPage) !== undefined && onNavigate) {
-                onNavigate(targetAttachments.at(initialPage));
+            if (attachment !== undefined && onNavigate) {
+                onNavigate(attachment);
             }
         }
     }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);

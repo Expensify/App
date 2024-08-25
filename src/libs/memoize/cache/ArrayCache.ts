@@ -16,7 +16,8 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
      */
     function getKeyIndex(key: K): number {
         for (let i = cache.length - 1; i >= 0; i--) {
-            if (keyComparator(cache.at(i)[0], key)) {
+            // eslint-disable-next-line rulesdir/prefer-at
+            if (keyComparator(cache[i][0], key)) {
                 return i;
             }
         }

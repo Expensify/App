@@ -83,7 +83,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
             // Auto skip any remaining questions
             if (tempAnswers.length < questions.length) {
                 for (let i = tempAnswers.length; i < questions.length; i++) {
-                    tempAnswers[i] = {question: questions.at(i).type, answer: SKIP_QUESTION_TEXT};
+                    tempAnswers[i] = {question: questions.at(i)?.type ?? '', answer: SKIP_QUESTION_TEXT};
                 }
             }
 

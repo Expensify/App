@@ -208,7 +208,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            {calendarDaysMatrix.map((week) => (
+            {calendarDaysMatrix?.map((week) => (
                 <View
                     key={`week-${week.toString()}`}
                     style={themeStyles.flexRow}

@@ -56,7 +56,8 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     }, [bodyContent]);
 
     return {
-        componentToRender: bodyContent.at(screenIndex),
+        // eslint-disable-next-line rulesdir/prefer-at
+        componentToRender: bodyContent[screenIndex],
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,

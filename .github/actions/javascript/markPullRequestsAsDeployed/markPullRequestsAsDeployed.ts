@@ -78,7 +78,7 @@ async function run() {
             labels: CONST.LABELS.STAGING_DEPLOY,
             state: 'closed',
         });
-        const previousChecklistID = deployChecklists.at(0).number;
+        const previousChecklistID = deployChecklists.at(0)?.number ?? 0;
 
         // who closed the last deploy checklist?
         const deployer = await GithubUtils.getActorWhoClosedIssue(previousChecklistID);

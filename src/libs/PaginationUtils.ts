@@ -51,7 +51,7 @@ function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID
             return {id, index: sortedItems.length - 1};
         }
         const index = sortedItems.findIndex((item) => getID(item) === id);
-        if (index !== -1) {
+        if (index !== -1 && id) {
             return {id, index};
         }
     }
@@ -126,6 +126,11 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
         const page = sortedPages.at(i);
         const prevPage = result.at(result.length - 1);
 
+        if (!page || !prevPage) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+
         // Current page is inside the previous page, skip
         if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
             // eslint-disable-next-line no-continue
@@ -151,7 +156,7 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
         result.push(page);
     }
 
-    return result.map((page) => page.ids);
+    return result.map((page) => page?.ids ?? []);
 }
 
 /**
@@ -167,7 +172,13 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
 
-    let page: PageWithIndex;
+    let page: PageWithIndex = {
+        ids: [],
+        firstID: '',
+        firstIndex: 0,
+        lastID: '',
+        lastIndex: 0,
+    };
 
     if (id) {
         const index = sortedItems.findIndex((item) => getID(item) === id);
@@ -179,14 +190,20 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 
         const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
 
+        const item = sortedItems.at(index);
         // If we are linked to an action in a gap return it by itself
-        if (!linkedPage) {
-            return [sortedItems.at(index)];
+        if (!linkedPage && item) {
+            return [item];
         }
 
-        page = linkedPage;
+        if (linkedPage) {
+            page = linkedPage;
+        }
     } else {
-        page = pagesWithIndexes.at(0);
+        const pageAtIndex0 = pagesWithIndexes.at(0);
+        if (pageAtIndex0) {
+            page = pageAtIndex0;
+        }
     }
 
     return page ? sortedItems.slice(page.firstIndex, page.lastIndex + 1) : sortedItems;

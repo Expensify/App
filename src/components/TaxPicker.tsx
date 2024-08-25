@@ -92,7 +92,7 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
         [searchValue, selectedOptions, policy, currentTransaction],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections.at(0).data.length > 0, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 

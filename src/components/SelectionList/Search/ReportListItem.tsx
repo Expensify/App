@@ -110,7 +110,7 @@ function ReportListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={() => openReportInRHP(transactionItem)}
+                onSelectRow={() => (transactionItem ? openReportInRHP(transactionItem) : undefined)}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}

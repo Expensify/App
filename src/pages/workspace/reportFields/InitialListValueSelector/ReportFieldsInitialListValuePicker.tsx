@@ -40,7 +40,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
             sections={listValueSections}
             ListItem={RadioListItem}
             onSelectRow={(item) => onValueChange(item.value)}
-            initiallyFocusedOptionKey={listValueSections.at(0).data.find((listValue) => listValue.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={listValueSections.at(0)?.data?.find((listValue) => listValue.isSelected)?.keyForList}
         />
     );
 }

@@ -9,6 +9,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import SubscriptAvatar from './SubscriptAvatar';
@@ -56,7 +57,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             >
                 {({hovered}) => (
                     <SubscriptAvatar
-                        mainAvatar={mainAvatar}
+                        mainAvatar={mainAvatar ?? fallbackIcon}
                         subscriptIcon={{
                             source: Expensicons.DownArrow,
                             width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,

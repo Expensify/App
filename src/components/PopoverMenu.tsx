@@ -123,6 +123,9 @@ function PopoverMenu({
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems.at(index);
+        if (!selectedItem) {
+            return;
+        }
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);

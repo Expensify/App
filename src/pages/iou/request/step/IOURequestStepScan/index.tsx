@@ -139,7 +139,7 @@ function IOURequestStepScan({
                     let lastBackDeviceId = '';
                     for (let i = devices.length - 1; i >= 0; i--) {
                         const device = devices.at(i);
-                        if (device.kind === 'videoinput') {
+                        if (device?.kind === 'videoinput') {
                             lastBackDeviceId = device.deviceId;
                             break;
                         }
@@ -300,6 +300,10 @@ function IOURequestStepScan({
                 }
                 getCurrentPosition(
                     (successData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
                             IOU.trackExpense(
                                 report,
@@ -309,7 +313,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants.at(0),
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -334,7 +338,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants.at(0),
+                                participant,
                                 '',
                                 receipt,
                                 '',
@@ -353,6 +357,10 @@ function IOURequestStepScan({
                         }
                     },
                     (errorData) => {
+                        const participant = participants.at(0);
+                        if (!participant) {
+                            return;
+                        }
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -364,7 +372,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants.at(0),
+                                participant,
                                 '',
                                 receipt,
                             );
@@ -377,7 +385,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants.at(0),
+                                participant,
                                 '',
                                 receipt,
                             );

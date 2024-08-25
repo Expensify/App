@@ -241,6 +241,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const participant = selectedParticipants.at(0);
+            if (!participant) {
+                return;
+            }
+
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -249,7 +254,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants.at(0),
+                participant,
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -275,6 +280,10 @@ function IOURequestStepConfirmation({
             if (!report || !transaction) {
                 return;
             }
+            const participant = selectedParticipants.at(0);
+            if (!participant) {
+                return;
+            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -283,7 +292,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants.at(0),
+                participant,
                 trimmedComment,
                 receiptObj,
                 transaction.category,

@@ -117,7 +117,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.renamePolicyCategory(fakePolicy.id, {
-                oldName: oldCategoryName,
+                oldName: oldCategoryName ?? '',
                 newName: newCategoryName,
             });
             await waitForBatchedUpdates();
@@ -128,7 +128,7 @@ describe('actions/PolicyCategory', () => {
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
-                        expect(policyCategories?.[oldCategoryName]).toBeFalsy();
+                        expect(policyCategories?.[oldCategoryName ?? '']).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.name).toBe(newCategoryName);
                         expect(policyCategories?.[newCategoryName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         expect(policyCategories?.[newCategoryName]?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);

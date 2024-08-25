@@ -132,8 +132,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
                                     expect(Object.values(iouActions).length).toBe(1);
-                                    createdAction = createdActions?.at(0) ?? null;
-                                    iouAction = iouActions?.at(0) ?? null;
+                                    createdAction = createdActions?.at(0);
+                                    iouAction = iouActions?.at(0);
                                     const originalMessage = ReportActionsUtils.isMoneyRequestAction(iouAction) ? ReportActionsUtils.getOriginalMessage(iouAction) : undefined;
 
                                     // The CREATED action should not be created after the IOU action
@@ -676,7 +676,7 @@ describe('actions/IOU', () => {
                                         const originalMessage = ReportActionsUtils.getOriginalMessage(iouAction);
 
                                         // The CREATED action should not be created after the IOU action
-                                        expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? {}));
+                                        expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
                                         // The IOUReportID should be correct
                                         expect(originalMessage?.IOUReportID).toBe(iouReportID);

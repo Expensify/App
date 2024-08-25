@@ -1209,7 +1209,7 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
         const participantAccountIDs = Object.keys(report?.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== currentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0));
+        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1);
     }
     return false;
 }
@@ -3574,7 +3574,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs);
-    accountIDs.forEach((id, index) => (accountIDToName[id] = logins.at(index)));
+    accountIDs.forEach((id, index) => (accountIDToName[id] = logins.at(index) ?? ''));
 
     const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
     parsedReportActionMessageCache[key] = textMessage;
@@ -4183,8 +4183,10 @@ function buildOptimisticTaskCommentReportAction(
     createdOffset = 0,
 ): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
-    if (Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message?.at(0)) {
-        reportAction.reportAction.message.at(0).taskReportID = taskReportID;
+    // eslint-disable-next-line rulesdir/prefer-at
+    if (Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message[0]) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        reportAction.reportAction.message[0].taskReportID = taskReportID;
     } else if (!Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message) {
         reportAction.reportAction.message.taskReportID = taskReportID;
     }
@@ -4281,7 +4283,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll('{report:created:yyyy-MM-dd}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll('{report:status}', report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
         .replaceAll('{user:email}', currentUserEmail ?? '')
-        .replaceAll('{user:email|frontPart}', currentUserEmail ? currentUserEmail.split('@').at(0) : '')
+        .replaceAll('{user:email|frontPart}', (currentUserEmail ? currentUserEmail.split('@').at(0) : '') ?? '')
         .replaceAll(/\{report:(.+)}/g, '');
 
     return result.trim().length ? result : formula;
@@ -5037,7 +5039,7 @@ function buildOptimisticChatReport(
         // TODO: update to support workspace as an invoice receiver when workspace-to-workspace invoice room implemented
         optimisticChatReport.invoiceReceiver = {
             type: 'individual',
-            accountID: participantList.at(0),
+            accountID: participantList.at(0) ?? -1,
         };
     }
 
@@ -6178,7 +6180,7 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
 
     const newMarkerIndex = lodashFindLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created ?? '') > (report?.lastReadTime ?? ''));
 
-    return 'reportActionID' in sortedAndFilteredReportActions.at(newMarkerIndex) ? sortedAndFilteredReportActions.at(newMarkerIndex).reportActionID : '';
+    return 'reportActionID' in (sortedAndFilteredReportActions?.at(newMarkerIndex) ?? {}) ? sortedAndFilteredReportActions.at(newMarkerIndex)?.reportActionID ?? '' : '';
 }
 
 /**
@@ -7264,7 +7266,7 @@ function getOptimisticDataForParentReportAction(reportID: string, lastVisibleAct
             return null;
         }
 
-        const ancestorReportAction = ReportActionsUtils.getReportAction(ancestorReport.reportID, ancestors.reportActionsIDs.at(index));
+        const ancestorReportAction = ReportActionsUtils.getReportAction(ancestorReport.reportID, ancestors.reportActionsIDs.at(index) ?? '');
 
         if (!ancestorReportAction || isEmptyObject(ancestorReportAction)) {
             return null;

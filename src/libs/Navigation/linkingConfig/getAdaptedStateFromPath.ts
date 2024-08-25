@@ -124,7 +124,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes.at(0).name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                const isRHPinState = stateForBackTo.routes.at(0)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
                 if (isRHPinState) {
                     return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
@@ -340,7 +340,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - matching central pane on desktop layout
 
         // We want to make sure that the bottom tab search page is always pushed with matching central pane page. Even on the narrow layout.
-        if (isNarrowLayout && bottomTabNavigator.state?.routes.at(0).name !== SCREENS.SEARCH.BOTTOM_TAB) {
+        if (isNarrowLayout && bottomTabNavigator.state?.routes.at(0)?.name !== SCREENS.SEARCH.BOTTOM_TAB) {
             return {
                 adaptedState: state,
                 metainfo,

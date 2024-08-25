@@ -504,7 +504,7 @@ function findPreviousAction(reportActions: ReportAction[] | undefined, actionInd
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (isNetworkOffline || reportActions.at(i).pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return reportActions.at(i);
         }
     }
@@ -714,8 +714,10 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return updatedReportAction;
     }
 
-    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message.at(0)) {
-        updatedReportAction.message.at(0).html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
+    // eslint-disable-next-line rulesdir/prefer-at
+    if (Array.isArray(updatedReportAction.message) && updatedReportAction.message[0]) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        updatedReportAction.message[0].html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
     }
 
     return updatedReportAction;
@@ -832,7 +834,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
         return '';
     }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
-    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2).reportActionID : '';
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions.at(sortedFilterReportActions.length - 2)?.reportActionID ?? '' : '';
 }
 
 /**
@@ -1021,7 +1023,7 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return singleAction.childReportID;
+    return singleAction?.childReportID;
 }
 
 /**
@@ -1558,7 +1560,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     if (reimbursableUrls.length === 1) {
         result.push({
             text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
-            url: reimbursableUrls.at(0),
+            url: reimbursableUrls.at(0) ?? '',
         });
     }
 
@@ -1567,7 +1569,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls.at(0);
+            url = nonReimbursableUrls.at(0) ?? '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -1579,7 +1581,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
                     // The first three characters in a Salesforce ID is the expense type
-                    url = nonReimbursableUrls.at(0).substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3);
+                    url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
                 default:
                     url = QBO_EXPENSES_URL;

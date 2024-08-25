@@ -31,6 +31,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import fallbackIcon from '@src/utils/getDefaultIcon';
 import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
@@ -192,7 +193,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons.at(0)}
+                                            mainAvatar={optionItem.icons.at(0) ?? fallbackIcon}
                                             secondaryAvatar={optionItem.icons.at(1)}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />

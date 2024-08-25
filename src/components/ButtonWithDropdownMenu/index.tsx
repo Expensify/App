@@ -83,9 +83,14 @@ function ButtonWithDropdownMenu<IValueType>({
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                onPress(e, selectedItem?.value);
+                if (selectedItem?.value) {
+                    onPress(e, selectedItem?.value);
+                }
             } else {
-                onPress(e, options.at(0)?.value);
+                const option = options.at(0);
+                if (option?.value) {
+                    onPress(e, option?.value);
+                }
             }
         },
         {
@@ -103,8 +108,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={dropdownButtonRef}
-                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
-                        text={customText ?? selectedItem.text}
+                        // eslint-disable-next-line no-nested-ternary
+                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : selectedItem?.value ? onPress(event, selectedItem?.value) : undefined)}
+                        text={customText ?? selectedItem?.text ?? ''}
                         isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
@@ -150,11 +156,14 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled || !!options.at(0).disabled}
+                    isDisabled={isDisabled || !!options.at(0)?.disabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
-                    text={selectedItem.text}
-                    onPress={(event) => onPress(event, options.at(0).value)}
+                    text={selectedItem?.text}
+                    onPress={(event) => {
+                        const option = options.at(0);
+                        return option ? onPress(event, option.value) : undefined;
+                    }}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}

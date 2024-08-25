@@ -1425,13 +1425,13 @@ function generateDefaultWorkspaceName(email = ''): string {
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
     }
-    const username = emailParts.at(0);
-    const domain = emailParts.at(1);
+    const username = emailParts.at(0) ?? '';
+    const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
     const displayName = userDetails?.displayName?.trim();
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0))}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0) ?? '')}'s Workspace`;
     } else if (displayName) {
         defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
@@ -2350,7 +2350,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: {
-                [Object.keys(announceChatData).at(0)]: {
+                [Object.keys(announceChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -2369,7 +2369,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
-                [Object.keys(adminsChatData).at(0)]: {
+                [Object.keys(adminsChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -2388,7 +2388,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: {
-                [Object.keys(workspaceChatData).at(0)]: {
+                [Object.keys(workspaceChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },

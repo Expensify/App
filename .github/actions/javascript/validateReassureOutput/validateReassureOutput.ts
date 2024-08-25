@@ -16,6 +16,11 @@ const run = (): boolean => {
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
         const measurement = regressionOutput.countChanged.at(i);
+
+        if (!measurement) {
+            continue;
+        }
+
         const baseline: PerformanceEntry = measurement.baseline;
         const current: PerformanceEntry = measurement.current;
 

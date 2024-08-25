@@ -311,7 +311,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index).reportActionID]: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -359,7 +359,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index).reportActionID]: null,
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
         },
     }));
 
@@ -371,7 +371,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticDissmidedViolationReportActions.at(index).reportActionID]: {
+            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
                 pendingAction: null,
             },
         },

@@ -91,13 +91,13 @@ function MentionSuggestions({
                     {item.icons && !!item.icons.length && (
                         <View style={styles.mentionSuggestionsAvatarContainer}>
                             <Avatar
-                                source={item.icons.at(0).source}
+                                source={item.icons.at(0)?.source}
                                 size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                                name={item.icons.at(0).name}
-                                avatarID={item.icons.at(0).id}
-                                type={item.icons.at(0).type}
+                                name={item.icons.at(0)?.name}
+                                avatarID={item.icons.at(0)?.id}
+                                type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
                                 fill={isIcon ? theme.success : undefined}
-                                fallbackIcon={item.icons.at(0).fallbackIcon}
+                                fallbackIcon={item.icons.at(0)?.fallbackIcon}
                             />
                         </View>
                     )}

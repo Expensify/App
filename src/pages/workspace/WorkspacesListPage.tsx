@@ -318,12 +318,12 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0);
                     const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
                     return {
-                        title: policyInfo.name,
-                        icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        title: policyInfo?.name ?? '',
+                        icon: policyInfo?.avatar ? policyInfo?.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                         disabled: true,
-                        ownerAccountID: policyInfo.ownerAccountID,
-                        type: policyInfo.type,
-                        iconType: policyInfo.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                        ownerAccountID: policyInfo?.ownerAccountID,
+                        type: policyInfo?.type ?? CONST.POLICY.TYPE.FREE,
+                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,

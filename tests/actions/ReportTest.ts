@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
+/* eslint-disable rulesdir/prefer-at */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
@@ -88,7 +90,7 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {}).at(0);
+                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {})[0];
                 reportActionID = resultAction.reportActionID;
 
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
@@ -186,7 +188,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments.at(URL_ARGUMENT_INDEX).includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
@@ -584,7 +586,7 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
+                reportAction = Object.values(reportActions)[0];
                 reportActionID = reportAction.reportActionID;
 
                 // Add a reaction to the comment
@@ -592,7 +594,7 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
+                reportAction = Object.values(reportActions)[0];
 
                 // Expect the reaction to exist in the reportActionsReactions collection
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -616,20 +618,20 @@ describe('actions/Report', () => {
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
+                reportAction = Object.values(reportActions)[0];
 
                 // Add the same reaction to the same report action with a different skintone
                 Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 return waitForBatchedUpdates()
                     .then(() => {
-                        reportAction = Object.values(reportActions).at(0);
+                        reportAction = Object.values(reportActions)[0];
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
-                        reportAction = Object.values(reportActions).at(0);
+                        reportAction = Object.values(reportActions)[0];
 
                         // Expect the reaction to exist in the reportActionsReactions collection
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -702,14 +704,14 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions).at(0);
+                resultAction = Object.values(reportActions)[0];
 
                 // Add a reaction to the comment
                 Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions).at(0);
+                resultAction = Object.values(reportActions)[0];
 
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
