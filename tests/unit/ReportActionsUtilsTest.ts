@@ -481,10 +481,10 @@ describe('ReportActionsUtils', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
+                                const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                                     callback: () => {
-                                        Onyx.disconnect(connectionID);
+                                        Onyx.disconnect(connection);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
                                         expect(res).toEqual(action2);
                                         resolve();

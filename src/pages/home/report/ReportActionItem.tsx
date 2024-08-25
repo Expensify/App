@@ -639,11 +639,11 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(report.reportID)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUSubmittedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(report.reportID)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(report.reportID)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -673,6 +673,9 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isRenamedAction(action)) {
             const message = ReportActionsUtils.getRenamedAction(action);
             children = <ReportActionItemBasicMessage message={message} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
+            const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(action) ?? {label: '', errorMessage: ''};
+            children = <ReportActionItemBasicMessage message={translate('report.actions.type.integrationSyncFailed', label, errorMessage)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
