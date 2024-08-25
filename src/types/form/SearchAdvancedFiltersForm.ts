@@ -11,6 +11,8 @@ const FILTER_KEYS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
+    LESS_THAN: 'lessThan',
+    GREATER_THAN: 'greaterThan',
     TAX_RATE: 'taxRate',
     EXPENSE_TYPE: 'expenseType',
     TAG: 'tag',
@@ -33,6 +35,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.REPORT_ID]: string;
+        [FILTER_KEYS.LESS_THAN]: string;
+        [FILTER_KEYS.GREATER_THAN]: string;
         [FILTER_KEYS.KEYWORD]: string;
         [FILTER_KEYS.TAX_RATE]: string[];
         [FILTER_KEYS.EXPENSE_TYPE]: string[];

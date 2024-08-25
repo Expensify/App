@@ -2,13 +2,13 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -225,49 +225,46 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
      */
     const generalMenuItemsData: Menu = useMemo(() => {
         const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
-        const commonItems: MenuData[] = [
-            {
-                translationKey: 'initialSettingsPage.help',
-                icon: Expensicons.QuestionMark,
-                action: () => {
-                    Link.openExternalLink(CONST.NEWHELP_URL);
-                },
-                iconRight: Expensicons.NewWindow,
-                shouldShowRightIcon: true,
-                link: CONST.NEWHELP_URL,
-            },
-            {
-                translationKey: 'initialSettingsPage.about',
-                icon: Expensicons.Info,
-                routeName: ROUTES.SETTINGS_ABOUT,
-            },
-            {
-                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                icon: Expensicons.Lightbulb,
-                routeName: ROUTES.SETTINGS_TROUBLESHOOT,
-            },
-            {
-                translationKey: 'sidebarScreen.saveTheWorld',
-                icon: Expensicons.Heart,
-                routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
-            },
-        ];
-        const signOutItem: MenuData = {
-            translationKey: signOutTranslationKey,
-            icon: Expensicons.Exit,
-            action: () => {
-                signOut(false);
-            },
-        };
-        const defaultMenu: Menu = {
+        return {
             sectionStyle: {
                 ...styles.pt4,
             },
             sectionTranslationKey: 'initialSettingsPage.general',
-            items: NativeModules.HybridAppModule ? commonItems : [...commonItems, signOutItem],
+            items: [
+                {
+                    translationKey: 'initialSettingsPage.help',
+                    icon: Expensicons.QuestionMark,
+                    action: () => {
+                        Link.openExternalLink(CONST.NEWHELP_URL);
+                    },
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
+                    link: CONST.NEWHELP_URL,
+                },
+                {
+                    translationKey: 'initialSettingsPage.about',
+                    icon: Expensicons.Info,
+                    routeName: ROUTES.SETTINGS_ABOUT,
+                },
+                {
+                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                    icon: Expensicons.Lightbulb,
+                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
+                },
+                {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                },
+                {
+                    translationKey: signOutTranslationKey,
+                    icon: Expensicons.Exit,
+                    action: () => {
+                        signOut(false);
+                    },
+                },
+            ],
         };
-
-        return defaultMenu;
     }, [styles.pt4, signOut]);
 
     /**
@@ -363,7 +360,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const headerContent = (
         <View style={[styles.ph5, styles.pb3]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
                     <AccountSwitcher />

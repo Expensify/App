@@ -63,6 +63,7 @@ function connect(email: string) {
         },
     ];
 
+    // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
         .then((response) => {
@@ -84,6 +85,67 @@ function connect(email: string) {
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
+        });
+}
+
+function disconnect() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    error: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    error: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    error: 'delegate.genericError',
+                },
+            },
+        },
+    ];
+
+    // We need to access the authToken directly from the response to update the session
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
+        .then((response) => {
+            if (!response?.authToken || !response?.encryptedAuthToken) {
+                Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                return;
+            }
+
+            return SequentialQueue.waitForIdle()
+                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
+                .then(() => {
+                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
+
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
+                    openApp();
+                });
+        })
+        .catch((error) => {
+            Log.alert('[Delegate] Error disconnecting as a delegate', {error});
         });
 }
 
@@ -139,4 +201,4 @@ function addDelegate(email: string, role: DelegateRole) {
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-export {connect, clearDelegatorErrors, addDelegate};
+export {connect, disconnect, clearDelegatorErrors, addDelegate};

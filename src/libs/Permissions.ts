@@ -41,6 +41,15 @@ function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
 }
 
+function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
+}
+
+function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
+    // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
+    return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -58,4 +67,6 @@ export default {
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
     canUseNewDotCopilot,
+    canUseWorkspaceRules,
+    canUseCombinedTrackSubmit,
 };
