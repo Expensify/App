@@ -13,6 +13,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -87,6 +88,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action);
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -95,12 +97,6 @@ function IOURequestStepDistance({
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const hasRouteError = !!transaction?.errorFields?.route;
-    const hasRoute = TransactionUtils.hasRoute(transaction);
-    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const previousValidatedWaypoints = usePrevious(validatedWaypoints);
-    const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
-    const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
         if (!waypoint) {
@@ -158,13 +154,6 @@ function IOURequestStepDistance({
         MapboxToken.init();
         return MapboxToken.stop;
     }, []);
-
-    useEffect(() => {
-        if (isOffline || !shouldFetchRoute) {
-            return;
-        }
-        TransactionAction.getRoute(transactionID, validatedWaypoints, action === CONST.IOU.ACTION.CREATE);
-    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline, action]);
 
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
