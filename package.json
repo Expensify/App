@@ -101,6 +101,7 @@
     "@react-ng/bounds-observer": "^0.2.1",
     "@rnmapbox/maps": "10.1.20",
     "@shopify/flash-list": "1.6.3",
+    "@types/mime-db": "^1.43.5",
     "@ua/react-native-airship": "17.2.1",
     "@vue/preload-webpack-plugin": "^2.0.0",
     "awesome-phonenumber": "^5.4.0",
