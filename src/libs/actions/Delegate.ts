@@ -61,6 +61,7 @@ function connect(email: string) {
         },
     ];
 
+    // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
         .then((response) => {
@@ -122,6 +123,7 @@ function disconnect() {
         },
     ];
 
+    // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
         .then((response) => {
