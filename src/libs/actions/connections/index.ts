@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -383,8 +384,7 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     }
 
     const connection = policy?.connections?.[connectionName];
-
-    if (isSyncInProgress || connection?.lastSync?.isSuccessful !== false) {
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful === false) {
         return;
     }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
@@ -405,6 +405,12 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
     }
+
+    // If the connection has no lastSync property, we'll consider it unverified
+    if (isEmptyObject(policy?.connections?.[connectionName]?.lastSync)) {
+        return true;
+    }
+
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 

@@ -17,28 +17,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
-function SearchFiltersMerchantPage() {
+function SearchFiltersReportIDPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const merchant = searchAdvancedFiltersForm?.[FILTER_KEYS.MERCHANT];
+    const reportID = searchAdvancedFiltersForm?.[FILTER_KEYS.REPORT_ID];
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const updateMerchantFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const updateReportIDFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersMerchantPage.displayName}
+            testID={SearchFiltersReportIDPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('common.merchant')}
+                title={translate('common.reportID')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
@@ -46,19 +47,18 @@ function SearchFiltersMerchantPage() {
             <FormProvider
                 style={[styles.flex1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                onSubmit={updateMerchantFilter}
+                onSubmit={updateReportIDFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={FILTER_KEYS.MERCHANT}
-                        name={FILTER_KEYS.MERCHANT}
-                        defaultValue={merchant}
-                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
+                        inputID={FILTER_KEYS.REPORT_ID}
+                        name={FILTER_KEYS.REPORT_ID}
+                        defaultValue={reportID}
+                        label={translate('common.reportID')}
+                        accessibilityLabel={translate('common.reportID')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
@@ -68,6 +68,6 @@ function SearchFiltersMerchantPage() {
     );
 }
 
-SearchFiltersMerchantPage.displayName = 'SearchFiltersMerchantPage';
+SearchFiltersReportIDPage.displayName = 'SearchFiltersReportIDPage';
 
-export default SearchFiltersMerchantPage;
+export default SearchFiltersReportIDPage;
