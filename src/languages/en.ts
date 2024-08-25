@@ -4426,6 +4426,6 @@ export default {
                     return '';
             }
         },
-        genericError: 'Oops something went wrong. Please try again.',
+        genericError: 'Oops, something went wrong. Please try again.',
     },
 } satisfies TranslationBase;
