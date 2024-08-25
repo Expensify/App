@@ -3,6 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
+let connectionID: number;
+
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
  */
@@ -11,6 +13,7 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
         return;
     }
 
+    Onyx.disconnect(connectionID);
     const newTransaction = {
         ...transaction,
     };
@@ -27,10 +30,10 @@ function removeBackupTransaction(transactionID: string) {
 }
 
 function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
-    const connection = Onyx.connect({
+    connectionID = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
-            Onyx.disconnect(connection);
+            Onyx.disconnect(connectionID);
 
             // Use set to completely overwrite the original transaction
             Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
