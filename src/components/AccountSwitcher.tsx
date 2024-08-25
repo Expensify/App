@@ -187,4 +187,6 @@ function AccountSwitcher() {
     );
 }
 
+AccountSwitcher.displayName = 'AccountSwitcher';
+
 export default AccountSwitcher;
