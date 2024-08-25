@@ -75,7 +75,9 @@ function BaseOnboardingPersonalDetails({
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID();
 
-            Navigation.dismissModal();
+            // Navigate to HOME instead of dismissModal, because there is bug in small screen
+            // where the onboarding puropose page will be disaplayed briefly
+            Navigation.navigate(ROUTES.HOME);
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.

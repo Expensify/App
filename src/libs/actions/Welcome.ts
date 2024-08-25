@@ -168,7 +168,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 function getOnboardingInitialPath(): Route {
     const state = getStateFromPath(onboardingInitialPath as Route);
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
-        return ROUTES.ONBOARDING_ROOT.getRoute() as Route;
+        return ROUTES.ONBOARDING_ROOT.route as Route;
     }
 
     return onboardingInitialPath as Route;
@@ -203,14 +203,8 @@ function completeHybridAppOnboarding() {
 }
 
 function startOnboardingFlow() {
-    const currentState = navigationRef.getRootState();
-    if (currentState?.routes?.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
-        Navigation.closeAndNavigate(getOnboardingInitialPath());
-    } else {
-        const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
-        navigationRef.resetRoot(adaptedState);
-        Navigation.navigate(getOnboardingInitialPath());
-    }
+    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    navigationRef.resetRoot(adaptedState);
 }
 
 Onyx.connect({

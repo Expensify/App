@@ -2722,6 +2722,7 @@ function openReportFromDeepLink(url: string) {
         });
     });
 }
+
 function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
