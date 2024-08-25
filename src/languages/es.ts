@@ -4943,6 +4943,6 @@ export default {
                     return '';
             }
         },
-        genericError: 'Oops algo salió mal. Por favor, inténtalo de nuevo.',
+        genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
     },
 } satisfies EnglishTranslation;
