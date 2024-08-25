@@ -1,5 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,10 +10,14 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setDelegateEmail} from '@libs/actions/Delegate';
 import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Participant} from '@src/types/onyx/IOU';
 
 function useOptions() {
     const betas = useBetas();
@@ -82,7 +87,8 @@ function useOptions() {
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const {recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -113,6 +119,11 @@ function AddDelegatePage() {
         }));
     }, [personalDetails, recentReports, translate]);
 
+    const onSelectRow = useCallback((option: Participant) => {
+        // setDelegateEmail(option.login ?? '');
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE);
+    }, []);
+
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
@@ -130,14 +141,14 @@ function AddDelegatePage() {
                 <SelectionList
                     sections={areOptionsInitialized ? sections : []}
                     ListItem={UserListItem}
-                    onSelectRow={() => {}}
+                    onSelectRow={onSelectRow}
                     shouldSingleExecuteRowSelect
                     onChangeText={setSearchValue}
                     textInputValue={searchValue}
                     headerMessage={headerMessage}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     showLoadingPlaceholder={!areOptionsInitialized}
-                    // isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForReports}
                 />
             </View>
         </ScreenWrapper>

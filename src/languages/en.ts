@@ -4473,7 +4473,7 @@ export default {
         addCopilot: 'Add copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
-        role: (role: DelegateRole): string => {
+        role: (role?: DelegateRole): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Full';
@@ -4484,5 +4484,9 @@ export default {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+        accessLevel: 'Access level',
+        accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
+        fullAccessDescription: 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.',
+        limitedAccessDescription: 'Allow another member to take most actions in your account, on your behalf. Excludes approvals, payments, rejections, and holds.',
     },
 } satisfies TranslationBase;

@@ -16,7 +16,7 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     email: string;
 
     /** The role of the delegate */
-    role: DelegateRole;
+    role?: DelegateRole;
 
     /** Authentication failure errors */
     error?: TranslationPaths;
@@ -125,4 +125,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};

@@ -127,9 +127,15 @@ const ROUTES = {
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
-    SETTINGS_ADD_DELEGATE: 'settings/security/delegate/add',
-    SETTINGS_DELEGATE_ROLE: 'settings/security/delegate/role',
-    SETTINGS_DELEGATE_CONFIRM: 'settings/security/delegate/confirm',
+    SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
+    SETTINGS_DELEGATE_ROLE: {
+        route: 'settings/security/delegate/:accountID/role/:role',
+        getRoute: (accountID: string, role?: ValueOf<typeof CONST.DELEGATE_ROLE>) => `settings/security/delegate/${accountID}/role/${role}` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM: {
+        route: 'settings/security/delegate/:accountID/role/:role/confirm',
+        getRoute: (accountID: string, role: ValueOf<typeof CONST.DELEGATE_ROLE>) => `settings/security/delegate/${accountID}/role/${role}/confirm` as const,
+    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',

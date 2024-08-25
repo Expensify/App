@@ -5000,5 +5000,9 @@ export default {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        accessLevel: 'Access level',
+        accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
+        fullAccessDescription: 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.',
+        limitedAccessDescription: 'Allow another member to take most actions in your account, on your behalf. Excludes approvals, payments, rejections, and holds.',
     },
 } satisfies EnglishTranslation;
