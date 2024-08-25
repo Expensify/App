@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -63,6 +64,19 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         }
 
         return dateValue;
+    }
+
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        const {lessThan, greaterThan} = filters;
+        if (lessThan && greaterThan) {
+            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+        }
+        if (lessThan) {
+            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
+        }
+        if (greaterThan) {
+            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
+        }
     }
 
     if (
@@ -150,6 +164,11 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
             },
             {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
+                description: 'common.total' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+            },
+            {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
                 description: 'common.category' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
@@ -206,31 +225,33 @@ function AdvancedSearchFilters() {
     };
 
     return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
-            <View>
-                {advancedFilters.map((item) => {
-                    const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-                    if (item.shouldHide) {
-                        return undefined;
-                    }
-                    return (
-                        <MenuItemWithTopDescription
-                            key={item.description}
-                            title={item.title}
-                            description={translate(item.description)}
-                            shouldShowRightIcon
-                            onPress={onPress}
-                        />
-                    );
-                })}
-            </View>
+        <>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
+                <View>
+                    {advancedFilters.map((item) => {
+                        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
+                        if (item.shouldHide) {
+                            return undefined;
+                        }
+                        return (
+                            <MenuItemWithTopDescription
+                                key={item.description}
+                                title={item.title}
+                                description={translate(item.description)}
+                                shouldShowRightIcon
+                                onPress={onPress}
+                            />
+                        );
+                    })}
+                </View>
+            </ScrollView>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
-        </ScrollView>
+        </>
     );
 }
 
