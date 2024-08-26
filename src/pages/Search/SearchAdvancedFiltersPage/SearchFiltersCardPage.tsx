@@ -34,6 +34,7 @@ function SearchFiltersCardPage() {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
 
                 return {
+                    lastFourPAN: card.lastFourPAN,
                     text: card.bank,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),
@@ -88,6 +89,7 @@ function SearchFiltersCardPage() {
             testID={SearchFiltersCardPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('common.card')}
