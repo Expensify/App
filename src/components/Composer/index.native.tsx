@@ -94,7 +94,7 @@ function Composer(
             if (clipboardContent?.type === 'text/plain') {
                 return;
             }
-            const mimeType = clipboardContent?.type;
+            const mimeType = clipboardContent?.type ?? '';
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
             const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
