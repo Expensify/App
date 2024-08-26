@@ -17,6 +17,7 @@ import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Subscription from '@userActions/Subscription';
@@ -57,6 +58,16 @@ function CardSection() {
         User.requestRefund();
         setIsRequestRefundModalVisible(false);
         Navigation.resetToHome();
+    }, []);
+
+    const viewPurchases = useCallback(() => {
+        const query = SearchUtils.buildQueryStringFromFilters({merchant: '"Expensify, Inc."'});
+        Navigation.navigate(
+            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                query,
+                isCustomQuery: true,
+            }),
+        );
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
@@ -166,17 +177,17 @@ function CardSection() {
                     />
                 )}
 
-                {!!account?.hasPurchases && (
+                {/* {!!account?.hasPurchases && ( */}
                     <MenuItem
                         shouldShowRightIcon
                         icon={Expensicons.History}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}))}
+                        onPress={viewPurchases}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
-                )}
+                {/* )} */}
 
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
