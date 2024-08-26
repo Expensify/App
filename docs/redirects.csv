@@ -419,8 +419,8 @@ https://community.expensify.com/discussion/4825/how-to-create-and-send-invoices-
 https://community.expensify.com/discussion/8850/how-to-enable-monthly-settlement,https://help.expensify.com/articles/expensify-classic/expensify-card/Admin-Card-Settings-and-Features#change-the-settlement-frequency
 https://community.expensify.com/discussion/4828/how-to-match-your-company-cards-statement-to-expensify/,https://help.expensify.com/articles/expensify-classic/expensify-card/Admin-Card-Settings-and-Features#reconciling-expenses-and-settlements
 https://community.expensify.com/discussion/5751/deep-dive-domain-groups-and-permissions-what-are-they-all-about,https://help.expensify.com/articles/expensify-classic/domains/Create-A-Group
-https://community.expensify.com/discussion/4832/how-to-enable-saml-sso,https://help.expensify.com/articles/expensify-classic/domains/SAML-SSO
 https://community.expensify.com/categories/expensify-org-general-questions-and-discussions,https://www.expensify.org/
+https://community.expensify.com/discussion/4832/how-to-enable-saml-sso,https://help.expensify.com/articles/expensify-classic/domains/SAML-SSO
 https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-for-a-group-policy/,https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports
 https://community.expensify.com/discussion/4524/how-to-set-up-the-uber-integration/,https://help.expensify.com/articles/expensify-classic/connections/Uber
 https://community.expensify.com/discussion/4828/how-to-match-your-company-cards-statement-to-expensify/p1,https://help.expensify.com/articles/expensify-classic/expensify-card/Admin-Card-Settings-and-Features#reconciling-expenses-and-settlements
@@ -477,7 +477,6 @@ https://community.expensify.com/discussion/5321/how-to-set-up-saml-authenticatio
 https://community.expensify.com/discussion/5499/deep-dive-configure-coding-for-sage-intacct,https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Configure-Sage-Intacct
 https://community.expensify.com/discussion/5580/deep-dive-configure-advanced-settings-for-netsuite,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#step-3-configure-advanced-settings
 https://community.expensify.com/discussion/5632/deep-dive-configure-coding-for-netsuite,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#configure-netsuite-integration
-https://community.expensify.com/discussion/5632/deep-dive-configure-coding-for-netsuite#tax,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#configure-netsuite-integration
 https://community.expensify.com/discussion/5649/deep-dive-configure-advanced-settings-for-quickbooks-online,https://help.expensify.com/articles/expensify-classic/connections/quickbooks-online/Configure-Quickbooks-Online
 https://community.expensify.com/discussion/5654/deep-dive-using-expense-rules-to-vendor-match-when-exporting-to-an-accounting-package,https://help.expensify.com/articles/expensify-classic/expenses/Expense-Rules#how-can-i-use-expense-rules-to-vendor-match-when-exporting-to-an-accounting-package
 https://community.expensify.com/discussion/5656/deep-dive-configure-coding-for-xero/,https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero#step-2-configure-import-settings
@@ -490,7 +489,6 @@ https://community.expensify.com/discussion/5864/how-to-add-a-personal-bank-accou
 https://community.expensify.com/discussion/5941/how-to-reimburse-overseas-employees-for-us-employers/,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements
 https://community.expensify.com/discussion/6203/deep-dive-expensify-card-and-netsuite-auto-reconciliation-how-it-works,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Reconciliation
 https://community.expensify.com/discussion/6698/faq-troubleshooting-bank-and-card-errors,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Troubleshooting
-https://community.expensify.com/discussion/6698/faq-troubleshooting-bank-and-card-errors#account-type-not-supported,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Troubleshooting
 https://community.expensify.com/discussion/6827/what-s-happening-to-my-expensify-bill,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview
 https://community.expensify.com/discussion/6898/deep-dive-guide-to-billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview
 https://community.expensify.com/discussion/7231/how-to-export-invoices-to-netsuite,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#export-invoices-to
@@ -500,11 +498,9 @@ https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-a
 https://community.expensify.com/discussion/7862/introducing-expensify-cash-open-source-financial-group-chat-built-with-react-native,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
 https://community.expensify.com/discussion/7931/how-to-become-an-expensify-org-donor,https://www.expensify.org/donate
 https://community.expensify.com/discussion/8705/how-to-change-an-invoice-to-an-expense-report/,https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report
-https://community.expensify.com/discussion/8707/how-to-connect-bolt-to-your-expensify-account-using-a-work-profile/,https://bolt.eu/en/support/articles/4403357843090/
 https://community.expensify.com/discussion/8803/settle-your-expensify-cards-monthly-or-daily-you-pick,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements#expensify-card-settlement-frequency
 https://community.expensify.com/discussion/4784/how-to-alternate-option-submit-as-part-of-approval-workflow,https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow
 https://community.expensify.com/discussion/4863/how-to-assign-and-unassign-company-cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#how-to-assign-company-cards
-https://community.expensify.com/discussion/4901/how-to-connect-locomote-to-your-expensify-account,https://www.locomote.com/marketplace/expensify-expense-management
 https://community.expensify.com/discussion/4902/how-to-expense-grab-airport-mobile-orders-with-expensify,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations#how-to-connect-to-grab
 https://community.expensify.com/discussion/4953/how-to-forward-hoteltonight-expenses-to-your-expensify-account,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations#how-to-connect-to-hoteltonight
 https://community.expensify.com/discussion/5042/faq-expensierror-xro052-expenses-are-not-categorized-with-a-xero-account,https://help.expensify.com/articles/expensify-classic/connections/xero/Xero-Troubleshooting
@@ -529,3 +525,4 @@ https://community.expensify.com/discussion/4939/how-to-connect-upside-to-your-ex
 https://community.expensify.com/discussion/4905/how-to-setup-the-parking-spot-to-automatically-forward-airport-parking-receipts-to-expensify,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations
 https://community.expensify.com/discussion/5324/how-to-connect-parkwhiz-to-your-expensify-account-using-a-business-profile,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations
 https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account#faq
+https://community.expensify.com/discussion/6191/list-of-restricted-businesses,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-payments

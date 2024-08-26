@@ -124,11 +124,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-                if (isRHPinState) {
-                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
-                }
+                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
             }
 
             // If we know that backTo targets the root route (central pane or full screen) we want to use it.
