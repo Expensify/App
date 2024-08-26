@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
@@ -18,7 +18,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const accountID = route.params.accountID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const hasDismissedModalRef = React.useRef(false);
+    const hasDismissedModalRef = useRef(false);
 
     useEffect(
         () => () => {
