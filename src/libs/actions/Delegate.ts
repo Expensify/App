@@ -196,7 +196,7 @@ function addDelegate(email: string, role: DelegateRole) {
         },
     ];
 
-    const parameters: AddDelegateParams = {email, role};
+    const parameters: AddDelegateParams = {delegate: email, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
