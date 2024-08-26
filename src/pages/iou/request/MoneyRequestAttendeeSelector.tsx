@@ -1,5 +1,4 @@
 import lodashIsEqual from 'lodash/isEqual';
-import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -29,17 +28,17 @@ import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 
-type MoneyRequestParticipantsSelectorProps = {
+type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
-    onParticipantsAdded: (value: Participant[]) => void;
+    onAttendeesAdded: (value: Attendee[]) => void;
 
     /** Selected participants from MoneyRequestModal with login */
-    participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
+    attendees?: Attendee[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
@@ -51,7 +50,7 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, onAttendeesAdded, iouType, iouRequestType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -72,7 +71,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => PolicyUtils.isPaidGroupPolicy(policy), [policy]);
-    const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    // const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
@@ -89,7 +88,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
             options.personalDetails,
             betas,
             '',
-            participants as Attendee[],
+            attendees as Attendee[],
             CONST.EXPENSIFY_EMAILS,
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
@@ -131,7 +130,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
         isCategorizeOrShareAction,
         options.personalDetails,
         options.reports,
-        participants,
+        attendees,
         isPaidGroupPolicy,
     ]);
 
@@ -150,14 +149,14 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            selectedOptions: participants as Attendee[],
+            selectedOptions: attendees as Attendee[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, attendees, isPaidGroupPolicy]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -171,13 +170,12 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? '-1'})),
+            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID ?? '-1'})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
             true,
         );
-        console.log('formatResults', formatResults);
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -210,7 +208,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => OptionsListUtils.getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -218,7 +216,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
         areOptionsInitialized,
         didScreenTransitionEnd,
         debouncedSearchTerm,
-        participants,
+        attendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,
@@ -232,8 +230,8 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
      * @param {Object} option
      */
     const addParticipantToSelection = useCallback(
-        (option: Participant) => {
-            const isOptionSelected = (selectedOption: Participant) => {
+        (option: Attendee) => {
+            const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
                     return true;
                 }
@@ -244,14 +242,14 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
 
                 return false;
             };
-            const isOptionInList = participants.some(isOptionSelected);
-            let newSelectedOptions: Participant[];
+            const isOptionInList = attendees.some(isOptionSelected);
+            let newSelectedOptions: Attendee[];
 
             if (isOptionInList) {
-                newSelectedOptions = lodashReject(participants, isOptionSelected);
+                newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 newSelectedOptions = [
-                    ...participants,
+                    ...attendees,
                     {
                         accountID: option.accountID,
                         login: option.login,
@@ -265,23 +263,23 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions);
+            onAttendeesAdded(newSelectedOptions);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
-        [participants, onParticipantsAdded],
+        [attendees, onAttendeesAdded],
     );
 
-    const shouldShowErrorMessage = participants.length < 1;
+    const shouldShowErrorMessage = attendees.length < 1;
 
     const handleConfirmSelection = useCallback(
-        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
-            if (shouldShowErrorMessage || (!participants.length && !option)) {
+        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Attendee) => {
+            if (shouldShowErrorMessage || (!attendees.length && !option)) {
                 return;
             }
 
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowErrorMessage, onFinish, participants],
+        [shouldShowErrorMessage, onFinish, attendees],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -296,7 +294,7 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
     const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     const footerContent = useMemo(() => {
-        if (isDismissed && !shouldShowErrorMessage && !participants.length) {
+        if (isDismissed && !shouldShowErrorMessage && !attendees.length) {
             return;
         }
 
@@ -322,17 +320,17 @@ function MoneyRequestAttendeeSelector({participants = CONST.EMPTY_ARRAY, onFinis
                 )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowErrorMessage, styles, translate, isCategorizeOrShareAction, onFinish]);
+    }, [handleConfirmSelection, attendees.length, isDismissed, shouldShowErrorMessage, styles, translate, isCategorizeOrShareAction]);
 
     const onSelectRow = useCallback(
-        (option: Participant) => {
+        (option: Attendee) => {
             if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
             addParticipantToSelection(option);
         },
-        [isIOUSplit, addParticipantToSelection],
+        [addParticipantToSelection],
     );
 
     return (
@@ -362,6 +360,5 @@ MoneyRequestAttendeeSelector.displayName = 'MoneyRequestAttendeeSelector';
 
 export default memo(
     MoneyRequestAttendeeSelector,
-    (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
+    (prevProps, nextProps) => lodashIsEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
 );
