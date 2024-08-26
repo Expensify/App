@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams} from '@libs/API/parameters';
+import type {AddDelegateParams, RemoveDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -242,7 +242,9 @@ function removeDelegate(email: string) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, {email}, {optimisticData, successData, failureData});
+    const parameters: RemoveDelegateParams = {delegate: email};
+
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
 export {connect, disconnect, clearDelegatorErrors, addDelegate, removeDelegate};
