@@ -58,6 +58,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Remove the approval workflow using the initial data as it could be already edited
         Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+        setIsDeleteModalVisible(false);
         Navigation.dismissModal();
     }, [initialApprovalWorkflow, route.params.policyID]);
 
