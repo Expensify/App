@@ -1,6 +1,7 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import _ from 'lodash';
+import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -23,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {removeDelegate} from '@libs/actions/Delegate';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -80,6 +82,19 @@ function SecuritySettingsPage() {
         setMenuPosition();
         setShouldShowDelegatePopoverMenu(true);
     };
+
+    useLayoutEffect(() => {
+        const popoverPositionListener = Dimensions.addEventListener('change', () => {
+            _.debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+        });
+
+        return () => {
+            if (!popoverPositionListener) {
+                return;
+            }
+            popoverPositionListener.remove();
+        };
+    }, [setMenuPosition]);
 
     const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
@@ -232,7 +247,10 @@ function SecuritySettingsPage() {
                                 title={translate('delegate.removeCopilot')}
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
-                                onConfirm={() => {}}
+                                onConfirm={() => {
+                                    removeDelegate();
+                                    setShouldShowRemoveDelegateModal(false);
+                                }}
                                 onCancel={() => setShouldShowRemoveDelegateModal(false)}
                                 confirmText={translate('delegate.removeCopilot')}
                                 cancelText={translate('common.cancel')}
