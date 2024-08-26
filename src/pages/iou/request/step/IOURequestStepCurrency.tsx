@@ -12,7 +12,6 @@ import {appendParam} from '@libs/Url';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
