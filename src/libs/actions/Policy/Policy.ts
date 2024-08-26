@@ -3453,9 +3453,10 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
  */
 function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
-    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
-    const titleFieldValues = enabled ? previousFieldList : {...previousFieldList, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN};
+    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
+    const titleFieldPendingValues = enabled ? {} : {fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3463,12 +3464,10 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowCustomReportTitleOption: enabled,
-                fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: titleFieldValues,
-                },
+                ...titleFieldValues,
                 pendingFields: {
                     shouldShowCustomReportTitleOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...titleFieldPendingValues,
                 },
             },
         },
@@ -3495,7 +3494,7 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
             value: {
                 shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousReportTitleField,
                 },
                 pendingFields: {
                     shouldShowCustomReportTitleOption: null,
@@ -3528,7 +3527,7 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
  */
 function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
-    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3536,7 +3535,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousFieldList, defaultValue: customName},
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: customName},
                 },
                 pendingFields: {
                     fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3564,7 +3563,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousReportTitleField,
                 },
                 pendingFields: {
                     fieldList: null,
@@ -3589,13 +3588,13 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
 }
 
 /**
- * Call the API to enable or disable enforcing the naming pattern for the reports
+ * Call the API to enable or disable enforcing the naming pattern for member created reports on a policy
  * @param policyID - id of the policy to apply the naming pattern to
  * @param enforced - flag whether to enforce policy name
  */
 function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean) {
     const policy = getPolicy(policyID);
-    const previousFieldList = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3603,7 +3602,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousFieldList, deletable: !enforced},
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, deletable: !enforced},
                 },
                 pendingFields: {
                     fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3631,7 +3630,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousFieldList,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousReportTitleField,
                 },
                 pendingFields: {
                     fieldList: null,
@@ -3694,7 +3693,7 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                preventSelfApproval: policy?.preventSelfApproval,
+                preventSelfApproval: policy?.preventSelfApproval ?? false,
                 pendingFields: {
                     preventSelfApproval: null,
                 },
@@ -3829,7 +3828,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoApproval: {
-                    auditRate: policy?.autoApproval?.auditRate,
+                    auditRate: null,
                 },
                 pendingFields: {
                     autoApproval: null,
@@ -4003,6 +4002,9 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
  */
 function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
+    const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
+    const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
+    const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4010,12 +4012,10 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoReimbursementLimitOption: enabled,
-                autoReimbursement: {
-                    limit: enabled ? policy?.autoReimbursement?.limit : CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
-                },
+                ...autoReimbursementValues,
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...autoReimbursementPendingValues,
                 },
             },
         },
@@ -4027,12 +4027,10 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoReimbursementLimitOption: enabled,
-                autoReimbursement: {
-                    limit: enabled ? policy?.autoReimbursement?.limit : CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
-                },
+                ...autoReimbursementValues,
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: null,
-                    autoReimbursement: null,
+                    ...autoReimbursementCleanupValues,
                 },
                 errorFields: null,
             },
@@ -4045,12 +4043,10 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoReimbursementLimitOption: !enabled,
-                autoReimbursement: {
-                    limit: policy?.autoReimbursement?.limit,
-                },
+                ...autoReimbursementValues,
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: null,
-                    autoReimbursement: null,
+                    ...autoReimbursementCleanupValues,
                 },
                 errorFields: {
                     shouldShowAutoReimbursementLimitOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
