@@ -37,7 +37,9 @@ function SearchFiltersHasPage() {
         [translate],
     );
 
-    const selectedHasItems = searchAdvancedFiltersForm?.has?.map((value) => hasItems.find((hasItem) => hasItem.value === value)).filter((item): item is HasItem => item !== undefined) ?? [];
+    const selectedHasItems = useMemo(() => {
+        return searchAdvancedFiltersForm?.has?.map((value) => hasItems.find((hasItem) => hasItem.value === value)).filter((item): item is HasItem => item !== undefined) ?? [];
+    }, [searchAdvancedFiltersForm, hasItems]);
 
     const updateHasFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({has: values}), []);
 
