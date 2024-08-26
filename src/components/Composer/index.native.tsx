@@ -1,4 +1,5 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
@@ -14,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
 import type {ComposerProps} from './types';
 
@@ -94,9 +96,13 @@ function Composer(
             if (clipboardContent.type === 'text/plain') {
                 return;
             }
+            const mimeType = clipboardContent.type;
             const fileURI = clipboardContent.data;
-            const fileName = fileURI.split('/').pop();
-            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            const baseFileName = fileURI.split('/').pop() ?? 'file';
+            const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
+            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+            const fileName = `${stem}.${fileExtension}`;
+            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
             onPasteFile(file);
         },
         [onPasteFile],
