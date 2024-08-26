@@ -69,6 +69,7 @@ type CentralPaneScreensParamList = {
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
         isCustomQuery: boolean;
+        isSavedSearch: boolean;
         policyIDs?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;

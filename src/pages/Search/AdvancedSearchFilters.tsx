@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+import Button from '@components/Button';
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
@@ -213,6 +214,17 @@ function AdvancedSearchFilters() {
         [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
     );
 
+    const onSaveSearch = () => {
+        SearchActions.clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                query: SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters),
+                isCustomQuery: true,
+                isSavedSearch: true,
+            }),
+        );
+    }
+    
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
         SearchActions.clearAdvancedFilters();
@@ -245,6 +257,12 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
+            <Button
+                text={translate('search.saveSearch')}
+                onPress={onSaveSearch}
+                style={[styles.mh4, styles.mt4]}
+                large
+            />
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}

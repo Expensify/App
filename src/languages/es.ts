@@ -3796,6 +3796,7 @@ export default {
                 buttonText: 'Reserva un viaje',
             },
         },
+        saveSearch: 'Guardar búsqueda',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             delete: 'Eliminar',

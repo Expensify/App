@@ -3746,6 +3746,7 @@ export default {
                 buttonText: 'Book a trip',
             },
         },
+        saveSearch: 'Save search',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             delete: 'Delete',

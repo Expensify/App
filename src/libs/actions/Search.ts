@@ -49,6 +49,18 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
+function saveSearch({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+    const queryWithOffset = {
+        ...queryJSON,
+        offset,
+    };
+    const jsonQuery = JSON.stringify(queryWithOffset);
+
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {hash: queryJSON.hash, jsonQuery, policyIDs}, {optimisticData, finallyData});
+}
+
+
 function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
@@ -133,6 +145,7 @@ function clearAdvancedFilters() {
 }
 
 export {
+    saveSearch,
     search,
     createTransactionThread,
     deleteMoneyRequestOnSearch,
