@@ -140,7 +140,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         </>
     );
 
-    const hideRecieptModal = () => {
+    const hideInvalidAttachmentModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -186,8 +186,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                             </DragAndDropConsumer>
                             <ConfirmModal
                                 title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                                onConfirm={hideRecieptModal}
-                                onCancel={hideRecieptModal}
+                                onConfirm={hideInvalidAttachmentModal}
+                                onCancel={hideInvalidAttachmentModal}
                                 isVisible={isAttachmentInvalid}
                                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                                 confirmText={translate('common.close')}
