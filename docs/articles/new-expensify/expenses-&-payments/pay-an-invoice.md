@@ -6,7 +6,8 @@ description: process to pay an invoice
 
 {% include info.html %}
 Anyone who receives an Expensify invoice can pay it using Expensify—even if they don’t have an Expensify account.
-{% include end-info.html %}
+
+{% include end-selector.html %}
 
 You'll receive an automated email or text notification when an invoice is sent to you for payment. 
 
@@ -19,16 +20,19 @@ To pay an invoice,
 2. Click **Pay**.
 3. Choose **Pay as an individual** or **Pay as a business**.
 4. Click **Add Bank Account** or **Add debit or credit card** to issue payment. 
-{% include end-option.html %}
+
+{% include end-selector.html %}
 
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
 {% include option.html value="mobile" %}
+
 1. Tap the link in the email or text notification they receive from Expensify.
 2. Tap **Pay**.
 3. Choose **Pay as an individual** or **Pay as a business**.
 4. Tap **Add Bank Account** or **Add debit or credit card** to issue payment.
-{% include end-option.html %}
+
+{% include end-selector.html %}
 
 # FAQ
 
