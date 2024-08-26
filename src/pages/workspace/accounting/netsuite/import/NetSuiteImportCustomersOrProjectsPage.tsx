@@ -50,7 +50,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 }
             }
             if (newValue) {
-                updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField]);
+                updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
             }
         },
         [config?.syncOptions?.mapping, policyID],
