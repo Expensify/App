@@ -2,7 +2,6 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
