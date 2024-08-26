@@ -12,9 +12,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type HasItem = {
+type FilterItem = {
     name: string;
-    value: 'attachment' | 'link';
+    value: typeof CONST.SEARCH.CHAT_TYPES.ATTACHMENT | typeof CONST.SEARCH.CHAT_TYPES.LINK;
 };
 
 function SearchFiltersHasPage() {
@@ -23,7 +23,7 @@ function SearchFiltersHasPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const hasItems: HasItem[] = useMemo(
+    const filterItems: FilterItem[] = useMemo(
         () => [
             {
                 name: translate('common.attachment'),
@@ -37,9 +37,9 @@ function SearchFiltersHasPage() {
         [translate],
     );
 
-    const selectedHasItems = useMemo(() => {
-        return searchAdvancedFiltersForm?.has?.map((value) => hasItems.find((hasItem) => hasItem.value === value)).filter((item): item is HasItem => item !== undefined) ?? [];
-    }, [searchAdvancedFiltersForm, hasItems]);
+    const selectedOptions = useMemo(() => {
+        return searchAdvancedFiltersForm?.has?.map((value) => filterItems.find((filterItem) => filterItem.value === value)).filter((item): item is FilterItem => item !== undefined) ?? [];
+    }, [searchAdvancedFiltersForm, filterItems]);
 
     const updateHasFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({has: values}), []);
 
@@ -60,8 +60,8 @@ function SearchFiltersHasPage() {
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
                     pickerTitle={translate('search.filters.has')}
-                    items={hasItems}
-                    initiallySelectedItems={selectedHasItems}
+                    items={filterItems}
+                    initiallySelectedItems={selectedOptions}
                     onSaveSelection={updateHasFilter}
                     shouldShowTextInput={false}
                 />
