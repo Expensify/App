@@ -173,15 +173,15 @@ function CardSection() {
                 )}
 
                 {/* {!!account?.hasPurchases && ( */}
-                    <MenuItem
-                        shouldShowRightIcon
-                        icon={Expensicons.History}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        title={translate('subscription.cardSection.viewPaymentHistory')}
-                        titleStyle={styles.textStrong}
-                        onPress={viewPurchases}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
-                    />
+                <MenuItem
+                    shouldShowRightIcon
+                    icon={Expensicons.History}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    title={translate('subscription.cardSection.viewPaymentHistory')}
+                    titleStyle={styles.textStrong}
+                    onPress={viewPurchases}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
+                />
                 {/* )} */}
 
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
