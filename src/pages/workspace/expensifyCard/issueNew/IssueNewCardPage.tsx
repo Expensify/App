@@ -17,10 +17,12 @@ function IssueNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     const {currentStep} = issueNewCard ?? {};
 
+    const policyID = policy?.id ?? '-1';
+
     // TODO: add logic to skip Assignee step when the flow is started from the member's profile page
     useEffect(() => {
-        Card.startIssueNewCardFlow(policy?.id ?? '-1');
-    }, [policy?.id]);
+        Card.startIssueNewCardFlow(policyID);
+    }, [policyID]);
 
     switch (currentStep) {
         case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
@@ -34,7 +36,7 @@ function IssueNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
             return <CardNameStep />;
         case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
-            return <ConfirmationStep />;
+            return <ConfirmationStep policyID={policyID} />;
         default:
             return <AssigneeStep policy={policy} />;
     }

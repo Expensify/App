@@ -48,7 +48,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value);
+            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value, config?.export.nonReimbursable);
         },
         [config?.export.nonReimbursable, policyID],
     );
@@ -152,7 +152,12 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                             isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}
                             onToggle={(enabled) => {
                                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
+                                updateSageIntacctDefaultVendor(
+                                    policyID,
+                                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                                    vendor,
+                                    config?.export.nonReimbursableCreditCardChargeDefaultVendor,
+                                );
                             }}
                             wrapperStyle={[styles.ph5, styles.pv3]}
                             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields)}

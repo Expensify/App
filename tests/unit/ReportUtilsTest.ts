@@ -909,7 +909,7 @@ describe('ReportUtils', () => {
             });
 
             const report: Report = {
-                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
             };
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();

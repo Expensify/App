@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const categoryOutOfPolicyViolation = {
     name: 'categoryOutOfPolicy',
@@ -29,7 +29,7 @@ describe('getViolationsOnyxData', () => {
     let transaction: Transaction;
     let transactionViolations: TransactionViolation[];
     let policyRequiresTags: boolean;
-    let policyTags: PolicyTagList;
+    let policyTags: PolicyTagLists;
     let policyRequiresCategories: boolean;
     let policyCategories: PolicyCategories;
 

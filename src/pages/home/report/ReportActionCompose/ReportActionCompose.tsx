@@ -1,11 +1,11 @@
 import {useNavigation} from '@react-navigation/native';
-import type {SyntheticEvent} from 'react';
+import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
+import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
@@ -32,6 +32,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -56,8 +57,13 @@ type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
     replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
-    prepareCommentAndResetComposer: () => string;
+    getCurrentText: () => string;
     isFocused: () => boolean;
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clear: () => void;
 };
 
 type SuggestionsRef = {
@@ -112,6 +118,9 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// eslint-disable-next-line import/no-mutable-exports
+let onSubmitAction = noop;
+
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails,
@@ -134,7 +143,6 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const navigation = useNavigation();
@@ -169,10 +177,6 @@ function ReportActionCompose({
         debouncedLowerIsScrollLikelyLayoutTriggered();
     }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
-    /**
-     * Updates the should clear state of the composer
-     */
-    const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
         return !draftComment || !!draftComment.match(/^(\s)*$/);
@@ -191,7 +195,7 @@ function ReportActionCompose({
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef>(null);
+    const composerRef = useRef<ComposerRef>();
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -233,7 +237,7 @@ function ReportActionCompose({
         if (composerRef.current === null) {
             return;
         }
-        composerRef.current.focus(true);
+        composerRef.current?.focus(true);
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
@@ -277,15 +281,16 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const addAttachment = useCallback(
-        (file: FileObject) => {
-            playSound(SOUNDS.DONE);
-            const newComment = composerRef?.current?.prepareCommentAndResetComposer();
-            Report.addAttachment(reportID, file, newComment);
-            setTextInputShouldClear(false);
-        },
-        [reportID],
-    );
+    const attachmentFileRef = useRef<FileObject | null>(null);
+    const addAttachment = useCallback((file: FileObject) => {
+        attachmentFileRef.current = file;
+        const clear = composerRef.current?.clear;
+        if (!clear) {
+            throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
+
+        runOnUI(clear)();
+    }, []);
 
     /**
      * Event handler to update the state after the attachment preview is closed.
@@ -300,18 +305,20 @@ function ReportActionCompose({
      * Add a new comment to this chat
      */
     const submitForm = useCallback(
-        (event?: SyntheticEvent) => {
-            event?.preventDefault();
-
-            const newComment = composerRef.current?.prepareCommentAndResetComposer();
-            if (!newComment) {
-                return;
-            }
-
+        (newComment: string) => {
             playSound(SOUNDS.DONE);
-            onSubmit(newComment);
+
+            const newCommentTrimmed = newComment.trim();
+
+            if (attachmentFileRef.current) {
+                Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
+                attachmentFileRef.current = null;
+            } else {
+                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
+                onSubmit(newCommentTrimmed);
+            }
         },
-        [onSubmit],
+        [onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -338,15 +345,6 @@ function ReportActionCompose({
         setIsFocused(true);
         onComposerFocus?.();
     }, [onComposerFocus]);
-
-    // resets the composer to normal size when
-    // the send button is pressed.
-    const resetFullComposerSize = useCallback(() => {
-        if (isComposerFullSize) {
-            Report.setIsComposerFullSize(reportID, false);
-        }
-        setIsFullComposerAvailable(false);
-    }, [isComposerFullSize, reportID]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
@@ -377,19 +375,29 @@ function ReportActionCompose({
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
+    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
+    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
+    const composerRefShared = useSharedValue<{
+        clear: (() => void) | undefined;
+    }>({clear: undefined});
     const handleSendMessage = useCallback(() => {
         'worklet';
+
+        const clearComposer = composerRefShared.value.clear;
+        if (!clearComposer) {
+            throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
+        }
 
         if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
-        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
-        runOnJS(resetFullComposerSize)();
-        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
-        runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+        // This will cause onCleared to be triggered where we actually send the message
+        clearComposer();
+    }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    onSubmitAction = handleSendMessage;
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -492,8 +500,13 @@ function ReportActionCompose({
                                             actionButtonRef={actionButtonRef}
                                         />
                                         <ComposerWithSuggestions
-                                            ref={composerRef}
-                                            animatedRef={animatedRef}
+                                            ref={(ref) => {
+                                                composerRef.current = ref ?? undefined;
+                                                // eslint-disable-next-line react-compiler/react-compiler
+                                                composerRefShared.value = {
+                                                    clear: ref?.clear,
+                                                };
+                                            }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}
                                             isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
@@ -510,8 +523,7 @@ function ReportActionCompose({
                                             inputPlaceholder={inputPlaceholder}
                                             isComposerFullSize={isComposerFullSize}
                                             displayFileInModal={displayFileInModal}
-                                            textInputShouldClear={textInputShouldClear}
-                                            setTextInputShouldClear={setTextInputShouldClear}
+                                            onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
                                             isFullComposerAvailable={isFullComposerAvailable}
@@ -591,5 +603,5 @@ export default withCurrentUserPersonalDetails(
         },
     })(memo(ReportActionCompose)),
 );
-
+export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};

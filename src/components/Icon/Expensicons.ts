@@ -24,6 +24,7 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Bolt from '@assets/images/bolt.svg';
+import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -32,7 +33,6 @@ import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
-import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
@@ -82,6 +82,7 @@ import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import Feed from '@assets/images/feed.svg';
 import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
@@ -214,13 +215,13 @@ export {
     Bell,
     BellSlash,
     Bolt,
+    Box,
     Briefcase,
     Bug,
     Building,
     Calendar,
     Camera,
     Car,
-    CardsAndDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
@@ -386,4 +387,5 @@ export {
     Filters,
     CalendarSolid,
     Filter,
+    Feed,
 };
