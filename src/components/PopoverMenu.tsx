@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
@@ -199,7 +199,10 @@ function PopoverMenu({
         setFocusedIndex(-1);
     };
 
-    useEffect(() => {
+    // When the menu items are changed, we want to reset the sub-menu to make sure
+    // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
+    // We use useLayoutEffect so the reset happens before the repaint
+    useLayoutEffect(() => {
         if (menuItems.length === 0) {
             return;
         }

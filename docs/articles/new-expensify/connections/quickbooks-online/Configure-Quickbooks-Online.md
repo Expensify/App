@@ -9,7 +9,7 @@ description: Coming Soon
 
 When a report exports successfully, a message is posted in the expense’s related chat room:
 
-<img width="1000" alt="QBO_help_01" src="https://github.com/user-attachments/assets/5949467d-f2be-4c77-a982-5826da782463">
+![Confirmation message posted in the expense chat room](https://help.expensify.com/assets/images/QBO_help_01.png){:width="100%"}
 
 ## What happens if I manually export a report that has already been exported?
 

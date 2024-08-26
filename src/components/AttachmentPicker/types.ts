@@ -47,6 +47,8 @@ type AttachmentPickerProps = {
      * Invoked on Popover mount and layout changes.
      */
     onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
+
+    acceptedFileTypes?: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 };
 
 export default AttachmentPickerProps;

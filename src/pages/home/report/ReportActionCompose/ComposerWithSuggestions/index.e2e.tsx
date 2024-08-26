@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -24,6 +24,8 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
     // for this component. This file is only used for e2e tests, so it's okay to
     // disable compiler for this file.
 
+    const textInputRef = useRef<ComposerRef | null>();
+
     // Eventually Auto focus on e2e tests
     useEffect(() => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
@@ -34,11 +36,11 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
         // We need to wait for the component to be mounted before focusing
         setTimeout(() => {
             const setFocus = () => {
-                if (!(ref && 'current' in ref)) {
+                if (!(textInputRef && 'current' in textInputRef)) {
                     return;
                 }
 
-                ref.current?.focus(true);
+                textInputRef.current?.focus(true);
 
                 setTimeout(() => {
                     // and actually let's verify that the keyboard is visible
@@ -46,21 +48,27 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
                         return;
                     }
 
-                    ref.current?.blur();
+                    textInputRef.current?.blur();
                     setFocus();
-                    // 500ms is enough time for any keyboard to open
-                }, 500);
+                    // 1000ms is enough time for any keyboard to open
+                }, 1000);
             };
 
             setFocus();
         }, 1);
-    }, [ref]);
+    }, [textInputRef]);
 
     return (
         <ComposerWithSuggestions
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={ref}
+            ref={(composerRef) => {
+                textInputRef.current = composerRef;
+
+                if (typeof ref === 'function') {
+                    ref(composerRef);
+                }
+            }}
         >
             {/* Important: 
                     this has to be a child, as this container might not

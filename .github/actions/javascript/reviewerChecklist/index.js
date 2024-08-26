@@ -11604,6 +11604,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
     ACTIONS: {
         CREATED: 'created',
