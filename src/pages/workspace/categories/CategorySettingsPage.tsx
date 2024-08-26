@@ -12,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -225,6 +226,18 @@ function CategorySettingsPage({
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    {!policy?.areWorkflowsEnabled && (
+                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>Go to</Text>{' '}
+                            <TextLink
+                                style={[styles.link, styles.label]}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                            >
+                                more features
+                            </TextLink>{' '}
+                            <Text style={[styles.textLabel, styles.colorMuted]}>and enable workflows, then add approvals to unlock this feature</Text>.
+                        </Text>
+                    )}
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
                         <MenuItemWithTopDescription
                             title={``}
