@@ -185,4 +185,57 @@ function updateXeroMappings(policyID: string, mappingValue: Partial<Connections[
     API.write(WRITE_COMMANDS.UPDATE_XERO_MAPPING, parameters, {optimisticData, failureData, successData});
 }
 
-export {getXeroSetupLink, getTrackingCategories, updateXeroImportTrackingCategories, updateXeroImportTaxRates, updateXeroTenantID, updateXeroMappings};
+function updateXeroImportCustomers(
+    policyID: string,
+    importCustomers: Partial<Connections['xero']['config']['importCustomers']>,
+    oldImportCustomers?: Partial<Connections['xero']['config']['importCustomers']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(importCustomers),
+        idempotencyKey: String(CONST.XERO_CONFIG.IMPORT_CUSTOMERS),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, importCustomers, oldImportCustomers);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_IMPORT_CUSTOMERS, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroEnableNewCategories(
+    policyID: string,
+    enableNewCategories: Partial<Connections['xero']['config']['enableNewCategories']>,
+    oldEnableNewCategories?: Partial<Connections['xero']['config']['enableNewCategories']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(enableNewCategories),
+        idempotencyKey: String(CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, enableNewCategories, oldEnableNewCategories);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroAutoSync(policyID: string, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(autoSync),
+        idempotencyKey: String(CONST.XERO_CONFIG.AUTO_SYNC),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.AUTO_SYNC, autoSync, oldAutoSync);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
+}
+
+export {
+    getXeroSetupLink,
+    getTrackingCategories,
+    updateXeroImportTrackingCategories,
+    updateXeroImportTaxRates,
+    updateXeroTenantID,
+    updateXeroMappings,
+    updateXeroImportCustomers,
+    updateXeroEnableNewCategories,
+};

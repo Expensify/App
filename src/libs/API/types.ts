@@ -340,6 +340,9 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
     UPDATE_XERO_MAPPING: 'UpdateXeroMappings',
+    UPDATE_XERO_IMPORT_CUSTOMERS: 'UpdateXeroImportCustomers',
+    UPDATE_XERO_ENABLE_NEW_CATEGORIES: 'UpdateXeroEnableNewCategories',
+    UPDATE_XERO_AUTO_SYNC: 'UpdateXeroAutoSync',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
