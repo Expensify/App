@@ -47,9 +47,9 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
             const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-            User.addNewContactMethodAndNavigate(submitDetail, navigateBackTo);
+            User.addNewContactMethodAndNavigate(submitDetail, route.params.backTo);
         },
-        [navigateBackTo],
+        [route.params.backTo],
     );
 
     const validate = React.useCallback(
