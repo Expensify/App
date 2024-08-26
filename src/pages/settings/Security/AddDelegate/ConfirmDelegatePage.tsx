@@ -60,7 +60,6 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 title={personalDetails.displayName ?? personalDetails.login}
                 description={personalDetails.login}
                 interactive={false}
-                // style={styles.mv6}
             />
             <MenuItemWithTopDescription
                 title={translate('delegate.role', role)}

@@ -5,7 +5,6 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
-import { DelegateRole } from './types/onyx/Account';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
