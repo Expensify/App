@@ -42,6 +42,218 @@ index 051520b..6fb49e0 100644
      };
      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
+diff --git a/node_modules/@react-navigation/core/src/getStateFromPath.tsx b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
+index b61e1e5..1abbf16 100644
+--- a/node_modules/@react-navigation/core/src/getStateFromPath.tsx
++++ b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
+@@ -10,6 +10,8 @@ import findFocusedRoute from './findFocusedRoute';
+ import type { PathConfigMap } from './types';
+ import validatePathConfig from './validatePathConfig';
+ 
++console.log('[Navigation] getStateFromPath.tsx');
++
+ type Options<ParamList extends {}> = {
+   initialRouteName?: string;
+   screens: PathConfigMap<ParamList>;
+@@ -41,72 +43,12 @@ type ParsedRoute = {
+   params?: Record<string, any> | undefined;
+ };
+ 
+-/**
+- * Utility to parse a path string to initial state object accepted by the container.
+- * This is useful for deep linking when we need to handle the incoming URL.
+- *
+- * @example
+- * ```js
+- * getStateFromPath(
+- *   '/chat/jane/42',
+- *   {
+- *     screens: {
+- *       Chat: {
+- *         path: 'chat/:author/:id',
+- *         parse: { id: Number }
+- *       }
+- *     }
+- *   }
+- * )
+- * ```
+- * @param path Path string to parse and convert, e.g. /foo/bar?count=42.
+- * @param options Extra options to fine-tune how to parse the path.
+- */
+-export default function getStateFromPath<ParamList extends {}>(
+-  path: string,
+-  options?: Options<ParamList>
+-): ResultState | undefined {
+-  if (options) {
+-    validatePathConfig(options);
+-  }
+-
+-  let initialRoutes: InitialRouteConfig[] = [];
+-
+-  if (options?.initialRouteName) {
+-    initialRoutes.push({
+-      initialRouteName: options.initialRouteName,
+-      parentScreens: [],
+-    });
+-  }
+-
+-  const screens = options?.screens;
+-
+-  let remaining = path
+-    .replace(/\/+/g, '/') // Replace multiple slash (//) with single ones
+-    .replace(/^\//, '') // Remove extra leading slash
+-    .replace(/\?.*$/, ''); // Remove query params which we will handle later
+-
+-  // Make sure there is a trailing slash
+-  remaining = remaining.endsWith('/') ? remaining : `${remaining}/`;
+-
+-  if (screens === undefined) {
+-    // When no config is specified, use the path segments as route names
+-    const routes = remaining
+-      .split('/')
+-      .filter(Boolean)
+-      .map((segment) => {
+-        const name = decodeURIComponent(segment);
+-        return { name };
+-      });
+-
+-    if (routes.length) {
+-      return createNestedStateObject(path, routes, initialRoutes);
+-    }
+-
+-    return undefined;
+-  }
+-
+-  // Create a normalized configs array which will be easier to use
++function prepareNormalizedConfigs<ParamList extends {}>(
++  screens: PathConfigMap<ParamList>,
++  initialRoutes: InitialRouteConfig[]
++): RouteConfig[] {
++  const start = performance.now();
++    // Create a normalized configs array which will be easier to use
+   const configs = ([] as RouteConfig[])
+     .concat(
+       ...Object.keys(screens).map((key) =>
+@@ -170,7 +112,13 @@ export default function getStateFromPath<ParamList extends {}>(
+       return bParts.length - aParts.length;
+     });
+ 
+-  // Check for duplicate patterns in the config
++  console.log('[Navigation] prepareNormalizedConfigs', performance.now() - start);
++    
++  return configs;
++}
++
++function checkForDuplicatePatterns(configs: RouteConfig[]) {
++  const start = performance.now();
+   configs.reduce<Record<string, RouteConfig>>((acc, config) => {
+     if (acc[config.pattern]) {
+       const a = acc[config.pattern].routeNames;
+@@ -198,6 +146,91 @@ export default function getStateFromPath<ParamList extends {}>(
+       [config.pattern]: config,
+     });
+   }, {});
++  console.log('[Navigation] checkForDuplicate', performance.now() - start);
++}
++
++function addRegexpToConfig(configs: RouteConfig[]) {
++  const start = performance.now();
++  const r = configs.map((c) => ({
++    ...c,
++    // Add `$` to the regex to make sure it matches till end of the path and not just beginning
++    regex: c.regex ? new RegExp(c.regex.source + '$') : undefined,
++  }));
++  console.log('[Navigation] addRegexpToConfig', performance.now() - start);
++  return r;
++}
++
++
++/**
++ * Utility to parse a path string to initial state object accepted by the container.
++ * This is useful for deep linking when we need to handle the incoming URL.
++ *
++ * @example
++ * ```js
++ * getStateFromPath(
++ *   '/chat/jane/42',
++ *   {
++ *     screens: {
++ *       Chat: {
++ *         path: 'chat/:author/:id',
++ *         parse: { id: Number }
++ *       }
++ *     }
++ *   }
++ * )
++ * ```
++ * @param path Path string to parse and convert, e.g. /foo/bar?count=42.
++ * @param options Extra options to fine-tune how to parse the path.
++ */
++export default function getStateFromPath<ParamList extends {}>(
++  path: string,
++  options?: Options<ParamList>
++): ResultState | undefined {
++  if (options) {
++    validatePathConfig(options);
++  }
++
++  let initialRoutes: InitialRouteConfig[] = [];
++
++  if (options?.initialRouteName) {
++    initialRoutes.push({
++      initialRouteName: options.initialRouteName,
++      parentScreens: [],
++    });
++  }
++
++  const screens = options?.screens;
++
++  let remaining = path
++    .replace(/\/+/g, '/') // Replace multiple slash (//) with single ones
++    .replace(/^\//, '') // Remove extra leading slash
++    .replace(/\?.*$/, ''); // Remove query params which we will handle later
++
++  // Make sure there is a trailing slash
++  remaining = remaining.endsWith('/') ? remaining : `${remaining}/`;
++
++  if (screens === undefined) {
++    // When no config is specified, use the path segments as route names
++    const routes = remaining
++      .split('/')
++      .filter(Boolean)
++      .map((segment) => {
++        const name = decodeURIComponent(segment);
++        return { name };
++      });
++
++    if (routes.length) {
++      return createNestedStateObject(path, routes, initialRoutes);
++    }
++
++    return undefined;
++  }
++
++  // Create a normalized configs array which will be easier to use
++  const configs = prepareNormalizedConfigs(screens, initialRoutes);
++
++  // Check for duplicate patterns in the config
++  checkForDuplicatePatterns(configs);
+ 
+   if (remaining === '/') {
+     // We need to add special handling of empty path so navigation to empty path also works
+@@ -230,11 +263,7 @@ export default function getStateFromPath<ParamList extends {}>(
+   // This makes sure matches such as wildcard will catch any unmatched routes, even if nested
+   const { routes, remainingPath } = matchAgainstConfigs(
+     remaining,
+-    configs.map((c) => ({
+-      ...c,
+-      // Add `$` to the regex to make sure it matches till end of the path and not just beginning
+-      regex: c.regex ? new RegExp(c.regex.source + '$') : undefined,
+-    }))
++    addRegexpToConfig(configs)
+   );
+ 
+   if (routes !== undefined) {
 diff --git a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
 index b1971ba..7d550e0 100644
 --- a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
