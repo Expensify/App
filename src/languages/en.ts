@@ -2113,6 +2113,7 @@ export default {
             expensifyCard: 'Expensify Card',
             workflows: 'Workflows',
             workspace: 'Workspace',
+            companyCards: 'Company cards',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -2877,6 +2878,13 @@ export default {
                     ctaTitle: 'Issue new card',
                 },
             },
+            companyCards: {
+                title: 'Company Cards',
+                subtitle: 'Import spend from existing company cards',
+                disableCardTitle: 'Disable Company Cards',
+                disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
+                disableCardButton: 'Chat with Concierge',
+            },
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',
@@ -2986,6 +2994,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
+            invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
@@ -3559,6 +3568,11 @@ export default {
                 title: 'Tax codes',
                 description: `Add tax codes to your taxes for easy export of expenses to your accounting and payroll systems.`,
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
+            },
+            companyCards: {
+                title: 'Company Cards',
+                description: `Company cards lets you import spend for existing company cards from all major card issuers. You can assign cards to employees, and automatically import transactions.`,
+                onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
             },
             rules: {
                 title: 'Rules',

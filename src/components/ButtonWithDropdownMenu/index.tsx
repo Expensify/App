@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -177,12 +178,11 @@ function ButtonWithDropdownMenu<IValueType>({
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => item.onSelected?.()
+                            ? () => Modal.close(() => item.onSelected?.())
                             : () => {
                                   onOptionSelected?.(item);
                                   setSelectedItemIndex(index);
                               },
-                        shouldCallAfterModalHide: true,
                     }))}
                 />
             )}

@@ -65,6 +65,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS
         | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
+        | typeof SCREENS.WORKSPACE.COMPANY_CARDS
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS
         | typeof SCREENS.WORKSPACE.RULES;
 };
@@ -112,6 +113,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
             [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
@@ -253,6 +255,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             icon: Expensicons.CreditCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.companyCards',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
         });
     }
 
