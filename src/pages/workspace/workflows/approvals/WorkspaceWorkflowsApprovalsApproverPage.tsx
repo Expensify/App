@@ -149,7 +149,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers),
+                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];

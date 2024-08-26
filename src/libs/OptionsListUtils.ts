@@ -222,10 +222,6 @@ type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | '
     preferPolicyExpenseChat?: boolean;
 };
 
-type HasText = {
-    text?: string;
-};
-
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -2479,9 +2475,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
-function sortAlphabetically<T extends HasText>(items: T[]): T[];
-function sortAlphabetically<T extends Record<TKey, string | undefined>, TKey extends keyof T>(items: T[], key: TKey): T[];
-function sortAlphabetically<T extends Record<TKey, string | undefined>, TKey extends keyof T>(items: T[], key: TKey = 'text' as TKey): T[] {
+function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey): T[] {
     return items.sort((a, b) => (a[key] ?? '').toLowerCase().localeCompare((b[key] ?? '').toLowerCase()));
 }
 

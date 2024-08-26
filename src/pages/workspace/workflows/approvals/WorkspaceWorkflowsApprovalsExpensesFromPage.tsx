@@ -120,7 +120,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredMembers),
+                data: OptionsListUtils.sortAlphabetically(filteredMembers, 'text'),
                 shouldShow: true,
             },
         ];

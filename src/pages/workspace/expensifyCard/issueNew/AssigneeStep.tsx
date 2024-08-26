@@ -93,7 +93,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
-        membersList = OptionsListUtils.sortAlphabetically(membersList);
+        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
 
         return membersList;
     }, [isOffline, policy?.employeeList]);
