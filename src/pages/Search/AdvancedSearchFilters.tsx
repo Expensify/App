@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -16,13 +17,14 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
@@ -87,12 +89,6 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filterArray.join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN && filters.in) {
-        const filterIDs = filters.in ?? [];
-
-        return filterIDs.join(', ');
-    }
-
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
         return filters[fieldName];
     }
@@ -131,11 +127,16 @@ function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>,
         : undefined;
 }
 
+function getInTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+    return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -216,12 +217,12 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, translate),
+                title: getInTypeDisplayTitle(searchAdvancedFilters, translate, reports),
                 description: 'common.in' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
             },
         ],
-        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
+        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
     );
 
     const onFormSubmit = () => {
