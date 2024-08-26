@@ -128,7 +128,7 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
@@ -143,6 +143,7 @@ function SecuritySettingsPage() {
             iconRight: Expensicons.ThreeDots,
             shouldShowRightIcon: true,
             onPress: (e: GestureResponderEvent | KeyboardEvent) => showPopoverMenu(e, {email, role, accountID: personalDetail?.accountID ?? -1}),
+            pendingAction,
         };
     });
 
