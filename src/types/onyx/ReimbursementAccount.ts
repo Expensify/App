@@ -56,12 +56,12 @@ type ReimbursementAccountStep = BankAccountStep | '';
 type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 /** The ACHData for an reimbursement account */
-type ACHDataReimbursementAccount = Omit<ACHData, 'substep' | 'currentStep'> & {
+type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep?: ReimbursementAccountStep;
 
     /** Optional subStep we would like the user to start back on */
-    substep?: ReimbursementAccountSubStep;
+    subStep?: ReimbursementAccountSubStep;
 };
 
 /** Model of reimbursement account data */
