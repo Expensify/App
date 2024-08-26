@@ -1,10 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -16,8 +13,6 @@ type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamLi
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <AccessOrNotFoundWrapper
@@ -32,7 +27,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]} />
                 <WorkspaceCompanyCardPageEmptyState route={route} />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
