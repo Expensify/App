@@ -233,14 +233,15 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
+        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
             return;
         }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
+        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
+        IOU.setCustomUnitRateID(transactionID, rateID);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
