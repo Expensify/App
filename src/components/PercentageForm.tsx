@@ -17,6 +17,7 @@ type PercentageFormProps = {
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
 
+    /** Custom label for the TextInput */
     label?: string;
 };
 

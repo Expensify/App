@@ -1742,7 +1742,7 @@ export default {
             noBankAccountSelected: 'Please choose an account.',
             taxID: 'Please enter a valid tax ID number.',
             website: 'Please enter a valid website using lower-case letters.',
-            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Please enter a valid phone number.',
             companyName: 'Please enter a valid business name.',
             addressCity: 'Please enter a valid city.',

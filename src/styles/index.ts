@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { LineLayerStyleProps } from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type { LineLayer } from 'react-map-gl';
-import type { AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle } from 'react-native';
-import { StyleSheet } from 'react-native';
-import type { CustomAnimation } from 'react-native-animatable';
-import type { PickerStyle } from 'react-native-picker-select';
-import type { MixedStyleDeclaration, MixedStyleRecord } from 'react-native-render-html';
-import type { ValueOf } from 'type-fest';
+import type {LineLayer} from 'react-map-gl';
+import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {CustomAnimation} from 'react-native-animatable';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
-import { defaultTheme } from './theme';
+import {defaultTheme} from './theme';
 import colors from './theme/colors';
-import type { ThemeColors } from './theme/types';
+import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
@@ -43,7 +43,6 @@ import whiteSpace from './utils/whiteSpace';
 import wordBreak from './utils/wordBreak';
 import writingDirection from './utils/writingDirection';
 import variables from './variables';
-
 
 type ColorScheme = ValueOf<typeof CONST.COLOR_SCHEME>;
 type StatusBarStyle = ValueOf<typeof CONST.STATUS_BAR_STYLE>;

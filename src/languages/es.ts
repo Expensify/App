@@ -1769,7 +1769,7 @@ export default {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria.',
             taxID: 'Por favor, introduce un número de identificación fiscal válido.',
             website: 'Por favor, introduce un sitio web válido. El sitio web debe estar en minúsculas.',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido.',
             companyName: 'Por favor, introduce un nombre comercial legal válido.',
             addressCity: 'Por favor, introduce una ciudad válida.',

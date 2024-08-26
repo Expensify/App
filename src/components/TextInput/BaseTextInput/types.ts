@@ -1,7 +1,6 @@
-import type { GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
-import type { AnimatedTextInputRef } from '@components/RNTextInput';
+import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
-
 
 type CustomBaseTextInputProps = {
     /** Input label */

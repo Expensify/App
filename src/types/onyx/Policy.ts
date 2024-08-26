@@ -1427,6 +1427,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             limit?: number;
         };
 
+        /** The maximum report total allowed to trigger auto reimbursement */
+        autoReimbursementLimit?: number;
+
         /**
          * Whether the auto-approval options are enabled in the policy rules
          */
