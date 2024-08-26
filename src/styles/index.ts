@@ -5071,6 +5071,11 @@ const styles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        computerIllustrationContainer: {
+            width: 272,
+            height: 188,
+        },
+
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
