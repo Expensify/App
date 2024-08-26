@@ -5146,6 +5146,15 @@ const styles = (theme: ThemeColors) =>
             height: 112,
         },
 
+        emptyCompanyCardsFolderBG: {
+            backgroundColor: theme.emptyCompanyCardsBG,
+        },
+
+        emptyStateCompanyCardsIconSize: {
+            width: 164,
+            height: 220,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,

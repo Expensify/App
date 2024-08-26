@@ -2883,6 +2883,8 @@ export default {
                 disableCardTitle: 'Disable Company Cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                emptyAddedFeedTitle: 'Assign company cards',
+                emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
             },
             workflows: {
                 title: 'Workflows',
