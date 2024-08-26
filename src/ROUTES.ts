@@ -5,6 +5,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
+import { DelegateRole } from './types/onyx/Account';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -130,11 +131,11 @@ const ROUTES = {
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:accountID/role/:role',
-        getRoute: (accountID: number, role?: ValueOf<typeof CONST.DELEGATE_ROLE>) => `settings/security/delegate/${accountID}/role/${role}` as const,
+        getRoute: (accountID: number, role?: string) => `settings/security/delegate/${accountID}/role/${role}` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:accountID/role/:role/confirm',
-        getRoute: (accountID: number, role: ValueOf<typeof CONST.DELEGATE_ROLE>) => `settings/security/delegate/${accountID}/role/${role}/confirm` as const,
+        getRoute: (accountID: number, role: string) => `settings/security/delegate/${accountID}/role/${role}/confirm` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
