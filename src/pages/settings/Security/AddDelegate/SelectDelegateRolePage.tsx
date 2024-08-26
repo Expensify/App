@@ -33,7 +33,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('delegate.accessLevel')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
             />
             <SelectionList
                 headerContent={<Text style={[styles.ph5, styles.pb5, styles.pt3]}>{translate('delegate.accessLevelDescription')}</Text>}
