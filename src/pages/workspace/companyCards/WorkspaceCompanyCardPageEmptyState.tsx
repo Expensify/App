@@ -44,8 +44,8 @@ function WorkspaceCompanyCardPageEmptyState() {
                 onCtaPress={startFlow}
                 illustrationBackgroundColor={colors.blue700}
                 illustration={Illustrations.CompanyCardsEmptyState}
-                illustrationStyle={styles.emptyStateCardIllustrationContainer}
-                illustrationContainerStyle={{paddingBottom: 30}}
+                illustrationStyle={styles.emptyStateCardIllustration}
+                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}
             />
         </View>

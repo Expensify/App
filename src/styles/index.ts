@@ -5063,13 +5063,12 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyStateCardIllustrationContainer: {
-            width: 164,
-            height: 190,
+            height: 220,
         },
 
-        computerIllustrationContainer: {
-            width: 272,
-            height: 188,
+        emptyStateCardIllustration: {
+            width: 164,
+            height: 190,
         },
 
         cardIcon: {
