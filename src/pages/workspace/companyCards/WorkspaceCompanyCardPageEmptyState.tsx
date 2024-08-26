@@ -5,9 +5,9 @@ import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import colors from '@styles/theme/colors';
 
 const companyCardFeatures: FeatureListItem[] = [
     {
@@ -27,7 +27,6 @@ const companyCardFeatures: FeatureListItem[] = [
 function WorkspaceCompanyCardPageEmptyState() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const startFlow = useCallback(() => {
@@ -43,7 +42,7 @@ function WorkspaceCompanyCardPageEmptyState() {
                 ctaText={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
                 ctaAccessibilityLabel={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
                 onCtaPress={startFlow}
-                illustrationBackgroundColor={theme.fallbackIconColor}
+                illustrationBackgroundColor={colors.blue700}
                 illustration={Illustrations.CompanyCardsIllustration}
                 illustrationStyle={styles.expensifyCardIllustrationContainer}
                 titleStyles={styles.textHeadlineH1}
