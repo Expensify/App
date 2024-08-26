@@ -262,7 +262,7 @@ function MoneyRequestAmountForm(
                     amount={amount}
                     currency={currency}
                     isCurrencyPressable={isCurrencyPressable}
-                    onCurrencyButtonPress={onCurrencyButtonPress}
+                    onCurrencyButtonPress={() => onCurrencyButtonPress?.(moneyRequestAmountInput.current?.getCurrency())}
                     onAmountChange={() => {
                         if (!formError) {
                             return;

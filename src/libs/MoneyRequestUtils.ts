@@ -5,7 +5,7 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {getCurrencyCode} from './CurrencyUtils';
 
 type ExactAmountWithCurrency = {
-    currency: string;
+    currency?: string;
     amount: string;
 };
 
@@ -67,9 +67,6 @@ function validateAmountWithCurrency(amountWithCurreny: string): ExactAmountWithC
         const currencySymbol = match[1];
         const amount = match[2];
         const currency = getCurrencyCode(currencySymbol);
-        if (!currency) {
-            return undefined;
-        }
         return {currency, amount};
     }
 

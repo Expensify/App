@@ -38,7 +38,7 @@ type MoneyRequestAmountInputProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: (updateCurrency?: string) => void;
+    onCurrencyButtonPress?: () => void;
 
     /** Function to call when the amount changes */
     onAmountChange?: (amount: string) => void;
@@ -162,31 +162,25 @@ function MoneyRequestAmountInput(
         (newAmount: string) => {
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-            let finalAmount: string;
-            const exactAmountWithCurrency = MoneyRequestUtils.validateAmountWithCurrency(newAmount);
-            if (exactAmountWithCurrency) {
-                const {currency: updateCurrency, amount: updateAmount} = exactAmountWithCurrency;
-                const updateDecimals = CurrencyUtils.getCurrencyDecimals(updateCurrency);
-                finalAmount = updateAmount.includes('.') ? MoneyRequestUtils.stripCommaFromAmount(updateAmount) : MoneyRequestUtils.replaceCommasWithPeriod(updateAmount);
-                // Use a shallow copy of selection to trigger setSelection
-                // More info: https://github.com/Expensify/App/issues/16385
-                if (!MoneyRequestUtils.validateAmount(finalAmount, updateDecimals)) {
-                    setSelection((prevSelection) => ({...prevSelection}));
-                    return;
-                }
+            const {currency: updateCurrency, amount: updateAmount} = MoneyRequestUtils.validateAmountWithCurrency(newAmount) ?? {};
+            if (!updateAmount) {
+                return;
+            }
+
+            const updateDecimals = updateCurrency ? CurrencyUtils.getCurrencyDecimals(updateCurrency) : decimals;
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(updateAmount);
+            const finalAmount = newAmountWithoutSpaces.includes('.')
+                ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
+                : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+            if (updateCurrency) {
                 setCurrentCurrency(updateCurrency);
-                // onPasteAmountWithCurrency?.(updateCurrency);
-            } else {
-                finalAmount = newAmountWithoutSpaces.includes('.')
-                    ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
-                    : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
-                // Use a shallow copy of selection to trigger setSelection
-                // More info: https://github.com/Expensify/App/issues/16385
-                if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
-                    setSelection((prevSelection) => ({...prevSelection}));
-                    return;
-                }
+            }
+
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            if (!MoneyRequestUtils.validateAmount(finalAmount, updateDecimals)) {
+                setSelection((prevSelection) => ({...prevSelection}));
+                return;
             }
 
             // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
@@ -315,9 +309,7 @@ function MoneyRequestAmountInput(
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
-            onCurrencyButtonPress={() => {
-                onCurrencyButtonPress?.(currentCurrency);
-            }}
+            onCurrencyButtonPress={onCurrencyButtonPress}
             onBlur={formatAmount}
             placeholder={numberFormat(0)}
             ref={(ref) => {
