@@ -2471,7 +2471,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     return {
         personalDetails,
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat}),
-        userToInvite: canInviteUser ? userToInvite : null,
+        userToInvite,
         currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
         tagOptions: [],
