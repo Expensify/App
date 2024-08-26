@@ -45,10 +45,10 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(workspace);
                     },
                 });
@@ -65,11 +65,11 @@ describe('actions/Policy', () => {
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     waitForCollectionCallback: true,
                     callback: (reports) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(reports);
                     },
                 });
@@ -102,11 +102,11 @@ describe('actions/Policy', () => {
             });
 
             let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     waitForCollectionCallback: true,
                     callback: (actions) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(actions);
                     },
                 });
@@ -131,11 +131,11 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
                     waitForCollectionCallback: true,
                     callback: (workspace) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(workspace);
                     },
                 });
@@ -145,11 +145,11 @@ describe('actions/Policy', () => {
             expect(policy?.pendingAction).toBeFalsy();
 
             allReports = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     waitForCollectionCallback: true,
                     callback: (reports) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(reports);
                     },
                 });
@@ -162,11 +162,11 @@ describe('actions/Policy', () => {
             });
 
             reportActions = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     waitForCollectionCallback: true,
                     callback: (actions) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(actions);
                     },
                 });

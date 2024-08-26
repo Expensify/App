@@ -5829,7 +5829,11 @@ function doesTransactionThreadHaveViolations(
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) || TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations);
+    return (
+        TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) ||
+        TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations) ||
+        TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations)
+    );
 }
 
 /**
