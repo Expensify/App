@@ -168,7 +168,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     };
 
     const isMembersListEmpty = !sections[0].data.length;
-    const headerMessage = useMemo(() => (searchTerm && isMembersListEmpty ? translate('common.noResultsFound') : ''), [searchTerm, isMembersListEmpty, translate]);
+    const headerMessage = useMemo(() => (debouncedSearchTerm && isMembersListEmpty ? translate('common.noResultsFound') : ''), [debouncedSearchTerm, isMembersListEmpty, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -191,14 +191,14 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     />
                     {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
                         <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>
-                            {translate(isMembersListEmpty ? 'workflowsExpensesFromPage.emptyMembersList' : 'workflowsExpensesFromPage.header')}
+                            {translate(!debouncedSearchTerm && isMembersListEmpty ? 'workflowsExpensesFromPage.emptyMembersList' : 'workflowsExpensesFromPage.header')}
                         </Text>
                     )}
                     <SelectionList
                         canSelectMultiple
                         sections={sections}
                         ListItem={InviteMemberListItem}
-                        textInputLabel={isMembersListEmpty ? undefined : translate('selectionList.findMember')}
+                        textInputLabel={!debouncedSearchTerm && isMembersListEmpty ? undefined : translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}

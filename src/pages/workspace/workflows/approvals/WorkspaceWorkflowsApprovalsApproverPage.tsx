@@ -220,7 +220,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         setSelectedApproverEmail(approver.login);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const isApproversListEmpty = !sections[0].data.length && didScreenTransitionEnd;
 
     return (
         <AccessOrNotFoundWrapper
@@ -251,7 +251,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
+                        headerMessage={isApproversListEmpty ? translate('common.noResultsFound') : undefined}
                         onSelectRow={toggleApprover}
                         showScrollIndicator
                         showLoadingPlaceholder={!didScreenTransitionEnd || approvalWorkflowMetadata.status === 'loading'}
