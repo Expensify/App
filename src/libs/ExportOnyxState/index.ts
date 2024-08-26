@@ -45,6 +45,7 @@ const shareAsFile = (value: string) => {
 
 export default {
     maskFragileData: common.maskFragileData,
+    maskSessionDetails: common.maskSessionDetails,
     readFromOnyxDatabase,
     shareAsFile,
 };

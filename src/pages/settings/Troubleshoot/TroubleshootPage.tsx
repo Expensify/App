@@ -58,6 +58,9 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             let dataToShare = value;
+            // Mask session details by default
+            dataToShare = ExportOnyxState.maskSessionDetails(value);
+            // Mask fragile data other than session details if the user has enabled the option
             if (shouldMaskOnyxState) {
                 dataToShare = ExportOnyxState.maskFragileData(value);
             }

@@ -1,5 +1,22 @@
 import {Str} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
+
+const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
+    const session = data.session as Session;
+
+    Object.keys(session).forEach((key) => {
+        if (key !== 'authToken' && key !== 'encryptedAuthToken') {
+            return;
+        }
+        session[key] = '***';
+    });
+
+    return {
+        ...data,
+        session,
+    };
+};
 
 const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Record<string, unknown> => {
     const maskedData: Record<string, unknown> = {};
@@ -15,7 +32,7 @@ const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Rec
 
         const value = data[key];
 
-        if (typeof value === 'string' && (Str.isValidEmail(value) || key === 'authToken' || key === 'encryptedAuthToken')) {
+        if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[key] = '***';
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (key === 'text' || key === 'html')) {
             maskedData[key] = '***';
@@ -30,5 +47,6 @@ const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Rec
 };
 
 export default {
+    maskSessionDetails,
     maskFragileData,
 };
