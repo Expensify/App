@@ -1,4 +1,4 @@
-import type {JsonObject, PushPayload} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
 import type {PushNotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
+import parsePushNotificationPayload from './parsePushNotificationPayload';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
@@ -27,19 +28,8 @@ const notificationEventActionMap: NotificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    let payload = notification.extras.payload;
 
-    // On Android, some notification payloads are sent as a JSON string rather than an object
-    if (typeof payload === 'string') {
-        try {
-            payload = JSON.parse(payload) as JsonObject;
-        } catch {
-            Log.hmmm(`[PushNotification] Failed to parse the payload`, payload);
-            payload = undefined;
-        }
-    }
-
-    const data = payload ? (payload as PushNotificationData) : undefined;
+    const data = parsePushNotificationPayload(notification.extras.payload);
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
