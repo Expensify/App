@@ -17,8 +17,8 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
-import {usePersonalDetails} from './OnyxProvider';
 import PopoverMenu from './PopoverMenu';
+import * as IOU from '@userActions/IOU';
 
 type AddPaymentMethodMenuOnyxProps = {
     /** Session info for the currently logged-in user. */
@@ -76,40 +76,6 @@ function AddPaymentMethodMenu({
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
-
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const personalDetailsList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetails)) as PersonalDetails[];
-    const personalDetail = personalDetailsList[0] ?? {};
-
-    const completeEngagement = useCallback(
-        (paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) => {
-            if (isInviteOnboardingComplete || !introSelected?.choice) {
-                return;
-            }
-
-            let onboardingPurpose = introSelected.choice;
-            if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.PAYMENT_SELECTED.BBA) {
-                onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-            }
-
-            if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.PAYMENT_SELECTED.BBA) {
-                onboardingPurpose = CONST.ONBOARDING_CHOICES.SUBMIT;
-            }
-
-            ReportUserActions.completeOnboarding(
-                onboardingPurpose,
-                CONST.ONBOARDING_MESSAGES[onboardingPurpose],
-                {
-                    firstName: personalDetail.firstName ?? '',
-                    lastName: personalDetail.lastName ?? '',
-                },
-                paymentSelected,
-            );
-        },
-        [isInviteOnboardingComplete, introSelected?.inviteType, introSelected?.choice, personalDetail.firstName, personalDetail.lastName],
-    );
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
@@ -146,7 +112,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  completeEngagement(CONST.PAYMENT_SELECTED.PBA);
+                                  IOU.completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
@@ -158,7 +124,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
                               onSelected: () => {
-                                  completeEngagement(CONST.PAYMENT_SELECTED.BBA);
+                                  IOU.completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },
                           },

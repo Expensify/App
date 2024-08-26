@@ -67,6 +67,9 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
+import * as SessionUtils from '@libs/SessionUtils';
+import * as ReportUserActions from '@userActions/Report';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -269,6 +272,18 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
+let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => (personalDetailsList = value),
 });
 
 /**
@@ -7366,6 +7381,38 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
     );
 }
 
+function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+
+    if (isInviteOnboardingComplete || !introSelected?.choice) {
+        return;
+    }
+
+    const session = SessionUtils.getSession();
+
+    const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList)) as OnyxTypes.PersonalDetails[];
+    const personalDetails = personalDetailsListValues[0] ?? {};
+
+    let onboardingPurpose = introSelected.choice;
+    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+    }
+
+    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.SUBMIT;
+    }
+
+    ReportUserActions.completeOnboarding(
+        onboardingPurpose,
+        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        {
+            firstName: personalDetails.firstName ?? '',
+            lastName: personalDetails.lastName ?? '',
+        },
+        paymentSelected,
+    );
+}
+
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, full = true) {
     if (chatReport.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -7979,6 +8026,7 @@ export {
     getIOURequestPolicyID,
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    completePaymentOnboarding,
     payInvoice,
     payMoneyRequest,
     putOnHold,
