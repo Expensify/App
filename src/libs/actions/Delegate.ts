@@ -201,4 +201,44 @@ function addDelegate(email: string, role: DelegateRole) {
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
+function removeDelegate(email: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email === email ? {...delegate, pendingAction: 'remove'} : delegate)),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegates: delegatedAccess.delegates?.filter((delegate) => delegate.email !== email),
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email === email ? {...delegate, error: 'delegate.genericError'} : delegate)),
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATE, {email}, {optimisticData, successData, failureData});
+}
+
 export {connect, disconnect, clearDelegatorErrors, addDelegate};
