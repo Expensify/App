@@ -13,7 +13,11 @@
 	<key>CFBundleShortVersionString</key>
 	<string>9.0.24</string>
 	<key>CFBundleVersion</key>
+<<<<<<< HEAD
 	<string>9.0.24.3</string>
+=======
+	<string>9.0.24.2</string>
+>>>>>>> f54f9f1 (Merge pull request #48009 from Expensify/puneetlath-cherry-pick-staging-47998-1)
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

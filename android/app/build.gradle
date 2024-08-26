@@ -108,8 +108,13 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
+<<<<<<< HEAD
         versionCode 1009002403
         versionName "9.0.24-3"
+=======
+        versionCode 1009002402
+        versionName "9.0.24-2"
+>>>>>>> f54f9f1 (Merge pull request #48009 from Expensify/puneetlath-cherry-pick-staging-47998-1)
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
