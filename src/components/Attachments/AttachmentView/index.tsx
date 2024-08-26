@@ -24,12 +24,12 @@ import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
 import HighResolutionInfo from './HighResolutionInfo';
-import AttachmentCarouselPagerContext from '../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;

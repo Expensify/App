@@ -39,7 +39,7 @@ function BaseAttachmentViewPdf({
             }
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (!!attachmentCarouselPagerContext?.pagerRef) {
+            if (attachmentCarouselPagerContext?.pagerRef) {
                 attachmentCarouselPagerContext.onScaleChanged(newScale);
             }
         },
