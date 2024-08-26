@@ -678,8 +678,8 @@ export default {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
-        importFailedTitle: 'Oops! There was an issue with your upload.',
-        importFailedDescription: 'Please ensure all fields are correctly filled and try again. If the problem persists, please reach out to Concierge.',
+        importFailedTitle: 'Import failed',
+        importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -2857,8 +2857,7 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
-            importedCategoriesMessage: (columnCounts: number) =>
-                `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains category names. You can also select *Enabled* next to the column that sets category status.`,
+            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below. [Learn more].',
         },
         moreFeatures: {
             spendSection: {

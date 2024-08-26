@@ -669,8 +669,8 @@ export default {
         column: (name: string) => `Columna ${name}`,
         fieldNotMapped: (fieldName: string) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
         singleFieldMultipleColumns: (fieldName: string) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
-        importFailedDescription: 'La importación ha fallado. Por favor, revise los errores e inténtelo de nuevo',
-        importFailedTitle: 'Importación fallida',
+        importFailedTitle: 'Fallo en la importación',
+        importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importSuccessfullTitle: 'Importar categorías',
     },
@@ -2905,8 +2905,7 @@ export default {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            importedCategoriesMessage: (columnCounts: number) =>
-                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las categorías. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la categoría.`,
+            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
             spendSection: {
