@@ -179,7 +179,7 @@ type MenuItemBaseProps = {
     label?: string;
 
     /** Limit to truncate description for menu item */
-    limit?: number;
+    characterLimit?: number;
 
     isLabelHoverable?: boolean;
 
