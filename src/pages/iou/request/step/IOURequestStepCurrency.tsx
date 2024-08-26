@@ -45,7 +45,7 @@ function IOURequestStepCurrency({
             if (selectedCurrencyValue) {
                 Navigation.navigate(appendParam(backTo as string, 'currency', selectedCurrencyValue));
             } else {
-                Navigation.goBack(backTo as Route);
+                Navigation.goBack(backTo);
             }
             return;
         }
