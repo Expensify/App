@@ -2309,6 +2309,15 @@ const CONST = {
         },
         CARD_TITLE_INPUT_LIMIT: 255,
     },
+    COMPANY_CARD: {
+        STEP_NAMES: ['1', '2', '3', '4'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD: 'Card',
+            TRANSACTION_START_DATE: 'TransactionStartDate',
+            CONFIRMATION: 'Confirmation',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
