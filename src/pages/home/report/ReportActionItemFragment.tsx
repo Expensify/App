@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -7,8 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -63,6 +66,9 @@ type ReportActionItemFragmentProps = {
     actionName?: ReportActionName;
 
     moderationDecision?: DecisionName;
+
+    /** IOU report ID */
+    iouReportID?: string;
 };
 
 const MUTED_ACTIONS = [
@@ -92,6 +98,7 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
+    iouReportID,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -125,15 +132,36 @@ function ReportActionItemFragment({
             }
 
             return (
-                <TextCommentFragment
-                    source={source}
-                    fragment={fragment}
-                    styleAsDeleted={!!(isOffline && isPendingDelete)}
-                    styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
-                    iouMessage={iouMessage}
-                    displayAsGroup={displayAsGroup}
-                    style={style}
-                />
+                <>
+                    <TextCommentFragment
+                        source={source}
+                        fragment={fragment}
+                        styleAsDeleted={!!(isOffline && isPendingDelete)}
+                        styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
+                        iouMessage={iouMessage}
+                        displayAsGroup={displayAsGroup}
+                        style={style}
+                    />
+                    {!!iouReportID && ReportUtils.hasMissingInvoiceBankAccount(iouReportID) && (
+                        <Button
+                            style={[styles.mt2, styles.alignSelfStart]}
+                            medium
+                            success
+                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            onPress={() => {
+                                const policyID = ReportUtils.getReport(iouReportID)?.policyID;
+
+                                if (!policyID) {
+                                    return;
+                                }
+
+                                // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+                                // Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID))
+                                Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                            }}
+                        />
+                    )}
+                </>
             );
         }
         case 'TEXT': {

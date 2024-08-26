@@ -115,6 +115,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 // formatting.
                 isFragmentContainingDisplayName={index === 0}
                 moderationDecision={ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision}
+                iouReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportID : ''}
             />
         ));
 
