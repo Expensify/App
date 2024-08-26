@@ -51,7 +51,6 @@ import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustra
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
-import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__company-card.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
@@ -103,6 +102,7 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';

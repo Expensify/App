@@ -410,7 +410,13 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
-    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
+    const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
+        const tagForDisplay = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
+        const shouldShow = !!tagForDisplay || OptionsListUtils.hasEnabledOptions(tags);
+        if (!shouldShow) {
+            return null;
+        }
+
         const tagError = getErrorForField(
             'tag',
             {
@@ -418,7 +424,7 @@ function MoneyRequestView({
                 tagListName: name,
             },
             PolicyUtils.hasDependentTags(policy, policyTagList),
-            TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index),
+            tagForDisplay,
         );
         return (
             <OfflineWithFeedback
@@ -427,7 +433,7 @@ function MoneyRequestView({
             >
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
-                    title={TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index)}
+                    title={tagForDisplay}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
@@ -517,7 +523,7 @@ function MoneyRequestView({
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
                         shouldShowTitleIcon={isSettled}

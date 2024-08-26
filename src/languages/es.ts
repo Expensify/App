@@ -766,6 +766,11 @@ export default {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
+        settlePersonalBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria personal` : `Pagar con cuenta bancaria personal`,
+        settleBusinessBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria comercial` : `Pagar con cuenta bancaria comercial`,
+        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con tarjeta de débito` : `Pagar con tarjeta de débito`),
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
@@ -2145,6 +2150,7 @@ export default {
             expensifyCard: 'Tarjeta Expensify',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
+            companyCards: 'Tarjetas de empresa',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -2922,6 +2928,13 @@ export default {
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
             },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
+                disableCardTitle: 'Deshabilitar tarjetas de empresa',
+                disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
+                disableCardButton: 'Chatear con Concierge',
+            },
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
@@ -3035,6 +3048,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
+            invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
@@ -3609,6 +3623,11 @@ export default {
                 title: 'Código de impuesto',
                 description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
+            },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                description: `Las tarjetas de empresa le permiten importar los gastos de las tarjetas de empresa existentes de todos los principales emisores de tarjetas. Puede asignar tarjetas a empleados e importar transacciones automáticamente.`,
+                onlyAvailableOnPlan: 'Las tarjetas de empresa solo están disponibles en el plan Control, a partir de ',
             },
             rules: {
                 title: 'Reglas',
@@ -4726,6 +4745,7 @@ export default {
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
+        normal: 'Normal',
     },
     exitSurvey: {
         header: 'Antes de irte',
