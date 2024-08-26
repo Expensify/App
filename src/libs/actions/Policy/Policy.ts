@@ -3436,6 +3436,13 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 }
 
+function clearAllPolicies() {
+    if (!allPolicies) {
+        return;
+    }
+    Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -3513,6 +3520,7 @@ export {
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
+    clearAllPolicies,
     enablePolicyRules,
 };
 
