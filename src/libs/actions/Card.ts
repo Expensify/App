@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    CardDeactivateParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
@@ -499,6 +500,46 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
 }
 
+function deactivateCard(workspaceAccountID: number, cardID: number, oldCardState?: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>) {
+    const authToken = NetworkStore.getAuthToken();
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    state: oldCardState,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: CardDeactivateParams = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
+}
+
 function startIssueNewCardFlow(policyID: string) {
     const parameters: StartIssueNewCardFlowParams = {
         policyID,
@@ -635,5 +676,6 @@ export {
     openCardDetailsPage,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
+    deactivateCard,
 };
 export type {ReplacementReason};
