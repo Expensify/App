@@ -53,12 +53,11 @@ function AttachmentCarouselPager(
     {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
-    const {handleTap, handleScaleChange} = useCarouselContextEvents(setShouldShowArrows);
+    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
     const isPagerScrolling = useSharedValue(false);
-    const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialPage);
     const [activePageIndex, setActivePageIndex] = useState(initialPage);
