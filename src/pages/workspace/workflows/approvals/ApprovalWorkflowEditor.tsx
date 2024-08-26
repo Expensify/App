@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback} from 'react';
+import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -43,7 +44,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
-    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ');
+
+    const members = useMemo(() => {
+        if (approvalWorkflow.isDefault) {
+            return translate('workspace.common.everyone');
+        }
+
+        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+            .map((m) => m.displayName)
+            .join(', ');
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
@@ -120,6 +130,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 <MenuItemWithTopDescription
                     title={members}
                     titleStyle={styles.textNormalThemeText}
+                    numberOfLinesTitle={4}
                     description={translate('workflowsExpensesFromPage.title')}
                     descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
                     onPress={editMembers}
