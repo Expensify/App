@@ -568,6 +568,7 @@ function MoneyRequestView({
                                     iouType,
                                     transaction?.transactionID ?? '-1',
                                     report?.reportID ?? '-1',
+                                    '',
                                     Navigation.getReportRHPActiveRoute(),
                                 ),
                             )

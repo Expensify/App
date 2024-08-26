@@ -8,10 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import {appendParam} from '@libs/Url';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -28,7 +28,7 @@ type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTra
 
 function IOURequestStepCurrency({
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID, action, currency: selectedCurrency = ''},
+        params: {backTo, pageIndex, transactionID, action, currency: selectedCurrency = ''},
     },
     draftTransaction,
 }: IOURequestStepCurrencyProps) {
@@ -42,14 +42,10 @@ function IOURequestStepCurrency({
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
         if (pageIndex === 'confirm') {
-            const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(
-                backTo as string,
-                `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)}`,
-            );
             if (selectedCurrencyValue) {
-                Navigation.navigate(`${routeToAmountPageWithConfirmationAsBackTo}&currency=${selectedCurrencyValue}` as Route);
+                Navigation.navigate(appendParam(backTo as string, 'currency', selectedCurrencyValue));
             } else {
-                Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo as Route);
+                Navigation.goBack(backTo as Route);
             }
             return;
         }
