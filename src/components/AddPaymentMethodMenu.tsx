@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as IOU from '@userActions/IOU';
 import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +19,6 @@ import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
-import * as IOU from '@userActions/IOU';
 
 type AddPaymentMethodMenuOnyxProps = {
     /** Session info for the currently logged-in user. */

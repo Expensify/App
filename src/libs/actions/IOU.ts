@@ -40,16 +40,19 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SessionUtils from '@libs/SessionUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getCurrency, getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import * as ReportUserActions from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,9 +70,6 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
-import * as SessionUtils from '@libs/SessionUtils';
-import * as ReportUserActions from '@userActions/Report';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -7390,7 +7390,9 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     const session = SessionUtils.getSession();
 
-    const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList)) as OnyxTypes.PersonalDetails[];
+    const personalDetailsListValues = Object.values(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList),
+    ) as OnyxTypes.PersonalDetails[];
     const personalDetails = personalDetailsListValues[0] ?? {};
 
     let onboardingPurpose = introSelected.choice;
