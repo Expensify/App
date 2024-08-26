@@ -878,7 +878,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
 /**
  * Toggles two-factor authentication based on the `enable` parameter
  */
-function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode: string) {
+function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -895,6 +895,8 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+
+                // When disabling 2FA, the user needs to end up on the step that confirms the setting was disabled
                 twoFactorAuthStep: enable ? undefined : CONST.TWO_FACTOR_AUTH_STEPS.DISABLED,
             },
         },
