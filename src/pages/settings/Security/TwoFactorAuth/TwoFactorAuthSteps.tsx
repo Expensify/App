@@ -13,9 +13,9 @@ import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
+import GetCodeStep from './Steps/GetCode';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
-import GetCodeStep from './Steps/GetCode';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 import type {BaseTwoFactorAuthFormOnyxProps} from './TwoFactorAuthForm/types';
 
