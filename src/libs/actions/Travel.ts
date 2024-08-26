@@ -22,7 +22,7 @@ function acceptSpotnanaTerms() {
 
     const finallyData: OnyxUpdate[] = [
         {
-            onyxMethod: 'set',
+            onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
                 isLoading: false,
