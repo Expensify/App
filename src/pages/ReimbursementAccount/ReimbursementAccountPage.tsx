@@ -386,13 +386,6 @@ function ReimbursementAccountPage({
     };
 
     const isLoading = (!!isLoadingApp || !!account?.isLoading || isReimbursementAccountLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
-    console.log('hanno', {
-        isLoading,
-        isLoadingApp,
-        accountIsLoading: !!account?.isLoading,
-        isReimbursementAccountLoading,
-        reimbursementAccount,
-    });
 
     const shouldShowOfflineLoader = !(
         isOffline &&
