@@ -4498,5 +4498,6 @@ export default {
         },
         removeCopilot: 'Remove copilot',
         removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
+        changeAccessLevel: 'Change access level',
     },
 } satisfies TranslationBase;
