@@ -47,22 +47,6 @@ function EnabledStep() {
                         <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
-                <ConfirmModal
-                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
-                    onConfirm={() => {
-                        setIsConfirmModalVisible(false);
-                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLED);
-                        Session.toggleTwoFactorAuth(false);
-                    }}
-                    onCancel={() => setIsConfirmModalVisible(false)}
-                    onModalHide={() => setIsConfirmModalVisible(false)}
-                    isVisible={isConfirmModalVisible}
-                    prompt={translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                    confirmText={translate('common.disable')}
-                    cancelText={translate('common.cancel')}
-                    shouldShowCancelButton
-                    danger
-                />
             </ScrollView>
         </StepWrapper>
     );

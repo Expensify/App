@@ -895,6 +895,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                twoFactorAuthStep: enable ? undefined : CONST.TWO_FACTOR_AUTH_STEPS.DISABLED,
             },
         },
     ];
