@@ -69,7 +69,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         {translate('workspace.rules.expenseReportRules.customNameDescription')}
                         <TextLink
                             style={[styles.link]}
-                            href={CONST.REPORT.CUSTOM_REPORT_NAME_HELP_URL}
+                            href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
                         >
                             {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
                         </TextLink>
