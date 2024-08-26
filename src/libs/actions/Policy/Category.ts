@@ -5,7 +5,9 @@ import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
+    RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
+    SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
@@ -323,6 +325,131 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
+}
+
+function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxExpenseAmountNoReceipt: number) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        maxExpenseAmountNoReceipt,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: null,
+                        },
+                        maxExpenseAmountNoReceipt,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCategoryReceiptsRequiredParams = {
+        policyID,
+        categoryName,
+        maxExpenseAmountNoReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
+}
+
+function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: string) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        maxExpenseAmountNoReceipt: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: null,
+                        },
+                        maxExpenseAmountNoReceipt: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmountNoReceipt: null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: RemovePolicyCategoryReceiptsRequiredParams = {
+        policyID,
+        categoryName,
+    };
+
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
 function createPolicyCategory(policyID: string, categoryName: string) {
@@ -899,4 +1026,6 @@ export {
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
+    setPolicyCategoryReceiptsRequired,
+    removePolicyCategoryReceiptsRequired,
 };

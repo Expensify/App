@@ -285,3 +285,5 @@ export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCateg
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as SetPolicyCategoryReceiptsRequiredParams} from './SetPolicyCategoryReceiptsRequiredParams';
+export type {default as RemovePolicyCategoryReceiptsRequiredParams} from './RemovePolicyCategoryReceiptsRequiredParams';
