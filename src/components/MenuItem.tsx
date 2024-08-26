@@ -382,7 +382,7 @@ function MenuItem(
         shouldShowBasicTitle,
         label,
         shouldTruncateTitle = false,
-        limit = 200,
+        characterLimit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -489,7 +489,7 @@ function MenuItem(
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, limit, shouldTruncateTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';

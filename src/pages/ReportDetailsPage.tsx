@@ -724,7 +724,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 title={report.description}
                                 shouldRenderAsHTML
                                 shouldTruncateTitle
-                                limit={100}
+                                characterLimit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
