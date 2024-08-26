@@ -200,8 +200,24 @@ function SecuritySettingsPage() {
                             <Popover
                                 isVisible={shouldShowDelegateMenu}
                                 anchorRef={delegateButtonRef as RefObject<View>}
+                                anchorPosition={{
+                                    top: anchorPosition.anchorPositionTop,
+                                    right: anchorPosition.anchorPositionRight,
+                                }}
                                 onClose={() => setShouldShowDelegateMenu(false)}
                             >
+                                <MenuItem
+                                    title={translate('delegate.removeCopilot')}
+                                    icon={Expensicons.Trashcan}
+                                    onPress={() => setShouldShowRemoveDelegateModal(true)}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                />
+                                <MenuItem
+                                    title={translate('delegate.removeCopilot')}
+                                    icon={Expensicons.Trashcan}
+                                    onPress={() => setShouldShowRemoveDelegateModal(true)}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                />
                                 <ConfirmModal
                                     isVisible={shouldShowRemoveDelegateModal}
                                     title={translate('delegate.removeCopilot')}
