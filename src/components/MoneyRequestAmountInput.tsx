@@ -111,8 +111,8 @@ const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUti
 
 function MoneyRequestAmountInput(
     {
-        amount = 0,
-        currency = CONST.CURRENCY.USD,
+        amount: amountFromProps = 0,
+        currency: currencyFromProps = CONST.CURRENCY.USD,
         isCurrencyPressable = true,
         onCurrencyButtonPress,
         onAmountChange,
@@ -136,14 +136,14 @@ function MoneyRequestAmountInput(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
+    const selectedAmountAsString = amountFromProps ? onFormatAmount(amountFromProps, currencyFromProps) : '';
 
-    const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [currentCurrency, setCurrentCurrency] = useState(currency);
+    const [amount, setAmount] = useState(selectedAmountAsString);
+    const [currency, setCurrency] = useState(currencyFromProps);
 
     const decimals = useMemo(() => {
-        return CurrencyUtils.getCurrencyDecimals(currentCurrency);
-    }, [currentCurrency]);
+        return CurrencyUtils.getCurrencyDecimals(currency);
+    }, [currency]);
 
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
@@ -172,9 +172,6 @@ function MoneyRequestAmountInput(
             const finalAmount = newAmountWithoutSpaces.includes('.')
                 ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
                 : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
-            if (updateCurrency) {
-                setCurrentCurrency(updateCurrency);
-            }
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
@@ -183,11 +180,15 @@ function MoneyRequestAmountInput(
                 return;
             }
 
-            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
+            if (updateCurrency) {
+                setCurrency(updateCurrency);
+            }
+
+            // setAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
 
             willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
-            setCurrentAmount((prevAmount) => {
+            setAmount((prevAmount) => {
                 const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
@@ -210,29 +211,29 @@ function MoneyRequestAmountInput(
             setSelection(newSelection);
         },
         changeAmount(newAmount: string) {
-            setCurrentAmount(newAmount);
+            setAmount(newAmount);
         },
         getAmount() {
-            return currentAmount;
+            return amount;
         },
         getSelection() {
             return selection;
         },
         getCurrency() {
-            return currentCurrency;
+            return currency;
         },
     }));
 
     useEffect(() => {
-        if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
+        if ((!currencyFromProps || typeof amountFromProps !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
-        const frontendAmount = onFormatAmount(amount, currency);
-        setCurrentAmount(frontendAmount);
+        const frontendAmount = onFormatAmount(amountFromProps, currencyFromProps);
+        setAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
-        // In the line below the currentAmount is not immediately updated, it should still hold the previous value.
-        if (frontendAmount !== currentAmount) {
+        // In the line below the amount is not immediately updated, it should still hold the previous value.
+        if (frontendAmount !== amount) {
             setSelection({
                 start: frontendAmount.length,
                 end: frontendAmount.length,
@@ -241,20 +242,20 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [amount, shouldKeepUserInput]);
+    }, [amountFromProps, shouldKeepUserInput]);
 
     useEffect(() => {
-        setCurrentCurrency(currency);
-    }, [currency]);
+        setCurrency(currencyFromProps);
+    }, [currencyFromProps]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
+        if (MoneyRequestUtils.validateAmount(amount, decimals)) {
             return;
         }
         // If the changed currency doesn't support decimals, we can strip the decimals
-        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(amount));
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [setNewAmount]);
@@ -280,18 +281,18 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-        const formattedAmount = onFormatAmount(amount, currency);
+        const formattedAmount = onFormatAmount(amountFromProps, currencyFromProps);
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
-        setCurrentAmount(formattedAmount);
+        setAmount(formattedAmount);
         setSelection({
             start: formattedAmount.length,
             end: formattedAmount.length,
         });
-    }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
+    }, [amountFromProps, currencyFromProps, onFormatAmount, formatAmountOnBlur, maxLength]);
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedAmount = MoneyRequestUtils.replaceAllDigits(amount, toLocaleDigit);
 
     const {setMouseDown, setMouseUp} = useMouseContext();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -322,7 +323,7 @@ function MoneyRequestAmountInput(
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = ref;
             }}
-            selectedCurrencyCode={currentCurrency}
+            selectedCurrencyCode={currency}
             selection={selection}
             onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
                 if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
