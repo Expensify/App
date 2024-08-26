@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -33,37 +33,18 @@ import type SCREENS from '@src/SCREENS';
 
 type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
-function CodesStep({account, user, backTo}: CodesStepProps) {
-    const theme = useTheme();
+function CodesStep({account}: CodesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [error, setError] = useState('');
-    const isUserValidated = user?.validated;
-    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const {setStep} = useTwoFactorAuthContext();
 
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
-            return;
-        }
-        Session.toggleTwoFactorAuth(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated]);
-
     return (
         <StepWrapper
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
             shouldEnableKeyboardAvoidingView={false}
-            stepCounter={{
-                step: 1,
-                text: translate('twoFactorAuth.gatherCode'),
-                total: 2,
-            }}
             onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED, CONST.ANIMATION_DIRECTION.OUT)}
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
@@ -74,17 +55,21 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <View style={[styles.mh5, styles.mb4]}>
-                    <TwoFactorAuthForm innerRef={formRef} />
+                    <TwoFactorAuthForm
+                        innerRef={formRef}
+                        validateInsteadOfDisable={false}
+                    />
                 </View>
                 <Button
                     success
                     large
-                    text={translate('common.next')}
+                    text={translate('twoFactorAuth.disable')}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
                             return;
                         }
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                         formRef.current.validateAndSubmitForm();
                     }}
                 />

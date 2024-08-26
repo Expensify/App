@@ -84,6 +84,7 @@ export type {default as ValidateBankAccountWithTransactionsParams} from './Valid
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
 export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAuthParams';
+export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuthParams';
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
