@@ -43,7 +43,7 @@ function SecuritySettingsPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
-    const [shouldShowDelegateMenu, setShouldShowDelegateMenu] = useState(false);
+    const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
 
     const [anchorPosition, setAnchorPosition] = useState({
@@ -76,8 +76,9 @@ function SecuritySettingsPage() {
     const hasDelegators = delegators.length > 0;
 
     const showPopoverMenu = (nativeEvent?: GestureResponderEvent | KeyboardEvent) => {
-        console.log('showPopoverMenu', nativeEvent);
         delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        setMenuPosition();
+        setShouldShowDelegatePopoverMenu(true);
     };
 
     const securityMenuItems = useMemo(() => {
@@ -198,37 +199,45 @@ function SecuritySettingsPage() {
                                 </>
                             )}
                             <Popover
-                                isVisible={shouldShowDelegateMenu}
+                                isVisible={shouldShowDelegatePopoverMenu}
                                 anchorRef={delegateButtonRef as RefObject<View>}
                                 anchorPosition={{
                                     top: anchorPosition.anchorPositionTop,
                                     right: anchorPosition.anchorPositionRight,
                                 }}
-                                onClose={() => setShouldShowDelegateMenu(false)}
+                                onClose={() => setShouldShowDelegatePopoverMenu(false)}
                             >
-                                <MenuItem
-                                    title={translate('delegate.removeCopilot')}
-                                    icon={Expensicons.Trashcan}
-                                    onPress={() => setShouldShowRemoveDelegateModal(true)}
-                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                />
-                                <MenuItem
-                                    title={translate('delegate.removeCopilot')}
-                                    icon={Expensicons.Trashcan}
-                                    onPress={() => setShouldShowRemoveDelegateModal(true)}
-                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                />
-                                <ConfirmModal
-                                    isVisible={shouldShowRemoveDelegateModal}
-                                    title={translate('delegate.removeCopilot')}
-                                    prompt={translate('delegate.removeCopilotConfirmation')}
-                                    onConfirm={() => {}}
-                                    onCancel={() => {}}
-                                    confirmText={translate('delegate.removeCopilot')}
-                                    cancelText={translate('common.cancel')}
-                                    shouldShowCancelButton
-                                />
+                                <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
+                                    <MenuItem
+                                        title={translate('delegate.changeAccessLevel')}
+                                        icon={Expensicons.Pencil}
+                                        onPress={() => {
+                                            setShouldShowDelegatePopoverMenu(false);
+                                        }}
+                                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    />
+                                    <MenuItem
+                                        title={translate('delegate.removeCopilot')}
+                                        icon={Expensicons.Trashcan}
+                                        onPress={() => {
+                                            setShouldShowDelegatePopoverMenu(false);
+                                            setShouldShowRemoveDelegateModal(true);
+                                        }}
+                                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    />
+                                </View>
                             </Popover>
+                            <ConfirmModal
+                                isVisible={shouldShowRemoveDelegateModal}
+                                title={translate('delegate.removeCopilot')}
+                                prompt={translate('delegate.removeCopilotConfirmation')}
+                                danger
+                                onConfirm={() => {}}
+                                onCancel={() => setShouldShowRemoveDelegateModal(false)}
+                                confirmText={translate('delegate.removeCopilot')}
+                                cancelText={translate('common.cancel')}
+                                shouldShowCancelButton
+                            />
                         </Section>
                     )}
                 </View>
