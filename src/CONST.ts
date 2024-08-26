@@ -1311,6 +1311,7 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
+    EXPENSIFY_MERCHANT: '"Expensify, Inc."',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
         ADMIN: 'admin@expensify.com',

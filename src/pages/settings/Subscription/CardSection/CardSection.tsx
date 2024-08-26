@@ -61,13 +61,8 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = SearchUtils.buildQueryStringFromFilters({merchant: '"Expensify, Inc."'});
-        Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
-                isCustomQuery: true,
-            }),
-        );
+        const query = SearchUtils.buildQueryStringFromFilters({merchant: CONST.EXPENSIFY_MERCHANT});
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, isCustomQuery: true}));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
