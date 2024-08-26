@@ -50,10 +50,10 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 Navigation.goBack();
             } else if (!!backTo && navigation.getState().routes.length === 1) {
                 // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(appendParam(backTo, 'country', option.value) as Route);
+                Navigation.goBack(appendParam(backTo, 'country', option.value));
             } else {
                 // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(appendParam(backTo, 'country', option.value) as Route);
+                Navigation.navigate(appendParam(backTo, 'country', option.value));
             }
         },
         [route, navigation],
