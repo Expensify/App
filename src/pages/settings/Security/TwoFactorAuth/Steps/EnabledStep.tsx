@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
@@ -11,13 +10,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 
 function EnabledStep() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const {setStep} = useTwoFactorAuthContext();
 
