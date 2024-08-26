@@ -552,10 +552,10 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connectionId = Onyx.connect({
+        const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connectionId);
+                Onyx.disconnect(connection);
 
                 resolve(
                     !report?.notificationPreference ||
