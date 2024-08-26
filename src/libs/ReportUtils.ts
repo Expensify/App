@@ -7722,10 +7722,7 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
         return false;
     }
 
-    const invoiceRoomReport = getReport(invoiceReport?.chatReportID ?? '');
-    const policy = getPolicy(invoiceRoomReport?.policyID);
-
-    return invoiceRoomReport?.ownerAccountID === currentUserAccountID && isEmptyObject(policy?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
 }
 
 export {
