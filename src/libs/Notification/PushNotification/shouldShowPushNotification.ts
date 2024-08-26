@@ -8,7 +8,7 @@ import parsePushNotificationPayload from './parsePushNotificationPayload';
  * Returns whether the given Airship notification should be shown depending on the current state of the app
  */
 export default function shouldShowPushNotification(pushPayload: PushPayload): boolean {
-    Log.info('[PushNotification] push notification resceived', false, {pushPayload});
+    Log.info('[PushNotification] push notification received', false, {pushPayload});
     const data = parsePushNotificationPayload(pushPayload.extras.payload);
 
     if (data?.reportID === undefined) {
