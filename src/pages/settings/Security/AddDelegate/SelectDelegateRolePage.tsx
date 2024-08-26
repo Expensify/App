@@ -10,20 +10,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type SelectDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE>;
 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const [selectedRole, setSelectedRole] = useState(route.params.role);
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', role),
         keyForList: role,
-        isSelected: role === selectedRole,
+        isSelected: role === route.params.role,
     }));
 
     return (
@@ -37,7 +37,9 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
             />
             <SelectionList
                 headerContent={<Text style={[styles.ph5, styles.pb5, styles.pt3]}>{translate('delegate.accessLevelDescription')}</Text>}
-                onSelectRow={() => {}}
+                onSelectRow={(option) => {
+                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(Number(route.params.accountID), option.value));
+                }}
                 sections={[{data: roleOptions}]}
                 ListItem={RadioListItem}
             />
