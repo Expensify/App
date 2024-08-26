@@ -83,6 +83,10 @@ export default {
         marginVertical: 20,
     },
 
+    mv6: {
+        marginVertical: 24,
+    },
+
     mhv5: {
         marginVertical: -20,
     },
