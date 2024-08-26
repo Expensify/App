@@ -43,19 +43,10 @@ index 051520b..6fb49e0 100644
      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 diff --git a/node_modules/@react-navigation/core/src/getStateFromPath.tsx b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
-index b61e1e5..1abbf16 100644
+index b61e1e5..16dca3d 100644
 --- a/node_modules/@react-navigation/core/src/getStateFromPath.tsx
 +++ b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
-@@ -10,6 +10,8 @@ import findFocusedRoute from './findFocusedRoute';
- import type { PathConfigMap } from './types';
- import validatePathConfig from './validatePathConfig';
- 
-+console.log('[Navigation] getStateFromPath.tsx');
-+
- type Options<ParamList extends {}> = {
-   initialRouteName?: string;
-   screens: PathConfigMap<ParamList>;
-@@ -41,72 +43,12 @@ type ParsedRoute = {
+@@ -41,80 +41,25 @@ type ParsedRoute = {
    params?: Record<string, any> | undefined;
  };
  
@@ -125,48 +116,93 @@ index b61e1e5..1abbf16 100644
 -  }
 -
 -  // Create a normalized configs array which will be easier to use
++const optionsCache = new Map<PathConfigMap<{}> | undefined, {
++  configs: ReturnType<typeof prepareNormalizedConfigs>;
++  regexedConfigs: ReturnType<typeof addRegexpToConfig>;
++  initialRoutes: ReturnType<typeof generateInitialRoutes>;
++}>();
++
 +function prepareNormalizedConfigs<ParamList extends {}>(
-+  screens: PathConfigMap<ParamList>,
-+  initialRoutes: InitialRouteConfig[]
++  screens?: PathConfigMap<ParamList>,
++  initialRoutes?: InitialRouteConfig[]
 +): RouteConfig[] {
-+  const start = performance.now();
 +    // Create a normalized configs array which will be easier to use
    const configs = ([] as RouteConfig[])
      .concat(
-       ...Object.keys(screens).map((key) =>
-@@ -170,7 +112,13 @@ export default function getStateFromPath<ParamList extends {}>(
+-      ...Object.keys(screens).map((key) =>
++      ...Object.keys(screens ?? {}).map((key) =>
+         createNormalizedConfigs(
+           key,
+           screens as PathConfigMap<object>,
+           [],
+-          initialRoutes,
++          initialRoutes ?? [],
+           []
+         )
+       )
+@@ -170,7 +115,10 @@ export default function getStateFromPath<ParamList extends {}>(
        return bParts.length - aParts.length;
      });
- 
+     
 -  // Check for duplicate patterns in the config
-+  console.log('[Navigation] prepareNormalizedConfigs', performance.now() - start);
-+    
 +  return configs;
 +}
 +
 +function checkForDuplicatePatterns(configs: RouteConfig[]) {
-+  const start = performance.now();
    configs.reduce<Record<string, RouteConfig>>((acc, config) => {
      if (acc[config.pattern]) {
        const a = acc[config.pattern].routeNames;
-@@ -198,6 +146,91 @@ export default function getStateFromPath<ParamList extends {}>(
+@@ -198,6 +146,113 @@ export default function getStateFromPath<ParamList extends {}>(
        [config.pattern]: config,
      });
    }, {});
-+  console.log('[Navigation] checkForDuplicate', performance.now() - start);
 +}
 +
 +function addRegexpToConfig(configs: RouteConfig[]) {
-+  const start = performance.now();
-+  const r = configs.map((c) => ({
++  return configs.map((c) => ({
 +    ...c,
 +    // Add `$` to the regex to make sure it matches till end of the path and not just beginning
 +    regex: c.regex ? new RegExp(c.regex.source + '$') : undefined,
 +  }));
-+  console.log('[Navigation] addRegexpToConfig', performance.now() - start);
-+  return r;
 +}
 +
++function generateInitialRoutes(
++  options?: Options<{}>
++): InitialRouteConfig[] {
++  let initialRoutes: InitialRouteConfig[] = [];
++
++  if (options?.initialRouteName) {
++    initialRoutes.push({
++      initialRouteName: options.initialRouteName,
++      parentScreens: [],
++    });
++  }
++
++  return initialRoutes;
++}
++
++function prepareOptionsResources<ParamList extends {}>(
++  options?: Options<ParamList>
++) {
++    const initialRoutes = generateInitialRoutes(options);
++
++    const configs = prepareNormalizedConfigs(options?.screens, initialRoutes);
++    checkForDuplicatePatterns(configs);
++
++    const regexedConfigs = addRegexpToConfig(configs);
++
++    return {  configs, regexedConfigs, initialRoutes };
++}
++
++function getOptionsResources<ParamList extends {}>(
++  options?: Options<ParamList>
++) {
++  if (!optionsCache.has(options)) {
++    optionsCache.set(options, prepareOptionsResources(options));
++  }
++
++  return optionsCache.get(options)!;
++}
 +
 +/**
 + * Utility to parse a path string to initial state object accepted by the container.
@@ -197,16 +233,10 @@ index b61e1e5..1abbf16 100644
 +    validatePathConfig(options);
 +  }
 +
-+  let initialRoutes: InitialRouteConfig[] = [];
-+
-+  if (options?.initialRouteName) {
-+    initialRoutes.push({
-+      initialRouteName: options.initialRouteName,
-+      parentScreens: [],
-+    });
-+  }
++  const { configs, regexedConfigs, initialRoutes } = getOptionsResources(options);
 +
 +  const screens = options?.screens;
++
 +
 +  let remaining = path
 +    .replace(/\/+/g, '/') // Replace multiple slash (//) with single ones
@@ -233,15 +263,10 @@ index b61e1e5..1abbf16 100644
 +    return undefined;
 +  }
 +
-+  // Create a normalized configs array which will be easier to use
-+  const configs = prepareNormalizedConfigs(screens, initialRoutes);
-+
-+  // Check for duplicate patterns in the config
-+  checkForDuplicatePatterns(configs);
  
    if (remaining === '/') {
      // We need to add special handling of empty path so navigation to empty path also works
-@@ -230,11 +263,7 @@ export default function getStateFromPath<ParamList extends {}>(
+@@ -230,11 +285,7 @@ export default function getStateFromPath<ParamList extends {}>(
    // This makes sure matches such as wildcard will catch any unmatched routes, even if nested
    const { routes, remainingPath } = matchAgainstConfigs(
      remaining,
@@ -250,7 +275,7 @@ index b61e1e5..1abbf16 100644
 -      // Add `$` to the regex to make sure it matches till end of the path and not just beginning
 -      regex: c.regex ? new RegExp(c.regex.source + '$') : undefined,
 -    }))
-+    addRegexpToConfig(configs)
++    regexedConfigs,
    );
  
    if (routes !== undefined) {
