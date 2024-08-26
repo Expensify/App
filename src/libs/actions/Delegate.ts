@@ -212,7 +212,15 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.filter((delegate) => delegate.email !== email),
+                    delegates: delegatedAccess.delegates?.map((delegate) =>
+                        delegate.email === email
+                            ? {
+                                  ...delegate,
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                                  pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                              }
+                            : delegate,
+                    ),
                 },
             },
         },
@@ -236,7 +244,9 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email === email ? {...delegate, error: 'delegate.genericError'} : delegate)),
+                    delegates: delegatedAccess.delegates?.map((delegate) =>
+                        delegate.email === email ? {...delegate, error: 'delegate.genericError', pendingAction: null, pendingFields: undefined} : delegate,
+                    ),
                 },
             },
         },
