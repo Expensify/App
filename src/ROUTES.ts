@@ -929,6 +929,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
