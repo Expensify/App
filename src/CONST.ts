@@ -3926,8 +3926,8 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     DELEGATE_ROLE: {
-        SUBMITTER: 'submitter',
         ALL: 'all',
+        SUBMITTER: 'submitter',
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',

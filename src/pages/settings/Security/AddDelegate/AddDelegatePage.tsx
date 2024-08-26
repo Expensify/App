@@ -121,7 +121,7 @@ function AddDelegatePage() {
 
     const onSelectRow = useCallback((option: Participant) => {
         // setDelegateEmail(option.login ?? '');
-        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE);
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1));
     }, []);
 
     useEffect(() => {

@@ -284,11 +284,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
-                            path: ROUTES.SETTINGS_DELEGATE_ROLE,
+                            path: ROUTES.SETTINGS_DELEGATE_ROLE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
-                            path: ROUTES.SETTINGS_DELEGATE_CONFIRM,
+                            path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS]: {
