@@ -37,7 +37,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
-    return true;
     return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
 }
 
