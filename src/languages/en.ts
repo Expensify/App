@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import {startCase} from 'lodash';
+import {remove, startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -4496,5 +4496,7 @@ export default {
                     return '';
             }
         },
+        removeCopilot: 'Remove copilot',
+        removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
     },
 } satisfies TranslationBase;

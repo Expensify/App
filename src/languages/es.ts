@@ -5012,5 +5012,7 @@ export default {
                     return '';
             }
         },
+        removeCopilot: 'Remove copilot',
+        removeCopilotConfirmation: 'Are you sure you want to remove this copilot?',
     },
 } satisfies EnglishTranslation;
