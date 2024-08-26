@@ -26,7 +26,6 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const onModalClose = useCallback(() => {
         setIsVisible(false);
         PaymentMethods.clearPaymentCard3dsVerification();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     }, []);
 
     useEffect(() => {
