@@ -265,9 +265,6 @@ function AvatarWithImagePicker({
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
-                    if (Browser.isSafari()) {
-                        return;
-                    }
                     openPicker({
                         onPicked: showAvatarCropModal,
                     });

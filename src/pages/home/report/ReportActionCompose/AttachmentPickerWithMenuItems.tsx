@@ -225,9 +225,6 @@ function AttachmentPickerWithMenuItems({
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
                         onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
                             triggerAttachmentPicker();
                         },
                         shouldCallAfterModalHide: true,
