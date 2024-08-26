@@ -1,7 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -24,19 +26,33 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
 
     const styles = useThemeStyles();
     const accountID = Number(route.params.accountID);
+    const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
 
+    const submitButton = (
+        <Button
+            success
+            large
+            text={translate('delegate.addCopilot')}
+            style={styles.mt6}
+            pressOnEnter
+            onPress={() => {
+                addDelegate(personalDetails.login ?? '', role);
+                Navigation.dismissModal();
+            }}
+        />
+    );
+
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+        <HeaderPageLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, role))}
+            title={translate('delegate.addCopilot')}
             testID={ConfirmDelegatePage.displayName}
+            footer={submitButton}
+            childrenContainerStyles={[styles.pt3, styles.gap6]}
         >
-            <HeaderWithBackButton
-                title={translate('delegate.addCopilot')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <Text style={[styles.ph5, styles.pt3]}>{translate('delegate.confirmCopilot')}</Text>
+            <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
             <MenuItem
                 avatarID={route.params.accountID}
                 icon={personalDetails.avatar ?? ''}
@@ -44,29 +60,16 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 title={personalDetails.displayName ?? personalDetails.login}
                 description={personalDetails.login}
                 interactive={false}
-                style={styles.mv6}
+                // style={styles.mv6}
             />
             <MenuItemWithTopDescription
-                title={translate('delegate.role', route.params.role)}
+                title={translate('delegate.role', role)}
                 description={translate('delegate.accessLevel')}
-                helperText={translate('delegate.roleDescription', route.params.role)}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, route.params.role))}
+                helperText={translate('delegate.roleDescription', role)}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, role))}
                 shouldShowRightIcon
             />
-            <FixedFooter>
-                <Button
-                    success
-                    large
-                    text={translate('delegate.addCopilot')}
-                    style={styles.mt6}
-                    pressOnEnter
-                    onPress={() => {
-                        addDelegate(personalDetails.login ?? '', route.params.role);
-                        Navigation.dismissModal();
-                    }}
-                />
-            </FixedFooter>
-        </ScreenWrapper>
+        </HeaderPageLayout>
     );
 }
 
