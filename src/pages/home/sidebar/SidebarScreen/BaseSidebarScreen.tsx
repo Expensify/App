@@ -1,12 +1,10 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateLastRoute} from '@libs/actions/App';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
@@ -16,7 +14,6 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 
 /**
  * Function called when a pinned chat is selected.
@@ -26,14 +23,7 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
-type BaseSidebarScreenOnyxProps = {
-    /** last visited route */
-    lastRoute: OnyxEntry<string>;
-};
-
-type BaseSidebarScreenProps = BaseSidebarScreenOnyxProps;
-
-function BaseSidebarScreen({lastRoute}: BaseSidebarScreenProps) {
+function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
@@ -52,22 +42,6 @@ function BaseSidebarScreen({lastRoute}: BaseSidebarScreenProps) {
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID]);
-
-    /**
-     * Navigate to the last route after enabling camera permissions from the settings.
-     * This functionality is specific to the iOS application, as we are storing the last route only for iOS.
-     */
-    useEffect(() => {
-        if (!lastRoute) {
-            return;
-        }
-
-        updateLastRoute('');
-        const route = lastRoute as Route;
-        Navigation.navigate(route);
-        // Disabling this rule because we only want it to run on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <ScreenWrapper
@@ -97,8 +71,4 @@ function BaseSidebarScreen({lastRoute}: BaseSidebarScreenProps) {
 
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
-export default withOnyx<BaseSidebarScreenProps, BaseSidebarScreenOnyxProps>({
-    lastRoute: {
-        key: ONYXKEYS.LAST_ROUTE,
-    },
-})(BaseSidebarScreen);
+export default BaseSidebarScreen;

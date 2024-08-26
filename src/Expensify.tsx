@@ -16,6 +16,7 @@ import UpdateAppModal from './components/UpdateAppModal';
 import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
+import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -75,6 +76,9 @@ type ExpensifyOnyxProps = {
 
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
+
+    /** last visited route */
+    lastRoute: OnyxEntry<string>;
 };
 
 type ExpensifyProps = ExpensifyOnyxProps;
@@ -94,6 +98,7 @@ function Expensify({
     updateRequired = false,
     focusModeNotification = false,
     lastVisitedPath,
+    lastRoute,
 }: ExpensifyProps) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -189,6 +194,7 @@ function Expensify({
                         focusModeNotification,
                         isAuthenticated,
                         lastVisitedPath,
+                        lastRoute,
                     };
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
@@ -235,6 +241,22 @@ function Expensify({
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
+
+    /**
+     * Navigate to the last route after enabling camera permissions from the settings.
+     * This functionality is specific to the iOS application, as we are storing the last route only for iOS.
+     */
+    useEffect(() => {
+        if (!isNavigationReady || !lastRoute) {
+            return;
+        }
+
+        updateLastRoute('');
+        const route = lastRoute as Route;
+        Navigation.navigate(route);
+        // Disabling this rule because we only want it to run on the first render.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isNavigationReady]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -334,6 +356,9 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     },
     lastVisitedPath: {
         key: ONYXKEYS.LAST_VISITED_PATH,
+    },
+    lastRoute: {
+        key: ONYXKEYS.LAST_ROUTE,
     },
 })(Expensify);
 
