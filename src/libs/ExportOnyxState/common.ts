@@ -46,7 +46,18 @@ const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Rec
     return maskedData;
 };
 
+const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnabled?: boolean) => {
+    let onyxState = data;
+    // Mask session details by default
+    onyxState = maskSessionDetails(data);
+    // Mask fragile data other than session details if the user has enabled the option
+    if (isMaskingFragileDataEnabled) {
+        onyxState = maskFragileData(data);
+    }
+
+    return onyxState;
+};
+
 export default {
-    maskSessionDetails,
-    maskFragileData,
+    maskOnyxState,
 };
