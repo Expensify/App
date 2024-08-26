@@ -24,7 +24,7 @@ DerivedData
 *.p12
 *.mobileprovision
 ios-fastlane-json-key.json
-**/.xcode.env.local
+ios/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -78,7 +78,7 @@ android/app/android-fastlane-json-key.json
 *.jsbundle
 
 # Ruby / CocoaPods
-**/Pods/
+/ios/Pods/
 /vendor/bundle/
 
 # Local DEV config
@@ -126,14 +126,6 @@ config/webpack/*.pem
 .expo
 dist/
 web-build/
-
-# Yarn
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
 
 # Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
 .sourcemaps/

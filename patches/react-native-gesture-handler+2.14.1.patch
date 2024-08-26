@@ -1,0 +1,72 @@
+diff --git a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
+index b999c2c..583a5d2 100644
+--- a/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
++++ b/node_modules/react-native-gesture-handler/ios/RNGestureHandlerModule.mm
+@@ -10,7 +10,6 @@
+ #ifdef RCT_NEW_ARCH_ENABLED
+ #import <React/RCTBridge+Private.h>
+ #import <React/RCTBridge.h>
+-#import <React/RCTSurfacePresenter.h>
+ #import <React/RCTUtils.h>
+ #import <ReactCommon/CallInvoker.h>
+ #import <ReactCommon/RCTTurboModule.h>
+@@ -32,7 +31,7 @@
+ #endif // RCT_NEW_ARCH_ENABLED
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED
+-@interface RNGestureHandlerModule () <RCTSurfacePresenterObserver, RNGestureHandlerStateManager>
++@interface RNGestureHandlerModule () <RNGestureHandlerStateManager>
+ 
+ @end
+ #else
+@@ -66,9 +65,7 @@ - (void)invalidate
+ 
+   _manager = nil;
+ 
+-#ifdef RCT_NEW_ARCH_ENABLED
+-  [self.bridge.surfacePresenter removeObserver:self];
+-#else
++#ifndef RCT_NEW_ARCH_ENABLED
+   [self.bridge.uiManager.observerCoordinator removeObserver:self];
+ #endif // RCT_NEW_ARCH_ENABLED
+ }
+@@ -113,9 +110,7 @@ - (void)setBridge:(RCTBridge *)bridge
+                                                 eventDispatcher:bridge.eventDispatcher];
+   _operations = [NSMutableArray new];
+ 
+-#ifdef RCT_NEW_ARCH_ENABLED
+-  [bridge.surfacePresenter addObserver:self];
+-#else
++#ifndef RCT_NEW_ARCH_ENABLED
+   [bridge.uiManager.observerCoordinator addObserver:self];
+ #endif // RCT_NEW_ARCH_ENABLED
+ }
+@@ -241,27 +236,7 @@ - (void)addOperationBlock:(GestureHandlerOperation)operation
+   [_operations addObject:operation];
+ }
+ 
+-#pragma mark - RCTSurfacePresenterObserver
+-
+-#ifdef RCT_NEW_ARCH_ENABLED
+-
+-- (void)didMountComponentsWithRootTag:(NSInteger)rootTag
+-{
+-  RCTAssertMainQueue();
+-
+-  if (_operations.count == 0) {
+-    return;
+-  }
+-
+-  NSArray<GestureHandlerOperation> *operations = _operations;
+-  _operations = [NSMutableArray new];
+-
+-  for (GestureHandlerOperation operation in operations) {
+-    operation(self->_manager);
+-  }
+-}
+-
+-#else
++#ifndef RCT_NEW_ARCH_ENABLED
+ 
+ #pragma mark - RCTUIManagerObserver
+ 

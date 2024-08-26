@@ -20,7 +20,6 @@ node_require('react-native-permissions/scripts/setup.rb')
 platform :ios, 14.0
 prepare_react_native_project!
 
-
 setup_permissions([
   'Camera',
   'LocationAccuracy',
@@ -102,8 +101,7 @@ target 'NewExpensify' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
+      :mac_catalyst_enabled => false
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 

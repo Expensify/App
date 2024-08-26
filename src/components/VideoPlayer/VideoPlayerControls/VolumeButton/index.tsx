@@ -77,7 +77,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     return (
         <Hoverable>
             {(isHovered) => (
-                <Animated.View style={[isSliderBeingUsed ? styles.cursorGrabbing : styles.cursorPointer, style]}>
+                <Animated.View style={[{cursor: isSliderBeingUsed ? 'grabbing' : 'pointer'}, style]}>
                     {(isSliderBeingUsed || isHovered) && (
                         <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>

@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
+import type {CompareResult, PerformanceEntry} from '@callstack/reassure-compare/src/types';
 import fs from 'fs';
 
 const run = (): boolean => {
@@ -16,8 +16,8 @@ const run = (): boolean => {
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
         const measurement = regressionOutput.countChanged[i];
-        const baseline: MeasureEntry = measurement.baseline;
-        const current: MeasureEntry = measurement.current;
+        const baseline: PerformanceEntry = measurement.baseline;
+        const current: PerformanceEntry = measurement.current;
 
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
 
