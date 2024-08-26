@@ -32,23 +32,23 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     }, [setAnimationFile, source.file]);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
+        const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             setIsHidden(false);
         });
-        return unsubscribe;
+        return unsubscribeNavigationFocus;
     }, [navigation]);
 
     // Prevent the animation from running in the background after navigating to other pages.
     // See https://github.com/Expensify/App/issues/47273
     useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => {
             const state = navigation.getState();
             const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
             if (targetRouteName !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                 setIsHidden(true);
             }
         });
-        return unsubscribe;
+        return unsubscribeNavigationBlur;
     }, [navigation]);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
