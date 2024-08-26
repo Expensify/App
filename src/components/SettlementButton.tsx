@@ -9,6 +9,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -280,6 +281,7 @@ function SettlementButton({
             iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
         ) {
             triggerKYCFlow(event, iouPaymentType);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
