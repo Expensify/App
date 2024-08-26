@@ -169,5 +169,11 @@ type IOU = {
     isSplitRequest?: boolean;
 };
 
+type Attendee = {
+    email: string;
+    displayName: string;
+    avatarUrl: string;
+};
+
 export default IOU;
-export type {Participant, Split};
+export type {Participant, Split, Attendee};

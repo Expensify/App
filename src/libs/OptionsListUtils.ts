@@ -219,7 +219,10 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'> & {
+type FilterOptionsConfig = Pick<
+    GetOptionsConfig,
+    'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'
+> & {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
 };
@@ -425,7 +428,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login) || participant.text);
 
     return {
         keyForList: String(detail?.accountID),
@@ -2505,6 +2508,10 @@ function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
     return report.isUnread === true && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
+function getAttendeeOptions() {
+    return getEmptyOptions();
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2550,6 +2557,7 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     shouldUseBoldText,
+    getAttendeeOptions,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

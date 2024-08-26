@@ -827,6 +827,7 @@ export default {
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes.',
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
+            atLeastOneAttendee: 'At least one attendee must be selected',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
@@ -885,6 +886,7 @@ export default {
         bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
+        attendees: 'Attendees',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

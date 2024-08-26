@@ -831,6 +831,7 @@ export default {
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses.',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
+            atLeastOneAttendee: 'At least one attendee must be selected',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -881,6 +882,7 @@ export default {
         bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
+        attendees: 'Attendees',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
