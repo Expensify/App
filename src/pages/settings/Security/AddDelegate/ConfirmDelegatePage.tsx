@@ -1,14 +1,15 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addDelegate} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -52,6 +53,19 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, route.params.role))}
                 shouldShowRightIcon
             />
+            <FixedFooter>
+                <Button
+                    success
+                    large
+                    text={translate('delegate.addCopilot')}
+                    style={styles.mt6}
+                    pressOnEnter
+                    onPress={() => {
+                        addDelegate(personalDetails.login ?? '', route.params.role);
+                        Navigation.dismissModal();
+                    }}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
