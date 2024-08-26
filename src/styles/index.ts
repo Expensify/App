@@ -5148,11 +5148,12 @@ const styles = (theme: ThemeColors) =>
 
         emptyCompanyCardsFolderBG: {
             backgroundColor: theme.emptyCompanyCardsBG,
+            justifyContent: 'flex-start',
         },
 
         emptyStateCompanyCardsIconSize: {
             width: 164,
-            height: 220,
+            height: 190,
         },
 
         workflowApprovalVerticalLine: {
