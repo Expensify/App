@@ -1,6 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {RefObject, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -8,6 +10,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -18,8 +21,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,13 +38,46 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
+    const {windowWidth} = useWindowDimensions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const delegateButtonRef = useRef<HTMLDivElement | null>(null);
+
+    const [shouldShowDelegateMenu, setShouldShowDelegateMenu] = useState(false);
+    const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
+
+    const [anchorPosition, setAnchorPosition] = useState({
+        anchorPositionHorizontal: 0,
+        anchorPositionVertical: 0,
+        anchorPositionTop: 0,
+        anchorPositionRight: 0,
+    });
+
+    const setMenuPosition = useCallback(() => {
+        if (!delegateButtonRef.current) {
+            return;
+        }
+
+        const position = getClickedTargetLocation(delegateButtonRef.current);
+
+        setAnchorPosition({
+            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
+            // We want the position to be 23px to the right of the left border
+            anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
+            anchorPositionHorizontal: position.x + variables.addBankAccountLeftSpacing,
+            anchorPositionVertical: position.y,
+        });
+    }, [windowWidth]);
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    const showPopoverMenu = (nativeEvent?: GestureResponderEvent | KeyboardEvent) => {
+        console.log('showPopoverMenu', nativeEvent);
+        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+    };
 
     const securityMenuItems = useMemo(() => {
         const baseMenuItems = [
@@ -79,6 +118,7 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             iconRight: Expensicons.ThreeDots,
             shouldShowRightIcon: true,
+            onPress: showPopoverMenu,
         };
     });
 
@@ -156,6 +196,22 @@ function SecuritySettingsPage() {
                                     <MenuItemList menuItems={delegatorMenuItems} />
                                 </>
                             )}
+                            <Popover
+                                isVisible={shouldShowDelegateMenu}
+                                anchorRef={delegateButtonRef as RefObject<View>}
+                                onClose={() => setShouldShowDelegateMenu(false)}
+                            >
+                                <ConfirmModal
+                                    isVisible={shouldShowRemoveDelegateModal}
+                                    title={translate('delegate.removeCopilot')}
+                                    prompt={translate('delegate.removeCopilotConfirmation')}
+                                    onConfirm={() => {}}
+                                    onCancel={() => {}}
+                                    confirmText={translate('delegate.removeCopilot')}
+                                    cancelText={translate('common.cancel')}
+                                    shouldShowCancelButton
+                                />
+                            </Popover>
                         </Section>
                     )}
                 </View>
