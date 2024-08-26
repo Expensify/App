@@ -40,7 +40,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         );
 
         if (isControl) {
-            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE, isRequired: true});
+            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
         return roles;
