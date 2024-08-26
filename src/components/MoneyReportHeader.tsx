@@ -98,13 +98,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID), [moneyRequestReport?.reportID]);
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID), [moneyRequestReport?.reportID, transactions]);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
+    const hasOnlyPendingTransactions = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).every(
+        (t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t),
+    );
     const transactionIDs = allTransactions.map((t) => t.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
@@ -130,7 +134,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense;
+    const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
@@ -215,6 +219,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         if (allHavePendingRTERViolation) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+        }
+        if (hasOnlyPendingTransactions) {
+            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (hasScanningReceipt) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};

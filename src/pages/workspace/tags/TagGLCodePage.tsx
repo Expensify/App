@@ -18,6 +18,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagLists} from '@src/types/onyx';
@@ -45,7 +46,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            Navigation.dismissModal();
+            Navigation.goBack(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName));
         },
         [glCode, route.params.policyID, tagName, orderWeight],
     );
