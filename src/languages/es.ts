@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
@@ -4989,7 +4988,7 @@ export default {
         addCopilot: 'Agregar copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
-        role: (role: DelegateRole): string => {
+        role: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Completo';
@@ -5003,7 +5002,7 @@ export default {
         accessLevel: 'Access level',
         confirmCopilot: 'Confirm your copilot below.',
         accessLevelDescription: 'Choose an access level below. Both Full and Limited access allow copilots to view all conversations and expenses.',
-        roleDescription: (role?: DelegateRole): string => {
+        roleDescription: (role?: string): string => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Allow another member to take all actions in your account, on your behalf. Includes chat, submissions, approvals, payments, settings updates, and more.';
