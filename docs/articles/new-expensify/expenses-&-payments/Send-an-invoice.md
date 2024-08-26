@@ -26,7 +26,7 @@ Workspace admins can enable invoicing on a workspace to send invoices and receiv
 4. Tap **More features**. 
 5. Under the Earn section, enable the Invoice toggle.
 
-{% include end-option.html %}
+{% include end-selector.html %}
 
 # Send an invoice
 
