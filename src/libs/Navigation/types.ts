@@ -111,6 +111,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
         contactMethod: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
         backTo: Routes;
