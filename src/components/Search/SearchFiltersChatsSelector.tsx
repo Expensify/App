@@ -11,6 +11,7 @@ import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionSt
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as Report from '@userActions/Report';
@@ -56,7 +57,7 @@ function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransi
         const selectedReports = selectedReportIDs.map((id) =>
             getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails)),
         );
-        return selectedReports.map((rep) => (!rep.alternateText ? {...rep, alternateText: 'Workspace'} : rep));
+        return selectedReports.map((rep) => (!rep.alternateText ? {...rep, alternateText: ReportUtils.getPolicyName(rep)} : rep));
     }, [personalDetails, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
