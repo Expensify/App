@@ -268,7 +268,7 @@ type MenuItemBaseProps = {
     shouldRenderErrorAsHTML?: boolean;
 
     /** List of markdown rules that will be ignored */
-    excludedMarkdownRules: string[];
+    excludedMarkdownRules?: string[];
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
