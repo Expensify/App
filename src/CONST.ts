@@ -3860,6 +3860,7 @@ const CONST = {
         SUCCESS: 'SUCCESS',
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
+        GETCODE: 'GETCODE',
     },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',

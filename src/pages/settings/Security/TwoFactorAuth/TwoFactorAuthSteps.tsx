@@ -15,6 +15,7 @@ import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
+import GetCodeStep from './Steps/GetCode';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 import type {BaseTwoFactorAuthFormOnyxProps} from './TwoFactorAuthForm/types';
 
@@ -62,6 +63,8 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return <DisabledStep />;
+            case CONST.TWO_FACTOR_AUTH_STEPS.GETCODE:
+                return <GetCodeStep />;
             default:
                 return <CodesStep backTo={backTo} />;
         }

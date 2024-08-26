@@ -33,7 +33,8 @@ function EnabledStep() {
                         {
                             title: translate('twoFactorAuth.disableTwoFactorAuth'),
                             onPress: () => {
-                                setIsConfirmModalVisible(true);
+                                setStep(CONST.TWO_FACTOR_AUTH_STEPS.GETCODE);
+                                // setIsConfirmModalVisible(true);
                             },
                             icon: Expensicons.Close,
                             iconFill: theme.danger,
