@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
+import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -19,36 +20,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
-
-function numberToColumn(index: number) {
-    let column = '';
-    let number = index;
-    while (number >= 0) {
-        column = String.fromCharCode((number % 26) + 65) + column;
-        number = Math.floor(number / 26) - 1;
-    }
-    return column;
-}
-
-function generateColumnNames(length: number) {
-    return Array.from({length}, (_, i) => numberToColumn(i));
-}
-
-function findDuplicate(array: string[]): string | null {
-    const frequencyCounter: Record<string, number> = {};
-
-    for (const item of array) {
-        if (item !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
-            if (frequencyCounter[item]) {
-                return item;
-            }
-            frequencyCounter[item] = (frequencyCounter[item] || 0) + 1;
-        }
-    }
-
-    return null;
-}
-
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
