@@ -76,9 +76,6 @@ type ExpensifyOnyxProps = {
 
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
-
-    /** last visited route */
-    lastRoute: OnyxEntry<string>;
 };
 
 type ExpensifyProps = ExpensifyOnyxProps;
@@ -98,7 +95,6 @@ function Expensify({
     updateRequired = false,
     focusModeNotification = false,
     lastVisitedPath,
-    lastRoute,
 }: ExpensifyProps) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -108,6 +104,7 @@ function Expensify({
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -194,7 +191,6 @@ function Expensify({
                         focusModeNotification,
                         isAuthenticated,
                         lastVisitedPath,
-                        lastRoute,
                     };
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
@@ -242,18 +238,12 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
-    /**
-     * Navigate to the last route after enabling camera permissions from the settings.
-     * This functionality is specific to the iOS application, as we are storing the last route only for iOS.
-     */
     useEffect(() => {
         if (!isNavigationReady || !lastRoute) {
             return;
         }
-
         updateLastRoute('');
-        const route = lastRoute as Route;
-        Navigation.navigate(route);
+        Navigation.navigate(lastRoute as Route);
         // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isNavigationReady]);
@@ -356,9 +346,6 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     },
     lastVisitedPath: {
         key: ONYXKEYS.LAST_VISITED_PATH,
-    },
-    lastRoute: {
-        key: ONYXKEYS.LAST_ROUTE,
     },
 })(Expensify);
 
