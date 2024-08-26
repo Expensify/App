@@ -265,11 +265,11 @@ const ROUTES = {
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string, policyID: string, fieldID: string) => `r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const,
+        getRoute: (reportID: string, policyID: string, fieldID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const, backTo),
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string) => `r/${reportID}/details/shareCode` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo),
     },
     ATTACHMENTS: {
         route: 'attachment',
@@ -278,7 +278,7 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
-        getRoute: (reportID: string) => `r/${reportID}/participants` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
     },
     REPORT_PARTICIPANTS_INVITE: {
         route: 'r/:reportID/participants/invite',
@@ -302,7 +302,7 @@ const ROUTES = {
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
-        getRoute: (reportID: string) => `r/${reportID}/settings` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
     REPORT_SETTINGS_NAME: {
         route: 'r/:reportID/settings/name',
@@ -508,12 +508,27 @@ const ROUTES = {
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
-    NEW_TASK: 'new/task',
-    NEW_TASK_ASSIGNEE: 'new/task/assignee',
+    NEW_TASK: {
+        route: 'new/task',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task', backTo),
+    },
+    NEW_TASK_ASSIGNEE: {
+        route: 'new/task/assignee',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/assignee', backTo),
+    },
     NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
-    NEW_TASK_DETAILS: 'new/task/details',
-    NEW_TASK_TITLE: 'new/task/title',
-    NEW_TASK_DESCRIPTION: 'new/task/description',
+    NEW_TASK_DETAILS: {
+        route: 'new/task/details',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/details', backTo),
+    },
+    NEW_TASK_TITLE: {
+        route: 'new/task/title',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/title', backTo),
+    },
+    NEW_TASK_DESCRIPTION: {
+        route: 'new/task/description',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/description', backTo),
+    },
 
     TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
@@ -969,7 +984,10 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
+    PROCESS_MONEY_REQUEST_HOLD: {
+        route: 'hold-expense-educational',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
+    },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',

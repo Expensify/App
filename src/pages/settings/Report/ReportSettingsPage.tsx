@@ -23,7 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
+function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
     const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,7 +52,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (

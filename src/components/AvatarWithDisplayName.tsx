@@ -79,10 +79,15 @@ function AvatarWithDisplayName({
         actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
     }, [parentReportActions, report]);
 
+    const goToDetailsPage = useCallback(() => {
+        ReportUtils.navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+    }, [report]);
+
     const showActorDetails = useCallback(() => {
         // We should navigate to the details page if the report is a IOU/expense report
         if (shouldEnableDetailPageNavigation) {
-            return ReportUtils.navigateToDetailsPage(report);
+            goToDetailsPage();
+            return;
         }
 
         if (ReportUtils.isExpenseReport(report) && report?.ownerAccountID) {
@@ -107,7 +112,7 @@ function AvatarWithDisplayName({
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
-    }, [report, shouldEnableDetailPageNavigation]);
+    }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
@@ -172,7 +177,7 @@ function AvatarWithDisplayName({
 
     return (
         <PressableWithoutFeedback
-            onPress={() => ReportUtils.navigateToDetailsPage(report)}
+            onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}

@@ -79,10 +79,11 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, session, personalDetails}: ReportDetailsPageProps) {
+function ReportDetailsPage({policies, report, session, personalDetails, route}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -316,7 +317,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     if (shouldOpenRoomMembersPage) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', backTo));
                     }
                 },
             });
@@ -341,7 +342,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
                 },
             });
         }
@@ -456,6 +457,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         canUnapproveRequest,
         unapproveExpenseReportOrShowModal,
         isExpenseReport,
+        backTo,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -561,10 +563,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             result.push(PromotedActions.pin(report));
         }
 
-        result.push(PromotedActions.share(report));
+        result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, backTo]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -671,7 +673,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1', backTo))}
                     furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
@@ -706,7 +708,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton title={translate('common.details')} />
+                <HeaderWithBackButton
+                    title={translate('common.details')}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}

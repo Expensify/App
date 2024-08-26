@@ -109,11 +109,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         }
 
         if (isSmallScreenWidth) {
-            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD.route) {
                 Navigation.goBack();
             }
         } else {
-            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
         }
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 

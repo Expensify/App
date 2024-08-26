@@ -728,9 +728,13 @@ type ProfileNavigatorParamList = {
 };
 
 type ReportDetailsNavigatorParamList = {
-    [SCREENS.REPORT_DETAILS.ROOT]: undefined;
+    [SCREENS.REPORT_DETAILS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
+        backTo?: Routes;
     };
     [SCREENS.REPORT_DETAILS.EXPORT]: {
         reportID: string;
@@ -740,7 +744,10 @@ type ReportDetailsNavigatorParamList = {
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
@@ -754,7 +761,10 @@ type ReportDescriptionNavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
     [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
         reportID: string;
@@ -938,12 +948,22 @@ type MoneyRequestNavigatorParamList = {
 };
 
 type NewTaskNavigatorParamList = {
-    [SCREENS.NEW_TASK.ROOT]: undefined;
-    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.ROOT]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: {
+        backTo?: Routes;
+    };
     [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: undefined;
-    [SCREENS.NEW_TASK.DETAILS]: undefined;
-    [SCREENS.NEW_TASK.TITLE]: undefined;
-    [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
+    [SCREENS.NEW_TASK.DETAILS]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.TITLE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.NEW_TASK.DESCRIPTION]: {
+        backTo?: Routes;
+    };
 };
 
 type TeachersUniteNavigatorParamList = {
@@ -1005,7 +1025,12 @@ type FlagCommentNavigatorParamList = {
 };
 
 type EditRequestNavigatorParamList = {
-    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: undefined;
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: {
+        fieldID: string;
+        reportID: string;
+        policyID: string;
+        backTo?: Routes;
+    };
 };
 
 type SignInNavigatorParamList = {

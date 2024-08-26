@@ -116,6 +116,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
+    const backTo = 'backTo' in route.params ? (route.params.backTo as string) : '';
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
@@ -210,14 +211,14 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack(ROUTES.NEW_TASK);
+                    Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report],
+        [session?.accountID, task?.shareDestination, report, backTo],
     );
 
-    const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+    const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo))), [route.params, backTo]);
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);

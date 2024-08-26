@@ -24,9 +24,11 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
+    share: (report: OnyxReport, backTo?: string) => PromotedAction;
+} & {
     message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
     hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined; reportID?: string}) => PromotedAction;
@@ -37,9 +39,9 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.PIN,
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    share: (report) => ({
+    share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report),
+        ...HeaderUtils.getShareMenuItem(report, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
