@@ -5062,6 +5062,11 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        emptyStateCardIllustrationContainer: {
+            width: 164,
+            height: 190,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,

@@ -43,8 +43,9 @@ function WorkspaceCompanyCardPageEmptyState() {
                 ctaAccessibilityLabel={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
                 onCtaPress={startFlow}
                 illustrationBackgroundColor={colors.blue700}
-                illustration={Illustrations.CompanyCardsIllustration}
-                illustrationStyle={styles.expensifyCardIllustrationContainer}
+                illustration={Illustrations.CompanyCardsEmptyState}
+                illustrationStyle={styles.emptyStateCardIllustrationContainer}
+                illustrationContainerStyle={{paddingBottom: 30}}
                 titleStyles={styles.textHeadlineH1}
             />
         </View>
