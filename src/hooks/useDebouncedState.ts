@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
  * A React hook that provides a state and its debounced version.
  *
  * @param initialValue - The initial value of the state.
- * @param delay - The debounce delay in milliseconds. Defaults to SEARCH_OPTION_LIST_DEBOUNCE_TIME = 300ms.
+ * @param delay - The debounce delay in milliseconds. Defaults to USE_DEBOUNCED_STATE_DELAY = 300ms.
  * @returns A tuple containing:
  *          - The current state value.
  *          - The debounced state value.
