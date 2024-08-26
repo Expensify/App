@@ -202,6 +202,10 @@ function addDelegate(email: string, role: DelegateRole) {
 }
 
 function removeDelegate(email: string) {
+    if (!email) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
