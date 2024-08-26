@@ -208,7 +208,7 @@ function removeDelegate(email: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email === email ? {...delegate, pendingAction: 'remove'} : delegate)),
+                    delegates: delegatedAccess.delegates?.filter((delegate) => delegate.email !== email),
                 },
             },
         },
@@ -241,4 +241,4 @@ function removeDelegate(email: string) {
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, {email}, {optimisticData, successData, failureData});
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate};
+export {connect, disconnect, clearDelegatorErrors, addDelegate, removeDelegate};
