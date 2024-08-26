@@ -8,7 +8,6 @@ function BaseAttachmentViewPdf({
     file,
     encryptedSourceUrl,
     isFocused,
-    isUsedInCarousel,
     onPress: onPressProp,
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
