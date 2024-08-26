@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
@@ -22,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
+import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
+import ExpenseLimitTypeSelector from './ExpenseLimitTypeSelector/ExpenseLimitTypeSelector';
 
 type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
 
@@ -34,6 +36,7 @@ function CategoryFlagAmountsOverPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -54,16 +57,17 @@ function CategoryFlagAmountsOverPage({
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
+                    style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        Category.setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, 'daily');
+                        Category.setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    submitButtonStyles={styles.ph5}
                 >
-                    <View style={styles.mb4}>
+                    <View style={[styles.mb4, styles.pt3, styles.ph5]}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', categoryName)}</Text>
                         <InputWrapper
                             label={translate('iou.amount')}
@@ -77,6 +81,12 @@ function CategoryFlagAmountsOverPage({
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
                     </View>
+                    <ExpenseLimitTypeSelector
+                        label={translate('common.type')}
+                        defaultValue={expenseLimitType}
+                        wrapperStyle={[styles.ph5, styles.mt3]}
+                        setNewExpenseLimitType={setExpenseLimitType}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

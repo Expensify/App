@@ -2227,6 +2227,10 @@ const CONST = {
             NEVER: 'never',
             ALWAYS: 'always',
         },
+        EXPENSE_LIMIT_TYPES: {
+            EXPENSE: 'expense',
+            DAILY: 'daily',
+        },
     },
 
     CUSTOM_UNITS: {
