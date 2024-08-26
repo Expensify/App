@@ -47,6 +47,7 @@ function SearchFiltersTaxRatePage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('workspace.taxes.taxRate')}

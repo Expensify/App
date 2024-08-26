@@ -36,6 +36,7 @@ function SearchFiltersKeywordPage() {
             testID={SearchFiltersKeywordPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow={false}>
                 <HeaderWithBackButton
