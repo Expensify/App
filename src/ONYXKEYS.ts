@@ -400,8 +400,8 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
-    /** screen to open after reloading app after changing app permission from settings */
-    LAST_SCREEN: 'last_screen',
+    /** Stores the route to open after changing app permission from settings */
+    LAST_ROUTE: 'lastRoute',
 
     /** Collection Keys */
     COLLECTION: {
@@ -894,7 +894,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
-    [ONYXKEYS.LAST_SCREEN]: string;
+    [ONYXKEYS.LAST_ROUTE]: string;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

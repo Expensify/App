@@ -496,8 +496,8 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
-function updateLastScreen(screen: string) {
-    Onyx.set(ONYXKEYS.LAST_SCREEN, screen);
+function updateLastRoute(screen: string) {
+    Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
 }
 
 export {
@@ -517,6 +517,6 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
-    updateLastScreen,
+    updateLastRoute,
     KEYS_TO_PRESERVE,
 };

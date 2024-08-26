@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateLastScreen} from '@libs/actions/App';
+import {updateLastRoute} from '@libs/actions/App';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
@@ -27,13 +27,13 @@ const startTimer = () => {
 };
 
 type BaseSidebarScreenOnyxProps = {
-    /** last visited screen */
-    lastScreen: OnyxEntry<string>;
+    /** last visited route */
+    lastRoute: OnyxEntry<string>;
 };
 
 type BaseSidebarScreenProps = BaseSidebarScreenOnyxProps;
 
-function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
+function BaseSidebarScreen({lastRoute}: BaseSidebarScreenProps) {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
@@ -54,18 +54,18 @@ function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
     }, [activeWorkspace, activeWorkspaceID]);
 
     /**
-     * Navigate to scan receipt screen after it enabling camera permission from setting
-     * This will only works for ios application because we are saving last screen only for ios
+     * Navigate to the last route after enabling camera permissions from the settings.
+     * This functionality is specific to the iOS application, as we are storing the last route only for iOS.
      */
     useEffect(() => {
-        if (!lastScreen) {
+        if (!lastRoute) {
             return;
         }
 
-        updateLastScreen('');
-        const route = lastScreen as Route;
+        updateLastRoute('');
+        const route = lastRoute as Route;
         Navigation.navigate(route);
-        // disabling this rule, as we want this to run only on the first render
+        // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
@@ -98,7 +98,7 @@ function BaseSidebarScreen({lastScreen}: BaseSidebarScreenProps) {
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default withOnyx<BaseSidebarScreenProps, BaseSidebarScreenOnyxProps>({
-    lastScreen: {
-        key: ONYXKEYS.LAST_SCREEN,
+    lastRoute: {
+        key: ONYXKEYS.LAST_ROUTE,
     },
 })(BaseSidebarScreen);

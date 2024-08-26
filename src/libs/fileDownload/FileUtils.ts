@@ -5,7 +5,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import saveLastScreen from '@libs/saveLastScreen';
+import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
@@ -77,9 +77,9 @@ function showCameraPermissionsAlert() {
                 text: Localize.translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
-                    // In case of ios, app reload when we enable camera permission from settings
-                    // we are saving last screen so we can navigate to it after app reload
-                    saveLastScreen();
+                    // In the case of ios, the App reloads when we update camera permission from settings
+                    // we are saving last route so we can navigate to it after app reload
+                    saveLastRoute();
                 },
             },
         ],
