@@ -743,11 +743,17 @@ export default {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
-            }`,
-
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const expenseText = `${count} ${Str.pluralize('gasto', 'gastos', count)}`;
+            const statusText = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} escaneando`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pendiente`);
+            }
+            return statusText.length > 0 ? `${expenseText} (${statusText.join(', ')})` : expenseText;
+        },
         deleteExpense: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `Eliminar ${Str.pluralize('gasto', 'gastos', count)}`,
         deleteConfirmation: ({count}: DeleteExpenseTranslationParams = {count: 1}) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta solicitud', 'estas solicitudes', count)}?`,
         settledExpensify: 'Pagado',
@@ -759,6 +765,11 @@ export default {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
+        settlePersonalBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria personal` : `Pagar con cuenta bancaria personal`,
+        settleBusinessBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria comercial` : `Pagar con cuenta bancaria comercial`,
+        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con tarjeta de débito` : `Pagar con tarjeta de débito`),
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
@@ -1435,7 +1446,7 @@ export default {
         addPaymentMethod: 'Añadir método de pago',
         addNewDebitCard: 'Añadir nueva tarjeta de débito',
         addNewBankAccount: 'Añadir nueva cuenta de banco',
-        accountLastFour: 'Cuenta terminada en',
+        accountLastFour: 'Terminada en',
         cardLastFour: 'Tarjeta terminada en',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
@@ -2136,6 +2147,7 @@ export default {
             expensifyCard: 'Tarjeta Expensify',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
+            companyCards: 'Tarjetas de empresa',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -2152,6 +2164,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            rules: 'Reglas',
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
@@ -2879,6 +2892,10 @@ export default {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
             },
+            manageSection: {
+                title: 'Gestionar',
+                subtitle: 'Añade controles que ayudan a mantener los gastos dentro del presupuesto.',
+            },
             earnSection: {
                 title: 'Gane',
                 subtitle: 'Habilita funciones opcionales para agilizar tus ingresos y recibir pagos más rápido.',
@@ -2907,6 +2924,13 @@ export default {
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
+            },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
+                disableCardTitle: 'Deshabilitar tarjetas de empresa',
+                disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
+                disableCardButton: 'Chatear con Concierge',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -2945,6 +2969,10 @@ export default {
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
+            },
+            rules: {
+                title: 'Reglas',
+                subtitle: 'Configura cuándo se exigen los recibos, marca los gastos elevados y mucho más.',
             },
         },
         reportFields: {
@@ -3017,6 +3045,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
+            invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
@@ -3592,6 +3621,16 @@ export default {
                 description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
             },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                description: `Las tarjetas de empresa le permiten importar los gastos de las tarjetas de empresa existentes de todos los principales emisores de tarjetas. Puede asignar tarjetas a empleados e importar transacciones automáticamente.`,
+                onlyAvailableOnPlan: 'Las tarjetas de empresa solo están disponibles en el plan Control, a partir de ',
+            },
+            rules: {
+                title: 'Reglas',
+                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
+                onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Control, que comienza en ',
+            },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
                 learnMore: 'más información',
@@ -3622,6 +3661,16 @@ export default {
             chatWithYourAdmin: 'Chatea con tu administrador',
             chatInAdmins: 'Chatea en #admins',
             addPaymentCard: 'Agregar tarjeta de pago',
+        },
+        rules: {
+            individualExpenseRules: {
+                title: 'Gastos',
+                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+            },
+            expenseReportRules: {
+                title: 'Informes de gastos',
+                subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
+            },
         },
     },
     getAssistancePage: {
@@ -3908,6 +3957,7 @@ export default {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `no aprobado ${currency}${amount}`,
+                integrationSyncFailed: (label: string, errorMessage: string) => `no se pudo sincronizar con ${label} ("${errorMessage}")`,
                 addEmployee: (email: string, role: string) => `agregó a ${email} como ${role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: (email: string, currentRole: string, newRole: string) =>
                     `actualicé el rol ${email} de ${currentRole === 'user' ? 'miembro' : 'administrador'} a ${newRole === 'user' ? 'miembro' : 'administrador'}`,
@@ -4692,6 +4742,7 @@ export default {
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
+        normal: 'Normal',
     },
     exitSurvey: {
         header: 'Antes de irte',

@@ -47,6 +47,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 Policy.enablePolicyReportFields(policyID, true, true);
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                Policy.enablePolicyRules(policyID, true, true);
+                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
