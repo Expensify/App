@@ -298,10 +298,6 @@ jobs:
       - name: Build web for testing
         run: npm run build-adhoc
 
-      - name: Build docs
-        run: npm run storybook-build
-        continue-on-error: true
-
       - name: Deploy to S3 for internal testing
         run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
 
