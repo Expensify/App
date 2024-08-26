@@ -58,6 +58,4 @@ const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnable
     return onyxState;
 };
 
-export default {
-    maskOnyxState,
-};
+export default maskOnyxState;
