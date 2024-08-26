@@ -178,7 +178,7 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
-    /** Limit to truncate description for menu item */
+    /** Character limit after which the menu item text will be truncated */
     characterLimit?: number;
 
     isLabelHoverable?: boolean;
