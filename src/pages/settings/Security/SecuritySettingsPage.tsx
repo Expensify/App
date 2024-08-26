@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -47,6 +48,7 @@ function SecuritySettingsPage() {
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
     const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
+    const [selectedDelegate, setSelectedDelegate] = useState<PersonalDetails | undefined>();
 
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
@@ -77,10 +79,11 @@ function SecuritySettingsPage() {
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
 
-    const showPopoverMenu = (nativeEvent?: GestureResponderEvent | KeyboardEvent) => {
+    const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, personalDetail?: PersonalDetails) => {
         delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
         setMenuPosition();
         setShouldShowDelegatePopoverMenu(true);
+        setSelectedDelegate(personalDetail);
     };
 
     useLayoutEffect(() => {
@@ -135,7 +138,7 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             iconRight: Expensicons.ThreeDots,
             shouldShowRightIcon: true,
-            onPress: showPopoverMenu,
+            onPress: (e: GestureResponderEvent | KeyboardEvent) => showPopoverMenu(e, personalDetail),
         };
     });
 
@@ -227,6 +230,7 @@ function SecuritySettingsPage() {
                                         title={translate('delegate.changeAccessLevel')}
                                         icon={Expensicons.Pencil}
                                         onPress={() => {
+                                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(selectedDelegate?.accountID ?? -1));
                                             setShouldShowDelegatePopoverMenu(false);
                                         }}
                                         wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
@@ -248,7 +252,7 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    removeDelegate();
+                                    removeDelegate(selectedDelegate?.login ?? '');
                                     setShouldShowRemoveDelegateModal(false);
                                 }}
                                 onCancel={() => setShouldShowRemoveDelegateModal(false)}
