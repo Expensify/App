@@ -7,12 +7,14 @@ import type {
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
+    SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -23,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -946,7 +949,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function SetWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
+function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
 
     const onyxData: OnyxData = {
@@ -1010,12 +1013,82 @@ function SetWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, onyxData);
 }
 
+function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxExpenseAmount: string, expenseLimitType: PolicyCategoryExpenseLimitType) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        maxExpenseAmount: parsedMaxExpenseAmount,
+                        expenseLimitType,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmount: null,
+                            expenseLimitType: null,
+                        },
+                        maxExpenseAmount: parsedMaxExpenseAmount,
+                        expenseLimitType,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        ...policyCategoryToUpdate,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxExpenseAmount: null,
+                            expenseLimitType: null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCategoryMaxAmountParams = {
+        policyID,
+        categoryName,
+        maxExpenseAmount: parsedMaxExpenseAmount,
+        expenseLimitType,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, onyxData);
+}
+
 export {
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
     setPolicyCategoryDescriptionRequired,
-    SetWorkspaceCategoryDescriptionHint,
+    setWorkspaceCategoryDescriptionHint,
     setWorkspaceRequiresCategory,
     setPolicyCategoryPayrollCode,
     createPolicyCategory,
@@ -1028,4 +1101,5 @@ export {
     buildOptimisticPolicyCategories,
     setPolicyCategoryReceiptsRequired,
     removePolicyCategoryReceiptsRequired,
+    setPolicyCategoryMaxAmount,
 };

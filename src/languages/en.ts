@@ -3634,6 +3634,13 @@ export default {
                 maxAmount: 'Max amount',
                 flagAmountsOver: 'Flag amounts over',
                 flagAmountsOverDescription: (categoryName) => `Applies to the category “${categoryName}”.`,
+                flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
+                expenseLimitTypes: {
+                    expense: 'Individual expense',
+                    expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
+                    daily: 'Category total',
+                    dailySubtitle: 'Flag total category spend per expense report.',
+                },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
                     default: '$75 Default',

@@ -1,18 +1,27 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AmountForm from '@components/AmountForm';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
 
 type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
 
@@ -21,6 +30,7 @@ function CategoryFlagAmountsOverPage({
         params: {policyID, categoryName},
     },
 }: EditCategoryPageProps) {
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -43,6 +53,31 @@ function CategoryFlagAmountsOverPage({
                     title={translate('workspace.categories.flagAmountsOver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
+                <FormProvider
+                    style={[styles.flexGrow1, styles.pt3, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
+                    onSubmit={({maxExpenseAmount}) => {
+                        Category.setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, 'daily');
+                        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                    }}
+                    submitButtonText={translate('workspace.editor.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', categoryName)}</Text>
+                        <InputWrapper
+                            label={translate('iou.amount')}
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
+                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            // defaultValue={defaultValue}
+                            isCurrencyPressable={false}
+                            ref={inputCallbackRef}
+                            displayAsTextInput
+                        />
+                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
+                    </View>
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
