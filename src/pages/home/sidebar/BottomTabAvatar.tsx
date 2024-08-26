@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const shouldRemoveTopMargin = isSelected || !!emojiStatus;
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -54,9 +56,15 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 wrapperStyle={styles.flex1}
-                style={styles.bottomTabBarItem}
+                style={[styles.bottomTabBarItem, emojiStatus ? styles.mtn1 : {}]}
             >
                 {children}
+                <Text
+                    textAlign="center"
+                    style={[styles.textSmall, isSelected ? styles.textBold : {}, shouldRemoveTopMargin ? {} : styles.mt2]}
+                >
+                    {translate('common.settings')}
+                </Text>
             </PressableWithFeedback>
         </Tooltip>
     );

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -120,6 +121,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
+                    <Text
+                        textAlign="center"
+                        style={[styles.textSmall, styles.mt2, selectedTab === SCREENS.HOME ? styles.textBold : {}]}
+                    >
+                        {translate('common.inbox')}
+                    </Text>
                 </PressableWithFeedback>
             </Tooltip>
             <Tooltip text={translate('common.search')}>
@@ -138,6 +145,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             height={variables.iconBottomBar}
                         />
                     </View>
+                    <Text
+                        textAlign="center"
+                        style={[styles.textSmall, styles.mt2, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : {}]}
+                    >
+                        {translate('common.search')}
+                    </Text>
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
