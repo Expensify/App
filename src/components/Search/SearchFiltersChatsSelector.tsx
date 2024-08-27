@@ -91,12 +91,13 @@ function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransi
         );
 
         newSections.push(formattedResults.section);
-        const reportsWithSearch = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const reportsWithEmptySearch = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const recentReportsFiltered = cleanSearchTerm === '' ? reportsWithEmptySearch : reportsWithSearch;
+
+        const visibleReportWhenSearching = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
+        const visibleReportsWithEmptySearch = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
+        const recentReportsFiltered = cleanSearchTerm === '' ? visibleReportsWithEmptySearch : visibleReportWhenSearching;
 
         newSections.push({
-            title: 'recent',
+            title: undefined,
             data: recentReportsFiltered,
             shouldShow: chatOptions.recentReports.length > 0,
         });
