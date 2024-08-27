@@ -2753,6 +2753,34 @@ export default {
         companyCards: {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
+            addCardFeed: 'Add card feed',
+            addNewCard: {
+                cardProviders: {
+                    amex: 'American Express Corporate Cards',
+                    mastercard: 'Mastercard Commercial Cards',
+                    visa: 'Visa Commercial Cards',
+                },
+                yourCardProvider: `Who's your card provider?`,
+                enableVisaFeed: (provider: string) => `Enable your ${provider} feed`,
+                whatBankIssuesCard: 'What bank issues these cards?',
+                enterNameOfBank: 'Enter name of bank',
+                feedDetails: {
+                    visa: {
+                        title: 'What are the Visa feed details?',
+                        processorLabel: 'Processor ID',
+                        bankLabel: 'Financial institution (bank) ID',
+                        companyLabel: 'Company ID',
+                    },
+                    amex: {
+                        title: `What's the Amex delivery file name`,
+                        fileNameLabel: 'Delivery file name',
+                    },
+                    mastercard: {
+                        title: `What's the Mastercard distribution ID`,
+                        distributionLabel: 'Distribution ID',
+                    },
+                },
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
