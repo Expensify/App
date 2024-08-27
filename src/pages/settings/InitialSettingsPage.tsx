@@ -148,7 +148,16 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                    ...(NativeModules.HybridAppModule
+                        ? {
+                              action: () => {
+                                  Navigation.resetToHome();
+                                  NativeModules.HybridAppModule.closeReactNativeApp(false);
+                              },
+                          }
+                        : {
+                              route: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                          }),
                 },
                 {
                     translationKey: 'common.profile',
