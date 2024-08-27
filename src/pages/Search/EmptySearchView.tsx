@@ -1,13 +1,21 @@
 import React, {useMemo} from 'react';
+import {Linking, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -19,6 +27,59 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: Illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: Illustrations.Alert,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
+
+    const SubtitleComponent = useMemo(
+        () => (
+            <>
+                <Text style={[styles.textSupporting, styles.textNormal]}>
+                    {translate('travel.subtitle')}
+                    <TextLink
+                        onPress={() => {
+                            Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                        }}
+                    >
+                        Book a demo
+                    </TextLink>
+                    {' to learn more.'}
+                </Text>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
+                    {tripsFeatures.map(({translationKey, icon}) => (
+                        <View
+                            key={translationKey}
+                            style={styles.w100}
+                        >
+                            <MenuItem
+                                title={translate(translationKey)}
+                                icon={icon}
+                                iconWidth={variables.menuIconSize}
+                                iconHeight={variables.menuIconSize}
+                                interactive={false}
+                                displayInDefaultIconColor
+                                wrapperStyle={[styles.p0, styles.cursorAuto]}
+                                containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
+                            />
+                        </View>
+                    ))}
+                </View>
+            </>
+        ),
+        [styles, translate, tripsFeatures],
+    );
 
     const content = useMemo(() => {
         switch (type) {
@@ -27,10 +88,11 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerMedia: Illustrations.EmptyStateTravel,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
                     headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h172),
-                    title: translate('search.searchResults.emptyTripResults.title'),
-                    subtitle: translate('search.searchResults.emptyTripResults.subtitle'),
+                    title: translate('travel.title'),
+                    titleStyles: {...styles.textAlignLeft},
+                    subtitle: SubtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                    buttonAction: () => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS),
+                    buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1')),
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -45,7 +107,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     buttonAction: undefined,
                 };
         }
-    }, [type, StyleUtils, translate, theme]);
+    }, [type, StyleUtils, translate, theme, styles, SubtitleComponent]);
 
     return (
         <EmptyStateComponent
@@ -56,6 +118,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             headerContentStyles={content.headerContentStyles}
             title={content.title}
             subtitle={content.subtitle}
+            titleStyles={content.titleStyles}
             buttonText={content.buttonText}
             buttonAction={content.buttonAction}
         />

@@ -2114,7 +2114,7 @@ export default {
     travel: {
         header: 'Reservar viajes',
         title: 'Viaja de forma inteligente',
-        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar. ',
         features: {
             saveMoney: 'Ahorra dinero en tus reservas',
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
