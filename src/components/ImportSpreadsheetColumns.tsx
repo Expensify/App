@@ -16,14 +16,31 @@ import Switch from './Switch';
 import Text from './Text';
 
 type ImportSpreadsheetColumnsProps = {
+    // An array of arrays containing strings, representing the spreadsheet data.
     spreadsheetColumns: string[][];
+
+    // A boolean indicating whether the first row of the spreadsheet contains headers.
     containsHeader: boolean;
+
+    // A function to set the containsHeader state.
     setContainsHeader: (containsHeader: boolean) => void;
+
+    // An array of strings representing the names of the columns.
     columnNames: string[];
+
+    // An array of column roles to define the role of each column.
     columnRoles: ColumnRole[];
+
+    // A function to perform the import operation.
     importFunction: () => void;
+
+    // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;
+
+    // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
+
+    // A string representing the header text to be rendered.
     headerText: string;
 };
 
