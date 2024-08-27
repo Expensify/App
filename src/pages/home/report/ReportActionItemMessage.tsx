@@ -126,6 +126,18 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
     };
 
+    const openWorkspaceInvoicesPage = () => {
+        const policyID = ReportUtils.getReport(reportID)?.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+        // Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID))
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+    };
+
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
@@ -137,17 +149,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                             medium
                             success
                             text={translate('workspace.invoices.paymentMethods.addBankAccount')}
-                            onPress={() => {
-                                const policyID = ReportUtils.getReport(reportID)?.policyID;
-
-                                if (!policyID) {
-                                    return;
-                                }
-
-                                // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-                                // Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID))
-                                Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-                            }}
+                            onPress={openWorkspaceInvoicesPage}
                         />
                     )}
                 </>
