@@ -211,7 +211,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             typeRef.current = type;
             reportIDRef.current = reportID ?? '-1';
             reportActionIDRef.current = reportActionID ?? '-1';
-            originalReportIDRef.current = originalReportID ?? '-1';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            originalReportIDRef.current = originalReportID || '-1';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
