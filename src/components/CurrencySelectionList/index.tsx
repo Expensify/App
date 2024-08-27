@@ -24,16 +24,19 @@ function CurrencySelectionList({
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
     const {sections, headerMessage} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
+        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
-            return {
-                currencyName: currencyInfo?.name ?? '',
-                text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                currencyCode,
-                keyForList: currencyCode,
-                isSelected: isSelectedCurrency,
-            };
-        });
+            if (isSelectedCurrency || !currencyInfo?.retired) {
+                acc.push({
+                    currencyName: currencyInfo?.name ?? '',
+                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                    currencyCode,
+                    keyForList: currencyCode,
+                    isSelected: isSelectedCurrency,
+                });
+            }
+            return acc;
+        }, [] as CurrencyListItem[]);
 
         const policyRecentlyUsedCurrencyOptions: CurrencyListItem[] =
             policyRecentlyUsedCurrencies?.map((currencyCode) => {

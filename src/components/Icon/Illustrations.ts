@@ -1,3 +1,6 @@
+import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
@@ -51,7 +54,6 @@ import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustra
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
-import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__company-card.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
@@ -88,6 +90,7 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
@@ -102,6 +105,7 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -218,4 +222,8 @@ export {
     Tire,
     BigVault,
     Filters,
+    Rules,
+    AmexCompanyCards,
+    MasterCardCompanyCards,
+    VisaCompanyCards,
 };

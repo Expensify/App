@@ -76,7 +76,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            submitButtonStyles={[styles.mb0, styles.pb5]}
+            submitButtonStyles={[styles.mb0]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>

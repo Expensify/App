@@ -80,6 +80,7 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -263,7 +264,9 @@ function IOURequestStepAmount({
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
-                const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
+                const participantAccountIDs = Object.keys(report.participants)
+                    .map((accountID) => Number(accountID))
+                    .filter((accountID) => !PolicyUtils.isExpensifyTeam(allPersonalDetails?.[accountID]?.login));
                 IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             navigateToConfirmationPage();
