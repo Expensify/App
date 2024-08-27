@@ -159,29 +159,32 @@ function MoneyRequestAmountInput(
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = useCallback(
-        (newAmount: string) => {
-            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-            // More info: https://github.com/Expensify/App/issues/16974
-            const {currency: updateCurrency, amount: updateAmount} = MoneyRequestUtils.validateAmountWithCurrency(newAmount) ?? {};
-            if (!updateAmount) {
+        (newAmountInput: string) => {
+            const [newCurrencySymbol, newAmount] = newAmountInput.split(/(\d.*)/, 2);
+            const newCurrency = CurrencyUtils.getCurrencyCode(newCurrencySymbol);
+
+            // Return early if the amount is empty or the currency symbol is invalid
+            if (!newAmount || (newCurrencySymbol && !newCurrency)) {
                 return;
             }
 
-            const updateDecimals = updateCurrency ? CurrencyUtils.getCurrencyDecimals(updateCurrency) : decimals;
-            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(updateAmount);
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            const newDecimals = newCurrency ? CurrencyUtils.getCurrencyDecimals(newCurrency) : decimals;
             const finalAmount = newAmountWithoutSpaces.includes('.')
                 ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
                 : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, updateDecimals)) {
+            if (!MoneyRequestUtils.validateAmount(finalAmount, newDecimals)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
 
-            if (updateCurrency) {
-                setCurrency(updateCurrency);
+            if (newCurrency) {
+                setCurrency(newCurrency);
             }
 
             // setAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
