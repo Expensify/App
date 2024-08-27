@@ -1,15 +1,14 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
-import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import LottieAnimations from '@components/LottieAnimations';
 import type {ListItem} from '@components/SelectionList/types';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -168,32 +167,24 @@ function IOURequestStepCategory({
                 />
             )}
             {shouldShowEmptyState && (
-                <View style={[styles.flex1]}>
-                    <WorkspaceEmptyStateSection
-                        shouldStyleAsCard={false}
-                        icon={Illustrations.EmptyStateExpenses}
-                        title={translate('workspace.categories.emptyCategories.title')}
-                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
-                    />
-                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                        <Button
-                            large
-                            success
-                            style={[styles.w100]}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                        policy?.id ?? '-1',
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                    ),
-                                )
-                            }
-                            text={translate('workspace.categories.editCategories')}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
-                </View>
+                <EmptyStateComponent
+                    title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
+                    subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                    SkeletonComponent={TableListItemSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={LottieAnimations.GenericEmptyState}
+                    headerStyles={styles.emptyFolderBG}
+                    buttonAction={() =>
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                policy?.id ?? '-1',
+                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                            ),
+                        )
+                    }
+                    buttonText={translate('workspace.categories.editCategories')}
+                    pressOnEnter
+                />
             )}
             {!shouldShowEmptyState && !isLoading && (
                 <>

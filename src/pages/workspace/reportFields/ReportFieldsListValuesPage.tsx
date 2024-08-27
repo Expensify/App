@@ -315,7 +315,6 @@ function ReportFieldsListValuesPage({
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                         headerMedia={LottieAnimations.GenericEmptyState}
                         headerStyles={styles.emptyFolderBG}
-                        // headerContentStyles={styles.emptyStateFolderIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (
