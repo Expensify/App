@@ -47,7 +47,7 @@ type GetAdaptedStateReturnType = {
     metainfo: Metainfo;
 };
 
-type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
+type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
@@ -365,7 +365,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     };
 }
 
-const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
+const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
@@ -374,9 +374,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
-    if (shouldReplacePathInNestedState) {
-        replacePathInNestedState(state, path);
-    }
+    replacePathInNestedState(state, path);
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
