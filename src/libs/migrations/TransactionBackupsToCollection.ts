@@ -14,11 +14,11 @@ import type {Transaction} from '@src/types/onyx';
  */
 export default function (): Promise<void> {
     return new Promise<void>((resolve) => {
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (transactions: OnyxCollection<Transaction>) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
 
                 // Determine whether any transactions were stored
                 if (!transactions || Object.keys(transactions).length === 0) {

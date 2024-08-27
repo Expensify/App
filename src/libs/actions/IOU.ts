@@ -37,6 +37,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -3586,7 +3587,7 @@ function requestMoney(
         }
     }
 
-    Navigation.dismissModal(activeReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -3643,7 +3644,12 @@ function sendInvoice(
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
-    Navigation.dismissModalWithReport(invoiceRoom);
+    if (isSearchTopmostCentralPane()) {
+        Navigation.dismissModal();
+    } else {
+        Navigation.dismissModalWithReport(invoiceRoom);
+    }
+
     Report.notifyNewAction(invoiceRoom.reportID, receiver.accountID);
 }
 
@@ -3821,7 +3827,7 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    Navigation.dismissModal(activeReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '-1', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
@@ -4387,7 +4393,7 @@ function splitBill({
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
-    Navigation.dismissModal(existingSplitChatReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : existingSplitChatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -4454,7 +4460,7 @@ function splitBillAndOpenReport({
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
-    Navigation.dismissModal(splitData.chatReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -5008,7 +5014,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -5167,7 +5173,7 @@ function createDistanceRequest(
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
-    Navigation.dismissModal(activeReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     Report.notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -6768,7 +6774,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(params.chatReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -6781,7 +6787,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(params.chatReportID);
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -7687,7 +7693,9 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
     const currentTime = DateUtils.getDBTime();
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
     const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
-
+    const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const updatedViolations = [...transactionViolations, newViolation];
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7706,6 +7714,11 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
                     hold: createdReportAction.reportActionID,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
         },
     ];
 
