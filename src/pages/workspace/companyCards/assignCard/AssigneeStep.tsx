@@ -1,8 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -35,12 +35,18 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [selectedMember, setSelectedMember] = useState('');
 
     const isEditing = assignCard?.isEditing;
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const submit = (assignee: ListItem) => {};
+    const selectMember = (assignee: ListItem) => {
+        console.log(assignee);
+        setSelectedMember(assignee.login);
+    };
+
+    const submit = () => {};
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -70,6 +76,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
+                isSelected: selectedMember === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
@@ -84,7 +91,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         membersList = OptionsListUtils.sortItemsAlphabetically(membersList);
 
         return membersList;
-    }, [isOffline, policy?.employeeList]);
+    }, [isOffline, policy?.employeeList, selectedMember]);
 
     const sections = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -130,7 +137,17 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 sections={sections}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
-                onSelectRow={submit}
+                onSelectRow={selectMember}
+                initiallyFocusedOptionKey={selectedMember}
+                shouldUpdateFocusedIndex
+            />
+            <Button
+                success
+                large
+                pressOnEnter
+                text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                onPress={submit}
+                style={styles.m5}
             />
         </InteractiveStepWrapper>
     );
