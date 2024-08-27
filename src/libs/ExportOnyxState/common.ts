@@ -2,6 +2,8 @@ import {Str} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
+const MASKING_PATTERN = '***';
+
 const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
     const session = data.session as Session;
 
@@ -9,7 +11,7 @@ const maskSessionDetails = (data: Record<string, unknown>): Record<string, unkno
         if (key !== 'authToken' && key !== 'encryptedAuthToken') {
             return;
         }
-        session[key] = '***';
+        session[key] = MASKING_PATTERN;
     });
 
     return {
@@ -33,9 +35,9 @@ const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Rec
         const value = data[key];
 
         if (typeof value === 'string' && Str.isValidEmail(value)) {
-            maskedData[key] = '***';
+            maskedData[key] = MASKING_PATTERN;
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (key === 'text' || key === 'html')) {
-            maskedData[key] = '***';
+            maskedData[key] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
             maskedData[key] = maskFragileData(value as Record<string, unknown>, key.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? key : parentKey);
         } else {
@@ -49,10 +51,10 @@ const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Rec
 const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnabled?: boolean) => {
     let onyxState = data;
     // Mask session details by default
-    onyxState = maskSessionDetails(data);
+    onyxState = maskSessionDetails(onyxState);
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
-        onyxState = maskFragileData(data);
+        onyxState = maskFragileData(onyxState);
     }
 
     return onyxState;
