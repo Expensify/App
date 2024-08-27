@@ -10,7 +10,6 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +18,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -57,7 +55,7 @@ type MoneyRequestAmountFormProps = {
     isCurrencyPressable?: boolean;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: (updateCurrency?: string) => void;
+    onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
@@ -93,13 +91,12 @@ function MoneyRequestAmountForm(
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
+    forwardedRef: ForwardedRef<MoneyRequestAmountInputRef>,
 ) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
 
-    const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
     const [formError, setFormError] = useState<string>('');
@@ -127,12 +124,12 @@ function MoneyRequestAmountForm(
             end: selection.end,
         });
 
-        if (!textInput.current) {
+        if (!moneyRequestAmountInput.current) {
             return;
         }
 
-        if (!isTextInputFocused(textInput)) {
-            textInput.current.focus();
+        if (!moneyRequestAmountInput.current.isFocused()) {
+            moneyRequestAmountInput.current.focus();
         }
     };
 
@@ -175,8 +172,8 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
-                textInput.current?.focus();
+            if (shouldUpdateSelection && !moneyRequestAmountInput?.current?.isFocused()) {
+                moneyRequestAmountInput?.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
             const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
@@ -202,8 +199,8 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !isTextInputFocused(textInput)) {
-            textInput.current?.focus();
+        if (!value && !moneyRequestAmountInput?.current?.isFocused()) {
+            moneyRequestAmountInput?.current?.focus();
         }
     }, []);
 
@@ -262,7 +259,7 @@ function MoneyRequestAmountForm(
                     amount={amount}
                     currency={currency}
                     isCurrencyPressable={isCurrencyPressable}
-                    onCurrencyButtonPress={() => onCurrencyButtonPress?.(moneyRequestAmountInput.current?.getCurrency())}
+                    onCurrencyButtonPress={onCurrencyButtonPress}
                     onAmountChange={() => {
                         if (!formError) {
                             return;
@@ -277,7 +274,7 @@ function MoneyRequestAmountForm(
                             // eslint-disable-next-line no-param-reassign
                             forwardedRef.current = ref;
                         }
-                        textInput.current = ref;
+                        moneyRequestAmountInput.current = ref;
                     }}
                     shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}

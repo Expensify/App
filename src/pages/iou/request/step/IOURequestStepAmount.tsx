@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -76,7 +76,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef | null>(null);
+    const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
@@ -103,7 +103,7 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => moneyRequestAmountInput?.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -135,7 +135,7 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
-    const navigateToCurrencySelectionPage = (updateCurrency?: string) => {
+    const navigateToCurrencySelectionPage = () => {
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
                 action,
@@ -143,7 +143,7 @@ function IOURequestStepAmount({
                 transactionID,
                 reportID,
                 backTo ? 'confirm' : '',
-                updateCurrency ?? currency,
+                moneyRequestAmountInput?.current?.getCurrency(),
                 Navigation.getActiveRouteWithoutParams(),
             ),
         );
@@ -331,7 +331,7 @@ function IOURequestStepAmount({
                 iouType={iouType}
                 policyID={policy?.id ?? '-1'}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
-                ref={(e) => (textInput.current = e)}
+                ref={(el) => (moneyRequestAmountInput.current = el)}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}

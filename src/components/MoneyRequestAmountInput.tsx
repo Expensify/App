@@ -22,6 +22,9 @@ type MoneyRequestAmountInputRef = {
     getAmount: () => string;
     getSelection: () => Selection;
     getCurrency: () => string;
+    focus: () => void;
+    blur: () => void;
+    isFocused: () => boolean;
 };
 
 type MoneyRequestAmountInputProps = {
@@ -130,7 +133,7 @@ function MoneyRequestAmountInput(
         contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
+    forwardedRef: ForwardedRef<MoneyRequestAmountInputRef>,
 ) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
@@ -206,7 +209,7 @@ function MoneyRequestAmountInput(
         [decimals, onAmountChange],
     );
 
-    useImperativeHandle(moneyRequestAmountInputRef, () => ({
+    useImperativeHandle(forwardedRef, () => ({
         setNewAmount(amountValue: string) {
             setNewAmount(amountValue);
         },
@@ -224,6 +227,15 @@ function MoneyRequestAmountInput(
         },
         getCurrency() {
             return currency;
+        },
+        focus() {
+            textInput?.current?.focus();
+        },
+        blur() {
+            textInput?.current?.blur();
+        },
+        isFocused() {
+            return !!isTextInputFocused(textInput);
         },
     }));
 
@@ -316,16 +328,7 @@ function MoneyRequestAmountInput(
             onCurrencyButtonPress={onCurrencyButtonPress}
             onBlur={formatAmount}
             placeholder={numberFormat(0)}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef?.current) {
-                    // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
-                }
-                // eslint-disable-next-line react-compiler/react-compiler
-                textInput.current = ref;
-            }}
+            ref={textInput}
             selectedCurrencyCode={currency}
             selection={selection}
             onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {

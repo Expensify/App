@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -65,7 +65,7 @@ function IOURequestStepTaxAmountPage({
     splitDraftTransaction,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef | null>();
+    const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
 
@@ -77,7 +77,7 @@ function IOURequestStepTaxAmountPage({
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => moneyRequestAmountInput?.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -165,7 +165,7 @@ function IOURequestStepTaxAmountPage({
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
                 taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
-                ref={(e) => (textInput.current = e)}
+                ref={(e) => (moneyRequestAmountInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
                 isCurrencyPressable={false}
