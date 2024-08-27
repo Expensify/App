@@ -1708,6 +1708,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     name: null,
                     outputCurrency: null,
                     address: null,
+                    description: null,
                 },
             },
         },
