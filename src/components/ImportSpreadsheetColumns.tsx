@@ -85,6 +85,7 @@ function ImportSpreeadsheetColumns({
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
                         success
+                        large
                     />
                 </OfflineWithFeedback>
             </FixedFooter>
