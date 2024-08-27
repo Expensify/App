@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,9 +24,8 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
-                    headerMedia: Illustrations.EmptyStateTravel,
+                    headerMedia: LottieAnimations.TripsEmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h172),
                     title: translate('search.searchResults.emptyTripResults.title'),
                     subtitle: translate('search.searchResults.emptyTripResults.subtitle'),
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
@@ -38,7 +37,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
                 return {
-                    headerMedia: Illustrations.EmptyState,
+                    headerMedia: LottieAnimations.GenericEmptyState,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
                     headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w184, variables.h112),
                     title: translate('search.searchResults.emptyResults.title'),
@@ -52,7 +51,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     return (
         <EmptyStateComponent
             SkeletonComponent={SearchRowSkeleton}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
             headerMedia={content.headerMedia}
             headerStyles={content.headerStyles}
             headerContentStyles={content.headerContentStyles}

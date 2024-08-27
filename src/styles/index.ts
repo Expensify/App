@@ -4715,8 +4715,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletIllustration: {
-            width: 262,
-            height: 152,
+            height: 180,
         },
 
         walletCardLimit: {
@@ -5085,11 +5084,6 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
-        },
-
-        tripIllustrationSize: {
-            width: 190,
-            height: 172,
         },
 
         reportListItemTitle: {

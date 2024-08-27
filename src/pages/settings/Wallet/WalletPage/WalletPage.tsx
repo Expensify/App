@@ -12,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -372,7 +373,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                     title={translate('walletPage.bankAccounts')}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
-                                    illustration={Illustrations.BigVault}
+                                    illustration={LottieAnimations.BankVault}
                                     illustrationStyle={styles.walletIllustration}
                                     illustrationContainerStyle={{height: 220}}
                                     illustrationBackgroundColor="#411103"
