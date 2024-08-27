@@ -517,6 +517,8 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
