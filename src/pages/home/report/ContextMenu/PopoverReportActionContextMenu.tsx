@@ -180,7 +180,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         } else {
             anchorRef.current = null;
         }
-        setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
@@ -207,6 +206,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 });
             }
         }).then(() => {
+            setInstanceID(Math.random().toString(36).substr(2, 5));
             setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID ?? '-1';
