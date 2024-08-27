@@ -6,17 +6,19 @@ const MASKING_PATTERN = '***';
 
 const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
     const session = data.session as Session;
+    const maskedData: Record<string, unknown> = {};
 
     Object.keys(session).forEach((key) => {
         if (key !== 'authToken' && key !== 'encryptedAuthToken') {
+            maskedData[key] = session[key as keyof Session];
             return;
         }
-        session[key] = MASKING_PATTERN;
+        maskedData[key] = MASKING_PATTERN;
     });
 
     return {
         ...data,
-        session,
+        session: maskedData,
     };
 };
 
