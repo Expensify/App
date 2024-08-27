@@ -1,5 +1,0 @@
-
-> new.expensify@9.0.23-0 react-compiler-healthcheck
-> react-compiler-healthcheck --verbose
-
-- Checking
