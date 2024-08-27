@@ -56,6 +56,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Notify parent that the UI should be modified to accommodate keyboard */
         onToggleKeyboard?: (shouldFadeOut: boolean) => void;
 
+        /** A callback when the PDF fails to load */
+        onPDFLoadError?: () => void;
+
         /** Extra styles to pass to View wrapper */
         containerStyles?: StyleProp<ViewStyle>;
 
@@ -88,6 +91,7 @@ function AttachmentView({
     shouldShowDownloadIcon,
     containerStyles,
     onToggleKeyboard,
+    onPDFLoadError: onPDFLoadErrorProp = () => {},
     isFocused,
     isUsedInCarousel,
     isUsedInAttachmentModal,
@@ -182,6 +186,7 @@ function AttachmentView({
 
         const onPDFLoadError = () => {
             setHasPDFFailedToLoad(true);
+            onPDFLoadErrorProp();
         };
 
         // We need the following View component on android native
