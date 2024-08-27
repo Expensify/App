@@ -96,7 +96,6 @@ function ImportSpreeadsheetColumns({
                     canDismissError={false}
                 >
                     <Button
-                        style={styles.mv2}
                         text={translate('common.import')}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
