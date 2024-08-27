@@ -188,6 +188,7 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
                 <View style={styles.ml2}>
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         shouldShowSelectedItemCheck
                         menuHeaderText={columnHeader}
                         isSplitButton={false}

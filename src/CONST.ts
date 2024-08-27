@@ -3902,6 +3902,7 @@ const CONST = {
     DROPDOWN_BUTTON_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
+        SMALL: 'small',
     },
 
     SF_COORDINATES: [-122.4194, 37.7749],
