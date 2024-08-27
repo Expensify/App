@@ -2668,9 +2668,15 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (onboarding) => {
+                    if (onboarding) {
+                        // Once the onboarding data is available, we want to disconnect the connection
+                        // so it won't trigger the deeplink again every time the data is changed, for example, when relogin.
+                        Onyx.disconnect(connection);
+                    }
+
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                             Session.signOutAndRedirectToSignIn(true);
@@ -2707,7 +2713,6 @@ function openReportFromDeepLink(url: string) {
                             return;
                         }
 
-                        Onyx.disconnect(connectionID);
                         Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
                     });
                 },
