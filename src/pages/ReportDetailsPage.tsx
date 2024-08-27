@@ -806,6 +806,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             Navigation.dismissModal();
                         } else {
                             ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
+                            if (!requestParentReportAction) {
+                                return;
+                            }
                             setTimeout(() => {
                                 IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
                             }, CONST.ANIMATED_TRANSITION);

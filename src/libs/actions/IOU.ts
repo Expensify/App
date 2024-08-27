@@ -8042,6 +8042,6 @@ export {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     mergeDuplicates,
-    prepareToCleanUpMoneyRequest
+    prepareToCleanUpMoneyRequest,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
