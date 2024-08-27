@@ -44,7 +44,7 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps = {}): MenuItemWithLink => {
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: personalDetails?.login,
