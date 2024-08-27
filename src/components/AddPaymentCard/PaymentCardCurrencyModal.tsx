@@ -56,12 +56,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onModalHide={onClose}
             hideModalContentWhileAnimating
             innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
-            onBackdropPress={() => {
-                Navigation.dismissModal();
-                setTimeout(() => {
-                    onClose?.();
-                }, 50);
-            }}
+            onBackdropPress={Navigation.dismissModal}
             useNativeDriver
         >
             <ScreenWrapper
