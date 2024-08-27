@@ -37,7 +37,7 @@ function SearchFiltersInPage() {
                             in: initialIDs,
                         });
                     }}
-                    initialIDs={searchAdvancedFiltersForm?.in ?? []}
+                    initialReportIDs={searchAdvancedFiltersForm?.in ?? []}
                 />
             </View>
         </ScreenWrapper>

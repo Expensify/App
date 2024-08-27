@@ -7,7 +7,7 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -34,37 +34,38 @@ function getSelectedOptionData(option: Option): OptionData {
 }
 
 type SearchFiltersParticipantsSelectorProps = {
-    initialIDs: string[];
-    onFiltersUpdate: (initialIDs: string[]) => void;
+    initialReportIDs: string[];
+    onFiltersUpdate: (initialReportIDs: string[]) => void;
     isScreenTransitionEnd: boolean;
 };
 
-function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
+function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialIDs);
+    const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const selectedOptions = useMemo<OptionData[]>(() => {
-        return selectedReportIDs
-            .map((id) => getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails)))
-            .map((rep) => {
-                return {...rep, alternateText: OptionsListUtils.getAlternateText(rep, {showChatPreviewLine: true})};
-            });
+        return selectedReportIDs.map((id) => {
+            const report = getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
+            const alternateText = OptionsListUtils.getAlternateText(report, {showChatPreviewLine: true});
+            return {...report, alternateText};
+        });
     }, [personalDetails, reports, selectedReportIDs]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, '');
+        return OptionsListUtils.getSearchOptions(options);
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
@@ -92,13 +93,13 @@ function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransi
 
         newSections.push(formattedResults.section);
 
-        const visibleReportWhenSearching = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWithEmptySearch = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const recentReportsFiltered = cleanSearchTerm === '' ? visibleReportsWithEmptySearch : visibleReportWhenSearching;
+        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
+        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
+        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
 
         newSections.push({
             title: undefined,
-            data: recentReportsFiltered,
+            data: reportsFiltered,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
@@ -159,7 +160,7 @@ function SearchFiltersChatsSelector({initialIDs, onFiltersUpdate, isScreenTransi
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialIDs || !personalDetails;
+    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
     return (
         <SelectionList

@@ -117,7 +117,7 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return result.join(', ');
 }
 
-function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
@@ -127,7 +127,7 @@ function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>,
         : undefined;
 }
 
-function getInTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
 }
 
@@ -197,7 +197,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
             },
             {
-                title: getExpenseTypeDisplayTitle(searchAdvancedFilters, translate),
+                title: getFilterExpenseDisplayTitle(searchAdvancedFilters, translate),
                 description: 'search.expenseType' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
             },
@@ -217,7 +217,7 @@ function AdvancedSearchFilters() {
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
             },
             {
-                title: getInTypeDisplayTitle(searchAdvancedFilters, translate, reports),
+                title: getFilterInDisplayTitle(searchAdvancedFilters, translate, reports),
                 description: 'common.in' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
             },
