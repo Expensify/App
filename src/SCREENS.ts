@@ -443,6 +443,10 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
         RULES: 'Policy_Rules',
+        RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
+        RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
+        RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
+        RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
     },
 
     EDIT_REQUEST: {
