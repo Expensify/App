@@ -84,7 +84,7 @@ function IOURequestStepTaxAmountPage({
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, []),
+        }, [moneyRequestAmountInput]),
     );
 
     const navigateBack = () => {

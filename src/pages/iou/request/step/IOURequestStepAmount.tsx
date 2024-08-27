@@ -110,7 +110,7 @@ function IOURequestStepAmount({
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, []),
+        }, [moneyRequestAmountInput]),
     );
 
     useEffect(() => {
