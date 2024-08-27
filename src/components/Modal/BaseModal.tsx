@@ -60,7 +60,8 @@ function BaseModal(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -167,13 +168,13 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth: shouldUseNarrowLayout,
+                    isSmallScreenWidth,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
