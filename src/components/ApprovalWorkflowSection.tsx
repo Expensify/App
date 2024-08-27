@@ -33,16 +33,16 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
 
-    const {members, pendingAction} = useMemo(() => {
+    const {members, membersPendingAction} = useMemo(() => {
         if (approvalWorkflow.isDefault) {
-            return {members: translate('workspace.common.everyone'), pendingAction: undefined};
+            return {members: translate('workspace.common.everyone'), membersPendingAction: undefined};
         }
 
         return {
             members: OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
                 .map((m) => m.displayName)
                 .join(', '),
-            pendingAction: approvalWorkflow.members.map((m) => m.pendingAction).find(Boolean),
+            membersPendingAction: approvalWorkflow.members.map((m) => m.pendingAction).find(Boolean),
         };
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
 
@@ -72,7 +72,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                         </Text>
                     </View>
                 )}
-                <OfflineWithFeedback pendingAction={pendingAction}>
+                <OfflineWithFeedback pendingAction={membersPendingAction}>
                     <MenuItem
                         title={translate('workflowsExpensesFromPage.title')}
                         style={styles.p0}
@@ -90,12 +90,13 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 </OfflineWithFeedback>
 
                 {approvalWorkflow.approvers.map((approver, index) => {
-                    console.log(`approver.pendingAction = `, approver.pendingFields?.forwardsTo);
+                    const previousApprover = approvalWorkflow.approvers.at(index - 1);
+                    const approverPendingAction = index === 0 ? membersPendingAction : previousApprover?.pendingFields?.forwardsTo;
                     return (
                         <OfflineWithFeedback
                             // eslint-disable-next-line react/no-array-index-key
                             key={`approver-${approver.email}-${index}`}
-                            pendingAction={approver.pendingFields?.forwardsTo}
+                            pendingAction={approverPendingAction}
                         >
                             <View>
                                 <View style={styles.workflowApprovalVerticalLine} />
