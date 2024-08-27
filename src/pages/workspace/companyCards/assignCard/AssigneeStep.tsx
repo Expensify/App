@@ -34,9 +34,9 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
 
-    const isEditing = issueNewCard?.isEditing;
+    const isEditing = assignCard?.isEditing;
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
@@ -118,7 +118,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         <InteractiveStepWrapper
             wrapperID={AssigneeStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
+            startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
         >

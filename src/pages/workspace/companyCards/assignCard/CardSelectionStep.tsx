@@ -1,19 +1,24 @@
 import React from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function CardSelectionStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [lastSelectedFeed] = useOnyx('lastSelectedFeed_1234');
 
-    const handleBackButtonPress = () => {};
+    const assignee = assignCard?.data?.assigneeEmail ?? '';
+
+    const handleBackButtonPress = () => {
+        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+    };
 
     return (
         <InteractiveStepWrapper
@@ -23,11 +28,11 @@ function CardSelectionStep() {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                 {translate('workspace.companyCards.chooseCardFor', {
-                    assignee: '',
-                    feed: '',
+                    assignee,
+                    feed: lastSelectedFeed,
                 })}
             </Text>
         </InteractiveStepWrapper>

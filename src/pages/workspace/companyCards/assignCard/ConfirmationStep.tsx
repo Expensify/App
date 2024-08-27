@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
@@ -28,13 +29,15 @@ function ConfirmationStep() {
         console.log(step);
     };
 
-    const handleBackButtonPress = () => {};
+    const handleBackButtonPress = () => {
+        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+    };
 
     return (
         <InteractiveStepWrapper
             wrapperID={ConfirmationStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={1}
+            startStepIndex={3}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
         >
@@ -42,7 +45,7 @@ function ConfirmationStep() {
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardholder')}
