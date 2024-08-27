@@ -315,6 +315,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 text={translate('search.filtersHeader')}
                 icon={Expensicons.Filters}
                 onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                medium
             />
         </HeaderWrapper>
     );
