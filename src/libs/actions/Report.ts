@@ -1238,6 +1238,11 @@ function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
  * Sets the last read time on a report
  */
 function markCommentAsUnread(reportID: string, reportActionCreated: string) {
+    if (reportID === '-1') {
+        Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
+        return;
+    }
+
     const reportActions = allReportActions?.[reportID];
 
     // Find the latest report actions from other users
@@ -1748,11 +1753,8 @@ function updateNotificationPreference(
     }
 }
 
-function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | undefined, newValue: RoomVisibility, navigate: boolean, report?: OnyxEntry<Report>) {
+function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | undefined, newValue: RoomVisibility) {
     if (previousValue === newValue) {
-        if (navigate && !isEmptyObject(report) && report.reportID) {
-            ReportUtils.goBackToDetailsPage(report);
-        }
         return;
     }
 
@@ -1775,9 +1777,6 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
     const parameters: UpdateRoomVisibilityParams = {reportID, visibility: newValue};
 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY, parameters, {optimisticData, failureData});
-    if (navigate && !isEmptyObject(report)) {
-        ReportUtils.goBackToDetailsPage(report);
-    }
 }
 
 /**

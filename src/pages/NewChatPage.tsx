@@ -256,8 +256,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     <PressableWithFeedback
                         onPress={() => toggleOption(item)}
                         disabled={item.isDisabled}
-                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                     >
                         <SelectCircle isChecked={item.isSelected} />

@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -36,11 +35,6 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
-
-    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
-     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
-     */
-    shouldCallAfterModalHide?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -135,11 +129,6 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide) {
-            Modal.close(() => {
-                onItemSelected(selectedItem, index);
-                selectedItem.onSelected?.();
-            });
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -238,6 +227,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>

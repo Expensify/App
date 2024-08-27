@@ -42,7 +42,8 @@ function SelectionListWithModal<TItem extends ListItem>(
     }, [sections, selectionMode, shouldUseNarrowLayout]);
 
     const handleLongPressRow = (item: TItem) => {
-        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout || item?.isDisabled || item?.isDisabledCheckbox) {
             return;
         }
         setLongPressedItem(item);
