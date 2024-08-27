@@ -105,7 +105,7 @@ function MoneyRequestAmountForm(
     const isFocused = useIsFocused();
     const wasFocused = usePrevious(isFocused);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), moneyRequestAmountInput?.current?.getCurrency());
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
