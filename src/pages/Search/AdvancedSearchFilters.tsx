@@ -136,87 +136,104 @@ function AdvancedSearchFilters() {
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
+    const currentType = searchAdvancedFilters.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const shouldShowExpenseFilter = currentType === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const shouldShowChatFilter = currentType === CONST.SEARCH.DATA_TYPES.CHAT;
+
     const advancedFilters = useMemo(
         () => [
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
                 description: 'common.date' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+                shouldShow: true,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
                 description: 'common.currency' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
                 description: 'common.merchant' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
                 description: 'common.description' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+                shouldShow: true,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
                 description: 'common.reportID' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+                shouldShow: true,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
                 description: 'common.total' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
                 description: 'common.category' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
                 description: 'search.filters.hasKeywords' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+                shouldShow: true,
             },
             {
                 title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
                 description: 'common.card' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
-                shouldHide: Object.keys(cardList).length === 0,
+                shouldShow: shouldShowExpenseFilter && Object.keys(cardList).length !== 0,
             },
             {
                 title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
                 description: 'workspace.taxes.taxRate' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getExpenseTypeDisplayTitle(searchAdvancedFilters, translate),
                 description: 'search.expenseType' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
                 description: 'common.tag' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+                shouldShow: shouldShowExpenseFilter,
             },
             {
                 title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
                 description: 'common.from' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+                shouldShow: true,
             },
             {
                 title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
                 description: 'common.to' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+                shouldShow: true,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, translate),
                 description: 'search.filters.has' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-                shouldHide: searchAdvancedFilters?.type !== CONST.SEARCH.DATA_TYPES.CHAT,
+                shouldShow: shouldShowChatFilter,
             },
         ],
-        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
+        [searchAdvancedFilters, translate, shouldShowExpenseFilter, cardList, taxRates, personalDetails, shouldShowChatFilter],
     );
 
     const onFormSubmit = () => {
@@ -236,7 +253,7 @@ function AdvancedSearchFilters() {
                 <View>
                     {advancedFilters.map((item) => {
                         const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-                        if (item.shouldHide) {
+                        if (!item.shouldShow) {
                             return undefined;
                         }
                         return (
