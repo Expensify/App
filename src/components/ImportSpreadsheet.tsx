@@ -26,7 +26,10 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreedsheetProps = {
+    // The route to navigate to when the back button is pressed.
     backTo: Routes;
+
+    // The route to navigate to after the file import is completed.
     goTo: Routes;
 };
 
