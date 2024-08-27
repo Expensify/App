@@ -1282,7 +1282,26 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 8,
         },
 
+        textInputSuffixWrapper: {
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            height: variables.inputHeight,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingTop: 23,
+            paddingBottom: 8,
+        },
+
         textInputPrefix: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            verticalAlign: 'middle',
+        },
+
+        textInputSuffix: {
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
@@ -4253,7 +4272,7 @@ const styles = (theme: ThemeColors) =>
         tabText: (isSelected: boolean) =>
             ({
                 marginLeft: 8,
-                ...(isSelected ? FontUtils.fontFamily.platform.EXP_NEUE_BOLD : FontUtils.fontFamily.platform.EXP_NEUE),
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightNormal,
                 fontSize: variables.fontSizeNormal,

@@ -111,6 +111,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
         contactMethod: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
         backTo: Routes;
@@ -671,6 +672,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };
@@ -702,6 +706,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 

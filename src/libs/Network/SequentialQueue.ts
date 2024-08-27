@@ -147,10 +147,13 @@ function flush() {
     });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionID = Onyx.connect({
+    const connection = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
+        // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
+        // an existing connection already made in PersistedRequests.ts.
+        reuseConnection: false,
         callback: () => {
-            Onyx.disconnect(connectionID);
+            Onyx.disconnect(connection);
             process().finally(() => {
                 Log.info('[SequentialQueue] Finished processing queue.');
                 isSequentialQueueRunning = false;
