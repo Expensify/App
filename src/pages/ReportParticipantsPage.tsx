@@ -56,7 +56,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isFocused = useIsFocused();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const {isOffline} = useNetwork();
-    const [shouldShowTextInput, setShouldShowTextInput] = useState(false);
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
@@ -70,26 +69,24 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         setSelectedMembers([]);
     }, [isFocused]);
 
-    /** Include the search bar when there are 8 or more members in the selection list */
-    const updateShouldShowTextInput = useCallback(
-        (listItemsNumber: number) => {
-            const shouldEnableSearch = listItemsNumber >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-            if (shouldShowTextInput !== shouldEnableSearch) {
-                setShouldShowTextInput(shouldEnableSearch);
-                if (!shouldEnableSearch) {
-                    setSearchValue('');
-                }
+    const chatParticipants = useMemo(() => ReportUtils.getParticipantsList(report, personalDetails), [report, personalDetails]);
+
+    /** Include the search bar when there are 8 or more active members in the selection list */
+    const shouldShowTextInput = useMemo(() => {
+        // Get the active chat members by filtering out the pending members with delete action
+        const activeParticipants = chatParticipants.filter((accountID) => {
+            const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            if (!personalDetails?.[accountID]) {
+                return false;
             }
-        },
-        [shouldShowTextInput],
-    );
+            // When offline, we want to count in the pending members with delete action as they are displayed in the list as well
+            return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        });
+        return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    }, [chatParticipants, personalDetails, isOffline, report]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
-
-        // a counter for updateShouldShowTextInput logic
-        let listItemsNumber = 0;
 
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
@@ -112,13 +109,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
             const isPendingDeletion = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            // Increment the listItemsNumber if the member is not pending deletion or if the app is offline.
-            // When offline, optimistically deleted members are still displayed (with strikethrough)
-            // Therefore, we need to include them for shouldShowTextInput logic.
-            if (!isPendingDeletion || isOffline) {
-                listItemsNumber++;
-            }
-
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
@@ -140,11 +130,9 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             });
         });
 
-        updateShouldShowTextInput(listItemsNumber);
-
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple, updateShouldShowTextInput, isOffline]);
+    }, [chatParticipants, searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
