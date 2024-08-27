@@ -287,3 +287,5 @@ export type {default as ToggleCardContinuousReconciliationParams} from './Toggle
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
+export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
+export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';

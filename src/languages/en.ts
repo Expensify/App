@@ -2773,6 +2773,10 @@ export default {
             control: 'Control',
             collect: 'Collect',
         },
+        companyCards: {
+            addCompanyCards: 'Add company cards',
+            selectCardFeed: 'Select card feed',
+        },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
