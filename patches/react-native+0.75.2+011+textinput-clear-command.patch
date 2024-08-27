@@ -1,0 +1,266 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+index 0aa8965..3bfe22c 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+@@ -85,6 +85,9 @@ const RCTTextInputViewConfig = {
+     topContentSizeChange: {
+       registrationName: 'onContentSizeChange',
+     },
++    topClear: {
++      registrationName: 'onClear',
++    },
+   },
+   validAttributes: {
+     fontSize: true,
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+index 0aa50fe..edf9078 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+@@ -708,6 +708,12 @@ export interface TextInputProps
+   onBlur?:
+     | ((e: NativeSyntheticEvent<TextInputFocusEventData>) => void)
+     | undefined;
++    /**
++     * Callback that is called when the text input was cleared using the native clear command.
++     */
++  onClear?:
++    | ((e: NativeSyntheticEvent<TextInputChangeEventData>) => void)
++    | undefined;
+ 
+   /**
+    * Callback that is called when the text input's text changes.
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index 8b827ae..a94fb19 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -1288,6 +1288,10 @@ function InternalTextInput(props: Props): React.Node {
+       mostRecentEventCount,
+     });
+   };
++  const _onClear = (event: ChangeEvent) => {
++    setMostRecentEventCount(event.nativeEvent.eventCount);
++    props.onClear && props.onClear(event);
++  };
+ 
+   const _onFocus = (event: FocusEvent) => {
+     TextInputState.focusInput(inputRef.current);
+@@ -1437,6 +1441,7 @@ function InternalTextInput(props: Props): React.Node {
+         mostRecentEventCount={mostRecentEventCount}
+         nativeID={id ?? props.nativeID}
+         onBlur={_onBlur}
++        onClear={_onClear}
+         onChange={_onChange}
+         onContentSizeChange={props.onContentSizeChange}
+         onFocus={_onFocus}
+@@ -1503,6 +1508,7 @@ function InternalTextInput(props: Props): React.Node {
+         nativeID={id ?? props.nativeID}
+         numberOfLines={props.rows ?? props.numberOfLines}
+         onBlur={_onBlur}
++        onClear={_onClear}
+         onChange={_onChange}
+         onFocus={_onFocus}
+         /* $FlowFixMe[prop-missing] the types for AndroidTextInput don't match
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
+index 20749a6..f58f147 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
+@@ -62,6 +62,7 @@ @implementation RCTBaseTextInputViewManager {
+ 
+ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onKeyPressSync, RCTDirectEventBlock)
++RCT_EXPORT_VIEW_PROPERTY(onClear, RCTDirectEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onChangeSync, RCTDirectEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 7e868f9..29f733a 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -447,6 +447,19 @@ - (void)blur
+   [_backedTextInputView resignFirstResponder];
+ }
+ 
++- (void)clear
++{
++    auto metrics = [self _textInputMetrics];
++    [self setTextAndSelection:_mostRecentEventCount value:@"" start:0 end:0];
++    
++    _mostRecentEventCount++;
++    metrics.eventCount = _mostRecentEventCount;
++    
++    // Notify JS that the event counter has changed
++    const auto &textInputEventEmitter = static_cast<const TextInputEventEmitter &>(*_eventEmitter);
++    textInputEventEmitter.onClear(metrics);
++}
++
+ - (void)setTextAndSelection:(NSInteger)eventCount
+                       value:(NSString *__nullable)value
+                       start:(NSInteger)start
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+index fe3376a..6889eed 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
+@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
+ @protocol RCTTextInputViewProtocol <NSObject>
+ - (void)focus;
+ - (void)blur;
++- (void)clear;
+ - (void)setTextAndSelection:(NSInteger)eventCount
+                       value:(NSString *__nullable)value
+                       start:(NSInteger)start
+@@ -49,6 +50,19 @@ RCTTextInputHandleCommand(id<RCTTextInputViewProtocol> componentView, const NSSt
+     return;
+   }
+ 
++  if ([commandName isEqualToString:@"clear"]) {
++#if RCT_DEBUG
++    if ([args count] != 0) {
++      RCTLogError(
++          @"%@ command %@ received %d arguments, expected %d.", @"TextInput", commandName, (int)[args count], 0);
++      return;
++    }
++#endif
++
++    [componentView clear];
++    return;
++  }
++
+   if ([commandName isEqualToString:@"setTextAndSelection"]) {
+ #if RCT_DEBUG
+     if ([args count] != 4) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java
+new file mode 100644
+index 0000000..0c142a0
+--- /dev/null
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.textinput;
++
++import androidx.annotation.Nullable;
++
++import com.facebook.react.bridge.Arguments;
++import com.facebook.react.bridge.WritableMap;
++import com.facebook.react.uimanager.common.ViewUtil;
++import com.facebook.react.uimanager.events.Event;
++
++/**
++ * Event emitted by EditText native view when text changes. VisibleForTesting from {@link
++ * TextInputEventsTestCase}.
++ */
++public class ReactTextClearEvent extends Event<ReactTextClearEvent> {
++
++  public static final String EVENT_NAME = "topClear";
++
++  private String mText;
++  private int mEventCount;
++
++  @Deprecated
++  public ReactTextClearEvent(int viewId, String text, int eventCount) {
++    this(ViewUtil.NO_SURFACE_ID, viewId, text, eventCount);
++  }
++
++  public ReactTextClearEvent(int surfaceId, int viewId, String text, int eventCount) {
++    super(surfaceId, viewId);
++    mText = text;
++    mEventCount = eventCount;
++  }
++
++  @Override
++  public String getEventName() {
++    return EVENT_NAME;
++  }
++
++  @Nullable
++  @Override
++  protected WritableMap getEventData() {
++    WritableMap eventData = Arguments.createMap();
++    eventData.putString("text", mText);
++    eventData.putInt("eventCount", mEventCount);
++    eventData.putInt("target", getViewTag());
++    return eventData;
++  }
++}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 2c225da..a8c5d94 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -8,6 +8,7 @@
+ package com.facebook.react.views.textinput;
+ 
+ import static com.facebook.react.uimanager.UIManagerHelper.getReactContext;
++import static com.facebook.react.uimanager.UIManagerHelper.getSurfaceId;
+ 
+ import android.content.Context;
+ import android.content.res.ColorStateList;
+@@ -261,6 +262,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+             .put(
+                 ScrollEventType.getJSEventName(ScrollEventType.SCROLL),
+                 MapBuilder.of("registrationName", "onScroll"))
++            .put(
++                ReactTextClearEvent.EVENT_NAME,
++                MapBuilder.of("registrationName", "onClear"))
+             .build());
+     return eventTypeConstants;
+   }
+@@ -318,6 +322,27 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+           reactEditText.maybeSetTextFromJS(getReactTextUpdate(text, mostRecentEventCount));
+         }
+         reactEditText.maybeSetSelection(mostRecentEventCount, start, end);
++        break;
++      case "clear":
++        // Capture the current text
++        Editable text = reactEditText.getText();
++
++        // Reset the edit text
++        ReactTextUpdate textUpdate = getReactTextUpdate("", reactEditText.incrementAndGetEventCounter());
++        reactEditText.maybeSetTextFromJS(textUpdate);
++        reactEditText.maybeSetSelection(reactEditText.incrementAndGetEventCounter(), 0, 0);
++
++        // Dispatch the clear event
++        EventDispatcher eventDispatcher = getEventDispatcher(getReactContext(reactEditText), reactEditText);
++        eventDispatcher.dispatchEvent(
++                new ReactTextClearEvent(
++                        getSurfaceId(reactEditText),
++                        reactEditText.getId(),
++                        text.toString(),
++                        reactEditText.incrementAndGetEventCounter()
++                )
++        );
++
+         break;
+     }
+   }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+index c2262b0..a7294ad 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+@@ -134,6 +134,10 @@ void TextInputEventEmitter::onBlur(const Metrics& textInputMetrics) const {
+   dispatchTextInputEvent("blur", textInputMetrics);
+ }
+ 
++void TextInputEventEmitter::onClear(const Metrics& textInputMetrics) const {
++  dispatchTextInputEvent("clear", textInputMetrics);
++}
++
+ void TextInputEventEmitter::onChange(const Metrics& textInputMetrics) const {
+   dispatchTextInputEvent("change", textInputMetrics);
+ }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
+index 9182dd3..465d303 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.h
+@@ -36,6 +36,7 @@ class TextInputEventEmitter : public ViewEventEmitter {
+ 
+   void onFocus(const Metrics& textInputMetrics) const;
+   void onBlur(const Metrics& textInputMetrics) const;
++  void onClear(const Metrics& textInputMetrics) const;
+   void onChange(const Metrics& textInputMetrics) const;
+   void onContentSizeChange(const Metrics& textInputMetrics) const;
+   void onSelectionChange(const Metrics& textInputMetrics) const;
