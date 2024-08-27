@@ -365,6 +365,7 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        days: 'días',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -765,6 +766,11 @@ export default {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
+        settlePersonalBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria personal` : `Pagar con cuenta bancaria personal`,
+        settleBusinessBank: ({formattedAmount}: SettleExpensifyCardParams) =>
+            formattedAmount ? `Pagar ${formattedAmount} con cuenta bancaria comercial` : `Pagar con cuenta bancaria comercial`,
+        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con tarjeta de débito` : `Pagar con tarjeta de débito`),
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
@@ -1345,8 +1351,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
@@ -3662,6 +3667,23 @@ export default {
             individualExpenseRules: {
                 title: 'Gastos',
                 subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+                receiptRequiredAmount: 'Cantidad requerida para los recibos',
+                receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                maxExpenseAmount: 'Importe máximo del gasto',
+                maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
+                maxAge: 'Antigüedad máxima',
+                maxExpenseAge: 'Antigüedad máxima de los gastos',
+                maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('día', 'días', age)}`,
+                billableDefault: 'Valor predeterminado facturable',
+                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
+                billable: 'Facturable',
+                billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
+                nonBillable: 'No facturable',
+                nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
+                eReceipts: 'Recibos electrónicos',
+                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
+                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
             },
             expenseReportRules: {
                 title: 'Informes de gastos',

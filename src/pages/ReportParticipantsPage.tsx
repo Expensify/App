@@ -124,7 +124,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
-                isDisabled: isPendingDeletion,
+                isDisabled: isPendingDeletion || details?.isOptimisticPersonalDetail,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
