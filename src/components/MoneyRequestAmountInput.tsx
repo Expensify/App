@@ -163,11 +163,11 @@ function MoneyRequestAmountInput(
      */
     const setNewAmount = useCallback(
         (newAmountInput: string) => {
-            const [newCurrencySymbol, newAmount] = newAmountInput.split(/(\d.*)/, 2);
+            const [newCurrencySymbol, newAmount = ''] = newAmountInput.split(/(\d.*)/, 2);
             const newCurrency = CurrencyUtils.getCurrencyCode(newCurrencySymbol);
 
             // Return early if the amount is empty or the currency symbol is invalid
-            if (!newAmount || (newCurrencySymbol && !newCurrency)) {
+            if (newCurrencySymbol && !newCurrency) {
                 return;
             }
 

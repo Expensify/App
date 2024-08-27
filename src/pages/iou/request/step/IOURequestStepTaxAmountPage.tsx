@@ -102,7 +102,7 @@ function IOURequestStepTaxAmountPage({
                 transactionID,
                 reportID,
                 backTo ? 'confirm' : '',
-                currency,
+                moneyRequestAmountInput?.current?.getCurrency(),
                 Navigation.getActiveRouteWithoutParams(),
             ),
         );
@@ -130,7 +130,7 @@ function IOURequestStepTaxAmountPage({
         IOU.setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestCurrency(transactionID, currentAmount.currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
