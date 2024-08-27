@@ -13,7 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -93,7 +95,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         }
 
         Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => Welcome.startOnboardingFlow(),
+            onNotCompleted: () => {
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+                navigationRef.resetRoot(adaptedState);
+            },
         });
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
