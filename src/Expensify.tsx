@@ -238,7 +238,7 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
             return;
         }
