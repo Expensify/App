@@ -70,3 +70,6 @@ export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';
+export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
+export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
+export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
