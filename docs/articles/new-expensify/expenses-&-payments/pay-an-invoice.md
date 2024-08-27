@@ -29,6 +29,7 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 3. Choose **Pay as an individual** or **Pay as a business**.
 4. Tap **Add Bank Account** or **Add debit or credit card** to issue payment.
 {% include end-option.html %}
+
 {% include end-selector.html %}
 
 # FAQ
