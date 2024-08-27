@@ -36,7 +36,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
-    isSavedSearch: boolean;
     policyIDs?: string;
 };
 
@@ -74,7 +73,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs, isCustomQuery, isSavedSearch}: SearchProps) {
+function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -117,15 +116,10 @@ function Search({queryJSON, policyIDs, isCustomQuery, isSavedSearch}: SearchProp
         if (isOffline) {
             return;
         }
-
-        if (isSavedSearch === 'true') {
-            SearchActions.saveSearch({queryJSON, policyIDs});
-        } else {
-            SearchActions.search({queryJSON, offset, policyIDs});
-        }
+        SearchActions.search({queryJSON, offset, policyIDs});
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOffline, offset, queryJSON, isSavedSearch]);
+    }, [isOffline, offset, queryJSON, policyIDs]);
 
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);

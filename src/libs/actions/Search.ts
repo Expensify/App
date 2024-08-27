@@ -49,17 +49,11 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function saveSearch({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
+function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
-    const queryWithOffset = {
-        ...queryJSON,
-        offset,
-    };
-    const jsonQuery = JSON.stringify(queryWithOffset);
-
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {hash: queryJSON.hash, jsonQuery, policyIDs}, {optimisticData, finallyData});
+    const jsonQuery = JSON.stringify(queryJSON);
+    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, finallyData});
 }
-
 
 function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);

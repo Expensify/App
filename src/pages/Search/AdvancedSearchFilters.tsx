@@ -131,11 +131,11 @@ function AdvancedSearchFilters() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+    const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all';
 
     const advancedFilters = useMemo(
         () => [
@@ -214,26 +214,29 @@ function AdvancedSearchFilters() {
         [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
     );
 
+    const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters), [searchAdvancedFilters]);
+
     const onSaveSearch = () => {
+        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || DEFAULT_SAVE_SEARCH_QUERY_STRING);
+        if (!queryJSON) {
+            return;
+        }
+
+        SearchActions.saveSearch({
+            queryJSON,
+        });
+
+        applyFiltersAndNavigate();
+    };
+
+    const applyFiltersAndNavigate = () => {
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters),
-                isCustomQuery: true,
-                isSavedSearch: true,
-            }),
-        );
-    }
-    
-    const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
-        SearchActions.clearAdvancedFilters();
-        Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
+                query: queryString,
                 isCustomQuery: true,
             }),
-        );
+        )
     };
 
     return (
@@ -266,7 +269,7 @@ function AdvancedSearchFilters() {
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
-                onSubmit={onFormSubmit}
+                onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
             />
         </>

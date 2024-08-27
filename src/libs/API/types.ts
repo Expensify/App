@@ -678,7 +678,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Parameters.CreateExpensifyCardParams;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
     [WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION]: Parameters.ToggleCardContinuousReconciliationParams;
-    [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SearchParams;
+    [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SaveSearchParams;
 };
 
 const READ_COMMANDS = {
