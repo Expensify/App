@@ -5,13 +5,16 @@ import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {AdvancedFiltersKeys} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
@@ -19,7 +22,31 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
+    return filterValue
+        ? Object.values(cards)
+              .filter((card) => filterValue.includes(card.cardID.toString()))
+              .map((card) => card.bank)
+              .join(', ')
+        : undefined;
+}
+
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList) {
+    const selectedPersonalDetails = accountIDs.map((id) => personalDetails[id]);
+
+    return selectedPersonalDetails
+        .map((personalDetail) => {
+            if (!personalDetail) {
+                return '';
+            }
+
+            return PersonalDetailsUtils.createDisplayName(personalDetail.login ?? '', personalDetail);
+        })
+        .join(', ');
+}
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
     if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
@@ -39,6 +66,19 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return dateValue;
     }
 
+    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        const {lessThan, greaterThan} = filters;
+        if (lessThan && greaterThan) {
+            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+        }
+        if (lessThan) {
+            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
+        }
+        if (greaterThan) {
+            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
+        }
+    }
+
     if (
         (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
         filters[fieldName]
@@ -56,16 +96,6 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
     // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
     const filterValue = filters[fieldName] as string;
     return filterValue ? Str.recapitalize(filterValue) : undefined;
-}
-
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
-    return filterValue
-        ? Object.values(cards)
-              .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => card.bank)
-              .join(', ')
-        : undefined;
 }
 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
@@ -101,9 +131,10 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
 
-    const [searchAdvancedFilters = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
+    const personalDetails = usePersonalDetails();
 
     const advancedFilters = useMemo(
         () => [
@@ -131,6 +162,11 @@ function AdvancedSearchFilters() {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
                 description: 'common.reportID' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+            },
+            {
+                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
+                description: 'common.total' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
             },
             {
                 title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
@@ -163,8 +199,18 @@ function AdvancedSearchFilters() {
                 description: 'common.tag' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
             },
+            {
+                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
+                description: 'common.from' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+            },
+            {
+                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
+                description: 'common.to' as const,
+                route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+            },
         ],
-        [searchAdvancedFilters, translate, cardList, taxRates],
+        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
     );
 
     const onFormSubmit = () => {
@@ -179,31 +225,33 @@ function AdvancedSearchFilters() {
     };
 
     return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
-            <View>
-                {advancedFilters.map((item) => {
-                    const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-                    if (item.shouldHide) {
-                        return undefined;
-                    }
-                    return (
-                        <MenuItemWithTopDescription
-                            key={item.description}
-                            title={item.title}
-                            description={translate(item.description)}
-                            shouldShowRightIcon
-                            onPress={onPress}
-                        />
-                    );
-                })}
-            </View>
+        <>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
+                <View>
+                    {advancedFilters.map((item) => {
+                        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
+                        if (item.shouldHide) {
+                            return undefined;
+                        }
+                        return (
+                            <MenuItemWithTopDescription
+                                key={item.description}
+                                title={item.title}
+                                description={translate(item.description)}
+                                shouldShowRightIcon
+                                onPress={onPress}
+                            />
+                        );
+                    })}
+                </View>
+            </ScrollView>
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={onFormSubmit}
                 enabledWhenOffline
             />
-        </ScrollView>
+        </>
     );
 }
 

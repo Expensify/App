@@ -620,11 +620,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -702,6 +702,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -1108,6 +1120,7 @@ type TravelNavigatorParamList = {
 type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: string;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
@@ -1116,6 +1129,9 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
@@ -1191,6 +1207,9 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
     };
 };
@@ -1292,6 +1311,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
             transactionID: string;
+            readonly?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
     };

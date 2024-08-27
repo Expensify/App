@@ -260,6 +260,7 @@ export type {default as EnablePolicyInvoicingParams} from './EnablePolicyInvoici
 export type {default as CreateWorkspaceReportFieldListValueParams} from './CreateWorkspaceReportFieldListValueParams';
 export type {default as RemoveWorkspaceReportFieldListValueParams} from './RemoveWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
+export type {default as OpenPolicyEditCardLimitTypePageParams} from './OpenPolicyEditCardLimitTypePageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as CancelBillingSubscriptionParams} from './CancelBillingSubscriptionParams';
@@ -271,5 +272,17 @@ export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsT
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
+export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
+export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
+export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
+export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
+export type {default as SetPolicyBillableMode} from './SetPolicyBillableMode';
+export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
+export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
+export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
+export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
+export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';

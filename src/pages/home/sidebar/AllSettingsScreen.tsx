@@ -87,7 +87,6 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             wrapperStyle: styles.sectionMenuItem,
             isPaneMenu: true,
             focused: item.focused,
-            hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
     }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles]);
