@@ -40,7 +40,7 @@ function IOURequestStepCurrency({
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
-        if (pageIndex === 'confirm') {
+        if (pageIndex === CONST.IOU.PAGE_INDEX.CONFIRM) {
             if (selectedCurrencyValue) {
                 Navigation.navigate(appendParam(backTo as string, 'currency', selectedCurrencyValue));
             } else {
@@ -53,7 +53,7 @@ function IOURequestStepCurrency({
 
     const confirmCurrencySelection = (option: CurrencyListItem) => {
         Keyboard.dismiss();
-        if (pageIndex !== 'confirm') {
+        if (pageIndex !== CONST.IOU.PAGE_INDEX.CONFIRM) {
             IOU.setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
         }
 

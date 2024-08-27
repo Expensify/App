@@ -1976,6 +1976,9 @@ const CONST = {
         ACCESS_VARIANTS: {
             CREATE: 'create',
         },
+        PAGE_INDEX: {
+            CONFIRM: 'confirm',
+        },
     },
 
     GROWL: {
