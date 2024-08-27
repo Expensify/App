@@ -49,7 +49,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                         <PressableWithoutFeedback
                             style={[styles.videoThumbnailContainer]}
                             accessibilityLabel={accessibilityLabel}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             onPress={onPress}
                             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}

@@ -60,6 +60,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
+    const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
@@ -75,6 +76,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             imageWidth={imageWidth}
             imageHeight={imageHeight}
             isDeleted={isDeleted}
+            altText={alt}
         />
     );
 
@@ -101,7 +103,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
                             }
                             shouldUseHapticsOnLongPress
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         >
                             {thumbnailImageComponent}
