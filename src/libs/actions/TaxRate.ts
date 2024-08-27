@@ -486,6 +486,8 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
 function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
+    const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
+    const oldForeignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -493,7 +495,8 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        defaultExternalID: oldTaxCode === policy?.taxRates?.defaultExternalID ? newTaxCode : policy?.taxRates?.defaultExternalID,
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
@@ -514,7 +517,6 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        defaultExternalID: oldTaxCode === policy?.taxRates?.defaultExternalID ? newTaxCode : policy?.taxRates?.defaultExternalID,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
@@ -535,7 +537,8 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
-                        defaultExternalID: policy?.taxRates?.defaultExternalID,
+                        defaultExternalID: oldDefaultExternalID,
+                        foreignTaxDefault: oldForeignTaxDefault,
                         taxes: {
                             [newTaxCode]: null,
                             [oldTaxCode]: {
