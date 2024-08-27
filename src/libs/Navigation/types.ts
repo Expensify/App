@@ -672,6 +672,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };

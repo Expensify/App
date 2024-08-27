@@ -617,6 +617,16 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
+function updateSelectedFeed(feed: string, policyID: string) {
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: feed,
+        },
+    ]);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -635,5 +645,6 @@ export {
     openCardDetailsPage,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
+    updateSelectedFeed,
 };
 export type {ReplacementReason};

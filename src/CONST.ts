@@ -2276,6 +2276,13 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
     },
+    COMPANY_CARD: {
+        FEED_BANK_NAME: {
+            MASTER_CARD: 'cdf',
+            VISA: 'vcf',
+            AMEX: 'gl1025',
+        },
+    },
     EXPENSIFY_CARD: {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
