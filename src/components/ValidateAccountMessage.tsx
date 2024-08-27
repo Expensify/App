@@ -13,6 +13,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import TextLink from './TextLink';
+import * as User from '@userActions/User';
 
 type ValidateAccountMessageProps = {backTo?: string | undefined};
 function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
@@ -41,7 +42,12 @@ function ValidateAccountMessage({backTo}: ValidateAccountMessageProps) {
                 <TextLink
                     fontSize={variables.fontSizeLabel}
                     onPress={() => {
-                        const login = loginList?.[loginNames?.[0]] ?? {};
+                        const loginName = loginNames?.[0]
+                        const login = loginList?.[loginName] ?? {};
+                        if (!login?.validatedDate && !login?.validateCodeSent) {
+                            User.requestContactMethodValidateCode(loginName);
+                        }
+                   
                         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0], backTo));
                     }}
                 >
