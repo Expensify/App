@@ -23,7 +23,6 @@ type MoneyRequestAmountInputRef = {
     getSelection: () => Selection;
     getCurrency: () => string;
     focus: () => void;
-    blur: () => void;
     isFocused: () => boolean;
 };
 
@@ -230,9 +229,6 @@ function MoneyRequestAmountInput(
         },
         focus() {
             textInput?.current?.focus();
-        },
-        blur() {
-            textInput?.current?.blur();
         },
         isFocused() {
             return !!isTextInputFocused(textInput);
