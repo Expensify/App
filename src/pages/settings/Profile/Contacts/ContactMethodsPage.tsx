@@ -85,8 +85,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                         if (!login?.validatedDate && !login?.validateCodeSent) {
                             User.requestContactMethodValidateCode(loginName);
                         }
-
-                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID));
+                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo));
                     }}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle

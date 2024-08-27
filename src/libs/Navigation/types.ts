@@ -111,6 +111,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
         contactMethod: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
         backTo: Routes;
@@ -669,6 +670,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
