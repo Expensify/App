@@ -14,9 +14,9 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage() {
         <EmptyStateComponent
             SkeletonComponent={TableListItemSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-            headerMedia={Illustrations.EmptyAddedFeedState}
+            headerMedia={Illustrations.CompanyCardsEmptyState}
             headerStyles={styles.emptyCompanyCardsFolderBG}
-            headerContentStyles={styles.emptyStateCompanyCardsIconSize}
+            headerContentStyles={styles.emptyStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
             subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
         />
