@@ -131,7 +131,6 @@ key "key"
   = @(
       "date"
       / "amount"
-      / "expenseType"
       / "merchant"
       / "description"
       / "reportID"
@@ -150,6 +149,7 @@ multiselectKey "multiselect key"
       / "taxRate"
       / "cardID"
       / "from"
+      / "expenseType"
     )
 
 identifier = parts:(quotedString / alphanumeric)+ { return parts.join(""); }
