@@ -2326,6 +2326,21 @@ const CONST = {
         },
         CARD_TITLE_INPUT_LIMIT: 255,
     },
+    COMPANY_CARDS: {
+        STEP_NAMES: ['1', '2', '3', '4'],
+        STEP: {
+            CARD_TYPE: 'CardType',
+            CARD_INSTRUCTIONS: 'CardInstructions',
+            CARD_NAME: 'CardName',
+            CARD_DETAILS: 'CardDetails',
+        },
+        CARD_TYPE: {
+            AMEX: 'amex',
+            VISA: 'visa',
+            MASTERCARD: 'mastercard',
+        },
+        CARD_TITLE_INPUT_LIMIT: 255,
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
