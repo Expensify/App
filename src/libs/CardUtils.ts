@@ -168,12 +168,8 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
-function filterDeactivatedCards(cardsList: OnyxEntry<WorkspaceCardsList>): Card[] {
-    return Object.values(cardsList ?? {}).filter((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED);
-}
-
 function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
-    return filterDeactivatedCards(cardsList).sort((cardA: Card, cardB: Card) => {
+    return Object.values(cardsList ?? {}).sort((cardA: Card, cardB: Card) => {
         const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
         const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
 
@@ -199,5 +195,4 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
-    filterDeactivatedCards,
 };

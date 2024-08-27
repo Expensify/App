@@ -23,7 +23,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
@@ -64,13 +63,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
-        Card.deactivateCard(workspaceAccountID, Number(cardID), card?.state);
+        Card.deactivateCard(workspaceAccountID, Number(cardID), card);
         Navigation.goBack();
     };
-
-    if (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED) {
-        return <NotFoundPage />;
-    }
 
     return (
         <AccessOrNotFoundWrapper
