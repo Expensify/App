@@ -888,6 +888,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
         getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
+        route: 'settings/workspaces/:policyID/company-cards/select-feed',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
