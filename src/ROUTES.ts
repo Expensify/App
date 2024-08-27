@@ -936,6 +936,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
@@ -967,6 +971,22 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    RULES_RECEIPT_REQUIRED_AMOUNT: {
+        route: 'settings/workspaces/:policyID/rules/receipt-required-amount',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/receipt-required-amount` as const,
+    },
+    RULES_MAX_EXPENSE_AMOUNT: {
+        route: 'settings/workspaces/:policyID/rules/max-expense-amount',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-amount` as const,
+    },
+    RULES_MAX_EXPENSE_AGE: {
+        route: 'settings/workspaces/:policyID/rules/max-expense-age',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-age` as const,
+    },
+    RULES_BILLABLE_DEFAULT: {
+        route: 'settings/workspaces/:policyID/rules/billable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

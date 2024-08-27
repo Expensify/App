@@ -552,7 +552,7 @@ function IOURequestStepScan({
                 <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
                             style={[styles.alignItemsStart]}
                             onPress={() => {
@@ -571,7 +571,7 @@ function IOURequestStepScan({
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -585,7 +585,7 @@ function IOURequestStepScan({
                 </PressableWithFeedback>
                 {hasFlash && (
                     <PressableWithFeedback
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
                         style={[styles.alignItemsEnd]}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED}
