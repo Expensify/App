@@ -59,7 +59,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const isFullScreenOnTop = lastRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
-    // Policy on SCREENS.SEARCH.CENTRAL_PANE can be present only as part of SearchQuery, while on other pages it's called `policyID` and stored in the url in the format: /w/:policyID/
+    // policyID on SCREENS.SEARCH.CENTRAL_PANE can be present only as part of SearchQuery, while on other pages it's stored in the url in the format: /w/:policyID/
     if (policyID && !isFullScreenOnTop && !policyIDFromState) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
