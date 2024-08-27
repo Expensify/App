@@ -94,7 +94,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy)) {
+        if (!PolicyUtils.isControlPolicy(policy) && approvalWorkflow.approvers.length > 0) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
@@ -156,7 +156,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 })}
 
                 <MenuItemWithTopDescription
-                    description={translate('workflowsCreateApprovalsPage.additionalApprover')}
+                    description={approvalWorkflow.approvers.length > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
                     onPress={addAdditionalApprover}
                     shouldShowRightIcon
                     wrapperStyle={styles.sectionMenuItemTopDescription}
