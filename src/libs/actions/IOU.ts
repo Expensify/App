@@ -894,7 +894,11 @@ function buildOnyxDataForMoneyRequest(
     );
 
     if (violationsOnyxData) {
-        optimisticData.push(violationsOnyxData);
+        optimisticData.push(violationsOnyxData, {
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            onyxMethod: Onyx.METHOD.SET,
+            value: NextStepUtils.buildNextStep(iouReport, iouReport?.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, true),
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
