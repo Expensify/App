@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,18 +59,17 @@ function ReportFieldsValueSettingsPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const oldValueName = usePrevious(currentValueName);
 
-    if (!currentValueName || hasAccountingConnections) {
+    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
         return <NotFoundPage />;
     }
-
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
             ReportField.deleteReportFieldsListValue([valueIndex]);
         }
-
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
