@@ -76,23 +76,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-function isSearchDataType(type: string): type is SearchDataTypes {
-    const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
-    return searchDataTypes.includes(type);
-}
-
-function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
-    if (!search) {
-        return undefined;
-    }
-
-    if (!isSearchDataType(search.type)) {
-        return undefined;
-    }
-
-    return search.type;
-}
-
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
@@ -250,45 +233,16 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
-        default:
-            return TransactionListItem;
-    }
+function getListItem(status: SearchStatus): ListItemType<typeof status> {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
 }
 
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
-        default:
-            return getTransactionsSections(data, metadata);
-    }
+function getSections(status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
 }
 
-function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
-                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
-                : getSortedReportData(data as ReportListItemType[]);
-        default:
-            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
-    }
+function getSortedSections(status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
 function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
@@ -594,6 +548,10 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
+function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
+    return normalizeQuery(`type:${type} status:${status}`);
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -603,7 +561,6 @@ export {
     getListItem,
     getQueryHash,
     getSearchHeaderTitle,
-    getSearchType,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
@@ -612,5 +569,6 @@ export {
     isTransactionListItemType,
     normalizeQuery,
     shouldShowYear,
+    buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
 };
