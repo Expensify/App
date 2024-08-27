@@ -31,19 +31,19 @@ function EmptySearchView({type}: EmptySearchViewProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const tripsFeatures: FeatureListItem[] = [
-        {
-            icon: Illustrations.PiggyBank,
-            translationKey: 'travel.features.saveMoney',
-        },
-        {
-            icon: Illustrations.Alert,
-            translationKey: 'travel.features.alerts',
-        },
-    ];
+    const subtitleComponent = useMemo(() => {
+        const tripsFeatures: FeatureListItem[] = [
+            {
+                icon: Illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: Illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ];
 
-    const SubtitleComponent = useMemo(
-        () => (
+        return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
                     {translate('travel.subtitle')}
@@ -77,9 +77,8 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     ))}
                 </View>
             </>
-        ),
-        [styles, translate, tripsFeatures],
-    );
+        );
+    }, [styles, translate]);
 
     const content = useMemo(() => {
         switch (type) {
@@ -90,7 +89,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h172),
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    subtitle: SubtitleComponent,
+                    subtitle: subtitleComponent,
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                     buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1')),
                 };
@@ -107,7 +106,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     buttonAction: undefined,
                 };
         }
-    }, [type, StyleUtils, translate, theme, styles, SubtitleComponent]);
+    }, [type, StyleUtils, translate, theme, styles, subtitleComponent, activePolicyID]);
 
     return (
         <EmptyStateComponent
