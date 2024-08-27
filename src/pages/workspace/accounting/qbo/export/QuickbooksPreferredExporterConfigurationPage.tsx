@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -55,7 +55,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT, {exporter: row.value});
+                QuickbooksOnline.updateQuickbooksOnlinePreferredExporter(policyID, exportConfiguration?.exporter, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
