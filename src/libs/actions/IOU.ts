@@ -53,7 +53,6 @@ import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getCurrency, getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import * as ReportUserActions from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7410,7 +7409,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.SUBMIT;
     }
 
-    ReportUserActions.completeOnboarding(
+    Report.completeOnboarding(
         onboardingPurpose,
         CONST.ONBOARDING_MESSAGES[onboardingPurpose],
         {
