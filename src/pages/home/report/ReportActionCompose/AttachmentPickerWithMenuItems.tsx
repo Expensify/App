@@ -7,6 +7,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -23,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
@@ -121,6 +123,7 @@ function AttachmentPickerWithMenuItems({
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const allPersonalDetails = usePersonalDetails();
 
     /**
      * Returns the list of IOU Options
@@ -166,7 +169,8 @@ function AttachmentPickerWithMenuItems({
         return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [translate, report, policy, reportParticipantIDs, allPersonalDetails]);
 
     /**
      * Determines if we can show the task option
@@ -224,13 +228,13 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
-                        shouldCallAfterModalHide: true,
+                        onSelected: () =>
+                            Modal.close(() => {
+                                if (Browser.isSafari()) {
+                                    return;
+                                }
+                                triggerAttachmentPicker();
+                            }),
                     },
                 ];
                 return (

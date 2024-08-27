@@ -10,6 +10,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
     approvers: [],
     availableMembers: [],
+    usedApproverEmails: [],
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
     isLoading: false,
@@ -50,7 +51,6 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             forwardsTo: employees[nextEmail].forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
-            isInMultipleWorkflows: false,
             isCircularReference,
         });
 
@@ -67,7 +67,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
     return approvers;
 }
 
-type ConvertPolicyEmployeesToApprovalWorkflowsParams = {
+type PolicyConversionParams = {
     /**
      * List of employees in the policy
      */
@@ -82,14 +82,36 @@ type ConvertPolicyEmployeesToApprovalWorkflowsParams = {
      * Email of the default approver for the policy
      */
     defaultApprover: string;
+
+    /**
+     * Email of the first approver in current edited workflow
+     */
+    firstApprover?: string;
+};
+
+type PolicyConversionResult = {
+    /**
+     * List of approval workflows
+     */
+    approvalWorkflows: ApprovalWorkflow[];
+
+    /**
+     * List of available members that can be selected in the workflow
+     */
+    availableMembers: Member[];
+
+    /**
+     * Emails that are used as approvers in currently configured workflows
+     */
+    usedApproverEmails: string[];
 };
 
 /** Convert a list of policy employees to a list of approval workflows */
-function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails}: ConvertPolicyEmployeesToApprovalWorkflowsParams): ApprovalWorkflow[] {
+function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, firstApprover}: PolicyConversionParams): PolicyConversionResult {
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
 
-    // Keep track of how many times each approver is used to detect approvers in multiple workflows
-    const approverCountsByEmail: Record<string, number> = {};
+    // Keep track of used approver emails to display hints in the UI
+    const usedApproverEmails = new Set<string>();
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
 
     // Add each employee to the appropriate workflow
@@ -102,7 +124,9 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
-            approvers.forEach((approver) => (approverCountsByEmail[approver.email] = (approverCountsByEmail[approver.email] ?? 0) + 1));
+            if (submitsTo !== firstApprover) {
+                approvers.forEach((approver) => usedApproverEmails.add(approver.email));
+            }
 
             approvalWorkflows[submitsTo] = {
                 members: [],
@@ -136,14 +160,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         });
     }
 
-    // Add a flag to each approver to indicate if they are in multiple workflows
-    return sortedApprovalWorkflows.map((workflow) => ({
-        ...workflow,
-        approvers: workflow.approvers.map((approver) => ({
-            ...approver,
-            isInMultipleWorkflows: approverCountsByEmail[approver.email] > 1,
-        })),
-    }));
+    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers: sortedApprovalWorkflows.at(0)?.members ?? []};
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
