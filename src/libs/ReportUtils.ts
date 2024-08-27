@@ -2586,8 +2586,16 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isInvoiceRoom(optionOrReport) && optionOrReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(optionOrReport?.policyID)?.invoice?.bankAccount ?? {})) {
+    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
         return true;
+    }
+
+    if (isInvoiceRoom(optionOrReport)) {
+        const invoiceRoomReportActions = ReportActionsUtils.getAllReportActions(optionOrReport.reportID);
+
+        return Object.values(invoiceRoomReportActions).some(
+            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && hasMissingInvoiceBankAccount(reportAction.childReportID),
+        );
     }
 
     return false;
