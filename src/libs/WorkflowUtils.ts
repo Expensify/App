@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
@@ -49,6 +50,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
         approvers.push({
             email: nextEmail,
             forwardsTo: employees[nextEmail].forwardsTo,
+            pendingFields: employees[nextEmail].pendingFields,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
@@ -116,12 +118,17 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 
     // Add each employee to the appropriate workflow
     Object.values(employees).forEach((employee) => {
-        const {email, submitsTo} = employee;
+        const {email, submitsTo, pendingFields} = employee;
         if (!email || !submitsTo) {
             return;
         }
 
-        const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
+        const member: Member = {
+            email,
+            pendingAction: pendingFields?.submitsTo,
+            avatar: personalDetailsByEmail[email]?.avatar,
+            displayName: personalDetailsByEmail[email]?.displayName ?? email,
+        };
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             if (submitsTo !== firstApprover) {
@@ -189,11 +196,24 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
         throw new Error('Approval workflow must have at least one approver');
     }
 
+    let pendingAction: PendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    if (type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE) {
+        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }
+
+    if (type === CONST.APPROVAL_WORKFLOW.TYPE.UPDATE) {
+        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    }
+
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
+            pendingFields: {
+                forwardsTo: pendingAction,
+            },
         };
     });
 
@@ -201,6 +221,9 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
+            pendingFields: {
+                submitsTo: pendingAction,
+            },
         };
     });
 
@@ -208,6 +231,9 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: '',
+            pendingFields: {
+                submitsTo: pendingAction,
+            },
         };
     });
 

@@ -173,16 +173,12 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 subMenuItems: canUseAdvancedApproval ? (
                     <>
                         {approvalWorkflows.map((workflow, index) => (
-                            <OfflineWithFeedback
+                            <ApprovalWorkflowSection
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
-                                pendingAction={policy?.pendingFields?.employeeList}
-                            >
-                                <ApprovalWorkflowSection
-                                    approvalWorkflow={workflow}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
-                                />
-                            </OfflineWithFeedback>
+                                approvalWorkflow={workflow}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
+                            />
                         ))}
                         <MenuItem
                             title={translate('workflowsPage.addApprovalButton')}

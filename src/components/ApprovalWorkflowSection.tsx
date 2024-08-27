@@ -9,6 +9,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
@@ -32,15 +33,20 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
 
-    const members = useMemo(() => {
+    const {members, pendingAction} = useMemo(() => {
         if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
+            return {members: translate('workspace.common.everyone'), pendingAction: undefined};
         }
 
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
-            .join(', ');
+        return {
+            members: OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+                .map((m) => m.displayName)
+                .join(', '),
+            pendingAction: approvalWorkflow.members.map((m) => m.pendingAction).find(Boolean),
+        };
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+
+    console.log(`members pendingAction = `, approvalWorkflow.members);
 
     return (
         <PressableWithoutFeedback
@@ -66,40 +72,50 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                         </Text>
                     </View>
                 )}
-                <MenuItem
-                    title={translate('workflowsExpensesFromPage.title')}
-                    style={styles.p0}
-                    titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={styles.textNormalThemeText}
-                    description={members}
-                    numberOfLinesDescription={4}
-                    icon={Expensicons.Users}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconFill={theme.icon}
-                    onPress={onPress}
-                    shouldRemoveBackground
-                />
+                <OfflineWithFeedback pendingAction={pendingAction}>
+                    <MenuItem
+                        title={translate('workflowsExpensesFromPage.title')}
+                        style={styles.p0}
+                        titleStyle={styles.textLabelSupportingNormal}
+                        descriptionTextStyle={styles.textNormalThemeText}
+                        description={members}
+                        numberOfLinesDescription={4}
+                        icon={Expensicons.Users}
+                        iconHeight={20}
+                        iconWidth={20}
+                        iconFill={theme.icon}
+                        onPress={onPress}
+                        shouldRemoveBackground
+                    />
+                </OfflineWithFeedback>
 
-                {approvalWorkflow.approvers.map((approver, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <View key={`approver-${approver.email}-${index}`}>
-                        <View style={styles.workflowApprovalVerticalLine} />
-                        <MenuItem
-                            title={approverTitle(index)}
-                            style={styles.p0}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
-                            description={approver.displayName}
-                            icon={Expensicons.UserCheck}
-                            iconHeight={20}
-                            iconWidth={20}
-                            iconFill={theme.icon}
-                            onPress={onPress}
-                            shouldRemoveBackground
-                        />
-                    </View>
-                ))}
+                {approvalWorkflow.approvers.map((approver, index) => {
+                    console.log(`approver.pendingAction = `, approver.pendingFields?.forwardsTo);
+                    return (
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver.email}-${index}`}
+                            pendingAction={approver.pendingFields?.forwardsTo}
+                        >
+                            <View>
+                                <View style={styles.workflowApprovalVerticalLine} />
+                                <MenuItem
+                                    title={approverTitle(index)}
+                                    style={styles.p0}
+                                    titleStyle={styles.textLabelSupportingNormal}
+                                    descriptionTextStyle={styles.textNormalThemeText}
+                                    description={approver.displayName}
+                                    icon={Expensicons.UserCheck}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    iconFill={theme.icon}
+                                    onPress={onPress}
+                                    shouldRemoveBackground
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    );
+                })}
             </View>
             <Icon
                 src={Expensicons.ArrowRight}

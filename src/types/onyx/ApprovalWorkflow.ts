@@ -2,11 +2,12 @@ import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
  */
-type Approver = {
+type Approver = OnyxValueWithOfflineFeedback<{
     /**
      * Email of the approver
      */
@@ -34,12 +35,12 @@ type Approver = {
      * example: A -> B -> C -> A (cycle)
      */
     isCircularReference?: boolean;
-};
+}>;
 
 /**
  * Member in the approval workflow
  */
-type Member = {
+type Member = OnyxValueWithOfflineFeedback<{
     /**
      * Email of the member
      */
@@ -54,7 +55,7 @@ type Member = {
      * Avatar URL of the current user from their personal details
      */
     avatar?: AvatarSource;
-};
+}>;
 
 /**
  * Approval workflow for a group of employees
