@@ -2,7 +2,7 @@ import RNFS from 'react-native-fs';
 import {open} from 'react-native-quick-sqlite';
 import Share from 'react-native-share';
 import CONST from '@src/CONST';
-import maskOnyxState from './common';
+import ExportOnyxState from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise((resolve) => {
@@ -36,7 +36,7 @@ const shareAsFile = (value: string) => {
 };
 
 export default {
-    maskOnyxState,
+    maskOnyxState: ExportOnyxState.maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };
