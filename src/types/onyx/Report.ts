@@ -113,6 +113,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time of the last mention of the report */
         lastMentionedTime?: string | null;
 
+        /** The policy avatar to use, if any */
+        policyAvatar?: string | null;
+  
         /** The policy name to use */
         policyName?: string | null;
 
