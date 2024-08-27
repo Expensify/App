@@ -178,7 +178,8 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const blockedFromConcierge = useBlockedFromConcierge();
-    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) ?? '-1', [report.reportID, action]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(report.reportID, action) || '-1', [report.reportID, action]);
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         selector: (draftMessagesForReport) => {
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
