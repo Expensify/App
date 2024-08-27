@@ -115,7 +115,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The policy avatar to use, if any */
         policyAvatar?: string | null;
-  
+
         /** The policy name to use */
         policyName?: string | null;
 
