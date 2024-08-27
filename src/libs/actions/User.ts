@@ -301,6 +301,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
                 [contactMethod]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
+                    validateCodeSent: true,
                     errorFields: {
                         addedLogin: null,
                     },
