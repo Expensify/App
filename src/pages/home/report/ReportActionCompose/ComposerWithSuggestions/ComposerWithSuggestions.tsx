@@ -266,7 +266,7 @@ function ComposerWithSuggestions(
 
     const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -539,7 +539,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            focus(false);
+            focus(true);
         }, true);
     }, [focus, isFocused]);
 

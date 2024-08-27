@@ -103,6 +103,7 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -353,6 +354,11 @@ type IssueVirtualCardParams = {
     link: string;
 };
 
+type ApprovalWorkflowErrorParams = {
+    name1: string;
+    name2: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -475,4 +481,5 @@ export type {
     UnapprovedParams,
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
+    ApprovalWorkflowErrorParams,
 };

@@ -42,9 +42,12 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
             if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
             }
+            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
+            }
             return errors;
         },
-        [translate],
+        [translate, policyTags, route.params.orderWeight],
     );
 
     const updateTaglistName = useCallback(

@@ -178,6 +178,9 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
+    /** Character limit after which the menu item text will be truncated */
+    characterLimit?: number;
+
     isLabelHoverable?: boolean;
 
     /** Label to be displayed on the right */
@@ -200,6 +203,9 @@ type MenuItemBaseProps = {
 
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
+
+    /** Should we truncate the title */
+    shouldTruncateTitle?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -261,6 +267,15 @@ type MenuItemBaseProps = {
     /** Whether should render helper text as HTML or as Text */
     shouldParseHelperText?: boolean;
 
+    /** Whether should render hint text as HTML or as Text */
+    shouldRenderHintAsHTML?: boolean;
+
+    /** Whether should render error text as HTML or as Text */
+    shouldRenderErrorAsHTML?: boolean;
+
+    /** List of markdown rules that will be ignored */
+    excludedMarkdownRules?: string[];
+
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
 
@@ -319,7 +334,6 @@ type MenuItemBaseProps = {
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
 function MenuItem(
     {
         interactive = true,
@@ -370,6 +384,8 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        shouldTruncateTitle = false,
+        characterLimit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -394,6 +410,9 @@ function MenuItem(
         shouldBlockSelection = false,
         shouldParseTitle = false,
         shouldParseHelperText = false,
+        shouldRenderHintAsHTML = false,
+        shouldRenderErrorAsHTML = false,
+        excludedMarkdownRules = [],
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
@@ -449,8 +468,8 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText});
-    }, [title, shouldParseTitle, shouldEscapeText]);
+        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
@@ -469,8 +488,12 @@ function MenuItem(
             titleToWrap = html;
         }
 
+        if (shouldTruncateTitle) {
+            titleToWrap = Parser.truncateHTML(titleToWrap, characterLimit, {ellipsis: '...'});
+        }
+
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
@@ -802,6 +825,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
+                                                shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
                                         {!!hintText && (
@@ -810,6 +834,7 @@ function MenuItem(
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
                                                 style={styles.menuItemError}
+                                                shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
                                     </View>

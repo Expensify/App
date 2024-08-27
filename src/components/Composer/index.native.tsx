@@ -1,4 +1,5 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
@@ -6,6 +7,7 @@ import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -49,6 +52,15 @@ function Composer(
     const StyleUtils = useStyleUtils();
     const [contextMenuHidden, setContextMenuHidden] = useState(!showSoftInputOnFocus);
 
+    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+
+    useEffect(() => {
+        if (autoFocus === !!autoFocusInputRef.current) {
+            return;
+        }
+        inputCallbackRef(autoFocus ? textInput.current : null);
+    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
     /**
      * Set the TextInput Ref
      * @param {Element} el
@@ -58,6 +70,10 @@ function Composer(
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
+        }
+
+        if (autoFocus) {
+            inputCallbackRef(el);
         }
 
         // This callback prop is used by the parent component using the constructor to
@@ -81,9 +97,13 @@ function Composer(
             if (clipboardContent.type === 'text/plain') {
                 return;
             }
+            const mimeType = clipboardContent.type;
             const fileURI = clipboardContent.data;
-            const fileName = fileURI.split('/').pop();
-            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            const baseFileName = fileURI.split('/').pop() ?? 'file';
+            const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
+            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+            const fileName = `${stem}.${fileExtension}`;
+            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
             onPasteFile(file);
         },
         [onPasteFile],

@@ -664,4 +664,12 @@ export default {
     rowGap4: {
         rowGap: 16,
     },
+
+    minHeight5: {
+        minHeight: 20,
+    },
+
+    minHeight65: {
+        minHeight: 260,
+    },
 } satisfies Record<string, ViewStyle>;
