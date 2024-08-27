@@ -83,7 +83,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
                 )}
 
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>{children}</View>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
             </View>
         </View>
     );
@@ -309,7 +309,6 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
-                    style={styles.ml2}
                 />
             )}
             <Button
