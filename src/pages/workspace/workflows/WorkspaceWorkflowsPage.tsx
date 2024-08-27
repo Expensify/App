@@ -62,7 +62,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policyApproverName = useMemo(() => PersonalDetailsUtils.getPersonalDetailByEmail(policyApproverEmail ?? '')?.displayName ?? policyApproverEmail, [policyApproverEmail]);
-    const approvalWorkflows = useMemo(
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 employees: policy?.employeeList ?? {},
@@ -111,10 +111,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
         Workflow.setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
-            availableMembers: approvalWorkflows.at(0)?.members ?? [],
+            availableMembers,
+            usedApproverEmails,
         });
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [approvalWorkflows, policy, route.params.policyID]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
