@@ -291,11 +291,6 @@ function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: Li
     }
 }
 
-function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
-    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
-}
-
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -601,7 +596,6 @@ export {
     getCurrentSearchParams,
     getFilters,
     getListItem,
-    getQueryHash,
     getSearchHeaderTitle,
     getSearchType,
     getSections,
