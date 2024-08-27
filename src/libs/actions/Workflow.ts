@@ -352,7 +352,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
     }
 
     if (!approvalWorkflow.approvers.length) {
-        errors['approver-0'] = 'common.error.fieldRequired';
+        errors.additionalApprover = 'common.error.fieldRequired';
     }
 
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {errors});
