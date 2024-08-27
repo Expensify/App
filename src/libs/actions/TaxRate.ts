@@ -493,6 +493,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === policy?.taxRates?.defaultExternalID ? newTaxCode : policy?.taxRates?.defaultExternalID,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
@@ -513,6 +514,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === policy?.taxRates?.defaultExternalID ? newTaxCode : policy?.taxRates?.defaultExternalID,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
@@ -533,6 +535,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: policy?.taxRates?.defaultExternalID,
                         taxes: {
                             [newTaxCode]: null,
                             [oldTaxCode]: {

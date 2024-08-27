@@ -18,6 +18,7 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
@@ -36,7 +37,7 @@ function ConfirmationStep({policyID}: ConfirmationStepProps) {
 
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
 
