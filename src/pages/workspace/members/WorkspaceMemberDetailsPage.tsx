@@ -22,7 +22,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,14 +75,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
 
-    const filteredCardList = useMemo(() => CardUtils.filterDeactivatedCards(cardsList), [cardsList]);
+    const memberCards = useMemo(() => {
+        if (!cardsList) {
+            return [];
+        }
+        return Object.values(cardsList).filter((card) => card.accountID === accountID);
+    }, [cardsList, accountID]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
-        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: displayName,
+            ownerName: policyOwnerDisplayName,
+        });
     }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
@@ -262,7 +269,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {filteredCardList.map((card) => (
+                                            {memberCards.map((card) => (
                                                 <MenuItem
                                                     title={card.nameValuePairs?.cardTitle}
                                                     badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit)}
