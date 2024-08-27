@@ -246,7 +246,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
-    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName(report);
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
