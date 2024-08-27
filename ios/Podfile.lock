@@ -20,11 +20,11 @@ PODS:
   - AirshipFrameworkProxy (7.1.2):
     - Airship (= 18.7.2)
   - AirshipServiceExtension (17.8.0)
-  - AppAuth (1.6.2):
-    - AppAuth/Core (= 1.6.2)
-    - AppAuth/ExternalUserAgent (= 1.6.2)
-  - AppAuth/Core (1.6.2)
-  - AppAuth/ExternalUserAgent (1.6.2):
+  - AppAuth (1.7.5):
+    - AppAuth/Core (= 1.7.5)
+    - AppAuth/ExternalUserAgent (= 1.7.5)
+  - AppAuth/Core (1.7.5)
+  - AppAuth/ExternalUserAgent (1.7.5):
     - AppAuth/Core
   - boost (1.84.0)
   - BVLinearGradient (2.8.1):
@@ -1525,8 +1525,6 @@ PODS:
     - React-debug
   - React-microtasksnativemodule (0.75.2):
     - DoubleConversion
-  - react-native-airship (19.2.1):
-    - AirshipFrameworkProxy (= 7.1.2)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -1546,8 +1544,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (17.2.1):
-    - AirshipFrameworkProxy (= 5.1.1)
+  - react-native-airship (19.2.1):
+    - AirshipFrameworkProxy (= 7.1.2)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3058,8 +3056,8 @@ SPEC CHECKSUMS:
   Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
   AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
   AirshipServiceExtension: 0a5fb14c3fd1879355ab05a81d10f64512a4f79c
-  AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
-  boost: d3f49c53809116a5d38da093a8aa78bf551aed09
+  AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
+  boost: 26992d1adf73c1c7676360643e687aee6dda994b
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: 62e66b067185d630fe4cb4aa6eb0e48f72e67e0f
@@ -3104,31 +3102,39 @@ SPEC CHECKSUMS:
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
-  RCTRequired: ab7f915c15569f04a49669e573e6e319a53f9faa
-  RCTTypeSafety: 63b97ced7b766865057e7154db0e81ce4ee6cf1e
-  React: 1c87497e50fa40ba9c54e5ea5e53483a0f8eecc0
-  React-callinvoker: e3a52a9a93e3eb004d7282c26a4fb27003273fe6
-  React-Codegen: 05f85e0e087f402978cfe57822a8debc07127a13
-  React-Core: d0ecde72894b792cb8922efaa0990199cbe85169
-  React-CoreModules: 2ff1684dd517f0c441495d90a704d499f05e9d0a
-  React-cxxreact: d9be2fac926741052395da0a6d0bab8d71e2f297
-  React-debug: 4678e73a37cb501d784e99ff0f219b4940362a3b
-  React-Fabric: 460ee9d4b8b9de3382504a711430bfead1d5be1e
-  React-FabricImage: d0a0631bc8ad9143f42bfccf9d3d533a144cc3d6
-  React-graphics: f0d5040263a9649e2a70ebe27b3120c49411afef
-  React-hermes: b9ac2f7b0c1eeb206eb883583cab7a973d570a6e
-  React-ImageManager: 6c4bf9d5ed363ead7b5aaf820a3feab221b7063e
-  React-jserrorhandler: 6e7a7e187583e14dc7a0053a2bdd66c252ea3b21
-  React-jsi: 380cd24dd81a705dd042c18989fb10b07182210c
-  React-jsiexecutor: 8ed7a18b9f119440efdcd424c8257dc7e18067e2
-  React-jsinspector: 9ac353eccf6ab54d1e0a33862ba91221d1e88460
-  React-jsitracing: e8a2dafb9878dbcad02b6b2b88e66267fb427b74
-  React-logger: 0a57b68dd2aec7ff738195f081f0520724b35dab
-  React-Mapbuffer: 63913773ed7f96b814a2521e13e6d010282096ad
-  react-native-airship: 99a78474688e1aea78f449ee46a1a3cb24876617
-  react-native-blob-util: 1ddace5234c62e3e6e4e154d305ad07ef686599b
-  react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
+  RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
+  RCTDeprecation: 34cbf122b623037ea9facad2e92e53434c5c7422
+  RCTRequired: 24c446d7bcd0f517d516b6265d8df04dc3eb1219
+  RCTTypeSafety: ef5e91bd791abd3a99b2c75fd565791102a66352
+  React: 643f06bc294806d2db2526b424fdf759e107f514
+  React-callinvoker: 34d1fa0c340104f324e2521f546196beb44dfad2
+  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
+  React-Core: facd883836d8d1cc1949d2053c58eab5fb22eb75
+  React-CoreModules: f92a2cb11d22f6066823ca547c61e900325dfe44
+  React-cxxreact: f5595a4cbfe5a4e9d401dffa2c1c78bbbbbe75e4
+  React-debug: 4a91c177b5b2efcc546fb50bc2f676f3f589efab
+  React-defaultsnativemodule: 6b666572abf5fe7fe87836a42776abd6ad5ed173
+  React-domnativemodule: 785d767c4edbb9f011b8c976271077759ca5c4aa
+  React-Fabric: a33cc1fdc62a3085774783bb30970531589d2028
+  React-FabricComponents: 98de5f94cbd35d407f4fc78855298b562d8289cb
+  React-FabricImage: 0ce8fd83844d9edef5825116d38f0e208b9ad786
+  React-featureflags: 37a78859ad71db758e2efdcbdb7384afefa8701e
+  React-featureflagsnativemodule: f94aacb52c463e200ee185bff90ae3b392e60263
+  React-graphics: c16f1bab97a5d473831a79360d84300e93a614e5
+  React-hermes: 7801f8c0e12f326524b461dc368d3e74f3d2a385
+  React-idlecallbacksnativemodule: d81bb7b5d26cea9852a8edc6ad1979cd7ed0841f
+  React-ImageManager: 98a1e5b0b05528dde47ebcd953d916ac66d46c09
+  React-jserrorhandler: 08f1c3465a71a6549c27ad82809ce145ad52d4f1
+  React-jsi: 161428ab2c706d5fcd9878d260ff1513fdb356ab
+  React-jsiexecutor: abfdc7526151c6755f836235bbaa53b267a0803c
+  React-jsinspector: f0786053a1a258a4d8dde859d1a820c26ee686f0
+  React-jsitracing: 52b849a77d02e2dc262a3031454c23be8dabb4d9
+  React-logger: 8db32983d75dc2ad54f278f344ccb9b256e694fc
+  React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
+  React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
+  react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
+  react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
+  react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 2789e41dc92aa3256455aa54639a42f4dc4ee824
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
@@ -3202,7 +3208,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
+  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
 
 PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
 
