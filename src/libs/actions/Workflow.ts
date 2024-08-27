@@ -1,6 +1,6 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import lodashMapKeys from 'lodash/mapKeys';
-import type {OnyxCollection, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
@@ -282,10 +282,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
-            ...additionalApprover,
-            isInMultipleWorkflows: true,
-        }));
+        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
@@ -327,7 +324,7 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
-function setApprovalWorkflow(approvalWorkflow: OnyxMergeInput<typeof ONYXKEYS.APPROVAL_WORKFLOW>) {
+function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 

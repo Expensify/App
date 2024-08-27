@@ -135,7 +135,8 @@ function MoneyRequestPreviewContent({
 
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
-    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
+    // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
+    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
@@ -192,9 +193,10 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations)?.sort((a) =>
-                a.type === CONST.VIOLATION_TYPES.VIOLATION ? -1 : 0,
-            );
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
+            if (shouldShowHoldMessage) {
+                return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
+            }
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
@@ -214,9 +216,6 @@ function MoneyRequestPreviewContent({
                     message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
                 }
                 return message;
-            }
-            if (shouldShowHoldMessage) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('violations.reviewRequired')}`;
