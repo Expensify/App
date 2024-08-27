@@ -72,3 +72,6 @@ export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDesc
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';
+export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
+export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
+export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
