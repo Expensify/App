@@ -10,7 +10,6 @@ import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
 
 function AssignCardFeedPage({policy}: WithPolicyAndFullscreenLoadingProps) {
-    const policyID = policy?.id ?? '-1';
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
 
@@ -24,7 +23,6 @@ function AssignCardFeedPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
             return <ConfirmationStep />;
         default:
-            return <ConfirmationStep />;
             return <AssigneeStep policy={policy} />;
     }
 

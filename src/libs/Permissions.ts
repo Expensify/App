@@ -4,7 +4,6 @@ import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return true;
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 

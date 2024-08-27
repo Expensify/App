@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -18,6 +17,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,11 +42,17 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const selectMember = (assignee: ListItem) => {
-        console.log(assignee);
-        setSelectedMember(assignee.login);
+        setSelectedMember(assignee.login ?? '');
     };
 
-    const submit = () => {};
+    const submit = () => {
+        CompanyCards.setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.CARD,
+            data: {
+                email: selectedMember,
+            },
+        });
+    };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -88,7 +94,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
-        membersList = OptionsListUtils.sortItemsAlphabetically(membersList);
+        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
 
         return membersList;
     }, [isOffline, policy?.employeeList, selectedMember]);

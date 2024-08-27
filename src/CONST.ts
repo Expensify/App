@@ -2324,6 +2324,10 @@ const CONST = {
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
         },
+        TRANSACTION_START_DATE_OPTIONS: {
+            FROM_BEGINNING: 'fromBeginning',
+            CUSTOM: 'custom',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,

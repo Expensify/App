@@ -6,8 +6,11 @@ type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
 /** Data required to be sent to issue a new card */
 type AssignCardData = {
-    /** The email address of the cardholder */
-    assigneeEmail: string;
+    /** The email address of the asignee */
+    email: string;
+
+    /** Number of the selected card */
+    cardNumber: string;
 };
 
 /** Model of assign card flow */
@@ -16,7 +19,7 @@ type AssignCard = {
     currentStep: AssignCardStep;
 
     /** Data required to be sent to assign a card */
-    data: AssignCardData;
+    data: Partial<AssignCardData>;
 
     /** Whether the user is editing step */
     isEditing: boolean;
