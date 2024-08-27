@@ -61,7 +61,7 @@ function ImportSpreeadsheetColumns({
 
     return (
         <>
-            <ScrollView style={styles.mh5}>
+            <ScrollView>
                 <View>
                     <RenderHTML html={Parser.replace(headerText)} />
 
