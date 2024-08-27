@@ -2544,6 +2544,7 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     shouldUseBoldText,
+    getAlternateText,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
