@@ -487,7 +487,13 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+            }
+        }
+        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
