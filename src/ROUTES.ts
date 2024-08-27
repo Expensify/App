@@ -936,6 +936,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
+    WORKSPACE_COMPANY_CARDS_ADD_NEW: {
+        route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_TYPE: {
+        route: 'settings/workspaces/:policyID/company-cards/type',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/type` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_INSTRUCTIONS: {
+        route: 'settings/workspaces/:policyID/company-cards/instructions',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/instructions` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_NAME: {
+        route: 'settings/workspaces/:policyID/company-cards/name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_DETAILS: {
+        route: 'settings/workspaces/:policyID/company-cards/details',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/details` as const,
+    },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
