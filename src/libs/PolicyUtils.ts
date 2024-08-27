@@ -300,7 +300,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
-        for (const tag of Object.values(policyTagList.tags)) {
+        for (const tag of Object.values(policyTagList.tags ?? {})) {
             uniqueTagNames.add(getCleanedTagName(tag.name));
         }
     }

@@ -8,52 +8,52 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUtils';
+import {getChatStatusTranslationKey} from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-function SearchFiltersExpenseTypePage() {
+function SearchFiltersIsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedExpenseTypes = searchAdvancedFiltersForm?.expenseType?.map((expenseType) => {
-        const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
-        return {name: expenseTypeName, value: expenseType};
+    const selectedChatStatuses = searchAdvancedFiltersForm?.is?.map((chatStatus) => {
+        const chatStatusName = translate(getChatStatusTranslationKey(chatStatus as ValueOf<typeof CONST.SEARCH.CHAT_STATUS>));
+        return {name: chatStatusName, value: chatStatus};
     });
-    const allExpenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const allChatStatuses = Object.values(CONST.SEARCH.CHAT_STATUS);
 
-    const expenseTypesItems = useMemo(() => {
-        return allExpenseTypes.map((expenseType) => {
-            const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType));
-            return {name: expenseTypeName, value: expenseType};
+    const chatStatusItems = useMemo(() => {
+        return allChatStatuses.map((chatStatus) => {
+            const chatStatusName = translate(getChatStatusTranslationKey(chatStatus));
+            return {name: chatStatusName, value: chatStatus};
         });
-    }, [allExpenseTypes, translate]);
+    }, [allChatStatuses, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({expenseType: values}), []);
+    const updateChatIsFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({is: values}), []);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersExpenseTypePage.displayName}
+            testID={SearchFiltersIsPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.expenseType')}
+                title={translate('search.filters.is')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.expenseType')}
-                    items={expenseTypesItems}
-                    initiallySelectedItems={selectedExpenseTypes}
-                    onSaveSelection={updateExpenseTypeFilter}
+                    pickerTitle={translate('search.filters.is')}
+                    items={chatStatusItems}
+                    initiallySelectedItems={selectedChatStatuses}
+                    onSaveSelection={updateChatIsFilter}
                     shouldShowTextInput={false}
                 />
             </View>
@@ -61,6 +61,6 @@ function SearchFiltersExpenseTypePage() {
     );
 }
 
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
+SearchFiltersIsPage.displayName = 'SearchFiltersIsPage';
 
-export default SearchFiltersExpenseTypePage;
+export default SearchFiltersIsPage;

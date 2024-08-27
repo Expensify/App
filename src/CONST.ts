@@ -5206,12 +5206,17 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
             DONE: 'done',
             PAID: 'paid',
+        },
+        CHAT_STATUS: {
+            UNREAD: 'unread',
+            PINNED: 'pinned',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
@@ -5301,6 +5306,7 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            IS: 'is',
         },
     },
 

@@ -3814,6 +3814,9 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
+            is: 'Está',
+            pinned: 'Fijado',
+            unread: 'No leído',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,

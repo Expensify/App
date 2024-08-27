@@ -482,6 +482,16 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (chatStatus) {
+        case CONST.SEARCH.CHAT_STATUS.PINNED:
+            return 'search.filters.pinned';
+        case CONST.SEARCH.CHAT_STATUS.UNREAD:
+            return 'search.filters.unread';
+    }
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -613,4 +623,5 @@ export {
     normalizeQuery,
     shouldShowYear,
     getExpenseTypeTranslationKey,
+    getChatStatusTranslationKey,
 };
