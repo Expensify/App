@@ -130,9 +130,11 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 );
                 return;
             }
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
-            const query = activeWorkspaceID ? `${CONST.SEARCH.TAB.EXPENSE.ALL} policyID:${activeWorkspaceID}` : CONST.SEARCH.TAB.EXPENSE.ALL;
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+            // Fixme add policyID
+            // const query = activeWorkspaceID ? `${CONST.SEARCH.TAB.EXPENSE.ALL} policyID:${activeWorkspaceID}` : CONST.SEARCH.TAB.EXPENSE.ALL;
+            // Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         });
     }, [activeWorkspaceID, selectedTab]);
 

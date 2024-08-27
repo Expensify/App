@@ -85,7 +85,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL});
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()});
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);

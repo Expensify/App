@@ -14,11 +14,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import SearchStatusMenu from './SearchStatusMenu';
+import SearchTypeMenu from './SearchTypeMenu';
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -43,7 +42,7 @@ function SearchPageBottomTab() {
         };
     }, [activeCentralPaneRoute]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
     return (
         <ScreenWrapper
@@ -63,7 +62,7 @@ function SearchPageBottomTab() {
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
-                        <SearchStatusMenu
+                        <SearchTypeMenu
                             isCustomQuery={isCustomQuery}
                             queryJSON={queryJSON}
                         />

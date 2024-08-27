@@ -702,6 +702,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
     };
+    [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
