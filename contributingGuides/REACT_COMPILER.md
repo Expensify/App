@@ -16,8 +16,7 @@ If the CI check fails for your PR, you need to fix the problem. If you're unsure
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
-You can run a dedicated script: `react-compiler-healthcheck-test` and examine the output.  
-This command will list the files that failed to compile with details on what caused the failures. It will then save this output to `./react-compiler-output.txt` file. Read and examine the output to find what specific error the react-compiler throws.
+You can run a dedicated script: `react-compiler-healthcheck-test` and examine the output. This command will list the files that failed to compile with details on what caused the failures. It will then save this output to `./react-compiler-output.txt` file. Read and examine the output to find what specific error the react-compiler throws.
 
 ```bash
 npm run react-compiler-healthcheck-test
@@ -40,13 +39,15 @@ If you encounter this error, you need to add the `Ref` postfix to the variable n
 
 If you added a modification to `SharedValue`, you'll likely encounter this error. You can ignore this error for now because the current `react-native-reanimated` API is not compatible with `react-compiler` rules. Once [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) is merged, we'll rewrite the code to be compatible with `react-compiler`. Until then, you can ignore this error.
 
-### `Existing manual memoization could not be preserved. [...]`
-These types of errors usually occur when the calls to `useMemo` that were made manually are to complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
+### Existing manual memoization could not be preserved. [...]
+These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
 
-One of the cases can be:  
-`The inferred dependencies did not match the manually specified dependencies`
+Some specific cases of this error are described below.
 
-This usually happens when a dependency used inside a hook is omitted. Try including the missing dependencies.  
+#### The inferred dependencies did not match the manually specified dependencies
+
+This usually happens when a dependency used inside a hook is omitted. Try including the missing dependencies.
+
 Please be aware that `react-compiler` struggles with memoization of nested fields, i. e.:
 
 ```ts
@@ -60,10 +61,9 @@ const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => i
 // which is great because it reduces the amount of the duplicated code
 ```
 
-Another case is:  
-`This value may be mutated later, which could cause the value to change unexpectedly`
+#### This value may be mutated later, which could cause the value to change unexpectedly
 
-This usually happens when a value return from `useMemo` is later passed to some other function, and react-compiler doesn't know if the value will stay stable or be mutated.
+This usually happens when a value return from `useMemo` is later passed to some other function, and `react-compiler` doesn't know if the value will stay stable or be mutated.
 
 ```ts
 // ❌ such code triggers the error
