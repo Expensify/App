@@ -19,7 +19,7 @@ const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles, gestureDirection:
         webOnly: {
             cardStyle: themeStyles.navigationScreenCardStyle,
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            // TODO: Fix web/native only additional types
+            // @ts-expect-error TODO: Fix web/native exclusive navigation options
             gestureDirection: webGestureDirection,
         },
     };

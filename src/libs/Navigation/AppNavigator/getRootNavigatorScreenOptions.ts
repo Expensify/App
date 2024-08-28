@@ -96,7 +96,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         fullScreen: {
             ...commonScreenOptions,
-            animation: 'slide_from_right',
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animation: isSmallScreenWidth ? 'slide_from_right' : 'none',
             webOnly: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
                 cardStyle: {
@@ -106,9 +107,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                     marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
                 },
             },
-
-            // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animationEnabled: isSmallScreenWidth,
         },
 
         centralPaneNavigator: {
