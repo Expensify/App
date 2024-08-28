@@ -1972,6 +1972,7 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
+            reportOption.isBold = shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
                 const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
@@ -1991,13 +1992,14 @@ function getOptions(
 
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
     // Next loop over all personal details removing any that are selectedUsers or recentChats
-    allPersonalDetailsOptions.forEach((personalDetailOption) => {
+    for (const personalDetailOption of allPersonalDetailsOptions) {
         if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
-            return;
+            continue;
         }
+        personalDetailOption.isBold = shouldUseBoldText(personalDetailOption);
 
         personalDetailsOptions.push(personalDetailOption);
-    });
+    }
 
     const currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
 
