@@ -179,6 +179,27 @@ type Attendee = {
 
     /** IOU attendee avatar url */
     avatarUrl?: string;
+
+    /** Account ID */
+    accountID?: number;
+
+    /** Text to be displayed in lists (participant display name) */
+    text?: string;
+
+    /** IOU attendee login */
+    login?: string;
+
+    /** Text that IOU attendee display name and login, if available, for searching purposes */
+    searchText?: string;
+
+    /** Is IOU attendee selected in list */
+    selected?: boolean;
+
+    /** The type of IOU report, i.e. split, request, send, track */
+    iouType?: IOUType;
+
+    /** IOU attendee report ID */
+    reportID?: string;
 };
 
 export default IOU;

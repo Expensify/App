@@ -307,7 +307,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         amount: number;
 
         /** Selected attendees */
-        attendees: Attendee[];
+        attendees?: Attendee[];
 
         /** The transaction tax amount */
         taxAmount?: number;

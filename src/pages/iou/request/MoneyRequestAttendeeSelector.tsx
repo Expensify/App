@@ -209,15 +209,10 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     return true;
                 }
 
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
-                    return true;
-                }
-
                 return false;
             };
             const isOptionInList = attendees.some(isOptionSelected);
             let newSelectedOptions: Attendee[];
-            console.log('LOG: ', option);
 
             if (isOptionInList) {
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
@@ -227,8 +222,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     {
                         accountID: option.accountID,
                         login: option.login ?? option.text,
-                        isPolicyExpenseChat: option.isPolicyExpenseChat,
-                        reportID: option.reportID,
                         selected: true,
                         searchText: option.searchText,
                         iouType,
@@ -320,7 +313,4 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
 
 MoneyRequestAttendeeSelector.displayName = 'MoneyRequestAttendeeSelector';
 
-export default memo(
-    MoneyRequestAttendeeSelector,
-    (prevProps, nextProps) => lodashIsEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);
