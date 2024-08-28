@@ -80,7 +80,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
                 <MenuItem
                     title={menuItemTitle}
                     description={description}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(partnerUserID, navigateBackTo))}
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon

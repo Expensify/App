@@ -124,16 +124,14 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports.map((report) => {
-                    return {...report, isBold: OptionsListUtils.shouldUseBoldText(report)};
-                }),
+                data: recentReports,
                 shouldShow: true,
             });
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
-                data: localPersonalDetails.map((personalDetail) => ({...personalDetail, isBold: false})),
+                data: localPersonalDetails,
                 shouldShow: true,
             });
         }

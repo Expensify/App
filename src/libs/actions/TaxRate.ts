@@ -498,7 +498,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                             [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
-                                pendingFields: {code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingFields: {...originalTaxRate.pendingFields, code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
@@ -520,7 +520,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
                             },
@@ -541,7 +541,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                             [oldTaxCode]: {
                                 ...originalTaxRate,
                                 code: originalTaxRate.code,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },

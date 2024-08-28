@@ -65,7 +65,7 @@ function ButtonWithDropdownMenu<IValueType>({
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
-                    horizontal: x + w + h,
+                    horizontal: x + w,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
