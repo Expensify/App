@@ -3669,6 +3669,7 @@ export default {
                     never: 'Never require receipts',
                     always: 'Always require receipts',
                 },
+                defaultTaxRate: 'Default tax rate',
             },
         },
     },
