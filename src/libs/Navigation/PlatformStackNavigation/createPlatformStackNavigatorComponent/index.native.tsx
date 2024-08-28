@@ -61,7 +61,10 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             [state, navigation, descriptors],
         );
 
-        const {stateToRender, searchRoute} = transformState?.({...customCodeProps, styles, windowDimensions}) ?? {stateToRender: state, undefined};
+        const {stateToRender, searchRoute} = useMemo(
+            () => transformState?.({...customCodeProps, styles, windowDimensions}) ?? {stateToRender: state, searchRoute: undefined},
+            [customCodeProps, state, styles, windowDimensions],
+        );
 
         const customCodePropsWithTransformedState = useMemo<
             CustomCodePropsWithTransformedState<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>
@@ -96,7 +99,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
         useEffect(() => {
             onIsSmallScreenWidthChange?.({...customCodePropsWithTransformedState, windowDimensions});
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, [windowDimensions.isSmallScreenWidth]);
 
         // eslint-disable-next-line react/jsx-props-no-spreading
