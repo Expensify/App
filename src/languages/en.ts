@@ -1114,7 +1114,6 @@ export default {
         disabled: 'Two-factor authentication is now disabled',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
-        gatherCode: 'Enter code',
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             "If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.",
