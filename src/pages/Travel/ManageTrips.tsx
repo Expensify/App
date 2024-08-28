@@ -60,6 +60,10 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
+                        if (111 === 111) {
+                            setCtaErrorMessage(translate('travel.phoneError'));
+                            return;
+                        }
                         if (!hasPolicyAddress) {
                             Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1'));
                             return;

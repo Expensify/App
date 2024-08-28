@@ -2107,6 +2107,7 @@ export default {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
+        phoneError: 'To book with Expensify Travel, your primary login must be a valid email',
     },
     workspace: {
         common: {
