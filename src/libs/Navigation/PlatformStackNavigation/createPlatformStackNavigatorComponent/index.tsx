@@ -61,7 +61,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             [state, navigation, descriptors],
         );
 
-        // TODO: memoize this
         const {stateToRender, searchRoute} = useMemo(
             () => transformState?.({...customCodeProps, styles, windowDimensions}) ?? {stateToRender: state, searchRoute: undefined},
             [customCodeProps, state, styles, windowDimensions],
