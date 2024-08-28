@@ -828,7 +828,6 @@ export default {
             receiptFailureMessage: 'El recibo no se subió.',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             saveFileMessage: 'Guarda el archivo ',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             loseFileMessage: 'o descarta este error y piérdelo.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
