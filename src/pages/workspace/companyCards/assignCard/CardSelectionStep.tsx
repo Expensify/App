@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +35,7 @@ function CardSelectionStep() {
     const styles = useThemeStyles();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [lastSelectedFeed] = useOnyx('lastSelectedFeed_1234');
+    const [cardSelected, setCardSelected] = useState('');
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
@@ -43,6 +47,21 @@ function CardSelectionStep() {
     const submit = () => {
         CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
+
+    const cardListOptions = mockedCardList.map((item) => ({
+        keyForList: item.key,
+        value: item.cardNumber,
+        text: item.cardNumber,
+        isSelected: cardSelected === item.cardNumber,
+        leftElement: (
+            <Icon
+                src={CardUtils.getCardFeedIcon('cdf')}
+                height={variables.iconSizeExtraLarge}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={styles.mr3}
+            />
+        ),
+    }));
 
     return (
         <InteractiveStepWrapper
@@ -60,9 +79,9 @@ function CardSelectionStep() {
                 })}
             </Text>
             <SelectionList
-                sections={[{data: mockedCardList}]}
+                sections={[{data: cardListOptions}]}
                 ListItem={RadioListItem}
-                onSelectRow={() => {}}
+                onSelectRow={({value}) => setCardSelected(value)}
                 shouldUpdateFocusedIndex
             />
             <Button

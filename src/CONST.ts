@@ -2285,6 +2285,17 @@ const CONST = {
             VISA: 'vcf',
             AMEX: 'gl1025',
         },
+        STEP_NAMES: ['1', '2', '3', '4'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD: 'Card',
+            TRANSACTION_START_DATE: 'TransactionStartDate',
+            CONFIRMATION: 'Confirmation',
+        },
+        TRANSACTION_START_DATE_OPTIONS: {
+            FROM_BEGINNING: 'fromBeginning',
+            CUSTOM: 'custom',
+        },
     },
     EXPENSIFY_CARD: {
         BANK: 'Expensify Card',
@@ -2325,19 +2336,6 @@ const CONST = {
             MONTHLY: 'monthly',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
-    },
-    COMPANY_CARD: {
-        STEP_NAMES: ['1', '2', '3', '4'],
-        STEP: {
-            ASSIGNEE: 'Assignee',
-            CARD: 'Card',
-            TRANSACTION_START_DATE: 'TransactionStartDate',
-            CONFIRMATION: 'Confirmation',
-        },
-        TRANSACTION_START_DATE_OPTIONS: {
-            FROM_BEGINNING: 'fromBeginning',
-            CUSTOM: 'custom',
-        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
