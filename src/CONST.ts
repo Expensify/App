@@ -5297,6 +5297,7 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            POLICY_ID: 'policyID',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
