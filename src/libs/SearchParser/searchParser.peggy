@@ -21,7 +21,6 @@
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator
 // whitespace: rule to match whitespaces
 
-
 // global initializer (code executed only once)
 {{
   function buildFilter(operator, left, right) {
