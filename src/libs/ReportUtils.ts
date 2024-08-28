@@ -3658,7 +3658,7 @@ function getReportName(
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
-        if (reportNameFromCache && reportNameFromCache.reportName === report?.reportName) {
+        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
             return reportNameFromCache.reportName;
         }
     }
