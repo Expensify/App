@@ -1510,7 +1510,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
-        /** Whether the reules feature is enabled */
+        /** Whether the rules feature is enabled */
         areRulesEnabled?: boolean;
 
         /** Whether the Report Fields feature is enabled */
@@ -1527,6 +1527,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
+
+        /** Whether the eReceipts are enabled */
+        eReceipts?: boolean;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
