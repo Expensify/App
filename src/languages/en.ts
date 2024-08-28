@@ -2753,6 +2753,7 @@ export default {
         companyCards: {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
+            assignCard: 'Assign card',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',

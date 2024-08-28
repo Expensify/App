@@ -21,9 +21,12 @@ type WorkspaceCompanyCardsListProps = {
 
     /** List of company cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
+
+    /** Currently selected feed */
+    selectedFeed: string;
 };
 
-function WorkspaceCompanyCardsList({policyID, cardsList}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -81,7 +84,10 @@ function WorkspaceCompanyCardsList({policyID, cardsList}: WorkspaceCompanyCardsL
             shouldEnableMaxHeight
             testID={WorkspaceCompanyCardsList.displayName}
         >
-            <WorkspaceCompanyCardsListHeaderButtons policyID={policyID} />
+            <WorkspaceCompanyCardsListHeaderButtons
+                policyID={policyID}
+                selectedFeed={selectedFeed}
+            />
             <FlatList
                 data={sortedCards}
                 renderItem={renderItem}
