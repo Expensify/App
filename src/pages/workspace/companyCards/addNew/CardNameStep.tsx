@@ -20,9 +20,7 @@ function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-
-    const isEditing = issueNewCard?.isEditing;
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
@@ -35,7 +33,7 @@ function CardNameStep() {
         [translate],
     );
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
         CompanyCards.setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
             data: {
@@ -62,8 +60,8 @@ function CardNameStep() {
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whatBankIssuesCard')}</Text>
             <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
+                submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
@@ -75,7 +73,7 @@ function CardNameStep() {
                     label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
                     role={CONST.ROLE.PRESENTATION}
                     // TODO: default value for card name
-                    defaultValue={issueNewCard?.data?.cardTitle}
+                    defaultValue={addNewCard?.data?.cardTitle}
                     containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}
                 />
