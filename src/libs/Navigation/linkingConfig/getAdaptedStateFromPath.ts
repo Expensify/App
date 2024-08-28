@@ -8,6 +8,7 @@ import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRo
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +16,6 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config, {normalizedConfigs} from './config';
-import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
@@ -26,6 +26,9 @@ const RHP_SCREENS_OPENED_FROM_LHN = [
     SCREENS.SETTINGS.PROFILE.STATUS,
     SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE,
     SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.SETTINGS.EXIT_SURVEY.REASON,
+    SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE,
+    SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM,
 ] satisfies Screen[];
 
 type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
@@ -121,11 +124,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-                if (isRHPinState) {
-                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
-                }
+                return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
             }
 
             // If we know that backTo targets the root route (central pane or full screen) we want to use it.
@@ -380,10 +379,11 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
         throw new Error('Unable to parse path');
     }
 
-    // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
-    const policyIDs = extractPolicyIDsFromState(state);
+    // On SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently inside search query ("q" param), so we're handling this case
+    const focusedRoute = findFocusedRoute(state);
+    const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
 
-    return getAdaptedState(state, policyID ?? policyIDs);
+    return getAdaptedState(state, policyID ?? policyIDFromQuery);
 };
 
 export default getAdaptedStateFromPath;
