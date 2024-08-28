@@ -81,20 +81,20 @@ jest.mock('@src/libs/actions/Timing', () => ({
 }));
 
 // This makes FlatList render synchronously for easier testing.
-jest.mock(
-    '@react-native/virtualized-lists/Interaction/Batchinator',
-    () =>
-        class SyncBachinator {
-            #callback: () => void;
+// jest.mock(
+//     '@react-native/virtualized-lists/Interaction/Batchinator',
+//     () =>
+//         class SyncBachinator {
+//             #callback: () => void;
 
-            constructor(callback: () => void) {
-                this.#callback = callback;
-            }
+//             constructor(callback: () => void) {
+//                 this.#callback = callback;
+//             }
 
-            schedule() {
-                this.#callback();
-            }
+//             schedule() {
+//                 this.#callback();
+//             }
 
-            dispose() {}
-        },
-);
+//             dispose() {}
+//         },
+// );
