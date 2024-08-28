@@ -75,7 +75,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const reportParticipants = report?.participants;
 
     /** Include the search bar when there are 8 or more active members in the selection list */
-    const shouldShowTextInput = () => {
+    const getShouldShowTextInput = () => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = chatParticipants.filter((accountID) => {
             const pendingMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
@@ -88,7 +88,9 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
     };
 
-    const participants = () => {
+    const shouldShowTextInput = getShouldShowTextInput();
+
+    const getParticipants = () => {
         let result: MemberOption[] = [];
 
         chatParticipants.forEach((accountID) => {
@@ -134,6 +136,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     };
+
+    const participants = getParticipants();
 
     /**
      * Add user from the selectedMembers list
