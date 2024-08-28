@@ -94,7 +94,6 @@ function ReportFieldsListValuesPage({
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues[index] ?? true,
-                pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
                 rightElement: (
                     <ListItemRightCaretWithLabel
                         shouldShowCaret={false}
@@ -104,7 +103,7 @@ function ReportFieldsListValuesPage({
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, canSelectMultiple, translate]);
+    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -117,9 +116,9 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const isAllSelected = listValues.length === Object.keys(selectedValues).length;
+        const areAllSelected = listValues.length === selectedValuesArray.length;
 
-        setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(areAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -177,7 +176,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if ((isSmallScreenWidth && selectionMode?.isEnabled) ?? selectedValuesArray.length > 0) {
+        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -322,7 +321,7 @@ function ReportFieldsListValuesPage({
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}

@@ -221,9 +221,7 @@ function MoneyRequestConfirmationListFooter({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    // A flag for showing the tags field
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {

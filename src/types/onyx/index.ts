@@ -1,6 +1,6 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
-import type ApprovalWorkflow from './ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -10,6 +10,7 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type CardFeeds from './CardFeeds';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -217,7 +218,8 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
-    ApprovalWorkflow,
+    ApprovalWorkflowOnyx,
     MobileSelectionMode,
     WorkspaceTooltip,
+    CardFeeds,
 };
