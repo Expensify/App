@@ -278,10 +278,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     <Button
                         medium
                         success
-                        onPress={() => {
-                            SearchInputManager.searchInput = '';
-                            inviteUser();
-                        }}
+                        onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
