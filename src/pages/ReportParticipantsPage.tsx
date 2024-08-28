@@ -69,13 +69,16 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         setSelectedMembers([]);
     }, [isFocused]);
 
-    const chatParticipants = useMemo(() => ReportUtils.getParticipantsList(report, personalDetails), [report, personalDetails]);
+    const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
+
+    const pendingChatMembers = report?.pendingChatMembers;
+    const reportParticipants = report?.participants;
 
     /** Include the search bar when there are 8 or more active members in the selection list */
-    const shouldShowTextInput = useMemo(() => {
+    const shouldShowTextInput = () => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = chatParticipants.filter((accountID) => {
-            const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const pendingMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             if (!personalDetails?.[accountID]) {
                 return false;
             }
@@ -83,13 +86,13 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
-    }, [chatParticipants, personalDetails, isOffline, report]);
+    };
 
-    const participants = useMemo(() => {
+    const participants = () => {
         let result: MemberOption[] = [];
 
         chatParticipants.forEach((accountID) => {
-            const role = report.participants?.[accountID].role;
+            const role = reportParticipants?.[accountID].role;
             const details = personalDetails?.[accountID];
 
             // If search value is provided, filter out members that don't match the search value
@@ -97,7 +100,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                 return;
             }
 
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
@@ -105,7 +108,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
-            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
+            const pendingAction = pendingChatMember?.pendingAction ?? reportParticipants?.[accountID]?.pendingAction;
 
             result.push({
                 keyForList: `${accountID}`,
@@ -130,7 +133,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [chatParticipants, searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
+    };
 
     /**
      * Add user from the selectedMembers list
