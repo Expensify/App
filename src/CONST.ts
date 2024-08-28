@@ -641,6 +641,9 @@ const CONST = {
         INBOX: 'inbox',
     },
 
+    EXPENSIFY_POLICY_DOMAIN: 'expensify-policy',
+    EXPENSIFY_POLICY_DOMAIN_EXTENSION: '.exfy',
+
     SIGN_IN_FORM_WIDTH: 300,
 
     REQUEST_CODE_DELAY: 30,
@@ -2275,6 +2278,13 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
+    },
+    COMPANY_CARD: {
+        FEED_BANK_NAME: {
+            MASTER_CARD: 'cdf',
+            VISA: 'vcf',
+            AMEX: 'gl1025',
+        },
     },
     EXPENSIFY_CARD: {
         BANK: 'Expensify Card',
@@ -5282,6 +5292,7 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
+            POLICY_ID: 'policyID',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
