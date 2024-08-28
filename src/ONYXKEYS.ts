@@ -402,6 +402,7 @@ const ONYXKEYS = {
 
     /** Stores the user search value for persistance across the screens */
     ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
+
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
