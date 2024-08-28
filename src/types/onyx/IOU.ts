@@ -183,6 +183,12 @@ type Attendee = {
     /** Account ID */
     accountID?: number;
 
+    /** Text to be displayed in lists (participant display name) */
+    text?: string;
+
+    /** IOU attendee login */
+    login?: string;
+
     /** Text that IOU attendee display name and login, if available, for searching purposes */
     searchText?: string;
 

@@ -221,6 +221,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     ...attendees,
                     {
                         accountID: option.accountID,
+                        login: option.login ?? option.text,
                         selected: true,
                         searchText: option.searchText,
                         iouType,
