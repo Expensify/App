@@ -133,7 +133,7 @@ function MoneyRequestPreviewContent({
     );
 
     // Remove settled transactions from duplicates
-    const duplicates = useMemo(() => TransactionUtils.removeSettledTransactions(allDuplicates), [allDuplicates]);
+    const duplicates = useMemo(() => TransactionUtils.removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = allDuplicates.length === duplicates.length;

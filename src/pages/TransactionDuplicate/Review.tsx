@@ -44,7 +44,7 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const hasSettledTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportApproved(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
@@ -55,7 +55,7 @@ function TransactionDuplicateReview() {
                         text={translate('iou.keepAll')}
                         onPress={keepAll}
                     />
-                    {!!hasSettledTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                    {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
                 <DuplicateTransactionsList transactions={transactions} />
             </FullPageNotFoundView>
