@@ -53,6 +53,7 @@ function DebugReportActionPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    reportID={reportID}
                                     data={reportAction ?? {}}
                                     onSave={(data) => {
                                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
