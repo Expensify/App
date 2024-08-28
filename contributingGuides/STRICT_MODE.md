@@ -30,7 +30,15 @@ Only use this flag for local development and testing, but do not make it dependi
  - every component will go through: `mount -> unmount -> mount` on first app render
  - any code running inside `useEffect(() => {...}, [])` that would be expected to run once on initial render, will run twice, this might include initial api calls
 
-sources:
+#### Example: How StrictMode Affects AuthScreen
+In AuthScreen, we have a typical pattern where certain logic is executed during mounting and unmounting, this is what happen after a refresh:
+- Mounting: it runs `ReconnectApp`.
+- Unmounting: AuthScreen cleans up data.
+- Re-mounting Due to StrictMode: This behavior will cause `OpenApp` to be executed on the new mount.
+
+Impact: This double execution could lead to unnecessary API calls or unexpected states.
+
+Sources:
  - [StrictMode docs](https://react.dev/reference/react/StrictMode)
  - [StrictMode recommended usage](https://react.dev/reference/react/StrictMode)
  - [Original PR introducing this feature](https://github.com/Expensify/App/pull/42592)
