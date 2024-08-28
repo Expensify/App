@@ -3658,7 +3658,7 @@ function getReportName(
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
-        if (reportNameFromCache && reportNameFromCache.reportName === report?.reportName) {
+        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
             return reportNameFromCache.reportName;
         }
     }
@@ -6307,6 +6307,11 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report
     if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
+        return false;
+    }
+
+    // Current user must be a manager or owner of this IOU
+    if (isIOUReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID) {
         return false;
     }
 
