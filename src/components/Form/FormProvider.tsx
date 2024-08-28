@@ -216,6 +216,8 @@ function FormProvider(
         onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
+    // Keep track of the focus state of the current screen. 
+    // This is used to prevent validating the form on blur in case the screen is not focused.
     const isFocusedRef = useRef(true);
 
     useFocusEffect(
@@ -344,6 +346,7 @@ function FormProvider(
                                 return;
                             }
                             setTouchedInput(inputID);
+                            // We don't validate the form on blur in case the current screen is not focused
                             if (shouldValidateOnBlur && isFocusedRef.current) {
                                 onValidate(inputValues, !hasServerError);
                             }
