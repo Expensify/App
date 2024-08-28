@@ -286,3 +286,6 @@ export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyComp
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
+export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
+export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
+export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';

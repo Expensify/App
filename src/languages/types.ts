@@ -120,6 +120,8 @@ type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: 
 
 type PayerOwesParams = {payer: string};
 
+type CompanyCardFeedNameParams = {feedName: string};
+
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
@@ -372,6 +374,7 @@ export type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,

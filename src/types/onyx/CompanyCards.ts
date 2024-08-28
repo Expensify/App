@@ -1,41 +1,34 @@
-/** Model of CompanyCard's Shared NVP record */
-// TODO update information here during implementation Add Company Card flow
-type CompanyCards = {
-    /** Company cards object */
-    companyCards: {
-        /** Company card info key */
-        cdfbmo: CompanyCardInfo;
-    };
-    /** Company cards nicknames */
-    companyCardNicknames: {
-        /** Company cards info key */
-        cdfbmo: string;
-    };
-};
-/**
- * Model of company card information
- */
-type CompanyCardInfo = {
-    /** Company card pending state */
+/** Card feed data */
+type CardFeedData = {
+    /** Whether any actions are pending */
     pending: boolean;
 
-    /** Company card asr state */
+    /** Determines if Automated Statement Reconciliation (ASR) is enabled for the cards */
     asrEnabled: boolean;
 
-    /** Company card force reimbursable value */
+    /** Specifies if the expenses on this card should be force reimbursable */
     forceReimbursable: string;
 
-    /** Company card liability type */
+    /** Defines the type of liability for the card */
     liabilityType: string;
 
-    /** Company card preferred policy */
+    /** Preferred policy */
     preferredPolicy: string;
 
-    /** Company card report title format */
+    /** Specifies the format for the report title related to this card */
     reportTitleFormat: string;
 
-    /** Company card statement period */
+    /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay: string;
 };
 
-export default CompanyCards;
+/** Card feeds model */
+type CardFeeds = {
+    /** Company cards feeds */
+    companyCards: Record<string, CardFeedData>;
+
+    /** User-friendly feed nicknames */
+    companyCardNicknames: Record<string, string>;
+};
+
+export default CardFeeds;
