@@ -73,11 +73,6 @@ function AccountSwitcher() {
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
 
-            // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
-            }
-
             const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
             const error = account?.delegatedAccess?.error;
 
@@ -88,6 +83,7 @@ function AccountSwitcher() {
                             setShouldShowOfflineError(true);
                             return;
                         }
+                        setShouldShowDelegatorMenu(false);
                         disconnect();
                     },
                     key: `${delegateEmail}-delegate`,
@@ -96,22 +92,21 @@ function AccountSwitcher() {
             ];
         }
 
-        const delegatorMenuItems: MenuItemProps[] = delegators
-            .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role, error}, index) => {
-                const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-                return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', role),
-                    onPress: () => {
-                        if (isOffline) {
-                            setShouldShowOfflineError(true);
-                            return;
-                        }
-                        connect(email);
-                    },
-                    key: `${email}-${index}`,
-                });
+        const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role, error}, index) => {
+            const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            return createBaseMenuItem(personalDetails, error, {
+                badgeText: translate('delegate.role', role),
+                onPress: () => {
+                    if (isOffline) {
+                        setShouldShowOfflineError(true);
+                        return;
+                    }
+                    setShouldShowDelegatorMenu(false);
+                    connect(email);
+                },
+                key: `${email}-${index}`,
             });
+        });
 
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
