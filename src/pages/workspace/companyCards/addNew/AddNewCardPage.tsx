@@ -13,7 +13,6 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const {currentStep} = addNewCardFeed ?? {};
-
     const policyID = policy?.id ?? '-1';
 
     switch (currentStep) {

@@ -33,9 +33,12 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const submit = () => {};
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME});
+        if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
+            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
+            return;
+        }
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
     };
-    // const renderedInputs =
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
@@ -127,7 +130,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
         }
     };
 
-    const titleByProvider = CompanyCardUtils.getTranslationKeyForNewFeedDetails(feedProvider);
+    const titleByProvider = CompanyCardUtils.getTranslationKeyForFeedDetails(feedProvider);
 
     return (
         <ScreenWrapper
