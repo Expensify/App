@@ -4090,7 +4090,6 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
 function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10);
-    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4299,7 +4298,6 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
  * @param enabled - whether auto-payment for the reports is enabled in the given policy
  */
 function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
-    const policy = getPolicy(policyID);
     const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
     const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
     const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
