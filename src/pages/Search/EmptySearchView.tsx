@@ -52,9 +52,9 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                         }}
                     >
-                        Book a demo
+                        {translate('travel.bookADemo')}
                     </TextLink>
-                    {' to learn more.'}
+                    {translate('travel.toLearnMore')}
                 </Text>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
                     {tripsFeatures.map(({translationKey, icon}) => (
