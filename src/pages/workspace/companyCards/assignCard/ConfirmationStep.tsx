@@ -26,7 +26,7 @@ function ConfirmationStep() {
     const submit = () => {};
 
     const editStep = (step: AssignCardStep) => {
-        console.log(step);
+        CompanyCards.setAssignCardStepAndData({currentStep: step, isEditing: true});
     };
 
     const handleBackButtonPress = () => {
@@ -49,19 +49,19 @@ function ConfirmationStep() {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardholder')}
-                    title=""
+                    title={data?.email}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title=""
+                    title={data?.cardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.startTransactionDate')}
-                    title=""
+                    title={data?.startDate}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
                 />

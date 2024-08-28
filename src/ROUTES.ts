@@ -936,8 +936,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'settings/workspaces/:policyID/company-cards/:bankName/assign-card',
-        getRoute: (policyID: string, bankName: string) => `settings/workspaces/${policyID}/company-cards/${bankName}/assign-card` as const,
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
+        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
     },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',

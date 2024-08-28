@@ -11,6 +11,15 @@ type AssignCardData = {
 
     /** Number of the selected card */
     cardNumber: string;
+
+    /** The name of the feed */
+    feed: string;
+
+    /** The name of the card */
+    cardName: string;
+
+    /** The transaction start date of the card */
+    startDate: Date;
 };
 
 /** Model of assign card flow */

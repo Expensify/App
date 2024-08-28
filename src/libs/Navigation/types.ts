@@ -1139,7 +1139,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
         policyID: string;
-        bankName: string;
+        feed: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;

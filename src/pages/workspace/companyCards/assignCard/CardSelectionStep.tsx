@@ -30,11 +30,14 @@ const mockedCardList = [
     },
 ];
 
-function CardSelectionStep() {
+type CardSelectionStepProps = {
+    feed: string;
+};
+
+function CardSelectionStep({feed}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [lastSelectedFeed] = useOnyx('lastSelectedFeed_1234');
     const [cardSelected, setCardSelected] = useState('');
 
     const isEditing = assignCard?.isEditing;
@@ -45,7 +48,10 @@ function CardSelectionStep() {
     };
 
     const submit = () => {
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        CompanyCards.setAssignCardStepAndData({
+            data: {cardName: cardSelected},
+            currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
+        });
     };
 
     const cardListOptions = mockedCardList.map((item) => ({
@@ -55,7 +61,7 @@ function CardSelectionStep() {
         isSelected: cardSelected === item.cardNumber,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon('cdf')}
+                src={CardUtils.getCardFeedIcon(feed)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
@@ -75,7 +81,7 @@ function CardSelectionStep() {
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                 {translate('workspace.companyCards.chooseCardFor', {
                     assignee: PersonalDetailsUtils.getPersonalDetailByEmail(assignee ?? '')?.displayName ?? '',
-                    feed: lastSelectedFeed ?? 'visa',
+                    feed: feed ?? 'visa',
                 })}
             </Text>
             <SelectionList
