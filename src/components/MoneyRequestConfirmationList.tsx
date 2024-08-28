@@ -212,7 +212,7 @@ function MoneyRequestConfirmationList({
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
-    const [mileageRatesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
+    const [mileageRatesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID || '-1'}`, {
         selector: (selectedPolicy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(selectedPolicy),
     });
     const mileageRates = isEmptyObject(mileageRatesReal) ? mileageRatesDraft : mileageRatesReal;
@@ -233,14 +233,15 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
+        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
             return;
         }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
+        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = canUseP2PDistanceRequests ? lastSelectedRate : defaultRate;
+        IOU.setCustomUnitRateID(transactionID, rateID);
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID, isDistanceRequest]);
 
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -527,33 +528,35 @@ function MoneyRequestConfirmationList({
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
 
-        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
-            ...participantOption,
-            tabIndex: -1,
-            isSelected: false,
-            isInteractive: !shouldDisableParticipant(participantOption),
-            rightElement: (
-                <MoneyRequestAmountInput
-                    autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
-                    currency={iouCurrencyCode}
-                    prefixCharacter={currencySymbol}
-                    disableKeyboard={false}
-                    isCurrencyPressable={false}
-                    hideFocusedState={false}
-                    hideCurrencySymbol
-                    formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput]}
-                    containerStyle={[styles.textInputContainer]}
-                    touchableInputWrapperStyle={[styles.ml3]}
-                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
-                    maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
-                />
-            ),
-        }));
+        return [payeeOption, ...selectedParticipants]
+            .filter((participantOption) => !PolicyUtils.isExpensifyTeam(participantOption.login))
+            .map((participantOption: Participant) => ({
+                ...participantOption,
+                tabIndex: -1,
+                isSelected: false,
+                isInteractive: !shouldDisableParticipant(participantOption),
+                rightElement: (
+                    <MoneyRequestAmountInput
+                        autoGrow={false}
+                        amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
+                        currency={iouCurrencyCode}
+                        prefixCharacter={currencySymbol}
+                        disableKeyboard={false}
+                        isCurrencyPressable={false}
+                        hideFocusedState={false}
+                        hideCurrencySymbol
+                        formatAmountOnBlur
+                        prefixContainerStyle={[styles.pv0]}
+                        inputStyle={[styles.optionRowAmountInput]}
+                        containerStyle={[styles.textInputContainer]}
+                        touchableInputWrapperStyle={[styles.ml3]}
+                        onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
+                        onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
+                        maxLength={formattedTotalAmount.length}
+                        contentWidth={formattedTotalAmount.length * 8}
+                    />
+                ),
+            }));
     }, [
         isTypeSplit,
         payeePersonalDetails,
