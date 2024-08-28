@@ -199,12 +199,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
-                const from = data.personalDetailsList?.[reportAction.accountID] ?? {
-                    accountID: 16802863,
-                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_8.png',
-                    displayName: 'Shubham Agrawal',
-                    login: 'work.sa1206+sdm3@gmail.com',
-                };
+                const from = data.personalDetailsList?.[reportAction.accountID];
                 reportActionItems.push({
                     ...reportAction,
                     from,
