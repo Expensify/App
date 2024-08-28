@@ -446,8 +446,7 @@ function IOURequestStepScan({
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
-                const source = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(transactionID, photo.path, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 FileUtils.readFileAsync(source, photo.path, (file) => {
                     if (action === CONST.IOU.ACTION.EDIT) {
