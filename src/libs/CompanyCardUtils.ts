@@ -6,7 +6,7 @@ import type {TranslationPaths} from '@src/languages/types';
  * @param feedProvider
  * @returns Title based on the feedProvider
  */
-function getTranslationKeyForNewFeedDetails(feedProvider: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE> | undefined): TranslationPaths | '' {
+function getTranslationKeyForFeedDetails(feedProvider: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE> | undefined): TranslationPaths | '' {
     switch (feedProvider) {
         case CONST.COMPANY_CARDS.CARD_TYPE.AMEX:
             return 'workspace.companyCards.addNewCard.feedDetails.amex.title';
@@ -19,5 +19,21 @@ function getTranslationKeyForNewFeedDetails(feedProvider: ValueOf<typeof CONST.C
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getTranslationKeyForNewFeedDetails};
+/**
+ * @param feedProvider
+ * @returns Title based on the feedProvider
+ */
+function getTranslationKeyForFeedInstructions(feedProvider: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE> | undefined): TranslationPaths | '' {
+    switch (feedProvider) {
+        case CONST.COMPANY_CARDS.CARD_TYPE.AMEX:
+            return 'workspace.companyCards.addNewCard.enableFeed.amex';
+        case CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD:
+            return 'workspace.companyCards.addNewCard.enableFeed.mastercard';
+        case CONST.COMPANY_CARDS.CARD_TYPE.VISA:
+            return 'workspace.companyCards.addNewCard.enableFeed.visa';
+        default:
+            return '';
+    }
+}
+
+export {getTranslationKeyForFeedDetails, getTranslationKeyForFeedInstructions};
