@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const {inputCallbackRef} = useAutoFocusInput();
+    const {isOffline} = useNetwork();
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -68,13 +70,12 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
         return errors;
     };
 
-    const WorkFooterInstance = <OfflineIndicator />;
-
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             shouldEnableKeyboardAvoidingView
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWork"
         >
             <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
@@ -86,7 +87,6 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 <FormProvider
                     style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
-                    footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
@@ -115,6 +115,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                         />
                     </View>
                 </FormProvider>
+                {shouldUseNarrowLayout && <OfflineIndicator />}
             </View>
         </ScreenWrapper>
     );

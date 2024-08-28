@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -45,6 +46,7 @@ function BaseOnboardingPersonalDetails({
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {accountID} = useSession();
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -129,12 +131,11 @@ function BaseOnboardingPersonalDetails({
         return errors;
     };
 
-    const PersonalDetailsFooterInstance = <OfflineIndicator />;
-
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingPersonalDetails"
         >
             <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
@@ -146,7 +147,6 @@ function BaseOnboardingPersonalDetails({
                 <FormProvider
                     style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
-                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
@@ -189,6 +189,7 @@ function BaseOnboardingPersonalDetails({
                         />
                     </View>
                 </FormProvider>
+                {isSmallScreenWidth && <OfflineIndicator />}
             </View>
         </ScreenWrapper>
     );
