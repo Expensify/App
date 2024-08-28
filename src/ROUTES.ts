@@ -35,8 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
-            `search?q=${query}&isCustomQuery=${isCustomQuery}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
+        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
