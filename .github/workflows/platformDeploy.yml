@@ -172,7 +172,7 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout

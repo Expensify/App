@@ -106,11 +106,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
-    const hasOnlyPendingTransactions = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).every(
-        (t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t),
-    );
+    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
-    const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
@@ -125,19 +123,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !hasAllPendingRTERViolations;
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && ReportUtils.canBeExported(moneyRequestReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !hasAllPendingRTERViolations && !shouldShowExportIntegrationButton;
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
+    const shouldShowStatusBar = hasAllPendingRTERViolations || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
-        shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
+        shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || hasAllPendingRTERViolations || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -217,7 +215,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
-        if (allHavePendingRTERViolation) {
+        if (hasAllPendingRTERViolations) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (hasOnlyPendingTransactions) {
@@ -324,7 +322,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {allHavePendingRTERViolation && !shouldUseNarrowLayout && (
+                {hasAllPendingRTERViolations && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
                             medium
@@ -373,7 +371,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isDisabled={shouldDisableSubmitButton}
                         />
                     )}
-                    {allHavePendingRTERViolation && shouldUseNarrowLayout && (
+                    {hasAllPendingRTERViolations && shouldUseNarrowLayout && (
                         <Button
                             medium
                             success
