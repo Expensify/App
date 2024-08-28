@@ -240,7 +240,7 @@ function AdvancedSearchFilters() {
                 title: getFilterHasDisplayTitle(searchAdvancedFilters, translate),
                 description: 'search.filters.has' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-                shouldShow: true,
+                shouldShow: shouldShowChatSpecificFilter,
             },
         ],
         [searchAdvancedFilters, translate, shouldShowExpenseSpecificFilter, cardList, taxRates, personalDetails, shouldShowChatSpecificFilter],
