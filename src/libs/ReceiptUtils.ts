@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import _ from 'lodash';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
         return {thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`, image: path, filename};
     }
 
-    const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
+    const isLocalFile = FileUtils.isLocalFile(path);
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
     return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }

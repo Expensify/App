@@ -9,7 +9,9 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import localeCompare from '@libs/LocaleCompare';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentlyUsedReportFields} from '@src/types/onyx';
 
@@ -41,7 +43,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
+    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey]);
 
     const itemRightSideComponent = useCallback(
         (item: ListItem) => {
@@ -60,7 +62,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     );
 
     const [sections, headerMessage] = useMemo(() => {
-        const validFieldOptions = fieldOptions?.filter((option) => !!option);
+        const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
         const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
             [],
@@ -86,6 +88,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             false,
             false,
             undefined,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             undefined,
             undefined,
             true,

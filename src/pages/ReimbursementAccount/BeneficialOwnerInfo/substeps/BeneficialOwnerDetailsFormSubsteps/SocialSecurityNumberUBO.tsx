@@ -36,7 +36,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
         if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
-            errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';
+            errors[ssnLast4InputID] = translate('bankAccount.error.ssnLast4');
         }
         return errors;
     };
@@ -54,7 +54,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheLast4')}</Text>

@@ -1,57 +1,64 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
 
-function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList}: CurrencySelectionListProps) {
+function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList, selectedCurrencies = [], canSelectMultiple = false}: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
 
     const {sections, headerMessage} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
-            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
-            return {
-                currencyName: currencyInfo?.name ?? '',
-                text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                currencyCode,
-                keyForList: currencyCode,
-                isSelected: isSelectedCurrency,
-            };
-        });
+        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
+            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
+            if (isSelectedCurrency || !currencyInfo?.retired) {
+                acc.push({
+                    currencyName: currencyInfo?.name ?? '',
+                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                    currencyCode,
+                    keyForList: currencyCode,
+                    isSelected: isSelectedCurrency,
+                });
+            }
+            return acc;
+        }, [] as CurrencyListItem[]);
 
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
+        let computedSections: Array<{data: CurrencyListItem[]}> = [];
+
+        if (!isEmpty) {
+            computedSections = canSelectMultiple
+                ? [{data: filteredCurrencies.filter((currency) => currency.isSelected)}, {data: filteredCurrencies.filter((currency) => !currency.isSelected)}]
+                : [{data: filteredCurrencies}];
+        }
+
         return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCurrencies,
-                      },
-                  ],
+            sections: computedSections,
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
         };
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode]);
+    }, [currencyList, searchValue, canSelectMultiple, translate, initiallySelectedCurrencyCode, selectedCurrencies]);
 
     return (
         <SelectionList
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
             textInputLabel={searchInputLabel}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
             headerMessage={headerMessage}
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator
+            canSelectMultiple={canSelectMultiple}
         />
     );
 }

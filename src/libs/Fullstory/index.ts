@@ -63,7 +63,11 @@ const FS = {
                 }
                 FS.onReady().then(() => {
                     FS.consent(true);
-                    FS.fsIdentify(value);
+                    if (value) {
+                        const localMetadata = value;
+                        localMetadata.environment = envName;
+                        FS.fsIdentify(localMetadata);
+                    }
                 });
             });
         } catch (e) {
@@ -88,6 +92,11 @@ const FS = {
             });
         }
     },
+
+    /**
+     * Init function, created so we're consistent with the native file
+     */
+    init: () => {},
 };
 
 export default FS;

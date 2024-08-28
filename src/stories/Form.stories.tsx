@@ -12,7 +12,6 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {MaybePhraseKey} from '@libs/Localize';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -58,7 +57,7 @@ function Template(props: FormProviderProps) {
     FormActions.setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+        FormActions.setErrors(props.formID, {error: props.formState.error as string});
     } else {
         FormActions.clearErrors(props.formID);
     }
@@ -172,7 +171,7 @@ function WithNativeEventHandler(props: FormProviderProps) {
     FormActions.setDraftValues(props.formID, props.draftValues);
 
     if (props.formState?.error) {
-        FormActions.setErrors(props.formID, {error: props.formState.error as MaybePhraseKey});
+        FormActions.setErrors(props.formID, {error: props.formState.error as string});
     } else {
         FormActions.clearErrors(props.formID);
     }

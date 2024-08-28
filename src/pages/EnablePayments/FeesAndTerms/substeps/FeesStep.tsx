@@ -18,7 +18,7 @@ function FeesStep({onNext}: SubStepProps) {
 
     return (
         <ScrollView style={styles.flex1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('termsStep.takeALookAtSomeFees')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('termsStep.reviewTheFees')}</Text>
             <View style={[styles.ph5]}>
                 <ShortTermsForm userWallet={userWallet} />
                 <LongTermsForm />

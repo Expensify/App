@@ -69,7 +69,7 @@ function PopoverWithoutOverlay(
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible]);
 
     const {
@@ -124,6 +124,7 @@ function PopoverWithoutOverlay(
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}
+            dataSet={{dragArea: false}}
         >
             <View
                 style={{

@@ -16,7 +16,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,6 +28,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,27 +79,45 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
         return () => {
-            Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+            Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
+    const defaultOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        }
+
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
+
+        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+
+    const inviteOptions = useMemo(
+        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers],
+    );
+
     useEffect(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
         const newUsersToInviteDict: Record<number, OptionData> = {};
         const newPersonalDetailsDict: Record<number, OptionData> = {};
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers, true);
         // Update selectedOptions with the latest personalDetails and policyEmployeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -150,8 +171,8 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setPersonalDetails(Object.values(newPersonalDetailsDict));
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -233,17 +254,18 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         if (!isValid) {
             return;
         }
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '';
+            const accountID = option.accountID ?? '-1';
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+        Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
     }, [route.params.policyID, selectedOptions]);
 
@@ -274,10 +296,9 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                 isAlertVisible={shouldShowAlertPrompt}
                 buttonText={translate('common.next')}
                 onSubmit={inviteUser}
-                message={[policy?.alertMessage ?? '', {isTranslated: true}]}
+                message={policy?.alertMessage ?? ''}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                disablePressOnEnter
             />
         ),
         [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles, translate],

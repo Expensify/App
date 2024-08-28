@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -34,10 +35,11 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigateBackTo = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS.getRoute();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const menuItems: MenuItemWithLink[] = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
-            onPress: () => Report.navigateToConciergeChat(true),
+            onPress: () => Report.navigateToConciergeChat(isLargeScreenWidth),
             icon: Expensicons.ChatBubble,
             shouldShowRightIcon: true,
             wrapperStyle: [styles.cardMenuItem],

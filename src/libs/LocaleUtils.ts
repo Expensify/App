@@ -1,7 +1,7 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
-function getLanguageFromLocale(locale: ValueOf<typeof CONST.LOCALES>): (typeof CONST.LANGUAGES)[number] {
+function getLanguageFromLocale(locale: ValueOf<typeof CONST.LOCALES>): TupleToUnion<typeof CONST.LANGUAGES> {
     switch (locale) {
         case CONST.LOCALES.ES_ES:
         case CONST.LOCALES.ES_ES_ONFIDO:

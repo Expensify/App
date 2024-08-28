@@ -19,7 +19,6 @@ const migrations = {
     private_pushNotificationID: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     tryFocusMode: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     introSelected: ONYXKEYS.NVP_INTRO_SELECTED,
-    hasDismissedIdlePanel: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
 };
 
 // This migration changes the keys of all the NVP related keys so that they are standardized
@@ -29,11 +28,11 @@ export default function () {
         const resolveWhenDone = after(Object.entries(migrations).length + 2, () => resolve());
 
         for (const [oldKey, newKey] of Object.entries(migrations)) {
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: oldKey as OnyxKey,
                 callback: (value) => {
-                    Onyx.disconnect(connectionID);
-                    if (value === null) {
+                    Onyx.disconnect(connection);
+                    if (value === undefined) {
                         resolveWhenDone();
                         return;
                     }
@@ -44,10 +43,10 @@ export default function () {
                 },
             });
         }
-        const connectionIDAccount = Onyx.connect({
+        const accountConnection = Onyx.connect({
             key: ONYXKEYS.ACCOUNT,
             callback: (value: OnyxEntry<Account & {activePolicyID?: string}>) => {
-                Onyx.disconnect(connectionIDAccount);
+                Onyx.disconnect(accountConnection);
                 if (!value?.activePolicyID) {
                     resolveWhenDone();
                     return;
@@ -61,11 +60,11 @@ export default function () {
                 }).then(resolveWhenDone);
             },
         });
-        const connectionIDRecentlyUsedTags = Onyx.connect({
+        const recentlyUsedTagsConnection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS,
             waitForCollectionCallback: true,
             callback: (value) => {
-                Onyx.disconnect(connectionIDRecentlyUsedTags);
+                Onyx.disconnect(recentlyUsedTagsConnection);
                 if (!value) {
                     resolveWhenDone();
                     return;

@@ -10,9 +10,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
@@ -63,33 +62,29 @@ describe('Sidebar', () => {
             expect(screen.toJSON()).toBe(null);
         });
 
-        it('is rendered with an empty list when personal details exist', () => {
-            // Given the sidebar is rendered with default props
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+        it('is rendered with an empty list when personal details exist', () =>
+            waitForBatchedUpdates()
+                // Given the sidebar is rendered with default props
+                .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
 
-            return (
-                waitForBatchedUpdates()
-                    // When Onyx is updated with some personal details
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
-                        }),
-                    )
+                // When Onyx is updated with some personal details
+                .then(() =>
+                    Onyx.multiSet({
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                        [ONYXKEYS.IS_LOADING_APP]: false,
+                    }),
+                )
 
-                    // Then the component should be rendered with an empty list since it will get past the early return
-                    .then(() => {
-                        expect(screen.toJSON()).not.toBe(null);
-                        const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
-                    })
-            );
-        });
+                // Then the component should be rendered with an empty list since it will get past the early return
+                .then(() => {
+                    expect(screen.toJSON()).not.toBe(null);
+                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
+                }));
 
         it('contains one report when a report is in Onyx', () => {
             // Given a single report
             const report = LHNTestUtils.getFakeReport([1, 2]);
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
@@ -97,6 +92,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -115,8 +112,6 @@ describe('Sidebar', () => {
         });
 
         it('orders items with most recently updated on top', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
@@ -135,6 +130,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -174,8 +171,6 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report1.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -184,6 +179,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -212,8 +209,6 @@ describe('Sidebar', () => {
         });
 
         it('reorders the reports to always have the most recently updated one on top', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given three reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
@@ -232,6 +227,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -283,8 +280,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(taskReport.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -294,6 +289,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(taskReport.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -347,8 +344,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -358,6 +353,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -414,8 +411,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -425,6 +420,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(report3.reportID))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -465,7 +462,6 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report2.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -475,6 +471,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -508,8 +506,6 @@ describe('Sidebar', () => {
         });
 
         it('removes the pencil icon when draft is removed', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given a single report
             // And the report has a draft
             const report: OnyxTypes.Report = {
@@ -522,6 +518,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -549,8 +547,6 @@ describe('Sidebar', () => {
         });
 
         it('removes the pin icon when chat is unpinned', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             // Given a single report
             // And the report is pinned
             const report: OnyxTypes.Report = {
@@ -564,6 +560,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -625,8 +623,6 @@ describe('Sidebar', () => {
             const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -636,6 +632,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -684,8 +682,6 @@ describe('Sidebar', () => {
                 isPinned: true,
             };
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -694,6 +690,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -746,8 +744,6 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport([7, 8], 0),
             };
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -762,6 +758,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -813,6 +811,8 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
@@ -825,8 +825,6 @@ describe('Sidebar', () => {
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -835,6 +833,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -861,8 +861,6 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('alphabetizes chats', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             const report1 = {...LHNTestUtils.getFakeReport([1, 2], 3, true), lastMessageText: 'test'};
             const report2 = {...LHNTestUtils.getFakeReport([3, 4], 2, true), lastMessageText: 'test'};
             const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
@@ -876,12 +874,13 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, LHNTestUtils.fakePersonalDetails))
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // Given the sidebar is rendered in #focus mode (hides read chats)
                     // with all reports having unread comments
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
@@ -921,6 +920,8 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 lastMessageText: 'test',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2, true),
@@ -931,8 +932,6 @@ describe('Sidebar', () => {
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -941,6 +940,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -1065,8 +1066,6 @@ describe('Sidebar', () => {
 
             const currentlyLoggedInUserAccountID = 13;
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -1082,6 +1081,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
@@ -1128,8 +1128,6 @@ describe('Sidebar', () => {
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -1138,6 +1136,8 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({

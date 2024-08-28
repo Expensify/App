@@ -3,21 +3,7 @@
 /* eslint-disable no-console */
 import {execSync} from 'child_process';
 import fs from 'fs';
-
-type ArgsMap = Record<string, string>;
-
-// Function to parse command-line arguments into a key-value object
-function parseCommandLineArguments(): ArgsMap {
-    const args = process.argv.slice(2); // Skip node and script paths
-    const argsMap: ArgsMap = {};
-    args.forEach((arg) => {
-        const [key, value] = arg.split('=');
-        if (key.startsWith('--')) {
-            argsMap[key.substring(2)] = value;
-        }
-    });
-    return argsMap;
-}
+import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
 // Function to find .cpuprofile files in the current directory
 function findCpuProfileFiles() {
@@ -33,6 +19,8 @@ if (argsMap.platform === 'ios') {
     sourcemapPath = 'main.jsbundle.map';
 } else if (argsMap.platform === 'android') {
     sourcemapPath = 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map';
+} else if (argsMap.platform === 'web') {
+    sourcemapPath = 'dist/merged-source-map.js.map';
 } else {
     console.error('Please specify the platform using --platform=ios or --platform=android');
     process.exit(1);
@@ -49,7 +37,7 @@ if (cpuProfiles.length === 0) {
 } else {
     // Construct the command
     const cpuprofileName = cpuProfiles[0];
-    const command = `npx react-native-release-profiler --local ${cpuprofileName} --sourcemap-path ${sourcemapPath}`;
+    const command = `npx react-native-release-profiler --local "${cpuprofileName}" --sourcemap-path "${sourcemapPath}"`;
 
     console.log(`Executing: ${command}`);
 

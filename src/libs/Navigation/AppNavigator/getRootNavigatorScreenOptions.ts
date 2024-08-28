@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import type {ViewStyle} from 'react-native';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
@@ -56,8 +55,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                     width: '100%',
                     top: 0,
                     left: 0,
-                    // We need to guarantee that it covers BottomTabBar on web, but fixed position is not supported in react native.
-                    position: 'fixed' as ViewStyle['position'],
+                    position: 'fixed',
                 },
             },
         }),

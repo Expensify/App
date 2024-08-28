@@ -6,6 +6,8 @@ const appPath = './android/app/build/outputs/apk/development/debug/app-developme
 const config: Config = {
     MAIN_APP_PACKAGE: packageName,
     DELTA_APP_PACKAGE: packageName,
+    BRANCH_MAIN: 'main',
+    BRANCH_DELTA: 'main',
     MAIN_APP_PATH: appPath,
     DELTA_APP_PATH: appPath,
     RUNS: 8,

@@ -11,7 +11,7 @@ function BlockedReportFooter() {
 
     return (
         <Banner
-            containerStyles={[styles.archivedReportFooter]}
+            containerStyles={[styles.chatFooterBanner]}
             text={text}
             shouldShowIcon
             shouldRenderHTML

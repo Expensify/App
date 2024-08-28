@@ -275,12 +275,20 @@ export default {
         marginTop: -80,
     },
 
+    mbAuto: {
+        marginBottom: 'auto',
+    },
+
     mb0: {
         marginBottom: 0,
     },
 
     mb1: {
         marginBottom: 4,
+    },
+
+    mb1half: {
+        marginBottom: 6,
     },
 
     mb2: {
@@ -369,6 +377,10 @@ export default {
         padding: 20,
     },
 
+    pb6: {
+        padding: 24,
+    },
+
     p8: {
         padding: 32,
     },
@@ -391,6 +403,10 @@ export default {
 
     pv1: {
         paddingVertical: 4,
+    },
+
+    pv1half: {
+        paddingVertical: 6,
     },
 
     pv2: {
@@ -541,6 +557,10 @@ export default {
         paddingTop: 4,
     },
 
+    pt1half: {
+        paddingTop: 6,
+    },
+
     pt2: {
         paddingTop: 8,
     },
@@ -601,6 +621,10 @@ export default {
         paddingBottom: 56,
     },
 
+    pb10: {
+        paddingBottom: 40,
+    },
+
     pb20: {
         paddingBottom: 80,
     },
@@ -639,5 +663,13 @@ export default {
 
     rowGap4: {
         rowGap: 16,
+    },
+
+    minHeight5: {
+        minHeight: 20,
+    },
+
+    minHeight65: {
+        minHeight: 260,
     },
 } satisfies Record<string, ViewStyle>;

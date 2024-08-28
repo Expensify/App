@@ -10,18 +10,20 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
     isSelected?: boolean;
     accountID: number | undefined;
+    pendingAction?: PendingAction;
 };
 
 type TagPickerOnyxProps = {
     /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** List of recently used tags */
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;

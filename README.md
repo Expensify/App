@@ -230,19 +230,20 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```jsx
     npm i && npm run pod-install
     ```
-7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
-8. Upon completion, the generated source map can be found at:
+4. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
 2. Launch the app in production mode.
-2. Navigate to the feature you wish to profile.
-3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
-4. Close the menu and interact with the app.
-5. After completing your interactions, tap with four fingers again and select to stop profiling.
-6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+3. Navigate to the feature you wish to profile.
+4. Initiate the profiling session by tapping with four fingers (on mobile) or `cmd+d` (on web) to open the menu and selecting **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. After completing your interactions, tap with four fingers or `cmd+d` again and select to stop profiling.
+7. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
 
 Build info:
 ```jsx
@@ -265,6 +266,7 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
@@ -663,7 +665,38 @@ Sometimes it might be beneficial to generate a local production version instead 
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 #### Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will product an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
+
+HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
+
+```diff
+diff --git a/config/electronBuilder.config.js b/config/electronBuilder.config.js
+index e4ed685f65..4c7c1b3667 100644
+--- a/config/electronBuilder.config.js
++++ b/config/electronBuilder.config.js
+@@ -42,9 +42,6 @@ module.exports = {
+         entitlements: 'desktop/entitlements.mac.plist',
+         entitlementsInherit: 'desktop/entitlements.mac.plist',
+         type: 'distribution',
+-        notarize: {
+-            teamId: '368M544MTT',
+-        },
+     },
+     dmg: {
+         title: 'New Expensify',
+diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
+index 791f59d733..526306eec1 100755
+--- a/scripts/build-desktop.sh
++++ b/scripts/build-desktop.sh
+@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+ title "Building Desktop App Archive Using Electron"
+ info ""
+ shift 1
+-npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
++npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
+```
+
+There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 #### Local production build the iOS app
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.

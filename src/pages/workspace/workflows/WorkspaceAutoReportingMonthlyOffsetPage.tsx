@@ -15,6 +15,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -67,8 +68,8 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
     const headerMessage = searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '';
 
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
-        Policy.setWorkspaceAutoReportingMonthlyOffset(policy?.id ?? '', item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
-        Navigation.goBack();
+        Policy.setWorkspaceAutoReportingMonthlyOffset(policy?.id ?? '-1', item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? ''));
     };
 
     return (
@@ -88,7 +89,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.submissionFrequency')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? ''))}
                     />
 
                     <SelectionList
@@ -99,7 +100,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         headerMessage={headerMessage}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectDayOfMonth}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={offset.toString()}
                         showScrollIndicator
                     />

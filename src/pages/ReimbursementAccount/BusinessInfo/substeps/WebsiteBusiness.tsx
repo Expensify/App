@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,7 +12,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -34,16 +33,6 @@ type WebsiteBusinessProps = WebsiteBusinessOnyxProps & SubStepProps;
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
-        errors.website = 'bankAccount.error.website';
-    }
-
-    return errors;
-};
-
 function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing}: WebsiteBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,15 +40,23 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
+                errors.website = translate('bankAccount.error.website');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    useEffect(() => {
-        BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
-    }, [defaultCompanyWebsite]);
 
     return (
         <FormProvider
@@ -68,7 +65,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
             <Text style={[styles.label, styles.textSupporting]}>{translate('common.websiteExample')}</Text>

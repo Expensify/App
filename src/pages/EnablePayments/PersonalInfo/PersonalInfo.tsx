@@ -9,15 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-// TODO: uncomment after connecting steps https://github.com/Expensify/App/issues/36648
-// import {parsePhoneNumber} from '@libs/PhoneNumber';
-import Navigation from '@navigation/Navigation';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
+import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
@@ -44,25 +42,23 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
-        // TODO: uncomment after connecting steps https://github.com/Expensify/App/issues/36648
-        // const personalDetails = {
-        //     phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
-        //     legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
-        //     legalLastName: values?.[PERSONAL_INFO_STEP_KEYS.LAST_NAME] ?? '',
-        //     addressStreet: values?.[PERSONAL_INFO_STEP_KEYS.STREET] ?? '',
-        //     addressCity: values?.[PERSONAL_INFO_STEP_KEYS.CITY] ?? '',
-        //     addressState: values?.[PERSONAL_INFO_STEP_KEYS.STATE] ?? '',
-        //     addressZip: values?.[PERSONAL_INFO_STEP_KEYS.ZIP_CODE] ?? '',
-        //     dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
-        //     ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
-        // };
+        const personalDetails = {
+            phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
+            legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
+            legalLastName: values?.[PERSONAL_INFO_STEP_KEYS.LAST_NAME] ?? '',
+            addressStreet: values?.[PERSONAL_INFO_STEP_KEYS.STREET] ?? '',
+            addressCity: values?.[PERSONAL_INFO_STEP_KEYS.CITY] ?? '',
+            addressState: values?.[PERSONAL_INFO_STEP_KEYS.STATE] ?? '',
+            addressZip: values?.[PERSONAL_INFO_STEP_KEYS.ZIP_CODE] ?? '',
+            dob: values?.[PERSONAL_INFO_STEP_KEYS.DOB] ?? '',
+            ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
+        };
         // Attempt to set the personal details
-        // Wallet.updatePersonalDetails(personalDetails);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        Wallet.resetWalletAdditionalDetailsDraft();
+        Wallet.updatePersonalDetails(personalDetails);
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
@@ -82,14 +78,16 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
     });
 
     const handleBackButtonPress = () => {
-        // TODO: connect to the fist step of the wallet setup https://github.com/Expensify/App/issues/36648
         if (isEditing) {
             goToTheLastStep();
             return;
         }
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-            Wallet.resetWalletAdditionalDetailsDraft();
+            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            return;
+        }
+        if (showIdologyQuestions) {
+            Wallet.setAdditionalDetailsQuestions(null, '');
             return;
         }
         prevScreen();
@@ -110,11 +108,18 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            {showIdologyQuestions ? (
+                <IdologyQuestions
+                    questions={walletAdditionalDetails?.questions ?? []}
+                    idNumber={walletAdditionalDetails?.idNumber ?? ''}
+                />
+            ) : (
+                <SubStep
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            )}
         </ScreenWrapper>
     );
 }

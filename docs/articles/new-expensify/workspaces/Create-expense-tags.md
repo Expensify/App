@@ -8,6 +8,8 @@ In Expensify, tags refer to **classes, projects, cost centers, locations, custom
 
 An admin can manually create tags for a workspace, or they will be automatically imported if your workspace is connected to an accounting system, like QuickBooks Online or Xero. These imported tags can be enabled or disabled to use as tags for expenses added to Expensify. Additionally, Expensify will learn how you apply tags to specific merchants over time and apply them automatically.
 
+![The Tags tab]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_2.png){:width="100%"}
+
 # Manually add or delete tags
 
 {% include selector.html values="desktop, mobile" %}
@@ -23,6 +25,8 @@ To manually add a tag,
 6. Click **Tags** in the left menu.
 7. Click **Add Tag** in the top right. 
 8. Enter a name for the tag and click **Save**.
+
+![The toggle to enable Tags]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_1.png){:width="100%"}
 
 To delete a tag, 
 
@@ -90,6 +94,22 @@ You can enable, disable, or delete tags in bulk by selecting the checkbox to the
 {% include end-option.html %}
 
 {% include end-selector.html %} 
+
+# Add or edit a GL code or payroll code
+
+If your workspace is on the Control plan, you can optionally add a GL code and payroll code to each category. Collect plan users will need to upgrade to Control for access to GL codes and payroll codes.
+
+GL codes and payroll codes can be exported to a CSV export. They are not displayed to users.
+
+**To edit GL codes or payroll codes for a category:**
+
+1. Click your profile image or icon in the bottom left menu
+2. Click **Workspaces** in the left menu
+3. Select a workspace
+4. Click **Categories**
+5. Click a category to open the category-settings
+6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
+7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
 
 # Automatic Expensify tags
 

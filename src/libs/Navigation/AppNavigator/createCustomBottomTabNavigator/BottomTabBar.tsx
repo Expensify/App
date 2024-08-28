@@ -1,8 +1,7 @@
-import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useNavigation} from '@react-navigation/native';
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {NativeModules, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -12,10 +11,15 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
+import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as SearchUtils from '@libs/SearchUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -24,21 +28,27 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type PurposeForUsingExpensifyModalOnyxProps = {
-    isLoadingApp: OnyxEntry<boolean>;
+type BottomTabBarProps = {
+    selectedTab: string | undefined;
 };
-type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
+function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
-
     const navigation = useNavigation();
+    const {activeWorkspaceID} = useActiveWorkspace();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
+    }, [activeWorkspaceID, transactionViolations]);
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
@@ -46,44 +56,63 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const currentRoute = routes?.[navigationState?.index ?? 0];
         // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
         // To prevent this, the value of the bottomTabRoute?.name is checked here
-        if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
+        if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
             return;
         }
 
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
-
-    // Parent navigator of the bottom tab bar is the root navigator.
-    const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
-        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
-
-        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH.CENTRAL_PANE) {
-            return SCREENS.SEARCH.CENTRAL_PANE;
+        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
+        if (NativeModules.HybridAppModule) {
+            return;
         }
 
-        const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-        return topmostBottomTabRoute?.name ?? SCREENS.HOME;
-    });
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () => {
+                const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+                navigationRef.resetRoot(adaptedState);
+            },
+        });
 
-    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingApp]);
+
+    const navigateToChats = useCallback(() => {
+        if (selectedTab === SCREENS.HOME) {
+            return;
+        }
+        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
+        Navigation.navigate(route);
+    }, [activeWorkspaceID, selectedTab]);
+
+    const navigateToSearch = useCallback(() => {
+        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
+            return;
+        }
+        interceptAnonymousUser(() => {
+            const currentSearchParams = SearchUtils.getCurrentSearchParams();
+            if (currentSearchParams) {
+                const {q, ...rest} = currentSearchParams;
+                const policy = PolicyUtils.getPolicy(currentSearchParams?.policyIDs);
+                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: q, ...rest, policyIDs: policy ? currentSearchParams?.policyIDs : undefined}));
+                return;
+            }
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+        });
+    }, [selectedTab]);
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.chats')}>
+            <Tooltip text={translate('common.inbox')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
+                    onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.chats')}
+                    accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
                     <View>
                         <Icon
-                            src={Expensicons.ChatBubble}
-                            fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                            src={Expensicons.Inbox}
+                            fill={selectedTab === SCREENS.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -93,16 +122,32 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabBarFloatingActionButton />
-            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            <Tooltip text={translate('common.search')}>
+                <PressableWithFeedback
+                    onPress={navigateToSearch}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.search')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.bottomTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.MoneySearch}
+                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                </PressableWithFeedback>
+            </Tooltip>
+            <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
+            <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                <BottomTabBarFloatingActionButton />
+            </View>
         </View>
     );
 }
 
 BottomTabBar.displayName = 'BottomTabBar';
 
-export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(BottomTabBar);
+export default memo(BottomTabBar);

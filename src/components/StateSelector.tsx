@@ -1,12 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -17,7 +16,7 @@ type State = keyof typeof COMMON_CONST.STATES;
 
 type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Current selected state  */
     value?: State | '';
@@ -44,7 +43,7 @@ function StateSelector(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const stateFromUrl = useGeographicalStateFromRoute();
+    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
     const isFocused = useIsFocused();
@@ -72,7 +71,7 @@ function StateSelector(
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
     const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';

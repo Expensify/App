@@ -1,7 +1,9 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -11,16 +13,18 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -28,6 +32,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -60,12 +65,11 @@ function IOURequestStepScan({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
-
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
@@ -74,10 +78,16 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
+
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -86,8 +96,10 @@ function IOURequestStepScan({
             return false;
         }
 
-        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+        return (
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+        );
+    }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -143,7 +155,7 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -167,7 +179,7 @@ function IOURequestStepScan({
                 setIsQueriedPermissionState(true);
             });
         // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
     const hideRecieptModal = () => {
@@ -181,6 +193,7 @@ function IOURequestStepScan({
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
+        setPdfFile(null);
     };
 
     function validateReceipt(file: FileObject) {
@@ -189,14 +202,14 @@ function IOURequestStepScan({
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
                     )
                 ) {
                     setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
                     return false;
                 }
 
-                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
                     return false;
                 }
@@ -205,18 +218,17 @@ function IOURequestStepScan({
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
                     return false;
                 }
-
                 return true;
             })
             .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
                 return false;
             });
     }
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const navigateToParticipantPage = useCallback(() => {
         switch (iouType) {
@@ -261,7 +273,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -273,14 +285,16 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? 0,
+                        existingSplitChatReportID: reportID ?? -1,
                         billable: false,
                         category: '',
                         tag: '',
                         currency: transaction?.currency ?? 'USD',
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                     return;
                 }
@@ -391,35 +405,52 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             navigateToParticipantPage,
             policy,
+            transactionTaxCode,
+            transactionTaxAmount,
         ],
     );
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             IOU.replaceReceipt(transactionID, file as File, source);
-            Navigation.dismissModal();
+            navigateBack();
         },
-        [transactionID],
+        [transactionID, navigateBack],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
-        validateReceipt(file).then((isFileValid) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
-            // Store the receipt on the transaction object in Onyx
-            const source = URL.createObjectURL(file as Blob);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
 
-            if (action === CONST.IOU.ACTION.EDIT) {
-                updateScanAndNavigate(file, source);
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
                 return;
             }
-            navigateToConfirmationStep(file, source);
+
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
+            // It takes a long time so we should display a loading indicator while the resize image progresses.
+            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLoadingReceipt(true);
+            }
+            FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+                setIsLoadingReceipt(false);
+                // Store the receipt on the transaction object in Onyx
+                const source = URL.createObjectURL(file as Blob);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
+
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    updateScanAndNavigate(file, source);
+                    return;
+                }
+                navigateToConfirmationStep(file, source);
+            });
         });
     };
 
@@ -499,9 +530,27 @@ function IOURequestStepScan({
         [],
     );
 
+    const PDFThumbnailView = pdfFile ? (
+        <PDFThumbnail
+            style={styles.invisiblePDF}
+            previewSourceURL={pdfFile.uri ?? ''}
+            onLoadSuccess={() => {
+                setPdfFile(null);
+                setReceiptAndNavigate(pdfFile, true);
+            }}
+            onPassword={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+            }}
+            onLoadError={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            }}
+        />
+    ) : null;
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
+                {PDFThumbnailView}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -549,11 +598,11 @@ function IOURequestStepScan({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
+                <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: setReceiptAndNavigate,
@@ -570,7 +619,7 @@ function IOURequestStepScan({
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -581,7 +630,7 @@ function IOURequestStepScan({
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}
@@ -600,6 +649,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
+            {PDFThumbnailView}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
@@ -646,32 +696,35 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
-                    {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptAndNavigate(file);
-                            }
-                        }}
-                        receiptImageTopPosition={receiptImageTopPosition}
-                    />
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideRecieptModal}
-                        onCancel={hideRecieptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                </View>
+                <>
+                    {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptAndNavigate(file);
+                                }
+                            }}
+                            receiptImageTopPosition={receiptImageTopPosition}
+                        />
+                        <ConfirmModal
+                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                            onConfirm={hideRecieptModal}
+                            onCancel={hideRecieptModal}
+                            isVisible={isAttachmentInvalid}
+                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
+                        />
+                    </View>
+                </>
             )}
         </StepScreenDragAndDropWrapper>
     );
@@ -681,14 +734,14 @@ IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithOnyx = withOnyx<Omit<IOURequestStepScanProps, 'user'>, Omit<IOURequestStepOnyxProps, 'user'>>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

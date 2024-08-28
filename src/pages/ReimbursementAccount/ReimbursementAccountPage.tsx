@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -210,7 +210,7 @@ function ReimbursementAccountPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '';
+    const policyIDParam = route.params?.policyID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -244,7 +244,7 @@ function ReimbursementAccountPage({
             BankAccounts.setPlaidEvent(null);
         }
         fetchData(false, isStepToOpenEmpty);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
@@ -310,7 +310,7 @@ function ReimbursementAccountPage({
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
@@ -468,7 +468,7 @@ function ReimbursementAccountPage({
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                shouldShowOnfido={Boolean(shouldShowOnfido)}
+                shouldShowOnfido={!!shouldShowOnfido}
                 onBackButtonPress={goBack}
             />
         );

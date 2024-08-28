@@ -139,7 +139,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = useMemo(
         () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate, sections],
     );
 
@@ -151,7 +151,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail);
+        Policy.setWorkspacePayer(policy?.id ?? '-1', authorizedPayerEmail);
         Navigation.goBack();
     };
 
@@ -192,7 +192,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         showScrollIndicator
                     />
                 </ScreenWrapper>

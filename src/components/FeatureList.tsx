@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
@@ -32,11 +33,20 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
+    /** Text of the secondary button button */
+    secondaryButtonText?: string;
+
+    /** Accessibility label for the secondary button */
+    secondaryButtonAccessibilityLabel?: string;
+
+    /** Action to call on secondary button press */
+    onSecondaryButtonPress?: () => void;
+
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+    /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
+    illustration: DotLottieAnimation | IconAsset;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -47,6 +57,9 @@ type FeatureListProps = {
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
 
+    /** The error message to display for the CTA button */
+    ctaErrorMessage?: string;
+
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 };
@@ -56,7 +69,11 @@ function FeatureList({
     subtitle = '',
     ctaText = '',
     ctaAccessibilityLabel = '',
-    onCtaPress,
+    onCtaPress = () => {},
+    secondaryButtonText = '',
+    secondaryButtonAccessibilityLabel = '',
+    onSecondaryButtonPress = () => {},
+    ctaErrorMessage,
     menuItems,
     illustration,
     illustrationStyle,
@@ -95,10 +112,26 @@ function FeatureList({
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
                             />
                         </View>
                     ))}
                 </View>
+                {!!secondaryButtonText && (
+                    <Button
+                        text={secondaryButtonText}
+                        onPress={onSecondaryButtonPress}
+                        accessibilityLabel={secondaryButtonAccessibilityLabel}
+                        style={[styles.w100, styles.mb3]}
+                        large
+                    />
+                )}
+                {ctaErrorMessage && (
+                    <DotIndicatorMessage
+                        messages={{error: ctaErrorMessage}}
+                        type="error"
+                    />
+                )}
                 <Button
                     text={ctaText}
                     onPress={onCtaPress}

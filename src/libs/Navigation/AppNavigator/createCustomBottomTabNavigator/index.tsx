@@ -15,7 +15,10 @@ const CustomBottomTabNavigator = createPlatformStackNavigatorComponent('CustomBo
     transformState,
     defaultScreenOptions,
     NavigationContentWrapper: BottomTabNavigationContentWrapper,
-    ExtraContent: () => <BottomTabBar />,
+    ExtraContent: ({stateToRender}) => {
+        const selectedTab = stateToRender.routes.at(-1)?.name;
+        return <BottomTabBar selectedTab={selectedTab} />;
+    },
 });
 
 function createCustomBottomTabNavigator<ParamList extends ParamListBase>() {

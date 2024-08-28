@@ -2,12 +2,16 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Type of account linked to user's wallet */
 type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
 
+/** Error code sent from the server after updating user's wallet */
 type ErrorCode = 'ssnError' | 'kbaNeeded' | 'kycFailed';
 
+/** Type of setup that the user follows to link an account to his wallet */
 type SetupType = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
 
+/** Model of user wallet */
 type UserWallet = {
     /** The user's available wallet balance */
     availableBalance: number;

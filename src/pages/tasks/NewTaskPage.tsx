@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -13,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,6 +23,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TaskActions from '@userActions/Task';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -52,12 +55,25 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
+    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>();
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
+
+    const confirmButtonRef = useRef<View>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
+    );
 
     useEffect(() => {
         setErrorMessage('');
@@ -79,7 +95,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (task?.shareDestination) {
-            setParentReport(reports?.[`report_${task.shareDestination}`] ?? null);
+            setParentReport(reports?.[`report_${task.shareDestination}`]);
             const displayDetails = TaskActions.getShareDestination(task.shareDestination, reports, personalDetails);
             setShareDestination(displayDetails);
         }
@@ -99,23 +115,23 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage('newTaskPage.confirmError');
+            setErrorMessage(translate('newTaskPage.confirmError'));
             return;
         }
 
         if (!task.title) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskName');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '',
+            parentReport?.reportID ?? '-1',
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',
@@ -166,6 +182,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 title={title}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                                 shouldShowRightIcon
+                                rightLabel={translate('common.required')}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
@@ -186,23 +203,25 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 titleWithTooltips={assigneeTooltipDetails}
                             />
                             <MenuItem
-                                label={shareDestination?.displayName ? translate('newTaskPage.shareSomewhere') : ''}
+                                label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
-                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('newTaskPage.shareSomewhere')}
+                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
                                 icon={shareDestination?.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
                                 titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
+                                rightLabel={translate('common.required')}
                             />
                         </View>
                     </View>
                     <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(errorMessage)}
+                            isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline
+                            buttonRef={confirmButtonRef}
                             buttonText={translate('newTaskPage.confirmTask')}
                             containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
                         />

@@ -12,7 +12,7 @@ import SCREENS from '@src/SCREENS';
 
 // This field in linkingConfig is supported on native only.
 const subscribe: LinkingOptions<RootStackParamList>['subscribe'] = (listener) => {
-    // We need to ovverride the default behaviour for the deep link to search screen.
+    // We need to override the default behaviour for the deep link to search screen.
     // Even on mobile narrow layout, this screen need to push two screens on the stack to work (bottom tab and central pane).
     // That's why we are going to handle it with our navigate function instead the default react-navigation one.
     const linkingSubscription = Linking.addEventListener('url', ({url}) => {

@@ -21,8 +21,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,7 +64,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
@@ -104,8 +104,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? 0];
-        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '');
+        const participants = [session?.accountID ?? -1];
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -148,7 +148,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             return;
         }
         Navigation.dismissModal(newRoomReportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want this to update on changing the form State
     }, [isLoading, errorFields]);
 
     useEffect(() => {
@@ -169,35 +169,36 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
             } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
                 // We error if the room name has invalid characters
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '')) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '-1')) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
-            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription, {policyID});
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
-                    'common.error.characterLimitExceedCounter',
-                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
-                ]);
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'reportDescription',
+                    translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}),
+                );
             }
 
             if (!values.policyID) {
-                errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
+                errors.policyID = translate('newRoomPage.pleaseSelectWorkspace');
             }
 
             return errors;
         },
-        [reports],
+        [reports, policyID, translate],
     );
 
     const writeCapabilityOptions = useMemo(
@@ -227,8 +228,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
         <>
             <BlockingView
                 icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyWorkspaceIconWidth}
-                iconHeight={variables.emptyWorkspaceIconHeight}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
@@ -252,6 +253,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={WorkspaceNewRoomPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             {({insets}) =>
                 workspaceOptions.length === 0 ? (
@@ -271,7 +274,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
-                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
@@ -295,6 +297,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     shouldInterceptSwipe
+                                    isMarkdownEnabled
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
@@ -351,12 +354,12 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     formState: {
         key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        initWithStoredValues: false,
     },
     session: {
         key: ONYXKEYS.SESSION,
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(WorkspaceNewRoomPage);

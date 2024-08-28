@@ -1,10 +1,9 @@
 import type {NativeSyntheticEvent, ReturnKeyTypeOptions, TextInputFocusEventData, TextInputSubmitEditingEventData} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type RoomNameInputProps = {
     value?: string;
     disabled?: boolean;
-    errorText?: MaybePhraseKey;
+    errorText?: string;
     onChangeText?: (value: string) => void;
     onSubmitEditing?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
     onInputChange?: (value: string) => void;

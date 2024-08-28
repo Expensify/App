@@ -17,16 +17,16 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 type EditTagPageOnyxProps = {
     /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type EditTagPageProps = EditTagPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
@@ -41,16 +41,19 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
-            const {tags} = PolicyUtils.getTagList(policyTags, 0);
+            const escapedTagName = PolicyUtils.escapeTagName(values.tagName.trim());
+            const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = 'workspace.tags.tagRequiredError';
-            } else if (tags?.[tagName] && currentTagName !== tagName) {
-                errors.tagName = 'workspace.tags.existingTagError';
+                errors.tagName = translate('workspace.tags.tagRequiredError');
+            } else if (escapedTagName === '0') {
+                errors.tagName = translate('workspace.tags.invalidTagNameError');
+            } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
+                errors.tagName = translate('workspace.tags.existingTagError');
             }
 
             return errors;
         },
-        [currentTagName, policyTags],
+        [policyTags, route.params.orderWeight, currentTagName, translate],
     );
 
     const editTag = useCallback(
@@ -58,12 +61,12 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                Policy.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
+                Tag.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [route.params.policyID, route.params.tagName, currentTagName],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight],
     );
 
     return (

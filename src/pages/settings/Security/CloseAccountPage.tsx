@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -72,7 +72,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
+            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
         }
         return errors;
     };

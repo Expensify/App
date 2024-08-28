@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -22,6 +23,9 @@ type ThumbnailImageProps = {
     /** Source URL for the preview image */
     previewSourceURL: string | ImageSourcePropType;
 
+    /** alt text for the image */
+    altText?: string;
+
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
@@ -40,17 +44,17 @@ type ThumbnailImageProps = {
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
-    /** The colod of the fallback icon */
+    /** The color of the fallback icon */
     fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** Whether the component is hovered */
-    isHovered?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -60,6 +64,7 @@ type UpdateImageSizeParams = {
 
 function ThumbnailImage({
     previewSourceURL,
+    altText,
     style,
     isAuthTokenRequired,
     imageWidth = 200,
@@ -68,8 +73,8 @@ function ThumbnailImage({
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
+    fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
-    isHovered = false,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -78,6 +83,7 @@ function ThumbnailImage({
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
+    const StyleUtils = useStyleUtils();
 
     useEffect(() => {
         setFailedToLoad(false);
@@ -109,8 +115,10 @@ function ThumbnailImage({
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
     if (failedToLoad || previewSourceURL === '') {
+        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
+
         return (
-            <View style={[style, styles.overflowHidden, isHovered ? styles.activeComponentBG : styles.hoveredComponentBG]}>
+            <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
@@ -128,6 +136,7 @@ function ThumbnailImage({
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
+                    altText={altText}
                     onMeasure={updateImageSize}
                     onLoadFailure={() => setFailedToLoad(true)}
                     isAuthTokenRequired={isAuthTokenRequired}

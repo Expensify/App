@@ -43,7 +43,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
     const {translate} = useLocalize();
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
-    const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => Object.keys(waypoint).length).length;
+    const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const getMarkerComponent = useCallback(

@@ -1,8 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -18,6 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -46,6 +49,12 @@ type ReportActionItemImageProps = {
 
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
+
+    /** Whether the map view should have border radius  */
+    shouldMapHaveBorderRadius?: boolean;
+
+    /** Whether the receipt is not editable */
+    readonly?: boolean;
 };
 
 /**
@@ -64,13 +73,33 @@ function ReportActionItemImage({
     fileExtension,
     filename,
     isSingleImage = true,
+    readonly = false,
+    shouldMapHaveBorderRadius,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
+    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields);
+    const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
+
+    if (showMapAsImage) {
+        return (
+            <View style={[styles.w100, styles.h100]}>
+                <ConfirmedRoute
+                    transaction={transaction}
+                    isSmallerIcon={!isSingleImage}
+                    shouldHaveBorderRadius={shouldMapHaveBorderRadius}
+                    interactive={false}
+                    requireRouteToDisplayMap
+                />
+            </View>
+        );
+    }
+
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
-    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
 
     let propsObj: ReceiptImageProps;
 
@@ -105,7 +134,9 @@ function ReportActionItemImage({
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '', transaction?.transactionID ?? ''))
+                            Navigation.navigate(
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1', readonly),
+                            )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}

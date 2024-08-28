@@ -1,7 +1,9 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -15,7 +17,8 @@ import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRate
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {createPolicyDistanceRate, generateCustomUnitID} from '@userActions/Policy/Policy';
+import {createPolicyDistanceRate} from '@userActions/Policy/DistanceRate';
+import {generateCustomUnitID} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -38,6 +41,8 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
@@ -70,27 +75,28 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
-                    submitButtonText={translate('common.save')}
-                    onSubmit={submit}
-                    validate={validate}
-                    enabledWhenOffline
-                    style={[styles.flexGrow1]}
-                    shouldHideFixErrorsAlert
-                    submitFlexEnabled={false}
-                    submitButtonStyles={[styles.mh5, styles.mt0]}
-                    disablePressOnEnter={false}
-                >
-                    <InputWrapperWithRef
-                        InputComponent={AmountForm}
-                        inputID={INPUT_IDS.RATE}
-                        extraDecimals={1}
-                        isCurrencyPressable={false}
-                        currency={currency}
-                        ref={inputCallbackRef}
-                    />
-                </FormProvider>
+                <FullPageBlockingView style={[styles.flexGrow1]}>
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
+                        submitButtonText={translate('common.save')}
+                        onSubmit={submit}
+                        validate={validate}
+                        enabledWhenOffline
+                        style={[styles.flexGrow1]}
+                        shouldHideFixErrorsAlert
+                        submitFlexEnabled={false}
+                        submitButtonStyles={[styles.mh5, styles.mt0]}
+                    >
+                        <InputWrapperWithRef
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.RATE}
+                            extraDecimals={1}
+                            isCurrencyPressable={false}
+                            currency={currency}
+                            ref={inputCallbackRef}
+                        />
+                    </FormProvider>
+                </FullPageBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

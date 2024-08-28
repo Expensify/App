@@ -1,7 +1,9 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
@@ -22,6 +24,9 @@ type BaseBlockingViewProps = {
     /** Subtitle message below the title */
     subtitle?: string;
 
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
     /** Link message below the subtitle */
     linkKey?: TranslationPaths;
 
@@ -36,6 +41,12 @@ type BaseBlockingViewProps = {
 
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
+
+    /** Additional styles to apply to the container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 type BlockingViewIconProps = {
@@ -72,6 +83,7 @@ function BlockingView({
     iconColor,
     title,
     subtitle = '',
+    subtitleStyle,
     linkKey = 'notFound.goBackHome',
     shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
@@ -81,6 +93,8 @@ function BlockingView({
     animationStyles = [],
     animationWebStyle = {},
     CustomSubtitle,
+    contentFitImage,
+    containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,10 +102,12 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                <AutoEmailLink
-                    style={[styles.textAlignCenter]}
-                    text={subtitle}
-                />
+                {subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
@@ -102,7 +118,7 @@ function BlockingView({
                 ) : null}
             </>
         ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate],
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
     );
 
     const subtitleContent = useMemo(() => {
@@ -117,7 +133,7 @@ function BlockingView({
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
             {animation && (
                 <Lottie
                     source={animation}
@@ -133,6 +149,7 @@ function BlockingView({
                     fill={iconColor}
                     width={iconWidth}
                     height={iconHeight}
+                    contentFit={contentFitImage}
                 />
             )}
             <View>

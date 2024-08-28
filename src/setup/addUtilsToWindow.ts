@@ -24,10 +24,10 @@ export default function addUtilsToWindow() {
         window.Onyx.get = function (key) {
             return new Promise((resolve) => {
                 // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key,
                     callback: (value) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         resolve(value);
                     },
                     waitForCollectionCallback: true,
@@ -45,7 +45,6 @@ export default function addUtilsToWindow() {
         window.setSupportToken = Session.setSupportAuthToken;
 
         // Workaround to give employees the ability to mark reports as read via the JS console
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
+        window.markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }

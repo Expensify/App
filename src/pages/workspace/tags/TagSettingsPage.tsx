@@ -1,18 +1,19 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,17 +21,17 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setWorkspaceTagEnabled} from '@userActions/Policy/Policy';
-import * as Policy from '@userActions/Policy/Policy';
+import {setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type TagSettingsPageProps = TagSettingsPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
@@ -38,15 +39,12 @@ type TagSettingsPageProps = TagSettingsPageOnyxProps & PlatformStackScreenProps<
 function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-
-    const {windowWidth} = useWindowDimensions();
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const policy = usePolicy(route.params.policyID);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
-    const currentPolicyTag =
-        policyTag.tags[decodeURIComponent(route.params.tagName)] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === decodeURIComponent(route.params.tagName));
+    const currentPolicyTag = policyTag.tags[route.params.tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === route.params.tagName);
 
     useEffect(() => {
         if (currentPolicyTag?.name === route.params.tagName || !currentPolicyTag) {
@@ -60,29 +58,37 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     }
 
     const deleteTagAndHideModal = () => {
-        Policy.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
+        Tag.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
+        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+    };
+
+    const navigateToEditGlCode = () => {
+        if (!PolicyUtils.isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    route.params.policyID,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
+                    ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', route.params.orderWeight, route.params.tagName),
+                ),
+            );
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
-    const threeDotsMenuItems = [];
-    if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
-        threeDotsMenuItems.push({
-            icon: Trashcan,
-            text: translate('workspace.tags.deleteTag'),
-            onSelected: () => setIsDeleteTagModalOpen(true),
-        });
-    }
+
+    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
 
     return (
         <AccessOrNotFoundWrapper
@@ -97,10 +103,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
             >
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(route.params.tagName)}
-                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    threeDotsMenuItems={threeDotsMenuItems}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}
@@ -118,7 +121,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                         pendingAction={currentPolicyTag.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
+                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName, route.params.orderWeight)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -134,11 +137,26 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`workspace.tags.tagName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditTag}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            title={currentPolicyTag['GL Code']}
+                            description={translate(`workspace.tags.glCode`)}
+                            onPress={navigateToEditGlCode}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    {shouldShowDeleteMenuItem && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteTagModalOpen(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

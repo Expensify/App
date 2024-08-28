@@ -71,7 +71,7 @@ function ReportVirtualCardFraudPage({
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={Boolean(virtualCardError)}
+                    isAlertVisible={!!virtualCardError}
                     onSubmit={() => Card.reportVirtualExpensifyCardFraud(virtualCard.cardID)}
                     message={virtualCardError}
                     isLoading={formData?.isLoading}

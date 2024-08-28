@@ -50,7 +50,7 @@ class Trie<TMetaData extends MetaData> {
 
             newWord = newWord.substring(1);
         }
-        return node.children[newWord] && node.children[newWord].isEndOfWord ? node.children[newWord] : null;
+        return node.children[newWord]?.isEndOfWord ? node.children[newWord] : null;
     }
 
     /**

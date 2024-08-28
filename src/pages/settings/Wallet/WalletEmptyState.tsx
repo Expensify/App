@@ -5,9 +5,9 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -36,16 +36,16 @@ function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <HeaderPageLayout
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT].backgroundColor}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}
-            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowBackButton={shouldUseNarrowLayout}
             shouldShowOfflineIndicatorInWideScreen
-            style={isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection}
+            style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}
             testID={WalletEmptyState.displayName}
         >
             <FeatureList

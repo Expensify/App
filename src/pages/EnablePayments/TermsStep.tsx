@@ -58,7 +58,7 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
 
-    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms ?? {}) ?? '';
+    const errorMessage = error ? translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(props.walletTerms ?? {}) ?? '';
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -109,11 +109,11 @@ function TermsStep(props: TermsStepProps) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            reportID: props.walletTerms?.chatReportID ?? '',
+                            reportID: props.walletTerms?.chatReportID ?? '-1',
                         });
                     }}
                     message={errorMessage}
-                    isAlertVisible={error || Boolean(errorMessage)}
+                    isAlertVisible={error || !!errorMessage}
                     isLoading={!!props.walletTerms?.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />

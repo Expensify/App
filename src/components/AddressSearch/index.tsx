@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserLocation from '@libs/actions/UserLocation';
 import * as ApiUtils from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
@@ -23,7 +24,6 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import listViewOverflow from './listViewOverflow';
 import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
@@ -40,7 +40,7 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
         return false;
     }
     const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
-    return search.split(' ').every((searchTerm) => !searchTerm || (searchTerm && fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())));
+    return search.split(' ').every((searchTerm) => !searchTerm || fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
 }
 
 // The error that's being thrown below will be ignored until we fork the
@@ -90,7 +90,7 @@ function AddressSearch(
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [searchValue, setSearchValue] = useState(value || defaultValue || '');
+    const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
@@ -233,7 +233,7 @@ function AddressSearch(
 
         if (inputID) {
             Object.entries(values).forEach(([key, inputValue]) => {
-                const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
+                const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
                     return;
                 }
@@ -268,12 +268,17 @@ function AddressSearch(
                 setIsFetchingCurrentLocation(false);
                 setLocationErrorCode(null);
 
+                const {latitude, longitude} = successData.coords;
+
                 const location = {
-                    lat: successData.coords.latitude,
-                    lng: successData.coords.longitude,
+                    lat: latitude,
+                    lng: longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
                     name: CONST.YOUR_LOCATION_TEXT,
                 };
+
+                // Update the current user location
+                UserLocation.setUserLocation({longitude, latitude});
                 onPress?.(location);
             },
             (errorData) => {
@@ -295,7 +300,7 @@ function AddressSearch(
         // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
             {(predefinedPlaces?.length ?? 0) > 0 && (
-                <>
+                <View style={styles.overflowAuto}>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
                         <CurrentLocationButton
@@ -304,7 +309,7 @@ function AddressSearch(
                         />
                     )}
                     {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
-                </>
+                </View>
             )}
         </>
     );
@@ -318,11 +323,11 @@ function AddressSearch(
     }, []);
 
     const filteredPredefinedPlaces = useMemo(() => {
-        if (!isOffline || !searchValue) {
+        if (!searchValue) {
             return predefinedPlaces ?? [];
         }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [isOffline, predefinedPlaces, searchValue]);
+    }, [predefinedPlaces, searchValue]);
 
     const listEmptyComponent = useCallback(
         () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
@@ -363,6 +368,7 @@ function AddressSearch(
                     ref={containerRef}
                 >
                     <GooglePlacesAutocomplete
+                        disableScroll
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
@@ -439,17 +445,10 @@ function AddressSearch(
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [
-                                StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                listViewOverflow,
-                                styles.borderLeft,
-                                styles.borderRight,
-                                styles.flexGrow0,
-                                !isFocused && styles.h0,
-                            ],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.borderLeft, styles.borderRight, !isFocused && styles.h0],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
-                            separator: [styles.googleSearchSeparator],
+                            separator: [styles.googleSearchSeparator, styles.overflowAuto],
                             container: [styles.mh100],
                         }}
                         numberOfLines={2}

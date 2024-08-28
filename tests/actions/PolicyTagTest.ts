@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import * as Policy from '@userActions/Policy/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags} from '@src/types/onyx';
@@ -34,17 +34,17 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Policy.setPolicyRequiresTag(fakePolicy.id, true);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, true);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     // RequiresTag is enabled and pending
                                     expect(policy?.requiresTag).toBeTruthy();
@@ -60,11 +60,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     resolve();
                                 },
@@ -81,17 +81,17 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Policy.setPolicyRequiresTag(fakePolicy.id, false);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     // RequiresTag is disabled and pending
                                     expect(policy?.requiresTag).toBeFalsy();
@@ -107,11 +107,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     resolve();
                                 },
@@ -129,7 +129,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     mockFetch?.fail?.();
-                    Policy.setPolicyRequiresTag(fakePolicy.id, false);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
 
@@ -138,11 +138,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     expect(policy?.errors).toBeTruthy();
                                     expect(policy?.requiresTag).toBeTruthy();
@@ -170,24 +170,25 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.renamePolicyTaglist(
+                    Tag.renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     // Tag list name is updated and pending
                                     expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
@@ -204,11 +205,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     expect(policyTags?.[newTagListName]?.pendingAction).toBeFalsy();
                                     expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
@@ -237,13 +238,14 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.renamePolicyTaglist(
+                    Tag.renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -252,15 +254,15 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     expect(policyTags?.[newTagListName]).toBeFalsy();
                                     expect(policyTags?.[oldTagListName]).toBeTruthy();
-                                    expect(policyTags?.errors).toBeTruthy();
+                                    expect(policyTags?.[oldTagListName]?.errors).toBeTruthy();
 
                                     resolve();
                                 },
@@ -286,17 +288,17 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.createPolicyTag(fakePolicy.id, newTagName);
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
                                     expect(newTag?.name).toBe(newTagName);
@@ -314,11 +316,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
                                     expect(newTag?.errors).toBeFalsy();
@@ -348,7 +350,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.createPolicyTag(fakePolicy.id, newTagName);
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -356,11 +358,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
                                     expect(newTag?.errors).toBeTruthy();
@@ -395,17 +397,17 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     Object.keys(tagsToUpdate).forEach((key) => {
                                         const updatedTag = policyTags?.[tagListName]?.tags[key];
@@ -425,11 +427,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     Object.keys(tagsToUpdate).forEach((key) => {
                                         const updatedTag = policyTags?.[tagListName]?.tags[key];
@@ -468,7 +470,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -476,11 +478,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     Object.keys(tagsToUpdate).forEach((key) => {
                                         const updatedTag = policyTags?.[tagListName]?.tags[key];
@@ -514,20 +516,24 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const tags = policyTags?.[tagListName]?.tags;
                                     expect(tags?.[oldTagName]).toBeFalsy();
@@ -545,11 +551,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const tags = policyTags?.[tagListName]?.tags;
                                     expect(tags?.[newTagName]?.pendingAction).toBeFalsy();
@@ -580,10 +586,14 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -591,11 +601,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     const tags = policyTags?.[tagListName]?.tags;
                                     expect(tags?.[newTagName]).toBeFalsy();
@@ -625,17 +635,17 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     tagsToDelete.forEach((tagName) => {
                                         expect(policyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -651,11 +661,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     tagsToDelete.forEach((tagName) => {
                                         expect(policyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
@@ -685,7 +695,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -693,11 +703,11 @@ describe('actions/Policy', () => {
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
-                            const connectionID = Onyx.connect({
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
                                 waitForCollectionCallback: false,
                                 callback: (policyTags) => {
-                                    Onyx.disconnect(connectionID);
+                                    Onyx.disconnect(connection);
 
                                     tagsToDelete.forEach((tagName) => {
                                         expect(policyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
