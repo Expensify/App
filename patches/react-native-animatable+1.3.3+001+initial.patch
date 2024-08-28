@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-animatable/createAnimatableComponent.js b/node_modules/react-native-animatable/createAnimatableComponent.js
+index 2847e12..331d44f 100644
+--- a/node_modules/react-native-animatable/createAnimatableComponent.js
++++ b/node_modules/react-native-animatable/createAnimatableComponent.js
+@@ -465,7 +465,9 @@ export default function createAnimatableComponent(WrappedComponent) {
+         const needsZeroClamping =
+           ZERO_CLAMPED_STYLE_PROPERTIES.indexOf(property) !== -1;
+         if (needsInterpolation) {
+-          transitionValue.setValue(0);
++          transitionValue = new Animated.Value(0);
++          transitionValues[property] = transitionValue;
++
+           transitionStyle[property] = transitionValue.interpolate({
+             inputRange: [0, 1],
+             outputRange: [fromValue, toValue],
+@@ -546,7 +548,6 @@ export default function createAnimatableComponent(WrappedComponent) {
+           transitions.to[property] = toValue;
+         }
+       });
+-
+       if (Object.keys(transitions.from).length) {
+         this.transition(transitions.from, transitions.to, duration, easing);
+       }

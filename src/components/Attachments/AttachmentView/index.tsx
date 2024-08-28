@@ -1,9 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
@@ -42,9 +43,6 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Function for handle on press */
         onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
-        /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
-        isUsedInCarousel?: boolean;
-
         isUsedInAttachmentModal?: boolean;
 
         /** Flag to show/hide download icon */
@@ -55,6 +53,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /** Notify parent that the UI should be modified to accommodate keyboard */
         onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+
+        /** A callback when the PDF fails to load */
+        onPDFLoadError?: () => void;
 
         /** Extra styles to pass to View wrapper */
         containerStyles?: StyleProp<ViewStyle>;
@@ -88,8 +89,8 @@ function AttachmentView({
     shouldShowDownloadIcon,
     containerStyles,
     onToggleKeyboard,
+    onPDFLoadError: onPDFLoadErrorProp = () => {},
     isFocused,
-    isUsedInCarousel,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
@@ -103,6 +104,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -110,6 +112,7 @@ function AttachmentView({
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
+    const isUsedInCarousel = !!attachmentCarouselPagerContext?.pagerRef;
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -182,6 +185,7 @@ function AttachmentView({
 
         const onPDFLoadError = () => {
             setHasPDFFailedToLoad(true);
+            onPDFLoadErrorProp();
         };
 
         // We need the following View component on android native
