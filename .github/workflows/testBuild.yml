@@ -136,7 +136,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
@@ -158,7 +158,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.0.app
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.187.0

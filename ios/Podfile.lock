@@ -1,25 +1,25 @@
 PODS:
-  - Airship (17.7.3):
-    - Airship/Automation (= 17.7.3)
-    - Airship/Basement (= 17.7.3)
-    - Airship/Core (= 17.7.3)
-    - Airship/FeatureFlags (= 17.7.3)
-    - Airship/MessageCenter (= 17.7.3)
-    - Airship/PreferenceCenter (= 17.7.3)
-  - Airship/Automation (17.7.3):
+  - Airship (18.7.2):
+    - Airship/Automation (= 18.7.2)
+    - Airship/Basement (= 18.7.2)
+    - Airship/Core (= 18.7.2)
+    - Airship/FeatureFlags (= 18.7.2)
+    - Airship/MessageCenter (= 18.7.2)
+    - Airship/PreferenceCenter (= 18.7.2)
+  - Airship/Automation (18.7.2):
     - Airship/Core
-  - Airship/Basement (17.7.3)
-  - Airship/Core (17.7.3):
+  - Airship/Basement (18.7.2)
+  - Airship/Core (18.7.2):
     - Airship/Basement
-  - Airship/FeatureFlags (17.7.3):
+  - Airship/FeatureFlags (18.7.2):
     - Airship/Core
-  - Airship/MessageCenter (17.7.3):
+  - Airship/MessageCenter (18.7.2):
     - Airship/Core
-  - Airship/PreferenceCenter (17.7.3):
+  - Airship/PreferenceCenter (18.7.2):
     - Airship/Core
-  - AirshipFrameworkProxy (5.1.1):
-    - Airship (= 17.7.3)
-  - AirshipServiceExtension (18.6.0)
+  - AirshipFrameworkProxy (7.1.2):
+    - Airship (= 18.7.2)
+  - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
     - AppAuth/ExternalUserAgent (= 1.7.5)
@@ -1544,8 +1544,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (17.2.1):
-    - AirshipFrameworkProxy (= 5.1.1)
+  - react-native-airship (19.2.1):
+    - AirshipFrameworkProxy (= 7.1.2)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3053,9 +3053,9 @@ CHECKOUT OPTIONS:
     :http: https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
-  Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
-  AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
-  AirshipServiceExtension: 74cd5af1c80924bbaa7886fad8609c048210cba3
+  Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
+  AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
+  AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -3132,7 +3132,7 @@ SPEC CHECKSUMS:
   React-logger: 8db32983d75dc2ad54f278f344ccb9b256e694fc
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
   React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
-  react-native-airship: eec8df1e4824d93569fff42d7ed5a4cdb56a1b86
+  react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
@@ -3208,7 +3208,7 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: c6c8aa4b028501fc87644550fbc35a537d4da3fb
-  Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
+  Yoga: 2a45d7e59592db061217551fd3bbe2dd993817ae
 
 PODFILE CHECKSUM: e479ec84cb53e5fd463486d71dfee91708d3fd9a
 
