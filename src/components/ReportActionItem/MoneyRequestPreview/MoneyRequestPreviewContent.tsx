@@ -294,6 +294,10 @@ function MoneyRequestPreviewContent({
         //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
         // }
         if ('taxCode' in comparisonResult.change && hasValidTaxes) {
+            if (!hasValidTaxes) {
+                Transaction.setReviewDuplicatesKey({taxCode: transaction?.taxCode});
+                return;
+            }
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID));
         } else if ('billable' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID));
