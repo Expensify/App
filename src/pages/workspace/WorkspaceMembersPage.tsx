@@ -366,7 +366,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-        result = OptionsListUtils.sortItemsAlphabetically(result);
+        result = OptionsListUtils.sortAlphabetically(result, 'text');
         return result;
     }, [
         isOffline,
