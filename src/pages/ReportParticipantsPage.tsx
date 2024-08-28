@@ -54,8 +54,8 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isFocused = useIsFocused();
-    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const {isOffline} = useNetwork();
+    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
@@ -85,7 +85,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
     }, [chatParticipants, personalDetails, isOffline, report]);
 
-    const getUsers = useCallback((): MemberOption[] => {
+    const participants = useMemo(() => {
         let result: MemberOption[] = [];
 
         chatParticipants.forEach((accountID) => {
@@ -107,14 +107,12 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
             const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
 
-            const isPendingDeletion = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
-                isDisabled: isPendingDeletion || details?.isOptimisticPersonalDetail,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details?.isOptimisticPersonalDetail,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -133,8 +131,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     }, [chatParticipants, searchValue, formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
-
-    const participants = useMemo(() => getUsers(), [getUsers]);
 
     /**
      * Add user from the selectedMembers list

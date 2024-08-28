@@ -65,12 +65,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
 
     const isFocusedScreen = useIsFocused();
+    const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
-
-    const {isOffline} = useNetwork();
 
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
@@ -188,7 +187,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
     }, [participants, personalDetails, isOffline, report]);
 
-    const getMemberOptions = (): ListItem[] => {
+    const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
 
         participants.forEach((accountID) => {
@@ -229,7 +228,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
-    };
+    }, [formatPhoneNumber, isPolicyExpenseChat, participants, personalDetails, policy, report.ownerAccountID, report?.pendingChatMembers, searchValue, selectedMembers, session?.accountID]);
 
     const dismissError = useCallback(
         (item: ListItem) => {
@@ -244,8 +243,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
         return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
-
-    const data = getMemberOptions();
 
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
 
