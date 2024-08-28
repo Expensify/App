@@ -57,31 +57,34 @@ type Attributes = {
 };
 
 /** Policy custom unit */
-type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Custom unit name */
-    name: string;
+type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Custom unit name */
+        name: string;
 
-    /** ID that identifies this custom unit */
-    customUnitID: string;
+        /** ID that identifies this custom unit */
+        customUnitID: string;
 
-    /** Contains custom attributes like unit, for this custom unit */
-    attributes: Attributes;
+        /** Contains custom attributes like unit, for this custom unit */
+        attributes: Attributes;
 
-    /** Distance rates using this custom unit */
-    rates: Record<string, Rate>;
+        /** Distance rates using this custom unit */
+        rates: Record<string, Rate>;
 
-    /** The default category in which this custom unit is used */
-    defaultCategory?: string;
+        /** The default category in which this custom unit is used */
+        defaultCategory?: string;
 
-    /** Whether this custom unit is enabled */
-    enabled?: boolean;
+        /** Whether this custom unit is enabled */
+        enabled?: boolean;
 
-    /** Error messages to show in UI */
-    errors?: OnyxCommon.Errors;
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
 
-    /** Form fields that triggered errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Form fields that triggered errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof Attributes
+>;
 
 /** Policy company address data */
 type CompanyAddress = {
@@ -1507,6 +1510,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
+        /** Whether the rules feature is enabled */
+        areRulesEnabled?: boolean;
+
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
@@ -1516,8 +1522,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
+        /** Whether the Company Cards feature is enabled */
+        areCompanyCardsEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
+
+        /** Whether the eReceipts are enabled */
+        eReceipts?: boolean;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
@@ -1552,7 +1564,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */

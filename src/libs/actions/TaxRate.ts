@@ -514,6 +514,8 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
     const failureCustomUnit = {
         customUnits: policy?.customUnits,
     };
+    const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
+    const oldForeignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -521,11 +523,13 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
-                                pendingFields: {code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingFields: {...originalTaxRate.pendingFields, code: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
@@ -542,12 +546,14 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldTaxCode === oldDefaultExternalID ? newTaxCode : oldDefaultExternalID,
+                        foreignTaxDefault: oldTaxCode === oldForeignTaxDefault ? newTaxCode : oldForeignTaxDefault,
                         taxes: {
                             [oldTaxCode]: null,
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
                             },
@@ -562,12 +568,14 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        defaultExternalID: oldDefaultExternalID,
+                        foreignTaxDefault: oldForeignTaxDefault,
                         taxes: {
                             [newTaxCode]: null,
                             [oldTaxCode]: {
                                 ...originalTaxRate,
                                 code: originalTaxRate.code,
-                                pendingFields: {code: null},
+                                pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
