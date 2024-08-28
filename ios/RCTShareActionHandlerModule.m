@@ -9,7 +9,7 @@
 #import "RCTShareActionHandlerModule.h"
 #import <React/RCTLog.h>
 
-NSString *const ShareExtensionGroupIdentifier = @"group.com.new-expensify";
+NSString *const ShareExtensionGroupIdentifier = @"group.com.chat.expensify.chat";
 NSString *const ShareExtensionFilesKey = @"ShareFiles";
 NSString *const ShareImageFileExtension = @".png";
 

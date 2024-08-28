@@ -2,7 +2,6 @@ import React, {useEffect, useRef} from 'react';
 import type {AppStateStatus} from 'react-native';
 import {AppState, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
