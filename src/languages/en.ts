@@ -2999,6 +2999,8 @@ export default {
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            tagRules: 'Tag rules',
+            approverDescription: 'Approver',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',

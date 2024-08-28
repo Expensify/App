@@ -85,6 +85,10 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
         Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
+    const navigateToEditTagApprover = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+    };
+
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
@@ -150,6 +154,19 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+
+                    <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
+                        <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
+                    </View>
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            title="test"
+                            description={translate(`workspace.tags.approverDescription`)}
+                            onPress={navigateToEditTagApprover}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
