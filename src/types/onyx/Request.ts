@@ -56,7 +56,58 @@ type RequestData = {
 };
 
 /** Model of requests sent to the API */
-type Request = RequestData & OnyxData;
+type Request = RequestData & OnyxData & RequestConflictResolver;
+
+/**
+ * Model of a conflict request that has to be updated, in the request queue.
+ */
+type ConflictRequestUpdate = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'update';
+
+    /**
+     * The index of the request in the queue to update.
+     */
+    index: number;
+};
+
+/**
+ * Model of a conflict request that has to be saved, in the request queue.
+ */
+type ConflictRequestSave = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'save';
+};
+
+/**
+ * An object that has the request and the action to take in case of a conflict.
+ */
+type ConflictActionData = {
+    /**
+     * The request that is conflicting with the new request.
+     */
+    request: Request;
+
+    /**
+     * The action to take in case of a conflict.
+     */
+    conflictAction: ConflictRequestUpdate | ConflictRequestSave;
+};
+
+/**
+ * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * and how to resolve those conflicts.
+ */
+type RequestConflictResolver = {
+    /**
+     * A function that checks if a new request conflicts with any existing requests in the queue.
+     */
+    checkAndFixConflictingRequest?: (persistedRequest: Request[], request: Request) => ConflictActionData;
+};
 
 /**
  * An object used to describe how a request can be paginated.
@@ -85,4 +136,4 @@ type PaginatedRequest = Request &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver};

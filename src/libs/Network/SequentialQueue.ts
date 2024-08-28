@@ -24,7 +24,8 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
-let currentRequest: Promise<void> | null = null;
+let currentRequest: OnyxRequest | null = null;
+let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 
 /**
@@ -81,8 +82,9 @@ function process(): Promise<void> {
 
     const requestToProcess = persistedRequests[0];
 
+    currentRequest = requestToProcess;
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequest = Request.processWithMiddleware(requestToProcess, true)
+    currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
@@ -112,7 +114,7 @@ function process(): Promise<void> {
                 });
         });
 
-    return currentRequest;
+    return currentRequestPromise;
 }
 
 function flush() {
@@ -158,6 +160,7 @@ function flush() {
                     resolveIsReadyPromise?.();
                 }
                 currentRequest = null;
+                currentRequestPromise = null;
                 flushOnyxUpdatesQueue();
             });
         },
@@ -191,9 +194,22 @@ function isPaused(): boolean {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
-function push(request: OnyxRequest) {
-    // Add request to Persisted Requests so that it can be retried if it fails
-    PersistedRequests.save(request);
+function push(newRequest: OnyxRequest) {
+    const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
+
+    const {checkAndFixConflictingRequest} = newRequest;
+    if (checkAndFixConflictingRequest) {
+        const {conflictAction} = checkAndFixConflictingRequest(requests, newRequest);
+
+        if (conflictAction.type === 'save') {
+            PersistedRequests.save(newRequest);
+        } else {
+            PersistedRequests.update(conflictAction.index, newRequest);
+        }
+    } else {
+        // Add request to Persisted Requests so that it can be retried if it fails
+        PersistedRequests.save(newRequest);
+    }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
@@ -210,10 +226,10 @@ function push(request: OnyxRequest) {
 }
 
 function getCurrentRequest(): Promise<void> {
-    if (currentRequest === null) {
+    if (currentRequestPromise === null) {
         return Promise.resolve();
     }
-    return currentRequest;
+    return currentRequestPromise;
 }
 
 /**

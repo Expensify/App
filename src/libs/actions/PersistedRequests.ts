@@ -25,21 +25,9 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
-    if (keepLastInstance.includes(requestToPersist.command)) {
-        // Find the index of an existing request with the same command
-        const index = persistedRequests.findIndex((request) => request.command === requestToPersist.command);
+    // If the command is not in the keepLastInstance array, add the new request as usual
+    persistedRequests = [...persistedRequests, requestToPersist];
 
-        if (index !== -1) {
-            // If found, update the existing request with the new one
-            persistedRequests[index] = requestToPersist;
-        } else {
-            // If not found, add the new request
-            persistedRequests.push(requestToPersist);
-        }
-    } else {
-        // If the command is not in the keepLastInstance array, add the new request as usual
-        persistedRequests = [...persistedRequests, requestToPersist];
-    }
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
         Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
     });
