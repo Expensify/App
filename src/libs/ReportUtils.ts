@@ -5912,9 +5912,6 @@ function shouldReportBeInOptionList({
     login?: string;
     includeDomainEmail?: boolean;
 }) {
-    if (report && report.reportID === '4638809485619813') {
-        console.log('[BEAMAN] HERE', report);
-    }
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -5941,38 +5938,23 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report))
     ) {
-        if (report && report.reportID === '4638809485619813') {
-            console.log('[BEAMAN] HERE 1');
-        }
         return false;
     }
 
     if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
-        if (report && report.reportID === '4638809485619813') {
-            console.log('[BEAMAN] HERE 2');
-        }
         return false;
     }
 
     if (!canAccessReport(report, policies, betas)) {
-        if (report && report.reportID === '4638809485619813') {
-            console.log('[BEAMAN] HERE 3');
-        }
         return false;
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
     if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1', parentReportAction)) {
-        if (report && report.reportID === '4638809485619813') {
-            console.log('[BEAMAN] HERE 4');
-        }
         return false;
     }
 
     if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
-        if (report && report.reportID === '4638809485619813') {
-            console.log('[BEAMAN] HERE 5');
-        }
         return false;
     }
 
@@ -5985,9 +5967,6 @@ function shouldReportBeInOptionList({
 
     // Retrieve the draft comment for the report and convert it to a boolean
     const hasDraftComment = hasValidDraftComment(report.reportID);
-    if (report && report.reportID === '4638809485619813') {
-        console.log('[BEAMAN] HERE PLZ?');
-    }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
