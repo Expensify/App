@@ -22,7 +22,10 @@ const mockedFeeds = {
 } as unknown as CardFeeds;
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
+    /** Current policy id */
     policyID: string;
+
+    /** Currently selected feed */
     selectedFeed: string;
 };
 

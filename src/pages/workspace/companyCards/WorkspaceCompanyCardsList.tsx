@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ type WorkspaceCompanyCardsListProps = {
 
 function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
@@ -44,6 +46,7 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
                     style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                     accessibilityLabel="row"
                     hoverStyle={styles.hoveredComponentBG}
+                    // TODO: navigate to Card Details screen when implemented
                     onPress={() => {}}
                 >
                     <WorkspaceCompanyCardsListRow
@@ -64,13 +67,13 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    Name
+                    {translate('common.name')}
                 </Text>
                 <Text
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    Card number
+                    {translate('workspace.companyCards.cardNumber')}
                 </Text>
             </View>
         ),
