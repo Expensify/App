@@ -6,7 +6,7 @@ import Intents
 import os
 
 class ShareViewController: UIViewController {
-  let APP_GROUP_ID = "group.com.chat.expensify.chat"
+  let APP_GROUP_ID = "group.com.expensify.chat"
     
   enum ImageSaveError: String {
       case IncorrectType
