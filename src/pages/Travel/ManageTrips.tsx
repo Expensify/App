@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {Str} from "expensify-common";
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -35,6 +36,7 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policy = usePolicy(activePolicyID);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
@@ -60,7 +62,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (111 === 111) {
+                        if (Str.isSMSLogin(account.primaryLogin)) {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
