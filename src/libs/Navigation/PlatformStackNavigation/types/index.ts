@@ -2,7 +2,8 @@ import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, StackNavig
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
-import type Subtract from '@src/types/utils/Substract';
+
+// import type Subtract from '@src/types/utils/Substract';
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
@@ -11,8 +12,10 @@ type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNaviga
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
 // Navigation properties that are only available in web or native stack navigations.
-type WebOnlyNavigationOptions = Partial<Subtract<StackNavigationOptions, CommonStackNavigationOptions>>;
-type NativeOnlyNavigationOptions = Partial<Subtract<NativeStackNavigationOptions, CommonStackNavigationOptions>>;
+// type WebOnlyNavigationOptions = Partial<Subtract<StackNavigationOptions, CommonStackNavigationOptions>>;
+// type NativeOnlyNavigationOptions = Partial<Subtract<NativeStackNavigationOptions, CommonStackNavigationOptions>>;
+type WebOnlyNavigationOptions = StackNavigationOptions;
+type NativeOnlyNavigationOptions = NativeStackNavigationOptions;
 
 // type CardOptions = {
 //     cardShadowEnabled?: StackNavigationOptions['cardShadowEnabled'];
@@ -27,7 +30,7 @@ type GeneralPlatformStackNavigationOptions = {
     // // Unique to StackNavigationOptions
     // detachPreviousScreen?: boolean;
     // freezeOnBlur?: boolean;
-    webOnly?: WebOnlyNavigationOptions;
+    web?: WebOnlyNavigationOptions;
 
     // // Unique to NativeStackNavigationOptions
     // autoHideHomeIndicator?: boolean;
@@ -37,7 +40,7 @@ type GeneralPlatformStackNavigationOptions = {
     // navigationBarColor?: string;
     // navigationBarHidden?: boolean;
     // orientation?: ScreenProps['screenOrientation'];
-    nativeOnly?: NativeOnlyNavigationOptions;
+    native?: NativeOnlyNavigationOptions;
 
     keyboardHandlingEnabled?: boolean;
 

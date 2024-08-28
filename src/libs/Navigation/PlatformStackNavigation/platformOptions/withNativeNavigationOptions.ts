@@ -14,7 +14,7 @@ const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigation
     keyboardHandlingEnabled: screenOptions?.keyboardHandlingEnabled,
     ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
-    ...screenOptions?.nativeOnly,
+    ...screenOptions?.native,
 });
 
 function withNativeNavigationOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
