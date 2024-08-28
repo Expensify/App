@@ -6310,6 +6310,11 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
+    // Current user must be a manager or owner of this IOU
+    if (isIOUReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID) {
+        return false;
+    }
+
     // User can submit expenses in any IOU report, unless paid, but the user can only submit expenses in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
