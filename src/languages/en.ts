@@ -2107,7 +2107,7 @@ export default {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: 'To book travel, your primary login must be a valid email',
+        phoneError: 'To book travel, your default contact method must be a valid email',
     },
     workspace: {
         common: {
