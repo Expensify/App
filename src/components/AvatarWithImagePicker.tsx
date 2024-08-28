@@ -219,7 +219,6 @@ function AvatarWithImagePicker({
      */
     const showAvatarCropModal = useCallback(
         (image: FileObject) => {
-            console.log('IMAGE: ', image);
             if (!isValidExtension(image)) {
                 setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
                 return;
@@ -412,9 +411,7 @@ function AvatarWithImagePicker({
                                                 // In order for the file picker to open dynamically, the click
                                                 // function must be called from within an event handler that was initiated
                                                 // by the user on Safari.
-                                                console.log('INDEX: ', index);
                                                 if (index === 0 && Browser.isSafari()) {
-                                                    console.log('hejo');
                                                     openPicker({
                                                         onPicked: showAvatarCropModal,
                                                     });
