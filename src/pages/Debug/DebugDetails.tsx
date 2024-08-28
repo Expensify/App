@@ -2,7 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -63,10 +63,10 @@ function DebugDetails({reportID, data, onSave, onDelete, validate}: DebugDetails
             {Object.entries(draftData ?? {}).map(([key, value]) => {
                 if (key === FIELD_TYPES.lastActionType) {
                     return (
-                        <MenuItem
+                        <MenuItemWithTopDescription
                             key={key}
-                            title={key}
-                            subtitle={value}
+                            title={value}
+                            description={key}
                             onPress={() => Navigation.navigate(ROUTES.DEBUG_SELECTION_LIST_LAST_ACTION_TYPE.getRoute(reportID))}
                             shouldShowRightIcon
                         />
