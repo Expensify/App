@@ -2838,8 +2838,6 @@ const styles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         avatarSectionWrapperSettings: {
@@ -4540,6 +4538,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        profilePageAvatar: {
+            borderColor: theme.highlightBG,
+        },
+
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
@@ -5181,6 +5183,15 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        accountSwitcherPopover: {
+            width: variables.sideBarWidth - 19,
+        },
+
+        accountSwitcherAnchorPosition: {
+            top: 80,
+            left: 12,
         },
     } satisfies Styles);
 
