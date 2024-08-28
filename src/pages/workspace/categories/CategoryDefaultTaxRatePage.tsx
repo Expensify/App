@@ -1,21 +1,19 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TaxUtils from '@libs/TaxUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
@@ -29,27 +27,9 @@ function CategoryDefaultTaxRatePage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
-    const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
 
-    const {inputCallbackRef} = useAutoFocusInput();
-
-    const textForDefault = useCallback(
-        (taxID: string, taxRate: TaxRate): string => {
-            let suffix;
-            if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                suffix = translate('common.default');
-            } else if (taxID === defaultExternalID) {
-                suffix = translate('workspace.taxes.workspaceDefault');
-            } else if (taxID === foreignTaxDefault) {
-                suffix = translate('workspace.taxes.foreignDefault');
-            }
-            return `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
-        },
-        [defaultExternalID, foreignTaxDefault, translate],
-    );
+    const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => TaxUtils.formatTaxText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
 
     const taxesList = useMemo<ListItem[]>(() => {
         if (!policy) {

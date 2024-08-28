@@ -10,6 +10,7 @@ import type {
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsRequiredParams,
+    SetPolicyCategoryTaxParams,
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
@@ -1020,7 +1021,7 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
 
 function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxExpenseAmount: string, expenseLimitType: PolicyCategoryExpenseLimitType) {
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
-    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
+    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? null : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -1089,71 +1090,23 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
 }
 
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        ...policyCategoryToUpdate,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            approver: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        approver,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        ...policyCategoryToUpdate,
-                        pendingAction: null,
-                        pendingFields: {
-                            approver: null,
-                        },
-                        approver,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        ...policyCategoryToUpdate,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        pendingAction: null,
-                        pendingFields: {
-                            maxExpenseAmount: null,
-                            expenseLimitType: null,
-                        },
-                    },
-                },
-            },
-        ],
-    };
-
     const parameters: SetPolicyCategoryApproverParams = {
         policyID,
         categoryName,
         approver,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters);
 }
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
-    console.log({policyID, categoryName, taxID});
+    const parameters: SetPolicyCategoryTaxParams = {
+        policyID,
+        categoryName,
+        taxID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters);
 }
 
 export {

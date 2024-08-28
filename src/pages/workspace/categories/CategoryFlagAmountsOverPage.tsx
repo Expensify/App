@@ -40,6 +40,13 @@ function CategoryFlagAmountsOverPage({
 
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const policyCategoryMaxExpenseAmount = policyCategories?.[categoryName]?.maxExpenseAmount;
+
+    const defaultValue =
+        policyCategoryMaxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategoryMaxExpenseAmount
+            ? ''
+            : CurrencyUtils.convertToFrontendAmountAsString(policyCategoryMaxExpenseAmount, policy?.outputCurrency);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -74,7 +81,7 @@ function CategoryFlagAmountsOverPage({
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
                             currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                            // defaultValue={defaultValue}
+                            defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
                             displayAsTextInput
