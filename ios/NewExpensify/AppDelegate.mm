@@ -88,11 +88,6 @@
 #endif
 }
 
-- (BOOL)bridgelessEnabled
-{
-  return NO;
-}
-
 // This methods is needed to support the hardware keyboard shortcuts
 - (NSArray *)keyCommands {
   return [HardwareShortcuts sharedInstance].keyCommands;
