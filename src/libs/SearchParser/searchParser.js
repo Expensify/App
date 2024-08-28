@@ -252,7 +252,14 @@ function peg$parse(input, options) {
   var peg$e37 = peg$otherExpectation("whitespace");
   var peg$e38 = peg$classExpectation([" ", "\t", "\r", "\n"], false, false);
 
-  var peg$f0 = function(filters) { return applyDefaults(filters); };
+  var peg$f0 = function(filters) {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  };
   var peg$f1 = function(head, tail) {
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter((filter) => filter !== null)
@@ -1105,6 +1112,7 @@ function peg$parse(input, options) {
     s0 = peg$currPos;
     if (input.charCodeAt(peg$currPos) === 34) {
       s1 = peg$c25;
+      s1 = peg$c25;
       peg$currPos++;
     } else {
       s1 = peg$FAILED;
@@ -1130,6 +1138,7 @@ function peg$parse(input, options) {
         }
       }
       if (input.charCodeAt(peg$currPos) === 34) {
+        s3 = peg$c25;
         s3 = peg$c25;
         peg$currPos++;
       } else {
