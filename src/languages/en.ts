@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
@@ -375,6 +376,7 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         days: 'days',
     },
@@ -3776,7 +3778,6 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
-        offlinePrompt: "You can't take this action right now.",
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -4487,5 +4488,19 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
         clearRoomDescription: 'cleared the room description',
+    },
+    delegate: {
+        switchAccount: 'Switch accounts:',
+        role: (role: DelegateRole): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Full';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Limited';
+                default:
+                    return '';
+            }
+        },
+        genericError: 'Oops, something went wrong. Please try again.',
     },
 } satisfies TranslationBase;
