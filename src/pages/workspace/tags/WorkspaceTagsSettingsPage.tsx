@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +41,8 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0] || Object.keys(policyTags ?? {})[0] === 'undefined';
     const {isOffline} = useNetwork();
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    const {canUseWorkspaceRules} = usePermissions();
+
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(policyID, value);
@@ -88,17 +91,19 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         />
                     </View>
                 </View>
-                <View style={[styles.mt2, styles.mh4]}>
-                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>Track billable expenses</Text>
-                        <Switch
-                            isOn={policy?.disabledFields?.defaultBillable ?? true}
-                            accessibilityLabel="Track billable expenses"
-                            onToggle={() => toggleBillableExpenses(policy)}
-                            // disabled={policy?.disabledFields?.defaultBillable}
-                        />
+                {canUseWorkspaceRules && (
+                    <View style={[styles.mt2, styles.mh4]}>
+                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text style={[styles.textNormal]}>Track billable expenses</Text>
+                            <Switch
+                                isOn={policy?.disabledFields?.defaultBillable ?? true}
+                                accessibilityLabel="Track billable expenses"
+                                onToggle={() => toggleBillableExpenses(policy)}
+                                // disabled={policy?.disabledFields?.defaultBillable}
+                            />
+                        </View>
                     </View>
-                </View>
+                )}
             </OfflineWithFeedback>
         </View>
     );

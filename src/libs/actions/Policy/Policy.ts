@@ -3681,19 +3681,12 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
  * @param policyID - id of the policy to enable or disable the bilable mode
  */
 function disableWorkspaceBillableExpenses(policyID: string) {
-    const policy = getPolicy(policyID);
-
-    const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    disabledFields: {
-                        defaultBillable: true,
-                    },
                     pendingFields: {
                         defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -3717,7 +3710,6 @@ function disableWorkspaceBillableExpenses(policyID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    disabledFields: {defaultBillable: originalDefaultBillableDisabled},
                     pendingFields: {defaultBillable: null},
                     errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
@@ -3727,9 +3719,6 @@ function disableWorkspaceBillableExpenses(policyID: string) {
 
     const parameters = {
         policyID,
-        disabledFields: JSON.stringify({
-            defaultBillable: true,
-        }),
     };
 
     API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);

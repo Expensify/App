@@ -1,11 +1,4 @@
-type DisablePolicyBillableMode = {
-    /**
-     * Stringified JSON object with type of following structure:
-     *  disabledFields: {
-     *      defaultBillable: boolean;
-     *  };
-     */
-    disabledFields: string;
-};
+// eslint-disable-next-line @typescript-eslint/ban-types
+type DisablePolicyBillableMode = {};
 
 export default DisablePolicyBillableMode;
