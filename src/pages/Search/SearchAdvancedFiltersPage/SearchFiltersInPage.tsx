@@ -39,9 +39,9 @@ function SearchFiltersInPage() {
             <View style={[styles.flex1]}>
                 <SearchFiltersChatsSelector
                     isScreenTransitionEnd={isScreenTransitionEnd}
-                    onFiltersUpdate={(initialIDs) => {
+                    onFiltersUpdate={(selectedAccountIDs) => {
                         SearchActions.updateAdvancedFilters({
-                            in: initialIDs,
+                            in: selectedAccountIDs,
                         });
                     }}
                     initialReportIDs={searchAdvancedFiltersForm?.in ?? []}
@@ -51,6 +51,6 @@ function SearchFiltersInPage() {
     );
 }
 
-SearchFiltersInPage.displayName = 'SearchFiltersStatusPage';
+SearchFiltersInPage.displayName = 'SearchFiltersInPage';
 
 export default SearchFiltersInPage;
