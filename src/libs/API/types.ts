@@ -34,6 +34,7 @@ const WRITE_COMMANDS = {
     UPDATE_EXPENSIFY_CARD_LIMIT: 'UpdateExpensifyCardLimit',
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
     UPDATE_EXPENSIFY_CARD_LIMIT_TYPE: 'UpdateExpensifyCardLimitType',
+    CARD_DEACTIVATE: 'Card_Deactivate',
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
@@ -341,6 +342,8 @@ const WRITE_COMMANDS = {
     CREATE_EXPENSIFY_CARD: 'CreateExpensifyCard',
     CREATE_ADMIN_ISSUED_VIRTUAL_CARD: 'CreateAdminIssuedVirtualCard',
     TOGGLE_CARD_CONTINUOUS_RECONCILIATION: 'ToggleCardContinuousReconciliation',
+    UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
+    UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
@@ -370,6 +373,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: Parameters.UpdateExpensifyCardLimitParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE]: Parameters.UpdateExpensifyCardLimitTypeParams;
+    [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP]: Parameters.AddPaymentCardParams;
@@ -692,6 +696,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Parameters.CreateExpensifyCardParams;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
     [WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION]: Parameters.ToggleCardContinuousReconciliationParams;
+    [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
+    [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
 
     // Xero API
     [WRITE_COMMANDS.UPDATE_XERO_TENANT_ID]: Parameters.UpdateXeroGenericTypeParams;

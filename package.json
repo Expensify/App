@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.25-1",
+  "version": "9.0.25-12",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -62,6 +62,7 @@
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1",
     "e2e-test-runner-build": "node --max-old-space-size=8192 node_modules/.bin/ncc build tests/e2e/testRunner.ts -o tests/e2e/dist/",
     "react-compiler-healthcheck": "react-compiler-healthcheck --verbose",
+    "react-compiler-healthcheck-test": "react-compiler-healthcheck --verbose &> react-compiler-output.txt",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy ",
     "web:prod": "http-server ./dist --cors"
   },
@@ -112,7 +113,7 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.76",
+    "expensify-common": "2.0.77",
     "expo": "51.0.17",
     "expo-av": "14.0.6",
     "expo-image": "1.12.12",
@@ -159,7 +160,7 @@
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "2.0.65",
+    "react-native-onyx": "2.0.66",
     "react-native-pager-view": "6.3.4",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
