@@ -103,7 +103,6 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
-    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
