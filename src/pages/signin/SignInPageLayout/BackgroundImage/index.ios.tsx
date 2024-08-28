@@ -14,7 +14,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const src = useMemo(() => (isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [isSmallScreen]);
-    const [loaded, setLoaded] = useState(false);
+    const [isInteractionComplete, setIsInteractionComplete] = useState(false);
 
     const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.value}));
@@ -31,7 +31,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
 
     useEffect(() => {
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
-            setLoaded(true);
+            setIsInteractionComplete(true);
         });
         return () => {
             if (interactionHandle) {
@@ -45,8 +45,8 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     if (!isSplashHidden) {
         return;
     }
-
-    return (loaded &&
+    // On IOS, load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
+    return (isInteractionComplete &&
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
                 source={src as ImageSourcePropType}
