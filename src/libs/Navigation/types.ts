@@ -1266,6 +1266,10 @@ type SharedScreensParamList = {
     };
 };
 
+type ShareNavigatorParamList = {
+    [SCREENS.SHARE.ROOT]: undefined;
+};
+
 type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
@@ -1317,6 +1321,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             readonly?: boolean;
         };
         [SCREENS.CONNECTION_COMPLETE]: undefined;
+        [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     };
 
 type SearchReportParamList = {
@@ -1408,4 +1413,5 @@ export type {
     SearchReportParamList,
     SearchAdvancedFiltersParamList,
     RestrictedActionParamList,
+    ShareNavigatorParamList,
 };

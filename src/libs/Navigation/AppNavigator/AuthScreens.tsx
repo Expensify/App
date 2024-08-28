@@ -52,6 +52,7 @@ import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import {ShareModalStackNavigator} from './ModalStackNavigators';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
@@ -489,6 +490,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                         options={screenOptions.fullScreen}
                         component={DesktopSignInRedirectPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        component={ShareModalStackNavigator}
+                        listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
