@@ -365,6 +365,7 @@ const SCREENS = {
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         COMPANY_CARDS: 'Workspace_CompanyCards',
+        COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
@@ -447,6 +448,10 @@ const SCREENS = {
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
         RULES_RANDOM_REPORT_AUDIT: 'Rules_Random_Report_Audit',
         RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
+        RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
+        RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
+        RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
+        RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
     },
 
     EDIT_REQUEST: {

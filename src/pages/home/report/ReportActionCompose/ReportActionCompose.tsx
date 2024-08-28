@@ -546,8 +546,11 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
-                                                const data = event.dataTransfer?.items[0];
-                                                displayFileInModal(data as unknown as FileObject);
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
                                             }}
                                         />
                                     </>

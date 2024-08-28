@@ -377,6 +377,8 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        outstanding: 'Outstanding',
+        days: 'days',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1341,8 +1343,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
+        approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
@@ -2104,6 +2105,7 @@ export default {
         viewTrip: 'View trip',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
+        trips: 'Trips',
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -2747,6 +2749,10 @@ export default {
             control: 'Control',
             collect: 'Collect',
         },
+        companyCards: {
+            addCompanyCards: 'Add company cards',
+            selectCardFeed: 'Select card feed',
+        },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
@@ -2995,6 +3001,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
+            invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
@@ -3614,6 +3621,23 @@ export default {
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
+                receiptRequiredAmount: 'Receipt required amount',
+                receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                maxExpenseAmount: 'Max expense amount',
+                maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
+                maxAge: 'Max age',
+                maxExpenseAge: 'Max expense age',
+                maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('day', 'days', age)}`,
+                billableDefault: 'Billable default',
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
+                billable: 'Billable',
+                billableDescription: 'Expenses are most often re-billed to clients',
+                nonBillable: 'Non-billable',
+                nonBillableDescription: 'Expenses are occasionally re-billed to clients',
+                eReceipts: 'eReceipts',
+                eReceiptsHint: 'eReceipts are auto-created',
+                eReceiptsHintLink: 'for most USD credit transactions',
             },
             expenseReportRules: {
                 examples: 'Examples:',

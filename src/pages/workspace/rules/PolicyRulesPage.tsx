@@ -2,50 +2,30 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import Section from '@components/Section';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+<<<<<<< HEAD
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
+=======
+import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
+>>>>>>> origin/main
 
 type PolicyRulesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
     const {policyID} = route.params;
-    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {canUseWorkspaceRules} = usePermissions();
-
-    const handleOnPressCategoriesLink = () => {
-        if (policy?.areCategoriesEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
-
-    const handleOnPressTagsLink = () => {
-        if (policy?.areTagsEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -64,6 +44,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowNotFoundPage={!canUseWorkspaceRules}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+<<<<<<< HEAD
                     <Section
                         isCentralPane
                         title={translate('workspace.rules.individualExpenseRules.title')}
@@ -90,6 +71,16 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                         titleStyles={styles.accountSettingsSectionTitle}
                     />
                     <ExpenseReportRulesSection policyID={policyID} />
+=======
+                    <IndividualExpenseRulesSection policyID={policyID} />
+                    <Section
+                        isCentralPane
+                        title={translate('workspace.rules.expenseReportRules.title')}
+                        subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        subtitleMuted
+                    />
+>>>>>>> origin/main
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

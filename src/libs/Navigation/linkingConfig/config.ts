@@ -481,6 +481,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
@@ -755,6 +758,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: {
                             path: ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+                            path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AGE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+                            path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
                     },
                 },
