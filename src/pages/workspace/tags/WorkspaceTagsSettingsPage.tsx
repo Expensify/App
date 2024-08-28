@@ -33,6 +33,14 @@ type WorkspaceTagsSettingsPageOnyxProps = {
 };
 type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
 
+function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
+    if (policy?.disabledFields?.defaultBillable) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return policy?.pendingFields?.disabledFields || policy?.pendingFields?.disabledFields;
+    }
+    return policy?.pendingFields?.defaultBillable;
+}
+
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
@@ -52,7 +60,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
 
     function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
         if (policy?.disabledFields?.defaultBillable) {
-            Policy.setPolicyBillableMode(policyID, true);
+            Policy.setPolicyBillableMode(policyID, false);
         } else {
             Policy.disableWorkspaceBillableExpenses(policyID);
         }
@@ -91,12 +99,14 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         />
                     </View>
                 </View>
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                 {canUseWorkspaceRules && policy?.areRulesEnabled && (
                     <View style={[styles.mt2, styles.mh4]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text style={[styles.textNormal]}>Track billable expenses</Text>
                             <Switch
-                                isOn={policy?.disabledFields?.defaultBillable ?? true}
+                                isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                                 accessibilityLabel="Track billable expenses"
                                 onToggle={() => toggleBillableExpenses(policy)}
                                 // disabled={policy?.disabledFields?.defaultBillable}
