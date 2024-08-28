@@ -489,8 +489,9 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
 }
 
-function deactivateCard(workspaceAccountID: number, cardID: number, card?: Card) {
+function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
+    const cardID = card?.cardID ?? -1;
 
     if (!authToken) {
         return;

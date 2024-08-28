@@ -67,7 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
-        Card.deactivateCard(workspaceAccountID, Number(cardID), card);
+        Card.deactivateCard(workspaceAccountID, card);
         Navigation.goBack();
     };
 
