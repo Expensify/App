@@ -735,6 +735,15 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
 }
 
 /**
+ * Checks if any violations for the provided transaction are of modifiedAmount or modifiedDate
+ */
+function hasModifiedAmountOrDateViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT || violation.name === CONST.VIOLATIONS.MODIFIED_DATE,
+    );
+}
+
+/**
  * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number, currency: string) {
@@ -1111,6 +1120,7 @@ export {
     hasViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
+    hasModifiedAmountOrDateViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
