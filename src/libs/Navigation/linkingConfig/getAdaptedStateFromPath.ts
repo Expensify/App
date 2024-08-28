@@ -8,6 +8,7 @@ import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRo
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +16,6 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config, {normalizedConfigs} from './config';
-import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
@@ -379,10 +379,11 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
         throw new Error('Unable to parse path');
     }
 
-    // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
-    const policyIDs = extractPolicyIDsFromState(state);
+    // On SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently inside search query ("q" param), so we're handling this case
+    const focusedRoute = findFocusedRoute(state);
+    const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
 
-    return getAdaptedState(state, policyID ?? policyIDs);
+    return getAdaptedState(state, policyID ?? policyIDFromQuery);
 };
 
 export default getAdaptedStateFromPath;
