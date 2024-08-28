@@ -381,8 +381,8 @@ function ReportActionItem({
     }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
-        (emoji: Emoji) => {
-            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
+        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
         },
         [report, action, emojiReactions],
     );
@@ -757,7 +757,7 @@ function ReportActionItem({
                             reportAction={action}
                             emojiReactions={emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji) => {
+                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -765,7 +765,7 @@ function ReportActionItem({
                                         Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji);
+                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
