@@ -128,6 +128,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
+ * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
 function getRateForDisplay(
@@ -137,6 +138,7 @@ function getRateForDisplay(
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     isOffline?: boolean,
+    useShortFormUnit?: boolean,
 ): string {
     if (isOffline && !rate) {
         return translate('iou.defaultRate');
@@ -146,11 +148,11 @@ function getRateForDisplay(
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
+    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${currencySymbol}${formattedRate} / ${singularDistanceUnit}`;
+    return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
 }
 
 /**
@@ -159,14 +161,26 @@ function getRateForDisplay(
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param translate Translate function
+ * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
+function getDistanceForDisplay(
+    hasRoute: boolean,
+    distanceInMeters: number,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    translate: LocaleContextProps['translate'],
+    useShortFormUnit?: boolean,
+): string {
     if (!hasRoute || !rate || !unit || !distanceInMeters) {
         return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    if (useShortFormUnit) {
+        return `${distanceInUnits} ${unit}`;
+    }
+
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
@@ -197,8 +211,8 @@ function getDistanceMerchant(
         return translate('iou.fieldPending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
 
     return `${distanceInUnits} @ ${ratePerUnit}`;
 }

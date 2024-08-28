@@ -2,12 +2,14 @@ import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -180,6 +182,18 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
+function getCardFeedIcon(cardFeed: string): IconAsset {
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
+        return Illustrations.MasterCardCompanyCards;
+    }
+
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)) {
+        return Illustrations.VisaCompanyCards;
+    }
+
+    return Illustrations.AmexCompanyCards;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -195,4 +209,5 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    getCardFeedIcon,
 };

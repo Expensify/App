@@ -1,3 +1,6 @@
+import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
@@ -220,4 +223,7 @@ export {
     BigVault,
     Filters,
     Rules,
+    AmexCompanyCards,
+    MasterCardCompanyCards,
+    VisaCompanyCards,
 };
