@@ -102,7 +102,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
             // Minus the vertical margins around the form button
             40 -
             // Minus the extra height for the form error text
-            20,
+            variables.lineHeightNormal,
 
         // Round down to the largest number of full lines
         styles.baseTextInput.lineHeight,
