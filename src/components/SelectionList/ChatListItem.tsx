@@ -86,13 +86,15 @@ function ChatListItem<TItem extends ListItem>({
                             </View>
                             <ReportActionItemDate created={reportActionItem.created ?? ''} />
                         </View>
-                        <ReportActionItemFragment
-                            fragment={fragment}
-                            actionName={CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}
-                            source=""
-                            accountID={from.accountID}
-                            isFragmentContainingDisplayName
-                        />
+                        <View style={styles.chatItemMessage}>
+                            <ReportActionItemFragment
+                                fragment={fragment}
+                                actionName={CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}
+                                source=""
+                                accountID={from.accountID}
+                                isFragmentContainingDisplayName
+                            />
+                        </View>
                     </View>
                 </>
             )}
