@@ -3,12 +3,13 @@ import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,8 +26,6 @@ function CategoryApproverPage({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const {inputCallbackRef} = useAutoFocusInput();
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -42,6 +41,14 @@ function CategoryApproverPage({
                 <HeaderWithBackButton
                     title={translate('workspace.categories.approver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                />
+                <WorkspaceMembersSelectionList
+                    policyID={policyID}
+                    selectedApprover={policyCategories?.[categoryName]?.approver ?? ''}
+                    setApprover={(email) => {
+                        Category.setPolicyCategoryApprover(policyID, categoryName, email);
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+                    }}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
