@@ -92,7 +92,14 @@ filterList
       );
     }
 
-filter = @(standardFilter / defaultFilter / multiSelectFilter / freeTextFilter)
+filter
+  = @(
+      standardFilter
+      / defaultFilter
+      / multiSelectFilter
+      / freeTextFilter
+      / policyIDFilter
+    )
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
@@ -119,7 +126,12 @@ standardFilter
         );
     }
 
-operator
+policyIDFilter "policyID filter"
+  = _ "policyID" _ op:operator _ value:identifier {
+      updateDefaultValues(key, value.trim());
+    }
+
+operator "operator"
   = (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
@@ -127,15 +139,10 @@ operator
   / "<=" { return "lte"; }
   / "<" { return "lt"; }
 
+policyIDKey "policyID" = @"policyID"
+
 key "key"
-  = @(
-      "date"
-      / "amount"
-      / "merchant"
-      / "description"
-      / "reportID"
-      / "keyword"
-    )
+  = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword")
 
 defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder")
 
@@ -159,6 +166,6 @@ quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 alphanumeric "word"
   = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(""); }
 
-logicalAnd "and" = _ { return "and"; }
+logicalAnd = _ { return "and"; }
 
 _ "whitespace" = [ \t\r\n]*
