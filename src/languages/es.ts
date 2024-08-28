@@ -122,7 +122,7 @@ import type {
 } from './types';
 
 /* eslint-disable max-len */
-export default {
+const translations = {
     common: {
         cancel: 'Cancelar',
         dismiss: 'Descartar',
@@ -5004,4 +5004,6 @@ export default {
         updateRoomDescription: 'establece la descripción de la sala a:',
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
     },
-} satisfies EnglishTranslation;
+};
+
+export default translations satisfies TranslationBase<typeof translations>;

@@ -132,7 +132,7 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
-export default {
+const translations = {
     common: {
         cancel: 'Cancel',
         dismiss: 'Dismiss',
@@ -4488,4 +4488,6 @@ export default {
         updateRoomDescription: 'set the room description to:',
         clearRoomDescription: 'cleared the room description',
     },
-} satisfies TranslationBase;
+};
+
+export default translations satisfies TranslationBase<typeof translations>;

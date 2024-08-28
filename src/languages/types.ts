@@ -1,5 +1,5 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {ConnectionName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
@@ -9,6 +9,11 @@ type AddressLineParams = {
 
 type CharacterLimitParams = {
     limit: number;
+};
+
+type CharacterLengthLimitParams = {
+    limit: number;
+    length: number;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -253,17 +258,29 @@ type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
-/* Translation Object types */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+type PluralizeValue = {
+    one: string;
+    other: string;
+    zero?: string;
+    two?: string;
+    few?: string;
+    many?: string;
+};
 
-type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FunctionArgumentType<T> = T extends (arg: infer A, ...args: any[]) => string ? A : unknown;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ValidTranslationBaseValue = string | string[] | ((arg: any, ...args: any[]) => string | PluralizeValue);
+type TranslationBaseValue<T> = string | string[] | ((arg: FunctionArgumentType<T> extends string ? unknown : FunctionArgumentType<T>, ...args: unknown[]) => string | PluralizeValue);
+type TranslationBase<T = unknown> = {
+    [K in keyof T]: T[K] extends ValidTranslationBaseValue ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
+};
 
 /* Flat Translation Object types */
 // Flattens an object and returns concatenations of all the keys of nested objects
 type FlattenObject<TObject, TPrefix extends string = ''> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
+    [TKey in keyof TObject]: TObject[TKey] extends (args: any) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
         TObject[TKey] extends any[]
@@ -296,6 +313,8 @@ type TermsParams = {amount: string};
 type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
+
+type LogSizeAndDateParams = {size: number; date: string};
 
 type HeldRequestParams = {comment: string};
 
@@ -358,7 +377,53 @@ type ApprovalWorkflowErrorParams = {
     name2: string;
 };
 
+type ConnectionNameParams = {
+    connectionName: ConnectionName;
+};
+
+type LastSyncDateParams = {
+    connectionName: string;
+    formattedDate: string;
+};
+
+type CustomersOrJobsLabelParams = {
+    importFields: string[];
+    importType: string;
+};
+
+type ExportAgainModalDescriptionParams = {
+    reportName: string;
+    connectionName: ConnectionName;
+};
+
+type IntegrationSyncFailedParams = {label: string; errorMessage: string};
+
+type AddEmployeeParams = {email: string; role: string};
+
+type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type RemoveMemberParams = {email: string; role: string};
+
+type DateParams = {date?: string};
+
+type AmountParams = {amount?: string};
+
+type FiltersAmountBetweenParams = {greaterThan: string; lessThan: string};
+
+type StatementPageTitleParams = {year: string | number; monthName: string};
+
+type DisconnectPromptParams = {currentIntegration?: ConnectionName};
+
+type DisconnectTitleParams = {integration?: ConnectionName};
+
+type AmountWithCurrencyParams = {amountWithCurrency: string};
+
+type LowerUpperParams = {lower: string; upper: string};
+
 export type {
+    AmountWithCurrencyParams,
+    LowerUpperParams,
+    LogSizeAndDateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -481,4 +546,20 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    PluralizeValue,
+    ConnectionNameParams,
+    LastSyncDateParams,
+    CustomersOrJobsLabelParams,
+    ExportAgainModalDescriptionParams,
+    IntegrationSyncFailedParams,
+    AddEmployeeParams,
+    UpdateRoleParams,
+    RemoveMemberParams,
+    DateParams,
+    AmountParams,
+    FiltersAmountBetweenParams,
+    StatementPageTitleParams,
+    DisconnectPromptParams,
+    DisconnectTitleParams,
+    CharacterLengthLimitParams,
 };
