@@ -72,6 +72,9 @@ type CustomBaseTextInputProps = {
     /** Prefix character */
     prefixCharacter?: string;
 
+    /** Suffix character */
+    suffixCharacter?: string;
+
     /** Whether autoCorrect functionality should enable  */
     autoCorrect?: boolean;
 
@@ -120,6 +123,12 @@ type CustomBaseTextInputProps = {
 
     /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the suffix */
+    suffixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the suffix container */
+    suffixContainerStyle?: StyleProp<ViewStyle>;
 
     /** The width of inner content */
     contentWidth?: number;

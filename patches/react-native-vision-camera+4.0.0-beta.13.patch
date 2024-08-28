@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-vision-camera/VisionCamera.podspec b/node_modules/react-native-vision-camera/VisionCamera.podspec
-index 3a0e313..e983153 100644
+index 3a0e313..83ab343 100644
 --- a/node_modules/react-native-vision-camera/VisionCamera.podspec
 +++ b/node_modules/react-native-vision-camera/VisionCamera.podspec
 @@ -2,7 +2,13 @@ require "json"
@@ -63,7 +63,7 @@ index 3a0e313..e983153 100644
 @@ -66,9 +74,12 @@ Pod::Spec.new do |s|
      "ios/**/*.h"
    ]
-   
+ 
 -  s.dependency "React"
 -  s.dependency "React-Core"
 -  s.dependency "React-callinvoker"
@@ -962,6 +962,25 @@ index f2b284c..e348e5c 100644
 +    // ios only
 +  }
  }
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
+index b9d3f67..cb70963 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
+@@ -7,12 +7,14 @@ import com.facebook.jni.HybridData
+ import com.facebook.proguard.annotations.DoNotStrip
+ import com.facebook.react.bridge.ReactApplicationContext
+ import com.facebook.react.bridge.UiThreadUtil
++import com.facebook.react.common.annotations.FrameworkAPI
+ import com.facebook.react.turbomodule.core.CallInvokerHolderImpl
+ import com.facebook.react.uimanager.UIManagerHelper
+ import com.mrousavy.camera.CameraView
+ import com.mrousavy.camera.core.ViewNotFoundError
+ import java.lang.ref.WeakReference
+ 
++@OptIn(FrameworkAPI::class)
+ @Suppress("KotlinJniMissingFunction") // we use fbjni.
+ class VisionCameraProxy(private val reactContext: ReactApplicationContext) {
+   companion object {
 diff --git a/node_modules/react-native-vision-camera/ios/.swift-version b/node_modules/react-native-vision-camera/ios/.swift-version
 new file mode 100644
 index 0000000..ef425ca
