@@ -5,7 +5,7 @@ import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types
 import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
-    closeReactNativeApp: () => void;
+    closeReactNativeApp: (shouldSignOut: boolean) => void;
     completeOnboarding: (status: boolean) => void;
     exitApp: () => void;
 };

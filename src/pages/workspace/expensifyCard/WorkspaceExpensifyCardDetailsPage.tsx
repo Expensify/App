@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -38,7 +40,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -63,9 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
-
-        // TODO: add API call when it's supported https://github.com/Expensify/Expensify/issues/407841
-
+        Card.deactivateCard(workspaceAccountID, card);
         Navigation.goBack();
     };
 
@@ -145,7 +147,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 iconFill={theme.icon}
                                 title={translate('workspace.expensifyCard.deactivate')}
                                 style={styles.mv1}
-                                onPress={() => setIsDeactivateModalVisible(true)}
+                                onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
                             />
                             <ConfirmModal
                                 title={translate('workspace.card.deactivateCardModal.deactivateCard')}
@@ -157,6 +159,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
                                 cancelText={translate('common.cancel')}
                                 danger
+                            />
+                            <DecisionModal
+                                title={translate('common.youAppearToBeOffline')}
+                                prompt={translate('search.offlinePrompt')}
+                                isSmallScreenWidth={isSmallScreenWidth}
+                                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                                secondOptionText={translate('common.buttonConfirm')}
+                                isVisible={isOfflineModalVisible}
+                                onClose={() => setIsOfflineModalVisible(false)}
                             />
                         </ScrollView>
                     </>
