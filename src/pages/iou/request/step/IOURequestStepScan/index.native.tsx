@@ -26,6 +26,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -446,7 +447,7 @@ function IOURequestStepScan({
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
-                const source = `file://${photo.path}`;
+                const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 FileUtils.readFileAsync(source, photo.path, (file) => {
