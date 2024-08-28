@@ -1,4 +1,3 @@
-import type {Primitive} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
@@ -7,85 +6,23 @@ import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
 
-type Serializable =
-    | Primitive
-    | Date
-    | RegExp
-    | Error
-    | {[K in string | number | symbol]: Serializable}
-    | (Record<string, never> | Map<Serializable, Serializable>)
-    | (Record<string, never> | Set<Serializable>)
-    | (Record<string, never> | Serializable[]);
-
-function serializeValue(data: unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const seen = new Set<any>();
-    function serialize(item: unknown): Serializable {
-        if (seen.has(item)) {
-            return '"[Circular]"';
+function getCircularReplacer() {
+    const ancestors: unknown[] = [];
+    return function (this: unknown, key: string, value: unknown): unknown {
+        if (typeof value !== 'object' || value === null) {
+            return value;
         }
-
-        if (
-            ['undefined', 'number', 'boolean', 'string', 'bigint', 'symbol'].includes(typeof item) ||
-            item instanceof Date ||
-            item instanceof RegExp ||
-            item instanceof Error ||
-            item === null
-        ) {
-            return item as Primitive | Date | RegExp | Error;
+        // `this` is the object that value is contained in, i.e the direct parent
+        // eslint-disable-next-line no-invalid-this
+        while (ancestors.length > 0 && ancestors.at(-1) !== this) {
+            ancestors.pop();
         }
-
-        if (item instanceof Map) {
-            seen.add(item);
-            const serializedMap = new Map(Array.from(item.entries()).map(([key, value]) => [serialize(key), serialize(value)]));
-            seen.delete(item);
-            return serializedMap;
+        if (ancestors.includes(value)) {
+            return '[Circular]';
         }
-
-        if (item instanceof Set) {
-            seen.add(item);
-            const serializedSet = new Set(Array.from(item.values()).map((v) => serialize(v)));
-            seen.delete(item);
-            return serializedSet;
-        }
-
-        if (ArrayBuffer.isView(item)) {
-            const typedArrayName = item.constructor.name;
-            return `new ${typedArrayName}`;
-        }
-
-        if (item instanceof ArrayBuffer) {
-            return `new Uint8Array.buffer`;
-        }
-
-        if (Array.isArray(item)) {
-            seen.add(item);
-            const serializedArray = item.map(serialize);
-            seen.delete(item);
-            return serializedArray;
-        }
-
-        if (typeof item === 'object') {
-            const itemAsObject = item as Record<string, unknown>;
-            seen.add(itemAsObject);
-            const serializedObj: Record<string, Serializable> = {};
-            Object.keys(itemAsObject).forEach((key) => {
-                serializedObj[key] = serialize(itemAsObject[key]);
-            });
-            seen.delete(itemAsObject);
-            return serializedObj;
-        }
-
-        const type = (item as (...args: unknown[]) => unknown)?.constructor?.name || Object.prototype.toString.call(item).slice(8, -1);
-        return `"[Not serializable: ${type}]"`;
-    }
-
-    try {
-        const serializedData = serialize(data);
-        return serializedData;
-    } catch (error) {
-        return '[Not serializable - errors happening during serialization]';
-    }
+        ancestors.push(value);
+        return value;
+    };
 }
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
@@ -122,7 +59,7 @@ function logRequestDetails(message: string, request: Request, response?: Respons
     if (request.command !== 'AuthenticatePusher') {
         extraData.request = {
             ...request,
-            data: serializeValue(request.data),
+            data: JSON.parse(JSON.stringify(request.data, getCircularReplacer())) as Record<string, unknown>,
         };
         extraData.response = response;
     }
@@ -210,3 +147,5 @@ const Logging: Middleware = (response, request) => {
 };
 
 export default Logging;
+
+export {getCircularReplacer};
