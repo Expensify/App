@@ -333,11 +333,11 @@ function ReportActionsList({
         }
 
         if (ReportUtils.isUnread(report)) {
-            // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
+            // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -347,7 +347,7 @@ function ReportActionsList({
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, report.reportID]);
+    }, [report.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
         if (linkedReportActionID) {
