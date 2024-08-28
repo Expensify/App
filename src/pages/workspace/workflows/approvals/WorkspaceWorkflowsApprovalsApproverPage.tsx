@@ -149,7 +149,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         return [
             {
                 title: undefined,
-                data: filteredApprovers,
+                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];
@@ -184,8 +184,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         }
 
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID), CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         } else {
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
