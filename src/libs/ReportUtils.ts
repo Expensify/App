@@ -6308,7 +6308,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // Current user must be a manager or owner of this IOU
-    if (currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID) {
+    if (isIOUReport(report) && currentUserAccountID !== report?.managerID && currentUserAccountID !== report?.ownerAccountID) {
         return false;
     }
 
