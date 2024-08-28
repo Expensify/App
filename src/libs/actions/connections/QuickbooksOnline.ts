@@ -109,17 +109,6 @@ function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValu
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: boolean) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, settingValue);
-
-    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
-        policyID,
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, onyxData);
-}
-
 function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
@@ -191,7 +180,6 @@ function updateQuickbooksOnlineSyncTax(policyID: string, settingValue: boolean) 
 export {
     getQuickbooksOnlineSetupLink,
     updateQuickbooksOnlineEnableNewCategories,
-    updateQuickbooksOnlineAutoCreateVendor,
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
     updateQuickbooksOnlineSyncTax,
