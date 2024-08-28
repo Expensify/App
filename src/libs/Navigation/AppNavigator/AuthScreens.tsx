@@ -19,6 +19,7 @@ import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModal
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -212,6 +213,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumOrLargerScreenWidth),
         [StyleUtils, isSmallScreenWidth, isMediumOrLargerScreenWidth, styles],
     );
+    const modal = useRef<OnyxTypes.Modal>({});
 
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
@@ -280,6 +282,36 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        const unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (modalArg === null || typeof modalArg !== 'object') {
+                    return;
+                }
+                modal.current = modalArg;
+            },
+        });
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (modal.current.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                if (modal.current.disableDismissOnEscape) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
         // Listen to keyboard shortcuts for opening certain pages
         const unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
             shortcutsOverviewShortcutConfig.shortcutKey,
@@ -330,6 +362,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         );
 
         return () => {
+            unsubscribeEscapeKey();
+            unsubscribeOnyxModal();
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
