@@ -167,7 +167,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         translate,
     ]);
 
-    const shouldShowListEmptyContent = approvalWorkflow && !sections[0].data.length;
+    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections[0].data.length;
 
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
@@ -206,7 +206,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
             <FormAlertWithSubmitButton
                 isDisabled={!shouldShowListEmptyContent && !selectedApproverEmail && isInitialCreationFlow}
                 buttonText={buttonText}
-                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+                onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
