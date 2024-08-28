@@ -32,8 +32,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
         if (isSafari()) {
             const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-            if (options.webOnly) {
-                options.webOnly.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+            if (options.web) {
+                options.web.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
             }
         }
 

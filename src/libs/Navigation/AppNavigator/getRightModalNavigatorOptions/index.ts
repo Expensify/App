@@ -6,7 +6,7 @@ const rightModalNavigatorOptions = (isSmallScreenWidth: boolean): PlatformStackN
     presentation: 'transparentModal',
     // We want pop in RHP since there are some flows that would work weird otherwise
     animationTypeForReplace: 'pop',
-    webOnly: {
+    web: {
         cardStyle: {
             ...getNavigationModalCardStyle(),
             // This is necessary to cover translated sidebar with overlay.

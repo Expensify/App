@@ -9,7 +9,7 @@ const OnboardingModalNavigatorScreenOptions = (): PlatformStackNavigationOptions
     headerShown: false,
     gestureDirection: 'horizontal',
     presentation: 'transparentModal',
-    webOnly: {
+    web: {
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
     },
 });

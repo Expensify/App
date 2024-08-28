@@ -23,7 +23,7 @@ type ScreenOptions = {
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    webOnly: {
+    web: {
         cardOverlayEnabled: true,
     },
 };
@@ -38,7 +38,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             ...getRightModalNavigatorOptions(isSmallScreenWidth),
             ...hideKeyboardOnSwipe,
-            webOnly: {
+            web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
             },
         },
@@ -48,7 +48,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             animationEnabled: true,
             cardOverlayEnabled: false,
             presentation: 'transparentModal',
-            webOnly: {
+            web: {
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
                     backgroundColor: 'transparent',
@@ -63,7 +63,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             ...leftModalNavigatorOptions,
             animationTypeForReplace: 'pop',
-            webOnly: {
+            web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
                 // We want pop in LHP since there are some flows that would work weird otherwise
                 cardStyle: {
@@ -80,7 +80,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         homeScreen: {
             ...commonScreenOptions,
             title: CONFIG.SITE_TITLE,
-            webOnly: {
+            web: {
                 // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
                 cardStyle: {
@@ -98,7 +98,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: isSmallScreenWidth ? 'slide_from_right' : 'none',
-            webOnly: {
+            web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
@@ -114,7 +114,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...hideKeyboardOnSwipe,
             title: CONFIG.SITE_TITLE,
             animation: isSmallScreenWidth ? undefined : 'none',
-            webOnly: {
+            web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
@@ -125,7 +125,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         bottomTab: {
             ...commonScreenOptions,
-            webOnly: {
+            web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),

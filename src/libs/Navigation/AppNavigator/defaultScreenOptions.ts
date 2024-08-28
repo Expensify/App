@@ -3,7 +3,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 const defaultScreenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
     animationTypeForReplace: 'push',
-    webOnly: {
+    web: {
         cardStyle: {
             overflow: 'visible',
             flex: 1,

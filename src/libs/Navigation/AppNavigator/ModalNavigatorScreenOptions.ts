@@ -9,17 +9,21 @@ import type {ThemeStyles} from '@styles/index';
  * @returns The screen options object
  */
 const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles, gestureDirection: GestureDirection = 'horizontal'): PlatformStackNavigationOptions => {
-    const universalGestureDirection = gestureDirection === 'horizontal' || gestureDirection === 'vertical' ? gestureDirection : undefined;
-    const webGestureDirection = gestureDirection !== 'horizontal' && gestureDirection !== 'vertical' ? gestureDirection : undefined;
+    let universalGestureDirection: PlatformStackNavigationOptions['gestureDirection'] | undefined;
+    let webGestureDirection: GestureDirection | undefined;
+    if (gestureDirection === 'horizontal' || gestureDirection === 'vertical') {
+        universalGestureDirection = gestureDirection;
+    } else {
+        webGestureDirection = gestureDirection;
+    }
 
     return {
         headerShown: false,
         animation: 'slide_from_left',
         gestureDirection: universalGestureDirection,
-        webOnly: {
+        web: {
             cardStyle: themeStyles.navigationScreenCardStyle,
             cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            // @ts-expect-error TODO: Fix web/native exclusive navigation options
             gestureDirection: webGestureDirection,
         },
     };

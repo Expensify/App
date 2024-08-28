@@ -26,7 +26,7 @@ function useModalScreenOptions(getScreenOptions?: (styles: ThemeStyles) => Platf
         (): PlatformStackNavigationOptions => ({
             ...hideKeyboardOnSwipe,
             headerShown: false,
-            webOnly: {
+            web: {
                 cardStyle: styles.navigationScreenCardStyle,
                 cardStyleInterpolator,
             },
