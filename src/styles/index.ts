@@ -5141,6 +5141,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
+            width: '100%',
         },
 
         emptyStateHeader: (isIllustration: boolean) => ({
