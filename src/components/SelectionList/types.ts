@@ -198,7 +198,7 @@ type TransactionListItemType = ListItem &
         keyForList: string;
 
         /** Attendees in the transaction */
-        attendees: Attendee[];
+        attendees?: Attendee[];
     };
 
 type ReportListItemType = ListItem &
