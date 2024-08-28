@@ -90,8 +90,8 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Callback to blur composer */
         onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
-        /** Callback to layout the composer */
-        onLayout: (event: LayoutChangeEvent) => void;
+        /** Callback when layout of composer changes */
+        onLayout?: (event: LayoutChangeEvent) => void;
 
         /** Callback to update the value of the composer */
         onValueChange: (value: string) => void;
