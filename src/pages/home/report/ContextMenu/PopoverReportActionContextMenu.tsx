@@ -180,7 +180,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         } else {
             anchorRef.current = null;
         }
-        setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
@@ -211,7 +210,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             typeRef.current = type;
             reportIDRef.current = reportID ?? '-1';
             reportActionIDRef.current = reportActionID ?? '-1';
-            originalReportIDRef.current = originalReportID ?? '-1';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            originalReportIDRef.current = originalReportID || '-1';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -225,6 +225,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
+        setInstanceID(Math.random().toString(36).substr(2, 5));
         onPopoverShow.current();
 
         // After we have called the action, reset it.
@@ -242,6 +243,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportIDRef.current = '-1';
         reportActionIDRef.current = '-1';
         originalReportIDRef.current = '-1';
+        setInstanceID('');
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
