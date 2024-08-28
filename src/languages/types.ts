@@ -271,7 +271,10 @@ type PluralizeValue = {
 type FunctionArgumentType<T> = T extends (arg: infer A, ...args: any[]) => string ? A : unknown;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ValidTranslationBaseValue = string | string[] | ((arg: any, ...args: any[]) => string | PluralizeValue);
-type TranslationBaseValue<T> = string | string[] | ((arg: FunctionArgumentType<T> extends string ? unknown : FunctionArgumentType<T>, ...args: unknown[]) => string | PluralizeValue);
+type TranslationBaseValue<T> =
+    | string
+    | string[]
+    | ((arg: FunctionArgumentType<T> extends string ? Record<string, unknown> : FunctionArgumentType<T>, ...args: unknown[]) => string | PluralizeValue);
 type TranslationBase<T = unknown> = {
     [K in keyof T]: T[K] extends ValidTranslationBaseValue ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
 };
