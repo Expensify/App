@@ -50,6 +50,7 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
+import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
@@ -95,6 +96,15 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
+});
+
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value ?? {};
+    },
 });
 
 function isSupportAuthToken(): boolean {
@@ -419,6 +429,24 @@ function beginSignIn(email: string) {
 }
 
 /**
+ * Create Onyx update to clean up anonymous user data
+ */
+function buildOnyxDataToCleanUpAnonymousUser() {
+    const anonAccountIDs = Object.values(allPersonalDetails ?? {})
+        .filter((detail) => detail?.login?.includes(CONST.EMAIL.ANONYMOUS_USER_DOMAIN) && detail?.accountID)
+        .map((detail) => detail?.accountID) as number[];
+    const data = anonAccountIDs.reduce((res, accountID) => {
+        res[accountID] = null;
+        return res;
+    }, {} as Record<number, null>);
+    return {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: data,
+        onyxMethod: Onyx.METHOD.MERGE,
+    };
+}
+
+/**
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
  */
@@ -434,6 +462,8 @@ function signUpUser() {
         },
     ];
 
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -442,6 +472,7 @@ function signUpUser() {
                 isLoading: false,
             },
         },
+        onyxOperationToCleanUpAnonymousUser,
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -517,6 +548,8 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
         },
     ];
 
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -533,6 +566,7 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
                 validateCode,
             },
         },
+        onyxOperationToCleanUpAnonymousUser,
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -567,6 +601,7 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -607,6 +642,7 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN},
         },
+        onyxOperationToCleanUpAnonymousUser,
     ];
 
     const failureData: OnyxUpdate[] = [
