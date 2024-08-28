@@ -496,6 +496,20 @@ type OriginalMessageUnapproved = {
  */
 type OriginalMessageAddPaymentCard = Record<string, never>;
 
+/**
+ * Original message for INTEGRATIONSYNCFAILED actions
+ */
+type OriginalMessageIntegrationSyncFailed = {
+    /** The user friendly connection name */
+    label: string;
+
+    /** The source of the connection sync */
+    source: string;
+
+    /** The error message from Integration Server */
+    errorMessage: string;
+};
+
 /** The map type of original message */
 type OriginalMessageMap = {
     /** */
@@ -624,6 +638,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {

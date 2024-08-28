@@ -481,6 +481,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
@@ -743,6 +746,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             parse: {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
+                        },
+                        [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+                            path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AGE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+                            path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
                     },
                 },
@@ -1060,6 +1075,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
+                [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+                    path: ROUTES.WORKSPACE_COMPANY_CARDS.route,
+                },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                 },
@@ -1098,6 +1116,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
+                },
+                [SCREENS.WORKSPACE.RULES]: {
+                    path: ROUTES.WORKSPACE_RULES.route,
                 },
             },
         },
