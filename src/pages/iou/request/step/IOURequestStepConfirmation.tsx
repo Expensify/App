@@ -621,7 +621,7 @@ function IOURequestStepConfirmation({
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={report?.policyID ?? policy?.id}
+                        policyID={IOU.getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}

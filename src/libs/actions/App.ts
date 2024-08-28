@@ -184,11 +184,11 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
-                    Onyx.disconnect(connectionID);
+                    Onyx.disconnect(connection);
                     resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
                 },
             });
@@ -449,7 +449,7 @@ function redirectThirdPartyDesktopSignIn() {
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
@@ -475,7 +475,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
     });
 }
 
@@ -496,6 +496,10 @@ function updateLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
 }
 
+function updateLastRoute(screen: string) {
+    Onyx.set(ONYXKEYS.LAST_ROUTE, screen);
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -513,5 +517,6 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    updateLastRoute,
     KEYS_TO_PRESERVE,
 };
