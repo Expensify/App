@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import React, {useCallback} from 'react';
-=======
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
->>>>>>> main
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
