@@ -273,9 +273,6 @@ type MenuItemBaseProps = {
     /** Whether should render error text as HTML or as Text */
     shouldRenderErrorAsHTML?: boolean;
 
-    /** List of markdown rules that will be ignored */
-    excludedMarkdownRules?: string[];
-
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
 
@@ -412,7 +409,6 @@ function MenuItem(
         shouldParseHelperText = false,
         shouldRenderHintAsHTML = false,
         shouldRenderErrorAsHTML = false,
-        excludedMarkdownRules = [],
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
@@ -468,8 +464,8 @@ function MenuItem(
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
-    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
+        return Parser.replace(title, {shouldEscapeText});
+    }, [title, shouldParseTitle, shouldEscapeText]);
 
     const helperHtml = useMemo(() => {
         if (!helperText || !shouldParseHelperText) {
@@ -489,7 +485,8 @@ function MenuItem(
         }
 
         if (shouldTruncateTitle) {
-            titleToWrap = Parser.truncateHTML(titleToWrap, characterLimit, {ellipsis: '...'});
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            return titleToWrap;
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
