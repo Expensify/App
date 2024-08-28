@@ -62,7 +62,7 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (Str.isSMSLogin(account.primaryLogin)) {
+                        if (Str.isSMSLogin(account?.primaryLogin ?? '')) {
                             setCtaErrorMessage(translate('travel.phoneError'));
                             return;
                         }
