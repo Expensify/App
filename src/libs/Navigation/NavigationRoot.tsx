@@ -14,6 +14,8 @@ import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFl
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -58,6 +60,9 @@ function parseAndLogRoute(state: NavigationState) {
 
     if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
         updateLastVisitedPath(currentPath);
+        if (currentPath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(currentPath);
+        }
     }
 
     // Don't log the route transitions from OldDot because they contain authTokens
@@ -98,7 +103,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
         if (!hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
+            const {adaptedState} = getAdaptedStateFromPath(Welcome.getOnboardingInitialPath(), linkingConfig.config);
             return adaptedState;
         }
 

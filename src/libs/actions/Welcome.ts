@@ -3,11 +3,16 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Navigation from '@libs/Navigation/Navigation';
+import linkingConfig from '@libs/Navigation/linkingConfig';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import getStateFromPath from '@navigation/getStateFromPath';
+import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFromPath';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 
@@ -15,6 +20,7 @@ type OnboardingData = Onboarding | [] | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
+let onboardingInitialPath = '';
 let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
@@ -46,6 +52,7 @@ function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
+let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
@@ -53,8 +60,10 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
         }
 
         if (onboarding?.hasCompletedGuidedSetupFlow) {
+            isOnboardingInProgress = false;
             onCompleted?.();
-        } else {
+        } else if (!isOnboardingInProgress) {
+            isOnboardingInProgress = true;
             onNotCompleted?.();
         }
     });
@@ -97,7 +106,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
+                        startOnboardingFlow();
                     }, variables.explanationModalDelay),
             }),
     });
@@ -152,6 +161,19 @@ function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
 }
 
+function updateOnboardingLastVisitedPath(path: string) {
+    Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
+}
+
+function getOnboardingInitialPath(): string {
+    const state = getStateFromPath(onboardingInitialPath as Route);
+    if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
+        return ROUTES.ONBOARDING_ROOT.route;
+    }
+
+    return onboardingInitialPath;
+}
+
 function completeHybridAppOnboarding() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -180,11 +202,28 @@ function completeHybridAppOnboarding() {
     API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
 }
 
+function startOnboardingFlow() {
+    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    navigationRef.resetRoot(adaptedState);
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
         onboarding = value;
         checkOnboardingDataReady();
+    },
+});
+
+const onboardingLastVisitedPathConnection = Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+
+        onboardingInitialPath = value.substring(1);
+        Onyx.disconnect(onboardingLastVisitedPathConnection);
     },
 });
 
@@ -213,16 +252,21 @@ function resetAllChecks() {
         resolveOnboardingFlowStatus = resolve;
     });
     isLoadingReportData = true;
+    onboardingInitialPath = '';
+    isOnboardingInProgress = false;
 }
 
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     setOnboardingPurposeSelected,
+    getOnboardingInitialPath,
+    updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
     setOnboardingErrorMessage,
+    startOnboardingFlow,
 };

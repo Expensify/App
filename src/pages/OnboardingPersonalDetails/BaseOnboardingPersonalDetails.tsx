@@ -25,6 +25,7 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -73,7 +74,9 @@ function BaseOnboardingPersonalDetails({
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID();
 
-            Navigation.dismissModal();
+            // Navigate to HOME instead of dismissModal, because there is bug in small screen
+            // where the onboarding puropose page will be disaplayed briefly
+            Navigation.navigate(ROUTES.HOME);
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
