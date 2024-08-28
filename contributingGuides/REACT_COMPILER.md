@@ -63,7 +63,7 @@ const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => i
 
 #### This value may be mutated later, which could cause the value to change unexpectedly
 
-This usually happens when a value return from `useMemo` is later passed to some other function, and `react-compiler` doesn't know if the value will stay stable or be mutated.
+This usually happens when the value returned from `useMemo` is later passed to some other function, and `react-compiler` doesn't know if the value will stay stable or be mutated.
 
 ```ts
 // ❌ such code triggers the error
