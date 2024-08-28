@@ -208,7 +208,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  * @param contactMethod - the contact method being deleted
  * @param loginList
  */
-function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
     const oldLoginData = loginList[contactMethod];
 
     const optimisticData: OnyxUpdate[] = [
@@ -257,7 +257,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 /**
@@ -292,7 +292,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
 /**
  * Adds a secondary login to a user's account
  */
-function addNewContactMethodAndNavigate(contactMethod: string) {
+function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -344,7 +344,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 /**
@@ -836,7 +836,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -986,7 +986,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
