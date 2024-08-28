@@ -1,5 +1,5 @@
-import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -7,6 +7,7 @@ import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
@@ -63,7 +64,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         }
     };
 
-    useEffect(() => turnOffMobileSelectionMode(), []);
+    useMobileSelectionMode(true);
 
     return (
         <>
