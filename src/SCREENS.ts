@@ -365,6 +365,7 @@ const SCREENS = {
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         COMPANY_CARDS: 'Workspace_CompanyCards',
+        COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY: 'Workspace_CompanyCards_Settings_Transaction_Liability',
