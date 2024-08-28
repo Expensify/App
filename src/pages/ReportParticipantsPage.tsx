@@ -183,6 +183,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
+        SearchInputManager.searchInput = '';
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -296,7 +297,10 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                     <Button
                         medium
                         success
-                        onPress={inviteUser}
+                        onPress={() => {
+                            SearchInputManager.searchInput = '';
+                            inviteUser();
+                        }}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}

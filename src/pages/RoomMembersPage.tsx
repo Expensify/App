@@ -118,6 +118,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             Report.removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
+        SearchInputManager.searchInput = '';
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -277,7 +278,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     <Button
                         medium
                         success
-                        onPress={inviteUser}
+                        onPress={() => {
+                            SearchInputManager.searchInput = '';
+                            inviteUser();
+                        }}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
