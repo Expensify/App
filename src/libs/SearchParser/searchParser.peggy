@@ -10,6 +10,7 @@
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
 // multiSelectFilter: rule to process the multi-select values returned by the multiselectKey rule. It builds multiselect filter Object.
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
+// policyIDFilter: rule to process the policyIDFilter. It builds filter Object.
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
 // key: rule to match pre-defined search syntax fields that aren't multi-select, e.g. amount, merchant, etc
 // defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
@@ -128,7 +129,7 @@ standardFilter
     }
 
 policyIDFilter "policyID filter"
-  = _ field:policyIDKey _ op:operator _ value:identifier {
+  = _ field:"policyID" _ op:operator _ value:identifier {
       updateDefaultValues(field, value.trim());
     }
 
@@ -139,8 +140,6 @@ operator "operator"
   / ">" { return "gt"; }
   / "<=" { return "lte"; }
   / "<" { return "lt"; }
-
-policyIDKey "policyID" = @"policyID"
 
 key "key"
   = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword")
