@@ -1,5 +1,5 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {ComponentType, EffectCallback} from 'react';
+import type {ComponentType} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -36,7 +36,6 @@ jest.mock('@react-navigation/native', () => {
         }),
         useIsFocused: () => true,
         useNavigationState: () => {},
-        useFocusEffect: (cb: EffectCallback) => cb(),
     };
 });
 
