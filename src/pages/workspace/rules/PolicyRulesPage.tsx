@@ -12,11 +12,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-<<<<<<< HEAD
-import ExpenseReportRulesSection from './ExpenseReportRulesSection';
-=======
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
->>>>>>> origin/main
 
 type PolicyRulesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
@@ -44,34 +40,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 shouldShowNotFoundPage={!canUseWorkspaceRules}
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-<<<<<<< HEAD
-                    <Section
-                        isCentralPane
-                        title={translate('workspace.rules.individualExpenseRules.title')}
-                        renderSubtitle={() => (
-                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.subtitle')}</Text>{' '}
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={handleOnPressCategoriesLink}
-                                >
-                                    {translate('workspace.common.categories').toLowerCase()}
-                                </TextLink>{' '}
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.and')}</Text>{' '}
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={handleOnPressTagsLink}
-                                >
-                                    {translate('workspace.common.tags').toLowerCase()}
-                                </TextLink>
-                                .
-                            </Text>
-                        )}
-                        subtitle={translate('workspace.rules.individualExpenseRules.subtitle')}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    />
-                    <ExpenseReportRulesSection policyID={policyID} />
-=======
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <Section
                         isCentralPane
@@ -80,7 +48,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                         titleStyles={styles.accountSettingsSectionTitle}
                         subtitleMuted
                     />
->>>>>>> origin/main
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
