@@ -20,6 +20,7 @@
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator
 // whitespace: rule to match whitespaces
 
+
 // global initializer (code executed only once)
 {{
   function buildFilter(operator, left, right) {
@@ -94,11 +95,11 @@ filterList
 
 filter
   = @(
-      standardFilter
+      policyIDFilter
+      / standardFilter
       / defaultFilter
       / multiSelectFilter
       / freeTextFilter
-      / policyIDFilter
     )
 
 defaultFilter
@@ -127,8 +128,8 @@ standardFilter
     }
 
 policyIDFilter "policyID filter"
-  = _ "policyID" _ op:operator _ value:identifier {
-      updateDefaultValues(key, value.trim());
+  = _ field:policyIDKey _ op:operator _ value:identifier {
+      updateDefaultValues(field, value.trim());
     }
 
 operator "operator"
