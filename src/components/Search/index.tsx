@@ -200,7 +200,16 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
-                <SearchStatusSkeleton shouldAnimate />
+
+                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
+                {searchResults?.search?.type === type ? (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                ) : (
+                    <SearchStatusSkeleton shouldAnimate />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
