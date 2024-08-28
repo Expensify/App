@@ -1,6 +1,6 @@
 import React from 'react';
-import type BaseLottieProps from './types';
 import BaseLottie from './BaseLottie';
+import type BaseLottieProps from './types';
 
 function Lottie({...rest}: Omit<BaseLottieProps, 'shouldLoadAfterInteractions'>) {
     return (

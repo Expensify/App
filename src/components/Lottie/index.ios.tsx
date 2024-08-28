@@ -1,6 +1,6 @@
 import React from 'react';
-import type BaseLottieProps from './types';
 import BaseLottie from './BaseLottie';
+import type BaseLottieProps from './types';
 
 function Lottie({...rest}: Omit<BaseLottieProps, 'shouldLoadAfterInteractions'>) {
     return (
@@ -10,7 +10,8 @@ function Lottie({...rest}: Omit<BaseLottieProps, 'shouldLoadAfterInteractions'>)
             // On iOS, the navigation transition is not smooth if the Lottie animation is loaded
             // before the user interaction is complete. Therefore, we should load the animation
             // only after interactions are finished.
-            shouldLoadAfterInteractions        />
+            shouldLoadAfterInteractions
+        />
     );
 }
 

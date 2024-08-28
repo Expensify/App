@@ -1,5 +1,5 @@
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {LottieViewProps} from 'lottie-react-native';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 
 type BaseLottieProps = {
     source: DotLottieAnimation;

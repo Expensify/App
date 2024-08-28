@@ -1,8 +1,8 @@
-import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
+import type {AnimationObject} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import {View, InteractionManager} from 'react-native';
+import React, {forwardRef, useEffect, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useSplashScreen from '@hooks/useSplashScreen';
@@ -25,14 +25,12 @@ function BaseLottie({source, webStyle, shouldLoadAfterInteractions, ...props}: B
     }, [setAnimationFile, source.file]);
 
     useEffect(() => {
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
 
         return () => {
-            if (interactionHandle) {
-                interactionHandle.cancel();
-            }
+            interactionTask.cancel();
         };
     }, []);
 

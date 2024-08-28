@@ -1,6 +1,7 @@
 import {Image} from 'expo-image';
-import React, {useMemo, useEffect, useState} from 'react';
-import {InteractionManager, type ImageSourcePropType} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
@@ -30,23 +31,23 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const {isSplashHidden} = useSplashScreen();
 
     useEffect(() => {
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
+
         return () => {
-            if (interactionHandle) {
-                interactionHandle.cancel();
-            }
+            interactionTask.cancel();
         };
     }, []);
 
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
-    if (!isSplashHidden) {
+    // oad the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
+    if (!isSplashHidden || !isInteractionComplete) {
         return;
     }
-    // On IOS, load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
-    return (isInteractionComplete &&
+
+    return (
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
                 source={src as ImageSourcePropType}
