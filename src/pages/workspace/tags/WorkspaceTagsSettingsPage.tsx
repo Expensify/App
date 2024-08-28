@@ -19,6 +19,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,8 +47,31 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
         [policyID],
     );
 
+    function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
+        if (policy?.disabledFields?.defaultBillable) {
+            Policy.setPolicyBillableMode(policyID, true);
+        } else {
+            Policy.disableWorkspaceBillableExpenses(policyID);
+        }
+    }
+
     const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
         <View style={styles.flexGrow1}>
+            {!isMultiLevelTags && (
+                <OfflineWithFeedback
+                    errors={policyTags?.[policyTagLists[0]?.name]?.errors}
+                    onClose={() => Tag.clearPolicyTagListErrors(policyID, policyTagLists[0].orderWeight)}
+                    pendingAction={policyTags?.[policyTagLists[0]?.name]?.pendingAction}
+                    errorRowStyles={styles.mh5}
+                >
+                    <MenuItemWithTopDescription
+                        title={policyTagLists[0]?.name}
+                        description={translate(`workspace.tags.customTagName`)}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists[0].orderWeight))}
+                        shouldShowRightIcon
+                    />
+                </OfflineWithFeedback>
+            )}
             <OfflineWithFeedback
                 errors={policy?.errorFields?.requiresTag}
                 pendingAction={policy?.pendingFields?.requiresTag}
@@ -64,22 +88,18 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         />
                     </View>
                 </View>
+                <View style={[styles.mt2, styles.mh4]}>
+                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.textNormal]}>Track billable expenses</Text>
+                        <Switch
+                            isOn={policy?.disabledFields?.defaultBillable ?? true}
+                            accessibilityLabel="Track billable expenses"
+                            onToggle={() => toggleBillableExpenses(policy)}
+                            // disabled={policy?.disabledFields?.defaultBillable}
+                        />
+                    </View>
+                </View>
             </OfflineWithFeedback>
-            {!isMultiLevelTags && (
-                <OfflineWithFeedback
-                    errors={policyTags?.[policyTagLists[0]?.name]?.errors}
-                    onClose={() => Tag.clearPolicyTagListErrors(policyID, policyTagLists[0].orderWeight)}
-                    pendingAction={policyTags?.[policyTagLists[0]?.name]?.pendingAction}
-                    errorRowStyles={styles.mh5}
-                >
-                    <MenuItemWithTopDescription
-                        title={policyTagLists[0]?.name}
-                        description={translate(`workspace.tags.customTagName`)}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists[0].orderWeight))}
-                        shouldShowRightIcon
-                    />
-                </OfflineWithFeedback>
-            )}
         </View>
     );
     return (

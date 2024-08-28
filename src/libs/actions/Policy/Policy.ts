@@ -3676,6 +3676,65 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
+/**
+ * Call the API to enable or disable the billable mode for the given policy
+ * @param policyID - id of the policy to enable or disable the bilable mode
+ */
+function disableWorkspaceBillableExpenses(policyID: string) {
+    const policy = getPolicy(policyID);
+
+    const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {
+                        defaultBillable: true,
+                    },
+                    pendingFields: {
+                        defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        defaultBillable: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {defaultBillable: originalDefaultBillableDisabled},
+                    pendingFields: {defaultBillable: null},
+                    errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        disabledFields: JSON.stringify({
+            defaultBillable: true,
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
 function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
     const policy = getPolicy(policyID);
 
@@ -3825,6 +3884,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     setPolicyBillableMode,
+    disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
 };
 
