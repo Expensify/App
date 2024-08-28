@@ -169,10 +169,16 @@ type IOU = {
     isSplitRequest?: boolean;
 };
 
+/** Model of IOU attendee */
 type Attendee = {
-    email: string;
-    displayName: string;
-    avatarUrl: string;
+    /** IOU attendee email */
+    email?: string;
+
+    /** IOU attendee display name */
+    displayName?: string;
+
+    /** IOU attendee avatar url */
+    avatarUrl?: string;
 };
 
 export default IOU;

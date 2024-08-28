@@ -11,23 +11,18 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Report from '@userActions/Report';
-import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 type MoneyRequestAttendeesSelectorProps = {
@@ -43,22 +38,16 @@ type MoneyRequestAttendeesSelectorProps = {
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
 
-    /** The expense type, ie. manual, scan, distance */
-    iouRequestType: IOURequestType;
-
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 };
 
-function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, onAttendeesAdded, iouType, iouRequestType, action}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -71,7 +60,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => PolicyUtils.isPaidGroupPolicy(policy), [policy]);
-    // const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
@@ -93,18 +81,16 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+            iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            !isCategorizeOrShareAction,
             false,
             false,
             0,
@@ -119,20 +105,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
         );
 
         return optionList;
-    }, [
-        action,
-        areOptionsInitialized,
-        betas,
-        canUseP2PDistanceRequests,
-        didScreenTransitionEnd,
-        iouRequestType,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        attendees,
-        isPaidGroupPolicy,
-    ]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, attendees, isPaidGroupPolicy]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -229,7 +202,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    const addParticipantToSelection = useCallback(
+    const addAttendeeToSelection = useCallback(
         (option: Attendee) => {
             const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
@@ -244,6 +217,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
             };
             const isOptionInList = attendees.some(isOptionSelected);
             let newSelectedOptions: Attendee[];
+            console.log('LOG: ', option);
 
             if (isOptionInList) {
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
@@ -252,10 +226,9 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     ...attendees,
                     {
                         accountID: option.accountID,
-                        login: option.login,
+                        login: option.login ?? option.text,
                         isPolicyExpenseChat: option.isPolicyExpenseChat,
                         reportID: option.reportID,
-                        text: option.text,
                         selected: true,
                         searchText: option.searchText,
                         iouType,
@@ -277,7 +250,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                 return;
             }
 
-            onFinish(CONST.IOU.TYPE.SPLIT);
+            onFinish(CONST.IOU.TYPE.SUBMIT);
         },
         [shouldShowErrorMessage, onFinish, attendees],
     );
@@ -294,7 +267,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
     const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
 
     const footerContent = useMemo(() => {
-        if (isDismissed && !shouldShowErrorMessage && !attendees.length) {
+        if (!shouldShowErrorMessage && !attendees.length) {
             return;
         }
 
@@ -320,18 +293,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                 )}
             </>
         );
-    }, [handleConfirmSelection, attendees.length, isDismissed, shouldShowErrorMessage, styles, translate, isCategorizeOrShareAction]);
-
-    const onSelectRow = useCallback(
-        (option: Attendee) => {
-            if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
-                return;
-            }
-            addParticipantToSelection(option);
-        },
-        [addParticipantToSelection],
-    );
+    }, [handleConfirmSelection, attendees.length, shouldShowErrorMessage, styles, translate, isCategorizeOrShareAction]);
 
     return (
         <SelectionList
@@ -343,7 +305,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={onSelectRow}
+            onSelectRow={addAttendeeToSelection}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
