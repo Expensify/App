@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {Str} from "expensify-common";
+import {Str} from 'expensify-common';
 
 const tripsFeatures: FeatureListItem[] = [
     {
