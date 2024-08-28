@@ -125,6 +125,16 @@ function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>,
         : undefined;
 }
 
+function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS];
+    return filterValue
+        ? Object.values(CONST.SEARCH.CHAT_TYPES)
+              .filter((hasFilter) => filterValue.includes(hasFilter))
+              .map((hasFilter) => translate(SearchUtils.getChatFiltersTranslationKey(hasFilter)))
+              .join(', ')
+        : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -227,10 +237,10 @@ function AdvancedSearchFilters() {
                 shouldShow: true,
             },
             {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, translate),
+                title: getFilterHasDisplayTitle(searchAdvancedFilters, translate),
                 description: 'search.filters.has' as const,
                 route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-                shouldShow: shouldShowChatSpecificFilter,
+                shouldShow: true,
             },
         ],
         [searchAdvancedFilters, translate, shouldShowExpenseSpecificFilter, cardList, taxRates, personalDetails, shouldShowChatSpecificFilter],
