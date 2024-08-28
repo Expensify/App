@@ -448,13 +448,13 @@ function IOURequestStepScan({
                 // Store the receipt on the transaction object in Onyx
                 IOU.setMoneyRequestReceipt(transactionID, photo.path, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                FileUtils.readFileAsync(source, photo.path, (file) => {
+                FileUtils.readFileAsync(photo.path, photo.path, (file) => {
                     if (action === CONST.IOU.ACTION.EDIT) {
-                        updateScanAndNavigate(file, source);
+                        updateScanAndNavigate(file, photo.path);
                         return;
                     }
                     setDidCapturePhoto(true);
-                    navigateToConfirmationStep(file, source);
+                    navigateToConfirmationStep(file, photo.path);
                 });
             })
             .catch((error: string) => {
