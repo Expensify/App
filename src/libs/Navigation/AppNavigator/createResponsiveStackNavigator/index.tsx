@@ -10,6 +10,7 @@ import type {
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnIsSmallScreenWidthChange} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
+import CustomRouter from './CustomRouter';
 import getStateWithSearch from './getStateWithSearch';
 import RenderSearchRoute from './SearchRoute';
 
@@ -26,6 +27,7 @@ const ResponsiveStackNavigator = createPlatformStackNavigatorComponent('Responsi
     transformState: getStateWithSearch,
     ExtraContent: RenderSearchRoute,
     onIsSmallScreenWidthChange: handleIsSmallScreenWidthChange,
+    createRouter: CustomRouter,
 });
 
 function createResponsiveStackNavigator<ParamList extends ParamListBase>() {
