@@ -32,7 +32,14 @@
       filters
     };
   }
-  
+
+  function applyPolicyID(filtersWithDefaults) {
+    return {
+      ...filtersWithDefaults,
+      policyID: filtersWithDefaults.policyID
+    };
+  }
+
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
@@ -40,10 +47,21 @@
   function isDefaultField(field) {
     return defaultValues.hasOwnProperty(field);
   }
+
+  function isPolicyID(field) {
+    return field === 'policyID';
+  }
 }
 
 query
-  = _ filters:filterList? _ { return applyDefaults(filters); }
+  = _ filters:filterList? _ {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  }
 
 filterList
   = head:filter tail:(logicalAnd filter)* {
@@ -59,16 +77,20 @@ filterList
      if(!keywords.length){
      	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
      }
-      
+
      return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
-      
-      
+
       return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     }
 
 filter
   = _ field:key? _ op:operator? _ value:identifier {
       if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
+      if (isPolicyID(field)) {
         updateDefaultValues(field, value.trim());
         return null;
       }
@@ -111,6 +133,7 @@ key
   / "keyword" { return "keyword"; }
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
+  / "policyID" { return "policyID"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }

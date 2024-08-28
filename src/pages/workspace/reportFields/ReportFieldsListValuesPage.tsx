@@ -117,9 +117,9 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const isAllSelected = listValues.length === Object.keys(selectedValues).length;
+        const areAllSelected = listValues.length === selectedValuesArray.length;
 
-        setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(areAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -177,7 +177,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if ((isSmallScreenWidth ? selectionMode?.isEnabled : true) && selectedValuesArray.length > 0) {
+        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
