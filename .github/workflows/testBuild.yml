@@ -89,7 +89,6 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -163,7 +162,6 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Cache Pod dependencies
