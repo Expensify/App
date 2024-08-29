@@ -107,6 +107,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 <ImageSVG
                     src={Expensicons.SpreadsheetComputer}
                     contentFit="contain"
+                    style={styles.mb4}
                     width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                     height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                 />
@@ -179,6 +180,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                         <ImageSVG
                                             src={Expensicons.SpreadsheetComputer}
                                             contentFit="contain"
+                                            style={styles.mb4}
                                             width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />

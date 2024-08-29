@@ -24,7 +24,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
-    const [containsHeader, setContainsHeader] = useState(false);
+    const {containsHeader} = spreadsheet ?? {};
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -111,14 +111,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
-                containsHeader={containsHeader}
-                setContainsHeader={setContainsHeader}
                 columnNames={columnNames}
                 importFunction={importCategories}
                 errors={validate()}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
                 headerText={translate('workspace.categories.importedCategoriesMessage')}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
             <ConfirmModal

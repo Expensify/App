@@ -1,29 +1,25 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Parser from '@libs/Parser';
+import {openImportPage, setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import type {ColumnRole} from './ImportColumn';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
-import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
 import Switch from './Switch';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type ImportSpreadsheetColumnsProps = {
     // An array of arrays containing strings, representing the spreadsheet data.
     spreadsheetColumns: string[][];
-
-    // A boolean indicating whether the first row of the spreadsheet contains headers.
-    containsHeader: boolean;
-
-    // A function to set the containsHeader state.
-    setContainsHeader: (containsHeader: boolean) => void;
 
     // An array of strings representing the names of the columns.
     columnNames: string[];
@@ -42,35 +38,39 @@ type ImportSpreadsheetColumnsProps = {
 
     // A string representing the header text to be rendered.
     headerText: string;
+
+    // Link to learn more about the file preparation for import.
+    learnMoreLink?: string;
 };
 
-function ImportSpreeadsheetColumns({
-    spreadsheetColumns,
-    containsHeader,
-    setContainsHeader,
-    columnNames,
-    columnRoles,
-    errors,
-    importFunction,
-    isButtonLoading,
-    headerText,
-}: ImportSpreadsheetColumnsProps) {
+function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, headerText, learnMoreLink}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const {containsHeader} = spreadsheet ?? {};
+
+    useEffect(() => {
+        openImportPage(containsHeader);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <>
             <ScrollView>
                 <View style={styles.mh5}>
-                    <RenderHTML html={Parser.replace(headerText)} />
+                    <Text>
+                        {headerText}
+                        <TextLink href={learnMoreLink ?? ''}>{` [${translate('common.learnMore')}]`}</TextLink>
+                    </Text>
 
                     <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
 
                         <Switch
                             accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                            isOn={containsHeader}
+                            isOn={containsHeader === true}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onToggle={setContainsHeader}
                         />
                     </View>
@@ -80,7 +80,7 @@ function ImportSpreeadsheetColumns({
                             <ImportColumn
                                 key={columnNames[index]}
                                 column={column}
-                                containsHeader={containsHeader}
+                                containsHeader={containsHeader === true}
                                 columnName={columnNames[index]}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
@@ -93,6 +93,7 @@ function ImportSpreeadsheetColumns({
                 <OfflineWithFeedback
                     shouldDisplayErrorAbove
                     errors={errors}
+                    errorRowStyles={styles.mv2}
                     canDismissError={false}
                 >
                     <Button

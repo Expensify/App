@@ -5492,6 +5492,8 @@ const CONST = {
     IMPORT_SPREADSHEET: {
         ICON_WIDTH: 180,
         ICON_HEIGHT: 160,
+
+        CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
     },
 } as const;
 

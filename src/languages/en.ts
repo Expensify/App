@@ -2867,7 +2867,7 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
-            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below. [Learn more].',
+            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         },
         moreFeatures: {
             spendSection: {
