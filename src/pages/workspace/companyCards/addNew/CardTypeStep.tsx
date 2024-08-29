@@ -33,9 +33,8 @@ function CardTypeStep() {
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
-    const data = useMemo(() => {
-        const options = [];
-        options.push(
+    const data = useMemo(
+        () => [
             {
                 value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
                 text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
@@ -78,10 +77,9 @@ function CardTypeStep() {
                     />
                 ),
             },
-        );
-
-        return options;
-    }, [styles.mr3, translate, typeSelected]);
+        ],
+        [styles.mr3, translate, typeSelected],
+    );
 
     return (
         <ScreenWrapper
