@@ -1,8 +1,6 @@
 name: E2E Performance Tests
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   workflow_call:
     inputs:
       PR_NUMBER:
@@ -25,48 +23,19 @@ jobs:
   buildBaseline:
     runs-on: ubuntu-latest-xl
     name: Build apk from latest release as a baseline
-    outputs:
-      VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
-      ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
-      ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetches the entire history
-      #  with:
-      #    # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
-      #    token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      # - name: Get most recent release version
-      #   id: getMostRecentRelease
-      #   run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
-
-      # - name: Check if there's an existing artifact for this baseline
-      #   id: checkForExistingArtifact
-      #   uses: ./.github/actions/javascript/getArtifactInfo
-      #   with:
-      #     GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-      #     ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
-
-      # - name: Skip build if there's already an existing artifact for the baseline
-      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
       - name: Checkout "Baseline" commit (prev merge commit)
-      #  if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-      #  run: |
-      #    git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-      #    git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
         run: |
            previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
            git checkout $previous_merge
            echo $previous_merge
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
-      #  if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         with:
-          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          ARTIFACT_NAME: ""
           PACKAGE_SCRIPT_NAME: android-build-e2e
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
