@@ -155,7 +155,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                               },
                           }
                         : {
-                              route: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                           }),
                 },
                 {
