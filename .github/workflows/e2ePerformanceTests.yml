@@ -22,7 +22,7 @@ concurrency:
 jobs:
   buildBaseline:
     runs-on: ubuntu-latest-xl
-    name: Build apk from latest release as a baseline
+    name: Build apk from baseline
     outputs:
       BASELINE_REF: ${{ steps.getBaselineRef.outputs.BASELINE_REF }}
     steps:
