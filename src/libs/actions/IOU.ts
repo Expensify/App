@@ -6721,7 +6721,8 @@ function getPayMoneyRequestParams(
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        for (const transaction of TransactionUtils.getAllReportTransactions(iouReport.reportID)) {
+        const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+        for (const transaction of reportTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
