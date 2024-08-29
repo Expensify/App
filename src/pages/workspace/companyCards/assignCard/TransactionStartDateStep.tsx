@@ -101,7 +101,7 @@ function TransactionStartDateStep() {
                     <>
                         <MenuItemWithTopDescription
                             description={translate('common.date')}
-                            title={DateUtils.extractDate(startDate.toString())}
+                            title={startDate}
                             shouldShowRightIcon
                             onPress={() => setIsModalOpened(true)}
                         />
