@@ -1,6 +1,5 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -11,7 +10,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
@@ -26,7 +24,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode(true);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
@@ -63,8 +61,6 @@ function SelectionListWithModal<TItem extends ListItem>(
             onTurnOnSelectionMode(longPressedItem);
         }
     };
-
-    useMobileSelectionMode(true);
 
     return (
         <>

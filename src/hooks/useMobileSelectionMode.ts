@@ -13,8 +13,7 @@ export default function useMobileSelectionMode(shouldAutoTurnOff = true) {
             }
             turnOffMobileSelectionMode();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldAutoTurnOff]);
 
     return {selectionMode};
 }
