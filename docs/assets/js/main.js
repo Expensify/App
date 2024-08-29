@@ -165,6 +165,8 @@ window.addEventListener('load', () => {
     insertElementAfter(searchInput, searchLabel);
 });
 
+const FIXED_HEADER_HEIGHT = 80;
+
 const tocbotOptions = {
     // Where to render the table of contents.
     tocSelector: '.article-toc',
@@ -188,8 +190,8 @@ const tocbotOptions = {
     activeLinkClass: 'selected-article',
 
     // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-    headingsOffset: 80,
-    scrollSmoothOffset: -80,
+    headingsOffset: FIXED_HEADER_HEIGHT,
+    scrollSmoothOffset: -FIXED_HEADER_HEIGHT,
     scrollSmooth: true,
 
     // If there is a fixed article scroll container, set to calculate titles' offset
@@ -216,14 +218,14 @@ function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
     });
 }
 
-// Function to handle changes in the media query statuses
 function handleBreakpointChange() {
-    if (mobileBreakpoint.matches) {
-        updateTocbotOptions(80, -80);
-        console.log('[wildebug] Mobile breakpoint matched');
-    } else {
-        updateTocbotOptions(0, 0);
-        console.log('[wildebug] Non-mobile breakpoint matched');
+    const isMobile = mobileBreakpoint.matches;
+    const headingsOffset = isMobile ? FIXED_HEADER_HEIGHT : 0;
+    const scrollSmoothOffset = isMobile ? -FIXED_HEADER_HEIGHT : 0;
+
+    // Update tocbot options only if there is a change in offsets
+    if (tocbotOptions.headingsOffset !== headingsOffset || tocbotOptions.scrollSmoothOffset !== scrollSmoothOffset) {
+        updateTocbotOptions(headingsOffset, scrollSmoothOffset);
     }
 }
 
