@@ -32,7 +32,10 @@ function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TIt
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScroll={() => {
+            onScroll={(event) => {
+                if (props.onScroll) {
+                    props.onScroll(event);
+                }
                 // Only dismiss the keyboard whenever the user scrolls the screen
                 if (!isScreenTouched) {
                     return;

@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -38,6 +39,7 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
     policyIDs?: string;
+    onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 const transactionItemMobileHeight = 100;
@@ -74,7 +76,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
+function Search({queryJSON, policyIDs, isCustomQuery, onSearchListScroll}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -200,6 +202,12 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+                {!isSmallScreenWidth && (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
@@ -225,10 +233,12 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
-                <SearchStatusBar
-                    type={type}
-                    status={status}
-                />
+                {!isSmallScreenWidth && (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                )}
                 <EmptySearchView type={type} />
             </>
         );
@@ -322,10 +332,12 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-            <SearchStatusBar
-                type={type}
-                status={status}
-            />
+            {!isSmallScreenWidth && (
+                <SearchStatusBar
+                    type={type}
+                    status={status}
+                />
+            )}
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
@@ -345,6 +357,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                         />
                     )
                 }
+                onScroll={onSearchListScroll}
                 canSelectMultiple={canSelectMultiple}
                 customListHeaderHeight={searchHeaderHeight}
                 // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
@@ -376,6 +389,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                         />
                     ) : undefined
                 }
+                scrollEventThrottle={16}
             />
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}

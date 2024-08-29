@@ -98,6 +98,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
         shouldShowListEmptyContent = true,
+        scrollEventThrottle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -732,6 +733,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
+                                scrollEventThrottle={scrollEventThrottle}
                             />
                             {children}
                         </>
