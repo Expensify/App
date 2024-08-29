@@ -62,21 +62,24 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Navigation.dismissModal();
     }, [initialApprovalWorkflow, route.params.policyID]);
 
-    const {currentApprovalWorkflow, defaultWorkflowMembers} = useMemo(() => {
+    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
         if (!policy || !personalDetails) {
             return {};
         }
 
         const defaultApprover = policy?.approver ?? policy.owner;
-        const allApprovalWorkflows = convertPolicyEmployeesToApprovalWorkflows({
+        const firstApprover = route.params.firstApproverEmail;
+        const result = convertPolicyEmployeesToApprovalWorkflows({
             employees: policy.employeeList ?? {},
             defaultApprover,
             personalDetails,
+            firstApprover,
         });
 
         return {
-            defaultWorkflowMembers: allApprovalWorkflows.at(0)?.members ?? [],
-            currentApprovalWorkflow: allApprovalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === route.params.firstApproverEmail),
+            defaultWorkflowMembers: result.availableMembers,
+            usedApproverEmails: result.usedApproverEmails,
+            currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
         };
     }, [personalDetails, policy, route.params.firstApproverEmail]);
 
@@ -97,12 +100,13 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Workflow.setApprovalWorkflow({
             ...currentApprovalWorkflow,
             availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
+            usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             isLoading: false,
             errors: null,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow]);
+    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 
     return (
         <AccessOrNotFoundWrapper

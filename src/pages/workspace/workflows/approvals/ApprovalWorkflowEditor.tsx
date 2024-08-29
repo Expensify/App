@@ -38,11 +38,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
+    const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
-        (index: number) =>
-            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
-        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinal, translate],
     );
 
     const members = useMemo(() => {
@@ -79,19 +79,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
     );
 
-    const approverHintMessage = useCallback(
-        (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
-            if (approver?.isInMultipleWorkflows && approver.email === previousApprover?.forwardsTo) {
-                return translate('workflowsPage.approverInMultipleWorkflows', {
-                    name1: approver.displayName,
-                    name2: previousApprover.displayName,
-                });
-            }
-        },
-        [approvalWorkflow.approvers, translate],
-    );
-
     const editMembers = useCallback(() => {
         const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
@@ -107,15 +94,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy)) {
+        if (!PolicyUtils.isControlPolicy(policy) && approverCount > 0) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
         Navigation.navigate(
-            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
+            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
             CONST.NAVIGATION.ACTION_TYPE.PUSH,
         );
-    }, [approvalWorkflow.approvers.length, policy, policyID]);
+    }, [approverCount, policy, policyID]);
 
     return (
         <ScrollView
@@ -143,7 +130,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
-                    const hintText = !errorText && approverHintMessage(approver, approverIndex);
+                    const hintText =
+                        !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
+                            ? translate('workflowsPage.approverInMultipleWorkflows')
+                            : undefined;
+
                     return (
                         <MenuItemWithTopDescription
                             // eslint-disable-next-line react/no-array-index-key
@@ -165,7 +156,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 })}
 
                 <MenuItemWithTopDescription
-                    description={translate('workflowsCreateApprovalsPage.additionalApprover')}
+                    description={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
                     onPress={addAdditionalApprover}
                     shouldShowRightIcon
                     wrapperStyle={styles.sectionMenuItemTopDescription}

@@ -13,12 +13,14 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -87,6 +89,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action);
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -95,12 +98,6 @@ function IOURequestStepDistance({
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const hasRouteError = !!transaction?.errorFields?.route;
-    const hasRoute = TransactionUtils.hasRoute(transaction);
-    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const previousValidatedWaypoints = usePrevious(validatedWaypoints);
-    const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
-    const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const isWaypointEmpty = (waypoint?: Waypoint) => {
         if (!waypoint) {
@@ -160,13 +157,6 @@ function IOURequestStepDistance({
     }, []);
 
     useEffect(() => {
-        if (isOffline || !shouldFetchRoute) {
-            return;
-        }
-        TransactionAction.getRoute(transactionID, validatedWaypoints, action === CONST.IOU.ACTION.CREATE);
-    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline, action]);
-
-    useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
         }
@@ -199,7 +189,7 @@ function IOURequestStepDistance({
                 TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '-1');
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', IOUUtils.shouldUseTransactionDraft(action));
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -394,8 +384,8 @@ function IOURequestStepDistance({
 
             setOptimisticWaypoints(newWaypoints);
             Promise.all([
-                TransactionAction.removeWaypoint(transaction, emptyWaypointIndex.toString(), action === CONST.IOU.ACTION.CREATE),
-                TransactionAction.updateWaypoints(transactionID, newWaypoints, action === CONST.IOU.ACTION.CREATE),
+                TransactionAction.removeWaypoint(transaction, emptyWaypointIndex.toString(), IOUUtils.shouldUseTransactionDraft(action)),
+                TransactionAction.updateWaypoints(transactionID, newWaypoints, IOUUtils.shouldUseTransactionDraft(action)),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });

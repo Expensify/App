@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MentionReportContext from './MentionReportContext';
 
 type MentionReportOnyxProps = {
     /** All reports shared with the user */
@@ -57,12 +56,10 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
-    const {currentReportID: currentReportIDContext} = useContext(MentionReportContext);
 
     const currentReportID = useCurrentReportID();
-    const currentReportIDValue = currentReportIDContext ?? currentReportID?.currentReportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue || -1}`);
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID || -1}`);
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
@@ -74,7 +71,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const {reportID, mentionDisplayText} = mentionDetails;
 
     const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
-    const isCurrentRoomMention = reportID === currentReportIDValue;
+    const isCurrentRoomMention = reportID === currentReportID?.currentReportID;
 
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
     const {color, ...styleWithoutColor} = flattenStyle;
