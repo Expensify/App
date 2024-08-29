@@ -83,11 +83,12 @@ function CategorySettingsPage({
     }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
-        return policy?.rules?.approvalRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.approver ?? '';
-    }, [categoryName, policy?.rules?.approvalRules]);
+        const categoryApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName);
+        return categoryApprover ?? '';
+    }, [categoryName, policy]);
 
     const defaultTaxRateText = useMemo(() => {
-        const taxID = policy?.rules?.expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
+        const taxID = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName);
 
         if (!taxID) {
             return '';
@@ -100,7 +101,7 @@ function CategorySettingsPage({
         }
 
         return CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
-    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
+    }, [categoryName, policy, translate]);
 
     const requireReceiptsOverText = useMemo(() => {
         if (!policy) {

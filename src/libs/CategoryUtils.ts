@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {ApprovalRule, ExpenseRule} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
@@ -43,4 +44,12 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     );
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText};
+function getCategoryApprover(approvalRules: ApprovalRule[], categoryName: string) {
+    return approvalRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.approver;
+}
+
+function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string) {
+    return expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
+}
+
+export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApprover, getCategoryDefaultTaxRate};

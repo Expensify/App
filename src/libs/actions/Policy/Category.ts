@@ -26,7 +26,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CustomUnit, ExpenseRule} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -1090,23 +1090,171 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
 }
 
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const existingCategoryApproverRule = approvalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const updatedApprovalRules: ApprovalRule[] = [...approvalRules];
+    let newApprover = approver;
+
+    if (!existingCategoryApproverRule) {
+        updatedApprovalRules.push({
+            approver,
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: categoryName,
+                },
+            ],
+        });
+    } else if (existingCategoryApproverRule?.approver === approver) {
+        updatedApprovalRules.filter((rule) => rule.approver === approver);
+        newApprover = '';
+    } else {
+        const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
+        updatedApprovalRules[indexToUpdate].approver = approver;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        ...policy?.rules,
+                        approvalRules: updatedApprovalRules,
+                    },
+                    pendingFields: {
+                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        ...policy?.rules,
+                        approvalRules,
+                    },
+                    pendingFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+    };
+
     const parameters: SetPolicyCategoryApproverParams = {
         policyID,
         categoryName,
-        approver,
+        approver: newApprover,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const expenseRules = policy?.rules?.expenseRules ?? [];
+    const existingCategoryExpenseRule = expenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const updatedExpenseRules: ExpenseRule[] = [...expenseRules];
+    let newTaxID = taxID;
+
+    if (!existingCategoryExpenseRule) {
+        updatedExpenseRules.push({
+            tax: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                field_id_TAX: {
+                    externalID: taxID,
+                },
+            },
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: categoryName,
+                },
+            ],
+        });
+    } else if (existingCategoryExpenseRule?.tax?.field_id_TAX?.externalID === taxID) {
+        updatedExpenseRules.filter((rule) => rule.tax.field_id_TAX.externalID === taxID);
+        newTaxID = '';
+    } else {
+        const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
+        updatedExpenseRules[indexToUpdate].tax.field_id_TAX.externalID = taxID;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        ...policy?.rules,
+                        expenseRules: updatedExpenseRules,
+                    },
+                    pendingFields: {
+                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+
+                value: {
+                    rules: {
+                        ...policy?.rules,
+                        expenseRules: updatedExpenseRules,
+                    },
+                    pendingFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        ...policy?.rules,
+                        expenseRules,
+                    },
+                    pendingFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+    };
+
     const parameters: SetPolicyCategoryTaxParams = {
         policyID,
         categoryName,
-        taxID,
+        taxID: newTaxID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters);
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
 }
 
 export {

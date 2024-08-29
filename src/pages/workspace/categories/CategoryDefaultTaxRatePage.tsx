@@ -29,6 +29,8 @@ function CategoryDefaultTaxRatePage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
+    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName);
+
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate) => CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates),
         [policy?.taxRates, translate],
@@ -42,12 +44,12 @@ function CategoryDefaultTaxRatePage({
             .map(([key, value]) => ({
                 text: textForDefault(key, value),
                 keyForList: key,
-                isSelected: false,
+                isSelected: key === selectedTaxRate,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault]);
+    }, [policy, selectedTaxRate, textForDefault]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -77,7 +79,7 @@ function CategoryDefaultTaxRatePage({
                     }}
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}
-                    // initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedOptionKey={selectedTaxRate}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

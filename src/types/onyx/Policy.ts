@@ -1353,7 +1353,7 @@ type ExpenseRule = {
     applyWhen: ApplyRulesWhen[];
 
     /** An id of the rule */
-    id: string;
+    id?: string;
 };
 
 /** Data informing when a given rule should be applied */
@@ -1377,7 +1377,7 @@ type ApprovalRule = {
     applyWhen: ApplyRulesWhen[];
 
     /** An id of the rule */
-    id: string;
+    id?: string;
 };
 
 /** Model of policy data */
@@ -1683,4 +1683,6 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    ApprovalRule,
+    ExpenseRule,
 };

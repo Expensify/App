@@ -3,7 +3,7 @@ import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategor
 type SetPolicyCategoryMaxAmountParams = {
     policyID: string;
     categoryName: string;
-    maxExpenseAmount: number;
+    maxExpenseAmount: number | null;
     expenseLimitType: PolicyCategoryExpenseLimitType;
 };
 
