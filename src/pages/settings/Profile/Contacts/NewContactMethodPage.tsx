@@ -34,20 +34,23 @@ type NewContactMethodPageOnyxProps = {
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-    const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-    const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-    const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
-
-    User.addNewContactMethodAndNavigate(submitDetail);
-};
-
 function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+
+    const addNewContactMethod = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+            const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+            const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+
+            User.addNewContactMethodAndNavigate(submitDetail, route.params.backTo);
+        },
+        [route.params.backTo],
+    );
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
