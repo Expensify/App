@@ -35,10 +35,9 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 
 function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return policy?.pendingFields?.disabledFields || policy?.pendingFields?.disabledFields;
+        return policy?.pendingFields?.disabledFields || policy?.pendingFields?.defaultBillable;
     }
-    return policy?.pendingFields?.defaultBillable;
+    return policy?.pendingFields?.disabledFields;
 }
 
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
@@ -98,19 +97,18 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     />
                 </View>
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                {canUseWorkspaceRules && policy?.areRulesEnabled && (
+            {canUseWorkspaceRules && policy?.areRulesEnabled && (
+                <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                     <View style={[styles.flexRow, styles.mh5, styles.mv4half, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
                         <Switch
                             isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                             accessibilityLabel={translate('workspace.tags.trackBillable')}
                             onToggle={() => toggleBillableExpenses(policy)}
-                            // disabled={policy?.disabledFields?.defaultBillable}
                         />
                     </View>
-                )}
-            </OfflineWithFeedback>
+                </OfflineWithFeedback>
+            )}
         </View>
     );
     return (
