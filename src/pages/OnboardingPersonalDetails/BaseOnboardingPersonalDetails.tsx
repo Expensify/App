@@ -78,11 +78,7 @@ function BaseOnboardingPersonalDetails({
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
             if (!isSmallScreenWidth && !route.params?.backTo) {
-                if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
-                    Report.navigateToSystemChat();
-                } else {
-                    Report.navigateToConciergeChat();
-                }
+                Report.navigateToConciergeChat();
             }
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
