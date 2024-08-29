@@ -4155,14 +4155,20 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
  * @param enabled - whether auto-approve for the reports is enabled in the given policy
  */
 function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
+    const autoApprovalValues = !enabled ? {autoApproval: {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS}} : {};
+    const autoApprovalCleanupValues = !enabled ? {autoApproval: null} : {};
+    const autoApprovalPendingValues = !enabled ? {autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 shouldShowAutoApprovalOptions: enabled,
+                ...autoApprovalValues,
                 pendingFields: {
                     shouldShowAutoApprovalOptions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...autoApprovalPendingValues,
                 },
             },
         },
@@ -4175,6 +4181,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             value: {
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
+                    ...autoApprovalCleanupValues,
                 },
                 errorFields: null,
             },
@@ -4189,6 +4196,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
                 shouldShowAutoApprovalOptions: !enabled,
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
+                    ...autoApprovalCleanupValues,
                 },
                 errorFields: {
                     shouldShowAutoApprovalOptions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),

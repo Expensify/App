@@ -31,7 +31,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoApproval?.limit, policy?.outputCurrency);
+    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency);
 
     return (
         <AccessOrNotFoundWrapper

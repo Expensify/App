@@ -30,7 +30,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultValue = policy?.autoApproval?.auditRate ?? 0;
+    const defaultValue = policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE;
 
     return (
         <AccessOrNotFoundWrapper

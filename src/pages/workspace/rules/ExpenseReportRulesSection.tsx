@@ -104,7 +104,10 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     <MenuItemWithTopDescription
                         key="autoApproveReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(policy?.autoApproval?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                        title={CurrencyUtils.convertToDisplayString(
+                            policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
+                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                        )}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
@@ -114,7 +117,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     <MenuItemWithTopDescription
                         key="randomReportAuditTitle"
                         description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                        title={`${policy?.autoApproval?.auditRate ?? 0}%`}
+                        title={`${policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE}%`}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
@@ -139,7 +142,10 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     <MenuItemWithTopDescription
                         key="autoPayReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(policy?.autoReimbursement?.limit, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                        title={CurrencyUtils.convertToDisplayString(
+                            policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
+                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                        )}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
