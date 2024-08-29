@@ -2524,11 +2524,12 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
 }
 
 /**
- * Checks if a report is an open task report assigned to current user.
+ * Checks if a report is waiting for the manager to complete an action.
+ * Example: the assignee of an open task report or the manager of a processing expense report.
  *
  * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isWaitingForAssigneeToCompleteAction(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     if (report?.hasOutstandingChildTask) {
         return true;
     }
@@ -2586,7 +2587,7 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteAction(optionOrReport, parentReportAction)) {
         return true;
     }
 
@@ -7970,7 +7971,7 @@ export {
     isUserCreatedPolicyRoom,
     isValidReport,
     isValidReportIDFromPath,
-    isWaitingForAssigneeToCompleteTask,
+    isWaitingForAssigneeToCompleteAction,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
