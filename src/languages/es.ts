@@ -2797,6 +2797,7 @@ export default {
             selectCardFeed: 'Seleccionar feed de tarjetas',
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
+            customFeed: 'Fuente personalizada',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

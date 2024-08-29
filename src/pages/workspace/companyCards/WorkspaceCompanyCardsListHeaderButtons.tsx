@@ -53,7 +53,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     <CaretWrapper>
                         <Text style={styles.textStrong}>{cardFeeds?.companyCardNicknames?.[selectedFeed]}</Text>
                     </CaretWrapper>
-                    <Text style={styles.textLabelSupporting}>Custom feed</Text>
+                    <Text style={styles.textLabelSupporting}>{translate('workspace.companyCards.customFeed')}</Text>
                 </View>
             </PressableWithFeedback>
 

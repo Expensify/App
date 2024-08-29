@@ -2752,6 +2752,7 @@ export default {
             selectCardFeed: 'Select card feed',
             assignCard: 'Assign card',
             cardNumber: 'Card number',
+            customFeed: 'Custom feed',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
