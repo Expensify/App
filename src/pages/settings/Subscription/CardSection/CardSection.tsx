@@ -62,6 +62,7 @@ function CardSection() {
 
     const viewPurchases = useCallback(() => {
         const query = SearchUtils.buildQueryStringFromFilters({merchant: CONST.EXPENSIFY_MERCHANT});
+        console.log('over here', query)
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, isCustomQuery: true}));
     }, []);
 
