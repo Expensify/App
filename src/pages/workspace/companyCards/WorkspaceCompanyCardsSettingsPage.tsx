@@ -39,7 +39,9 @@ function WorkspaceCompanyCardsSettingsPage({
     // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const lastSelectedFeed = 'cdfbmo';
     const feedName = cardFeeds?.companyCardNicknames[lastSelectedFeed] ?? '';
-    const isPersonal = cardFeeds?.companyCards[lastSelectedFeed]?.liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+    const liabilityType = cardFeeds?.companyCards[lastSelectedFeed]?.liabilityType;
+    const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+    const liabilityTypeTitle = isPersonal ? translate('workspace.moreFeatures.companyCards.personal') : translate('workspace.moreFeatures.companyCards.corporate');
 
     const menuItems = useMemo(
         () => [
@@ -49,12 +51,12 @@ function WorkspaceCompanyCardsSettingsPage({
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID)),
             },
             {
-                title: isPersonal ? translate('workspace.moreFeatures.companyCards.personal') : translate('workspace.moreFeatures.companyCards.corporate'),
+                title: !liabilityType ? undefined : liabilityTypeTitle,
                 description: translate('workspace.moreFeatures.companyCards.cardFeedTransaction'),
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY.getRoute(policyID)),
             },
         ],
-        [feedName, policyID, translate, isPersonal],
+        [feedName, translate, liabilityType, liabilityTypeTitle, policyID],
     );
 
     const deleteCompanyCardFeed = () => {
@@ -76,6 +78,7 @@ function WorkspaceCompanyCardsSettingsPage({
                     <View style={styles.flex1}>
                         {menuItems.map((item) => (
                             <MenuItemWithTopDescription
+                                key={item.description}
                                 shouldShowRightIcon
                                 title={item.title}
                                 description={item.description}
