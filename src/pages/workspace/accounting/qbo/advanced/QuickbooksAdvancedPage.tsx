@@ -114,7 +114,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorUpdateValue,
                     },
                     {
-                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: autoCreateVendor,
+                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: !!autoCreateVendor,
                         [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorCurrentValue,
                     },
                 );
