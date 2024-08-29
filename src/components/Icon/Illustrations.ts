@@ -1,3 +1,6 @@
+import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
@@ -57,6 +60,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -122,6 +126,7 @@ export {
     EmailAddress,
     EmptyCardState,
     EmptyStateExpenses,
+    EnvelopeReceipt,
     FolderOpen,
     HandCard,
     HotDogStand,
@@ -218,4 +223,7 @@ export {
     BigVault,
     Filters,
     Rules,
+    AmexCompanyCards,
+    MasterCardCompanyCards,
+    VisaCompanyCards,
 };

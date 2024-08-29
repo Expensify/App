@@ -9,7 +9,7 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
-import {openApp} from './App';
+import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 
 let delegatedAccess: DelegatedAccess;
@@ -79,6 +79,7 @@ function connect(email: string) {
                     updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    confirmReadyToOpenApp();
                     openApp();
                 });
         })
@@ -141,6 +142,7 @@ function disconnect() {
                     updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
+                    confirmReadyToOpenApp();
                     openApp();
                 });
         })

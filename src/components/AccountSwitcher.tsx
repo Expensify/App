@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,13 +39,13 @@ function AccountSwitcher() {
     const buttonRef = useRef<HTMLDivElement>(null);
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineError, setShouldShowOfflineError] = useState(false);
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps = {}): MenuItemWithLink => {
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: personalDetails?.login,
@@ -85,7 +86,7 @@ function AccountSwitcher() {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onPress: () => {
                         if (isOffline) {
-                            setShouldShowOfflineError(true);
+                            Modal.close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         disconnect();
@@ -104,7 +105,7 @@ function AccountSwitcher() {
                     badgeText: translate('delegate.role', role),
                     onPress: () => {
                         if (isOffline) {
-                            setShouldShowOfflineError(true);
+                            Modal.close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         connect(email);
@@ -185,9 +186,9 @@ function AccountSwitcher() {
             )}
             <ConfirmModal
                 title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineError}
-                onConfirm={() => setShouldShowOfflineError(false)}
-                onCancel={() => setShouldShowOfflineError(false)}
+                isVisible={shouldShowOfflineModal}
+                onConfirm={() => setShouldShowOfflineModal(false)}
+                onCancel={() => setShouldShowOfflineModal(false)}
                 confirmText={translate('common.buttonConfirm')}
                 prompt={translate('common.offlinePrompt')}
                 shouldShowCancelButton={false}
