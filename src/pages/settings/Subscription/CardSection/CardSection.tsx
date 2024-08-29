@@ -62,7 +62,6 @@ function CardSection() {
 
     const viewPurchases = useCallback(() => {
         const query = SearchUtils.buildQueryStringFromFilters({merchant: CONST.EXPENSIFY_MERCHANT});
-        console.log('over here', query)
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, isCustomQuery: true}));
     }, []);
 
@@ -173,7 +172,7 @@ function CardSection() {
                     />
                 )}
 
-                {/* {!!account?.hasPurchases && ( */}
+                {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
                     icon={Expensicons.History}
@@ -183,7 +182,7 @@ function CardSection() {
                     onPress={viewPurchases}
                     hoverAndPressStyle={styles.hoveredComponentBG}
                 />
-                {/* )} */}
+                )}
 
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
