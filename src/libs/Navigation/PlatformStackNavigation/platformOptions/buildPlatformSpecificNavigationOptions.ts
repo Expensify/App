@@ -10,8 +10,8 @@ const buildPlatformSpecificNavigationOptions = <PlatformSpecificNavigationOption
     screenOptions: PlatformStackNavigationOptions,
 ): PlatformSpecificNavigationOptions => ({
     keyboardHandlingEnabled: screenOptions.keyboardHandlingEnabled,
-    ...withAnimation<PlatformSpecificNavigationOptions>(screenOptions),
     ...getCommonNavigationOptions(screenOptions),
+    ...withAnimation<PlatformSpecificNavigationOptions>(screenOptions),
 });
 
 export default buildPlatformSpecificNavigationOptions;
