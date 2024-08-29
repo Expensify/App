@@ -72,6 +72,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
+        /** Whether to include safe area padding bottom or not */
+        includeSafeAreaPaddingBottom?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
@@ -120,6 +123,7 @@ function WorkspacePageWithSections({
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
+    includeSafeAreaPaddingBottom = false,
     shouldShowNonAdmin = false,
     headerContent,
     testID,
@@ -169,7 +173,7 @@ function WorkspacePageWithSections({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={testID ?? WorkspacePageWithSections.displayName}

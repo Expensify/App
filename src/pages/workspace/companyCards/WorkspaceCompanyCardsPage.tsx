@@ -69,12 +69,12 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <WorkspacePageWithSections
-                shouldUseScrollView
                 icon={Illustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                 shouldShowOfflineIndicatorInWideScreen
+                includeSafeAreaPaddingBottom
             >
                 <WorkspaceCompanyCardsList
                     cardsList={cardsList}

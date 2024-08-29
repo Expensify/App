@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,7 +61,7 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
 
     const renderListHeader = useCallback(
         () => (
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+            <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
                 <Text
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
@@ -81,25 +80,21 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
     );
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldEnableMaxHeight
-            testID={WorkspaceCompanyCardsList.displayName}
-        >
+        <View style={styles.flex1}>
             <WorkspaceCompanyCardsListHeaderButtons
                 policyID={policyID}
                 selectedFeed={selectedFeed}
             />
             <FlatList
+                contentContainerStyle={styles.flexGrow1}
                 data={sortedCards}
                 renderItem={renderItem}
                 ListHeaderComponent={renderListHeader}
+                stickyHeaderIndices={[0]}
+                scrollIndicatorInsets={{right: Number.MIN_VALUE}}
             />
-        </ScreenWrapper>
+        </View>
     );
 }
-
-WorkspaceCompanyCardsList.displayName = 'WorkspaceCompanyCardsList';
 
 export default WorkspaceCompanyCardsList;

@@ -32,7 +32,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
-                <View style={styles.flex1}>
+                <View>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}

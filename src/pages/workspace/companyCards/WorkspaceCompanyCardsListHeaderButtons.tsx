@@ -38,7 +38,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const cardFeeds = mockedFeeds ?? {};
 
     return (
-        <View style={[styles.w100, styles.ph5, !shouldUseNarrowLayout && [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+        <View style={[styles.w100, styles.ph5, !shouldUseNarrowLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
             <PressableWithFeedback
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldUseNarrowLayout && styles.mb3]}
