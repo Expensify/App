@@ -15,7 +15,7 @@ function SearchAdvancedFiltersPage() {
     const {translate} = useLocalize();
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const shouldShowResetFilters = Object.values(searchAdvancedFilters).some((value) => (Array.isArray(value) ? !!value.length : !!value));
+    const shouldShowResetFilters = Object.values(searchAdvancedFilters).some((value) => (Array.isArray(value) ? value.length !== 0 : !!value));
 
     return (
         <ScreenWrapper
