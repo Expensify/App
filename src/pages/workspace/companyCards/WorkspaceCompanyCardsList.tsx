@@ -77,7 +77,7 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
                 </Text>
             </View>
         ),
-        [styles],
+        [styles, translate],
     );
 
     return (
