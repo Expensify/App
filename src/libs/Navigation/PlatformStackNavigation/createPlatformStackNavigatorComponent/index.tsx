@@ -6,10 +6,16 @@ import React, {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/convertToWebNavigationOptions';
-import type {PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {CreatePlatformStackNavigatorComponentOptions, CustomCodeProps, CustomCodePropsWithTransformedState} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {PlatformNavigationBuilderOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type PlatformStackNavigatorProps from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    CreatePlatformStackNavigatorComponentOptions,
+    CustomCodeProps,
+    CustomCodePropsWithTransformedState,
+    PlatformNavigationBuilderOptions,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackNavigatorProps,
+    PlatformStackRouterOptions,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,

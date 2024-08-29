@@ -1,6 +1,16 @@
-import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, ScreenOptionsOrCallback, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
+import type {
+    DefaultNavigatorOptions,
+    NavigationProp,
+    ParamListBase,
+    RouteProp,
+    RouterFactory,
+    ScreenOptionsOrCallback,
+    StackNavigationState,
+    StackRouterOptions,
+} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
@@ -51,6 +61,15 @@ type PlatformStackScreenProps<
     navigation: NavigationPropType;
 };
 
+// Props to configure the the PlatformStackNavigator
+type PlatformStackNavigatorProps<
+    ParamList extends ParamListBase,
+    RouteName extends keyof ParamList = keyof ParamList,
+    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
+> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
+    RouterOptions &
+    StackNavigationConfig;
+
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
 // a factory function that returns the navigation options based on route and navigation props.
 // These types are used to represent the screen options and their factory functions.
@@ -71,9 +90,9 @@ export type {
     PlatformStackNavigationProp,
     PlatformStackRouteProp,
     PlatformStackScreenProps,
+    PlatformStackNavigatorProps,
 };
 
 export * from './NavigationBuilder';
 export * from './NavigationOptions';
 export * from './NavigatorComponent';
-export type {default as PlatformStackNavigator} from './PlatformStackNavigator';
