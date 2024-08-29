@@ -2,6 +2,7 @@ import type {EventMapBase, ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
+import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {
     OnIsSmallScreenWidthChange,
     PlatformSpecificEventMap,
@@ -27,6 +28,7 @@ const ResponsiveStackNavigatorComponent = createPlatformStackNavigatorComponent(
     transformState: getStateWithSearch,
     ExtraContent: RenderSearchRoute,
     onIsSmallScreenWidthChange: handleIsSmallScreenWidthChange,
+    defaultScreenOptions: defaultPlatformStackScreenOptions,
     createRouter: CustomRouter,
 });
 
