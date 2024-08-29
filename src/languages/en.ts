@@ -3665,7 +3665,7 @@ export default {
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
-                    default: '$75 Default',
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
                     never: 'Never require receipts',
                     always: 'Always require receipts',
                 },

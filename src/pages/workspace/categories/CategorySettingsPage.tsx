@@ -17,6 +17,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -86,8 +87,27 @@ function CategorySettingsPage({
     }, [categoryName, policy?.rules?.approvalRules]);
 
     const defaultTaxRateText = useMemo(() => {
-        return policy?.rules?.expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID ?? '';
-    }, [categoryName, policy?.rules?.expenseRules]);
+        const taxID = policy?.rules?.expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
+
+        if (!taxID) {
+            return '';
+        }
+
+        const taxRate = policy?.taxRates?.taxes[taxID];
+
+        if (!taxRate) {
+            return '';
+        }
+
+        return CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
+    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
+
+    const requireReceiptsOverText = useMemo(() => {
+        if (!policy) {
+            return '';
+        }
+        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxExpenseAmountNoReceipt);
+    }, [policy, policyCategory?.maxExpenseAmountNoReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -285,7 +305,7 @@ function CategorySettingsPage({
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
                                 <MenuItemWithTopDescription
-                                    title={``}
+                                    title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));

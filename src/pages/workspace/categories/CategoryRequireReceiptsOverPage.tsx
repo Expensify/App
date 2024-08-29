@@ -7,7 +7,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -47,15 +49,20 @@ function CategoryRequireReceiptsOverPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxExpenseAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+    const maxExpenseAmountToDisplay = policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmount;
 
     const requireReceiptsOverListData = [
         {
             value: null,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`),
+            text: translate(
+                `workspace.rules.categoryRules.requireReceiptsOverList.default`,
+                CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+            ),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
             isSelected: !isAlwaysSelected && !isNeverSelected,
         },
