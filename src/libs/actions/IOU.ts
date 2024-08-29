@@ -6719,6 +6719,7 @@ function getPayMoneyRequestParams(
         });
     }
 
+    // Optimistically unhold all transactions if we pay all requests
     if (full) {
         for (const transaction of TransactionUtils.getAllReportTransactions(iouReport.reportID)) {
             optimisticData.push({
