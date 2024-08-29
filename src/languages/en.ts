@@ -3770,6 +3770,7 @@ export default {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
