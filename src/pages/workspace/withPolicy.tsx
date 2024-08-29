@@ -1,9 +1,8 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigationState} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, FullScreenNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,11 +69,14 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
-export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
-    function WithPolicy(props: TProps, ref: ForwardedRef<TRef>) {
-        const routes = useNavigationState((state) => state.routes || []);
-        const currentRoute = routes?.at(-1);
-        const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
+export default function <TProps extends WithPolicyProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps> & RefAttributes<TRef>> {
+    function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
+        const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
+
+        const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
         if (policyID.length > 0) {
             Policy.updateLastAccessedWorkspace(policyID);
@@ -83,7 +85,9 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
+                policy={policy}
+                policyDraft={policyDraft}
                 ref={ref}
             />
         );
@@ -91,14 +95,7 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
 
     WithPolicy.displayName = `WithPolicy`;
 
-    return withOnyx<TProps & RefAttributes<TRef>, WithPolicyOnyxProps>({
-        policy: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyDraft: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
-        },
-    })(forwardRef(WithPolicy));
+    return forwardRef(WithPolicy);
 }
 
 export {policyDefaultProps};
