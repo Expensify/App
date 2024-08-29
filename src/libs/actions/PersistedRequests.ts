@@ -1,12 +1,10 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
-const keepLastInstance: string[] = [WRITE_COMMANDS.RECONNECT_APP];
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,

@@ -275,21 +275,19 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            checkAndFixConflictingRequest: (persistedRequests, newRequest) => {
+            checkAndFixConflictingRequest: (persistedRequests) => {
                 const index = persistedRequests.findIndex((request) => request.command === WRITE_COMMANDS.RECONNECT_APP);
                 if (index === -1) {
                     return {
-                        request: newRequest,
                         conflictAction: {
-                            type: 'save',
+                            type: 'push',
                         },
                     };
                 }
 
                 return {
-                    request: newRequest,
                     conflictAction: {
-                        type: 'update',
+                        type: 'replace',
                         index,
                     },
                 };

@@ -55,9 +55,6 @@ type RequestData = {
     shouldSkipWebProxy?: boolean;
 };
 
-/** Model of requests sent to the API */
-type Request = RequestData & OnyxData & RequestConflictResolver;
-
 /**
  * Model of a conflict request that has to be updated, in the request queue.
  */
@@ -65,7 +62,7 @@ type ConflictRequestUpdate = {
     /**
      * The action to take in case of a conflict.
      */
-    type: 'update';
+    type: 'replace';
 
     /**
      * The index of the request in the queue to update.
@@ -74,13 +71,23 @@ type ConflictRequestUpdate = {
 };
 
 /**
- * Model of a conflict request that has to be saved, in the request queue.
+ * Model of a conflict request that has to be saved at the end the request queue.
  */
 type ConflictRequestSave = {
     /**
      * The action to take in case of a conflict.
      */
-    type: 'save';
+    type: 'push';
+};
+
+/**
+ * Model of a conflict request that no need to be updated or saved, in the request queue.
+ */
+type ConflictRequestNoAction = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'noAction';
 };
 
 /**
@@ -88,14 +95,9 @@ type ConflictRequestSave = {
  */
 type ConflictActionData = {
     /**
-     * The request that is conflicting with the new request.
-     */
-    request: Request;
-
-    /**
      * The action to take in case of a conflict.
      */
-    conflictAction: ConflictRequestUpdate | ConflictRequestSave;
+    conflictAction: ConflictRequestUpdate | ConflictRequestSave | ConflictRequestNoAction;
 };
 
 /**
@@ -106,8 +108,11 @@ type RequestConflictResolver = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Request[], request: Request) => ConflictActionData;
+    checkAndFixConflictingRequest?: (persistedRequest: Request[]) => ConflictActionData;
 };
+
+/** Model of requests sent to the API */
+type Request = RequestData & OnyxData & RequestConflictResolver;
 
 /**
  * An object used to describe how a request can be paginated.

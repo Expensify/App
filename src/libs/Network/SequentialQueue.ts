@@ -199,11 +199,11 @@ function push(newRequest: OnyxRequest) {
 
     const {checkAndFixConflictingRequest} = newRequest;
     if (checkAndFixConflictingRequest) {
-        const {conflictAction} = checkAndFixConflictingRequest(requests, newRequest);
+        const {conflictAction} = checkAndFixConflictingRequest(requests);
 
-        if (conflictAction.type === 'save') {
+        if (conflictAction.type === 'push') {
             PersistedRequests.save(newRequest);
-        } else {
+        } else if (conflictAction.type === 'replace') {
             PersistedRequests.update(conflictAction.index, newRequest);
         }
     } else {
