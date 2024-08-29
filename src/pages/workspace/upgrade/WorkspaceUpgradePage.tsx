@@ -9,7 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -28,8 +28,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
+    const shouldShowNotFoundPage = !feature  || !policy || !PolicyUtils.isPolicyAdmin(policy)
 
-    const isUpgraded = React.useMemo(() => isControlPolicy(policy), [policy]);
+    const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const upgradeToCorporate = () => {
         if (!policy || !feature) {
@@ -57,7 +58,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {
-            if (!isUpgraded) {
+            if (!isUpgraded || shouldShowNotFoundPage) {
                 return;
             }
             confirmUpgrade();
@@ -66,7 +67,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         return unsubscribeListener;
     }, [isUpgraded, confirmUpgrade, navigation]);
 
-    if (!feature || !policy) {
+    if (!feature || !policy || shouldShowNotFoundPage) {
         return <NotFoundPage />;
     }
 
