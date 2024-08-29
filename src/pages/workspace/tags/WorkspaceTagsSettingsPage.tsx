@@ -104,10 +104,10 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                 {canUseWorkspaceRules && policy?.areRulesEnabled && (
                     <View style={[styles.mt2, styles.mh4]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text style={[styles.textNormal]}>Track billable expenses</Text>
+                            <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
                             <Switch
                                 isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                                accessibilityLabel="Track billable expenses"
+                                accessibilityLabel={translate('workspace.tags.trackBillable')}
                                 onToggle={() => toggleBillableExpenses(policy)}
                                 // disabled={policy?.disabledFields?.defaultBillable}
                             />
