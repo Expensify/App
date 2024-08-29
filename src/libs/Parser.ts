@@ -43,6 +43,10 @@ class ExpensiMarkWithContext extends ExpensiMark {
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
     }
+
+    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
+        return super.truncateHTML(htmlString, limit, extras);
+    }
 }
 
 ExpensiMarkWithContext.setLogger(Log);
