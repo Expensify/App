@@ -3,13 +3,13 @@ import {createNavigatorFactory} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import type {
+    OnIsSmallScreenWidthChange,
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import type {OnIsSmallScreenWidthChange} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import getStateWithSearch from './getStateWithSearch';
 import RenderSearchRoute from './SearchRoute';
@@ -23,7 +23,7 @@ const handleIsSmallScreenWidthChange: OnIsSmallScreenWidthChange<PlatformSpecifi
     // eslint-disable-next-line react-hooks/exhaustive-deps
 };
 
-const ResponsiveStackNavigator = createPlatformStackNavigatorComponent('ResponsiveStackNavigator', {
+const ResponsiveStackNavigatorComponent = createPlatformStackNavigatorComponent('ResponsiveStackNavigator', {
     transformState: getStateWithSearch,
     ExtraContent: RenderSearchRoute,
     onIsSmallScreenWidthChange: handleIsSmallScreenWidthChange,
@@ -31,8 +31,8 @@ const ResponsiveStackNavigator = createPlatformStackNavigatorComponent('Responsi
 });
 
 function createResponsiveStackNavigator<ParamList extends ParamListBase>() {
-    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
-        ResponsiveStackNavigator,
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigatorComponent>(
+        ResponsiveStackNavigatorComponent,
     )<ParamList>();
 }
 

@@ -11,7 +11,7 @@ const defaultScreenOptions: PlatformStackNavigationOptions = {
     animation: 'none',
 };
 
-const CustomBottomTabNavigator = createPlatformStackNavigatorComponent('CustomBottomTabNavigator', {
+const CustomBottomTabNavigatorComponent = createPlatformStackNavigatorComponent('CustomBottomTabNavigator', {
     transformState,
     defaultScreenOptions,
     NavigationContentWrapper: BottomTabNavigationContentWrapper,
@@ -22,8 +22,8 @@ const CustomBottomTabNavigator = createPlatformStackNavigatorComponent('CustomBo
 });
 
 function createCustomBottomTabNavigator<ParamList extends ParamListBase>() {
-    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigator>(
-        CustomBottomTabNavigator,
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigatorComponent>(
+        CustomBottomTabNavigatorComponent,
     )<ParamList>();
 }
 

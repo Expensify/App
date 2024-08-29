@@ -4,13 +4,13 @@ import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStac
 import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 
-const CustomFullScreenNavigator = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
+const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
     createRouter: CustomFullScreenRouter,
 });
 
 function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
-    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
-        CustomFullScreenNavigator,
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigatorComponent>(
+        CustomFullScreenNavigatorComponent,
     )<ParamList>();
 }
 
