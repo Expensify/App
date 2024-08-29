@@ -356,6 +356,17 @@ function updateQuickbooksOnlineNonReimbursableExpensesAccount(policyID: string, 
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineCollectionAccountID(policyID: string, settingValue: QBOConnectionConfig['collectionAccountID']) {
+    const {optimisticData, failureData, successData} = buildQuickbooksOnlineUpdateConfigOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     getQuickbooksOnlineSetupLink,
     updateQuickbooksOnlineEnableNewCategories,
@@ -364,4 +375,5 @@ export {
     updateQuickbooksOnlineReceivableAccount,
     updateQuickbooksOnlineExportDate,
     updateQuickbooksOnlineNonReimbursableExpensesAccount,
+    updateQuickbooksOnlineCollectionAccountID,
 };
