@@ -272,16 +272,21 @@ type PluralizeValue = {
     many?: string;
 };
 
+type Primitive = string | boolean | number;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FunctionArgumentType<T> = T extends (arg: infer A, ...args: any[]) => string ? A : unknown;
+type ArgumentType<T, R> = T extends (arg: infer A, ...args: any[]) => R ? A : unknown;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ValidTranslationBaseValue = string | string[] | ((arg: any, ...args: any[]) => string | PluralizeValue);
-type TranslationBaseValue<T> =
-    | string
-    | string[]
-    | ((arg: FunctionArgumentType<T> extends string ? Record<string, unknown> : FunctionArgumentType<T>, ...args: unknown[]) => string | PluralizeValue);
+type TranslationBaseValue<T> = T extends string | string[]
+    ? string | string[]
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    T extends (...args: any[]) => string | PluralizeValue
+    ? (arg: ArgumentType<T, string | PluralizeValue> extends Primitive ? Record<string, unknown> : ArgumentType<T, string | PluralizeValue>, ...args: unknown[]) => string | PluralizeValue
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>, ...args: unknown[]) => string | PluralizeValue;
 type TranslationBase<T = unknown> = {
-    [K in keyof T]: T[K] extends ValidTranslationBaseValue ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [K in keyof T]: T[K] extends string | string[] | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
 };
 
 /* Flat Translation Object types */
