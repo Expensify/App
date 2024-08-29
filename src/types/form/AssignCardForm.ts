@@ -10,7 +10,7 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type AssignCardForm = Form<
     InputID,
     {
-        [INPUT_IDS.START_DATE]: Date;
+        [INPUT_IDS.START_DATE]: string;
     }
 >;
 

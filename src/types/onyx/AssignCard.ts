@@ -19,7 +19,10 @@ type AssignCardData = {
     cardName: string;
 
     /** The transaction start date of the card */
-    startDate: Date;
+    startDate: string;
+
+    /** An option based on which the transaction start date is chosen */
+    dateOption: string;
 };
 
 /** Model of assign card flow */
