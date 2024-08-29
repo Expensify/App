@@ -75,6 +75,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                 shouldShowOfflineIndicatorInWideScreen
                 includeSafeAreaPaddingBottom
+                showLoadingAsFirstRender={false}
             >
                 <WorkspaceCompanyCardsList
                     cardsList={cardsList}

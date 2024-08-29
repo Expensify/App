@@ -91,7 +91,6 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
                 renderItem={renderItem}
                 ListHeaderComponent={renderListHeader}
                 stickyHeaderIndices={[0]}
-                scrollIndicatorInsets={{right: Number.MIN_VALUE}}
             />
         </View>
     );
