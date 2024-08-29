@@ -3637,6 +3637,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                     },
                     pendingFields: {
                         defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        disabledFields: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -3648,6 +3649,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                 value: {
                     pendingFields: {
                         defaultBillable: null,
+                        disabledFields: null,
                     },
                     errorFields: null,
                 },
@@ -3660,7 +3662,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                 value: {
                     disabledFields: {defaultBillable: originalDefaultBillableDisabled},
                     defaultBillable: originalDefaultBillable,
-                    pendingFields: {defaultBillable: null},
+                    pendingFields: {defaultBillable: null, disabledFields: null},
                     errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },

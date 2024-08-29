@@ -35,7 +35,7 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 
 function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
-        return policy?.pendingFields?.disabledFields || policy?.pendingFields?.defaultBillable;
+        return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
     }
     return policy?.pendingFields?.disabledFields;
 }
@@ -87,7 +87,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                 pendingAction={policy?.pendingFields?.requiresTag}
                 errorRowStyles={styles.mh5}
             >
-                <View style={[styles.flexRow, styles.mh5, styles.mv4half, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
                     <Switch
                         isOn={policy?.requiresTag ?? false}
