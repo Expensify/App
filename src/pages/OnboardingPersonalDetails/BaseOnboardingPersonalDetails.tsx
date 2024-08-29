@@ -20,13 +20,11 @@ import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -86,12 +84,6 @@ function BaseOnboardingPersonalDetails({
                     Report.navigateToConciergeChat();
                 }
             }
-
-            // Small delay purely due to design considerations,
-            // no special technical reasons behind that.
-            setTimeout(() => {
-                Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-            }, variables.welcomeVideoDelay);
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
     );
