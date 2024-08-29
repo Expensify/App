@@ -276,6 +276,7 @@ function PopoverMenu({
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
                             isSelected={item.isSelected}
+                            badgeText={item.badgeText}
                         />
                     ))}
                 </View>
