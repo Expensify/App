@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -45,7 +45,7 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
-    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName), [currentUserPersonalDetails]);
+    const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
     const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         return {
