@@ -161,18 +161,6 @@ function shouldUseTransactionDraft(action: IOUAction | undefined) {
     return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatAttendeesTitle(attendees?: Attendee[]) {
-    if (!attendees) {
-        return '';
-    }
-    return attendees.length > 3
-        ? `${attendees
-              .slice(0, 3)
-              .map((item) => item.displayName ?? item.login)
-              .join(', ')}, ...`
-        : attendees.map((item) => item.displayName ?? item.login).join(', ');
-}
-
 function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
     if (!currentUser) {
         return;
@@ -192,7 +180,6 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
 
 export {
     calculateAmount,
-    formatAttendeesTitle,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,

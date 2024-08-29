@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -55,6 +54,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
+
+    /** The formatted amount of the transaction per 1 attendee */
+    formattedAmountPerAttendee: string;
 
     /** The error message for the form */
     formError: string;
@@ -178,6 +180,7 @@ function MoneyRequestConfirmationListFooter({
     didConfirm,
     distance,
     formattedAmount,
+    formattedAmountPerAttendee,
     formError,
     hasRoute,
     iouAttendees,
@@ -506,12 +509,15 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key="attendees"
                     shouldShowRightIcon
-                    title={IOUUtils.formatAttendeesTitle(iouAttendees)}
-                    description={translate('iou.attendees')}
+                    title={iouAttendees?.map((item) => item.displayName ?? item.login).join(', ')}
+                    description={`${translate('iou.attendees')} ${
+                        iouAttendees?.length && iouAttendees.length > 1 ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                    }`}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     interactive
+                    shouldRenderAsHTML
                 />
             ),
             shouldShow: shouldShowAttendees,

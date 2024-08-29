@@ -172,6 +172,7 @@ export default {
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
+        perPerson: 'por persona',
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
         signInWithApple: 'Iniciar sesión con Apple',

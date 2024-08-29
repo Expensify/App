@@ -300,7 +300,12 @@ function MoneyRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-
+    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
+        ? ''
+        : CurrencyUtils.convertToDisplayString(
+              (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+              isDistanceRequest ? currency : iouCurrencyCode,
+          );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -910,6 +915,7 @@ function MoneyRequestConfirmationList({
             didConfirm={didConfirm}
             distance={distance}
             formattedAmount={formattedAmount}
+            formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
             hasRoute={hasRoute}
             iouAttendees={iouAttendees}

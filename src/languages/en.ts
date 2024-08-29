@@ -188,6 +188,7 @@ export default {
         firstName: 'First name',
         lastName: 'Last name',
         addCardTermsOfService: 'Expensify Terms of Service',
+        perPerson: 'per person',
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
