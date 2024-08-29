@@ -165,11 +165,6 @@ function MoneyRequestAmountInput(
             const [newCurrencySymbol, newAmount = ''] = newAmountInput.split(/(\d.*)/, 2);
             const newCurrency = CurrencyUtils.getCurrencyCode(newCurrencySymbol);
 
-            // Return early if the amount is empty or the currency symbol is invalid
-            if (newCurrencySymbol && !newCurrency) {
-                return;
-            }
-
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
@@ -180,7 +175,7 @@ function MoneyRequestAmountInput(
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, newDecimals)) {
+            if (!MoneyRequestUtils.validateAmount(finalAmount, newDecimals) || (newCurrencySymbol && (!newCurrency || selection.end - selection.start < amount.length - 1))) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -205,7 +200,7 @@ function MoneyRequestAmountInput(
                 return strippedAmount;
             });
         },
-        [decimals, onAmountChange],
+        [amount.length, decimals, onAmountChange, selection.end, selection.start],
     );
 
     useImperativeHandle(forwardedRef, () => ({

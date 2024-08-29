@@ -136,6 +136,9 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
+        if (moneyRequestAmountInput?.current?.getCurrency() !== currency && moneyRequestAmountInput?.current?.getCurrency()) {
+            IOU.setMoneyRequestCurrency(transactionID, moneyRequestAmountInput?.current?.getCurrency(), action === CONST.IOU.ACTION.EDIT);
+        }
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
                 action,
