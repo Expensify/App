@@ -11,6 +11,9 @@ type MenuItemLink = string | (() => Promise<string>);
 type MenuItemWithLink = MenuItemProps & {
     /** The link to open when the menu item is clicked */
     link?: MenuItemLink;
+
+    /** A unique key for the menu item */
+    key?: string;
 };
 
 type MenuItemListProps = {
@@ -43,7 +46,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
         <>
             {menuItems.map((menuItemProps) => (
                 <MenuItem
-                    key={menuItemProps.title}
+                    key={menuItemProps.key ?? menuItemProps.title}
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                     ref={popoverAnchor}
                     shouldBlockSelection={!!menuItemProps.link}

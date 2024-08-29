@@ -6,10 +6,9 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type CurrentUserPersonalDetailsSkeletonViewProps = {
+type AccountSwitcherSkeletonViewProps = {
     /** Whether to animate the skeleton view */
     shouldAnimate?: boolean;
 
@@ -17,45 +16,43 @@ type CurrentUserPersonalDetailsSkeletonViewProps = {
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
-function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: CurrentUserPersonalDetailsSkeletonViewProps) {
+function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: AccountSwitcherSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
-    const spaceBetweenAvatarAndHeadline = styles.mb3.marginBottom + styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
-    const headlineSize = variables.fontSizeXLarge;
-    const spaceBetweenHeadlineAndLabel = styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
-    const labelSize = variables.fontSizeLabel;
+    const startPositionX = 30;
+
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
-                height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
+                height={avatarPlaceholderSize + styles.pb3.paddingBottom}
             >
                 <Circle
-                    cx="50%"
+                    cx={startPositionX}
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
                 <Rect
-                    x="20%"
-                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline}
-                    width="60%"
-                    height={headlineSize}
+                    x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
+                    y="11"
+                    width="45%"
+                    height="8"
                 />
                 <Rect
-                    x="15%"
-                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel}
-                    width="70%"
-                    height={labelSize}
+                    x={startPositionX + avatarPlaceholderRadius + styles.gap3.gap}
+                    y="31"
+                    width="55%"
+                    height="8"
                 />
             </SkeletonViewContentLoader>
         </View>
     );
 }
 
-CurrentUserPersonalDetailsSkeletonView.displayName = 'CurrentUserPersonalDetailsSkeletonView';
-export default CurrentUserPersonalDetailsSkeletonView;
+AccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
+export default AccountSwitcherSkeletonView;
