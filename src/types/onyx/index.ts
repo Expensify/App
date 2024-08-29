@@ -1,3 +1,4 @@
+import type {PendingContactAction} from '@src/types/onyx/PendingContactAction';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -130,6 +131,7 @@ export type {
     Locale,
     Login,
     LoginList,
+    PendingContactAction,
     MapboxAccessToken,
     Modal,
     Network,

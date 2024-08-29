@@ -24,17 +24,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
-import type {LoginList} from '@src/types/onyx';
+import type {Account, LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type NewContactMethodPageOnyxProps = {
     /** Login list for the user that is signed in */
     loginList: OnyxEntry<LoginList>;
+    account: OnyxEntry<Account>;
 };
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
+function NewContactMethodPage({loginList, route, account}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
@@ -47,7 +48,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
             const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-            User.addNewContactMethodAndNavigate(submitDetail, route.params?.backTo);
+            User.saveNewContactMethodAndValidateAction(submitDetail);
+            Navigation.navigate(ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION);
         },
         [route.params?.backTo],
     );
@@ -105,7 +107,6 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 onSubmit={addNewContactMethod}
                 submitButtonText={translate('common.add')}
                 style={[styles.flexGrow1, styles.mh5]}
-                enabledWhenOffline
             >
                 <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                 <View style={styles.mb6}>
@@ -131,4 +132,5 @@ NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
     loginList: {key: ONYXKEYS.LOGIN_LIST},
+    account: {key: ONYXKEYS.ACCOUNT},
 })(NewContactMethodPage);

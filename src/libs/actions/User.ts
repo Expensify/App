@@ -288,11 +288,64 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
         },
     });
 }
+/**
+ * Validates the action to add secondary contact method
+ */
+function saveNewContactMethodAndValidateAction(contactMethod: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                contactMethod: contactMethod,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        }
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateCodeSent: true,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        }
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                errorFields: {
+                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        }
+    ];
+
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, {}, {optimisticData, successData, failureData});
+}
 
 /**
  * Adds a secondary login to a user's account
  */
-function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) {
+function addNewContactMethodAndNavigate(contactMethod: string, validateCode = '') {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -310,6 +363,11 @@ function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) 
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: true},
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -322,6 +380,23 @@ function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) 
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -339,12 +414,17 @@ function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) 
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
     ];
 
-    const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
+    const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod, validateCode};
 
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    // Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -1144,4 +1224,5 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    saveNewContactMethodAndValidateAction,
 };

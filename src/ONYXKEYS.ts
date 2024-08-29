@@ -102,6 +102,8 @@ const ONYXKEYS = {
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGIN_LIST: 'loginList',
 
+    PENDING_CONTACT_ACTION: 'pendingContactAction',
+
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
@@ -811,6 +813,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
+    [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
