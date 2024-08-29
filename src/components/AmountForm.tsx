@@ -242,7 +242,6 @@ function AmountForm(
                 label={label}
                 value={formattedAmount}
                 onChangeText={setFormattedAmount}
-                placeholder={numberFormat(0)}
                 ref={(ref: BaseTextInputRef) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
@@ -251,13 +250,6 @@ function AmountForm(
                         forwardedRef.current = ref;
                     }
                     textInput.current = ref;
-                }}
-                selection={selection}
-                onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-                    if (!shouldUpdateSelection) {
-                        return;
-                    }
-                    setSelection(e.nativeEvent.selection);
                 }}
                 prefixCharacter={currency}
                 prefixStyle={styles.colorMuted}
