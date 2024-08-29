@@ -514,18 +514,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_TYPE]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TYPE.route,
-                        },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_INSTRUCTIONS]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_INSTRUCTIONS.route,
-                        },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_NAME]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_NAME.route,
-                        },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_DETAILS]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_DETAILS.route,
-                        },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                         },
