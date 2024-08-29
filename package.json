@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.25-15",
+  "version": "9.0.26-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -168,7 +168,7 @@
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#da50d2c5c54e268499047f9cc98b8df4196c1ddf",
     "react-native-plaid-link-sdk": "11.11.0",
     "react-native-qrcode-svg": "git+https://github.com/Expensify/react-native-qrcode-svg-old",
-    "react-native-quick-sqlite": "git+https://github.com/margelo/react-native-quick-sqlite#abc91857d4b3efb2020ec43abd2a508563b64316",
+    "react-native-quick-sqlite": "git+https://github.com/margelo/react-native-quick-sqlite#99f34ebefa91698945f3ed26622e002bd79489e0",
     "react-native-reanimated": "3.13.0",
     "react-native-release-profiler": "^0.2.1",
     "react-native-render-html": "6.3.1",
