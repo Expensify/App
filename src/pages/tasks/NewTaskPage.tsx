@@ -62,7 +62,7 @@ function NewTaskPage({task, reports, personalDetails, route}: NewTaskPageProps) 
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
-    const backTo = route.params.backTo;
+    const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(

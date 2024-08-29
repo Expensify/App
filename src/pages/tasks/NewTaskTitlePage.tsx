@@ -35,7 +35,7 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
 
     const {translate} = useLocalize();
 
-    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params.backTo));
+    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 

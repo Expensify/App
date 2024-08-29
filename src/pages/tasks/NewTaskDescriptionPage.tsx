@@ -39,7 +39,7 @@ function NewTaskDescriptionPage({task, route}: NewTaskDescriptionPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params.backTo));
+    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDescriptionValue(values.taskDescription);
         goBack();

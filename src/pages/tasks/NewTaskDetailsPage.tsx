@@ -42,7 +42,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const backTo = route.params.backTo;
+    const backTo = route.params?.backTo;
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
