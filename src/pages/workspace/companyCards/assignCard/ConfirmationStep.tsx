@@ -27,6 +27,7 @@ function ConfirmationStep() {
 
     const submit = () => {
         Navigation.goBack();
+        CompanyCards.clearAssignCardStepAndData();
     };
 
     const editStep = (step: AssignCardStep) => {

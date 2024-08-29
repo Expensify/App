@@ -6,4 +6,8 @@ function setAssignCardStepAndData({data, isEditing, currentStep}: Partial<Assign
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {data, isEditing, currentStep});
 }
 
-export {setAssignCardStepAndData};
+function clearAssignCardStepAndData() {
+    Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
+}
+
+export {setAssignCardStepAndData, clearAssignCardStepAndData};
