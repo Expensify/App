@@ -4042,7 +4042,7 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
 
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} data-expensify-preview-modal-disabled="true" />`;
     }
     if (file.type?.startsWith('video')) {
         return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
