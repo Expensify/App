@@ -66,7 +66,7 @@ type MoneyRequestConfirmationListFooterProps = {
     iouCategory: string;
 
     /** The list of attendees */
-    iouAttendees: Attendee[];
+    iouAttendees: Attendee[] | undefined;
 
     /** The comment of the IOU */
     iouComment: string | undefined;
@@ -271,8 +271,6 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
-
-    // console.log('INFO: ', Navigation.getActiveRouteWithoutParams());
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.

@@ -90,7 +90,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouAmount: number;
 
     /** IOU attendees list */
-    iouAttendees: Attendee[];
+    iouAttendees?: Attendee[];
 
     /** IOU comment */
     iouComment?: string;

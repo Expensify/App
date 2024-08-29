@@ -204,7 +204,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
      */
     const addAttendeeToSelection = useCallback(
         (option: Attendee) => {
-            console.log('OPTION: ', option);
             const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
                     return true;
@@ -223,6 +222,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     {
                         accountID: option.accountID ?? -1,
                         login: option.login && option.login !== '' ? option.login : option.text,
+                        displayName: option.text,
                         selected: true,
                         searchText: option.searchText,
                         iouType,
