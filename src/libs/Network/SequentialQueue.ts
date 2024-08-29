@@ -195,6 +195,7 @@ function isPaused(): boolean {
 NetworkStore.onReconnection(flush);
 
 function push(newRequest: OnyxRequest) {
+    // If a request is already being processed, ignore it when looking for potentially conflicting requests
     const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
 
     const {checkAndFixConflictingRequest} = newRequest;
