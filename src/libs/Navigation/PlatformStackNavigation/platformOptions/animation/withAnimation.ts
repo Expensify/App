@@ -3,7 +3,7 @@ import type {StackNavigationOptions} from '@react-navigation/stack';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function withAnimation<PlatformOptions extends StackNavigationOptions | NativeStackNavigationOptions>(
-    screenOptions: PlatformStackNavigationOptions | undefined,
+    screenOptions: PlatformStackNavigationOptions,
     slideFromLeft: PlatformOptions,
     slideFromRight: PlatformOptions,
     slideFromBottom: PlatformOptions,
