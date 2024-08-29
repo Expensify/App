@@ -2,97 +2,10 @@ import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, ScreenOpti
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
-
-// import type Subtract from '@src/types/utils/Substract';
+import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
-
-// Common navigation options merged from both stack and native-stack navigations.
-type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
-
-// Navigation properties that are only available in web or native stack navigations.
-// type WebOnlyNavigationOptions = Partial<Subtract<StackNavigationOptions, CommonStackNavigationOptions>>;
-// type NativeOnlyNavigationOptions = Partial<Subtract<NativeStackNavigationOptions, CommonStackNavigationOptions>>;
-type WebOnlyNavigationOptions = StackNavigationOptions;
-type NativeOnlyNavigationOptions = NativeStackNavigationOptions;
-
-// type CardOptions = {
-//     cardShadowEnabled?: StackNavigationOptions['cardShadowEnabled'];
-//     cardOverlayEnabled?: StackNavigationOptions['cardOverlayEnabled'];
-//     cardOverlay?: StackNavigationOptions['cardOverlay'];
-//     cardStyle?: StackNavigationOptions['cardStyle'];
-//     cardStyleInterpolator: StackNavigationOptions['cardStyleInterpolator'];
-// };
-
-// Expanded navigation options including possible custom properties for platform-specific implementations.
-type GeneralPlatformStackNavigationOptions = {
-    // // Unique to StackNavigationOptions
-    // detachPreviousScreen?: boolean;
-    // freezeOnBlur?: boolean;
-    web?: WebOnlyNavigationOptions;
-
-    // // Unique to NativeStackNavigationOptions
-    // autoHideHomeIndicator?: boolean;
-    // contentStyle?: StyleProp<ViewStyle>;
-    // customAnimationOnGesture?: boolean;
-    // fullScreenGestureEnabled?: boolean;
-    // navigationBarColor?: string;
-    // navigationBarHidden?: boolean;
-    // orientation?: ScreenProps['screenOrientation'];
-    native?: NativeOnlyNavigationOptions;
-
-    keyboardHandlingEnabled?: boolean;
-
-    // Stack
-    // animationEnabled?: boolean;
-    // animationTypeForReplace?: 'push' | 'pop';
-    // Native stack
-    // animation?: ScreenProps['stackAnimation']; // The animation used for transitions
-    // animationDuration?: number;
-    animation?: 'slide_from_left' | 'slide_from_right' | 'modal' | 'none';
-
-    // Native stack
-    // headerBackImageSource?: ImageSourcePropType;
-    // headerBackTitleStyle?: StyleProp<{ fontFamily?: string; fontSize?: number; }>;
-    // headerBackVisible?: boolean;
-    // headerBlurEffect?: ScreenStackHeaderConfigProps['blurEffect'];
-    // headerLargeStyle?: StyleProp<{ backgroundColor?: string; }>;
-    // headerLargeTitle?: boolean;
-    // headerLargeTitleShadowVisible?: boolean;
-    // headerLargeTitleStyle?: StyleProp<{ fontFamily?: string; fontSize?: number; fontWeight?: string; color?: string; }>;
-    // headerShadowVisible?: boolean;
-    // headerTitleAlign?: 'left' | 'center';
-    // headerBackButtonMenuEnabled?: boolean;
-    header?: unknown;
-
-    // Native stack
-    // statusBarAnimation?: ScreenProps['statusBarAnimation'];
-    // statusBarColor?: string;
-    // statusBarHidden?: boolean;
-    // statusBarStyle?: ScreenProps['statusBarStyle'];
-    // statusBarTranslucent?: boolean;
-    statusBar?: unknown;
-
-    // Stack
-    // presentation?: 'card' | 'modal' | 'transparentModal';
-    // Native stack
-    // presentation?: Exclude<ScreenProps['stackPresentation'], 'push'> | 'card';
-    presentation?: 'card' | 'modal' | 'transparentModal';
-
-    // Native stack
-    // gestureEnabled?: boolean;
-    // gestureResponseDistance?: number;
-    // gestureVelocityImpact?: number;
-    // gestureDirection?: ScreenProps['swipeDirection'];
-    gesture?: unknown;
-};
-
-// Combines common and general platform-specific options for PlatformStackNavigation.
-type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlatformStackNavigationOptions;
-
-// Used to represent platform-specific navigation options.
-type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
 // Common event map merged from both stack and native-stack navigations.
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
@@ -141,7 +54,6 @@ type PlatformStackScreenProps<
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
 // a factory function that returns the navigation options based on route and navigation props.
 // These types are used to represent the screen options and their factory functions.
-
 function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
     screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions, ParamList, RouteName> | undefined,
 ): screenOptions is (props: PlatformStackScreenProps<ParamList, RouteName>) => PlatformStackNavigationOptions {
@@ -151,11 +63,7 @@ function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName ex
 export {isRouteBasedScreenOptions};
 
 export type {
-    CommonStackNavigationOptions,
-    CommonStackNavigationEventMap,
     PlatformStackNavigationState,
-    PlatformStackNavigationOptions,
-    PlatformSpecificNavigationOptions,
     PlatformStackNavigationEventMap,
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,
@@ -164,3 +72,8 @@ export type {
     PlatformStackRouteProp,
     PlatformStackScreenProps,
 };
+
+export * from './NavigationBuilder';
+export * from './NavigationOptions';
+export * from './NavigatorComponent';
+export type {default as PlatformStackNavigator} from './PlatformStackNavigator';

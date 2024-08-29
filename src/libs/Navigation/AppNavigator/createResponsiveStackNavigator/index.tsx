@@ -9,7 +9,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import type {OnIsSmallScreenWidthChange} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
+import type {OnIsSmallScreenWidthChange} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import getStateWithSearch from './getStateWithSearch';
 import RenderSearchRoute from './SearchRoute';
