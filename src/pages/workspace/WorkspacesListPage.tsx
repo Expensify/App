@@ -32,6 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
+import * as Modal from '@userActions/Modal';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -161,12 +162,12 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
-                    onSelected: () => {
-                        setPolicyIDToDelete(item.policyID ?? '-1');
-                        setPolicyNameToDelete(item.title);
-                        setIsDeleteModalOpen(true);
-                    },
-                    shouldCallAfterModalHide: true,
+                    onSelected: () =>
+                        Modal.close(() => {
+                            setPolicyIDToDelete(item.policyID ?? '-1');
+                            setPolicyNameToDelete(item.title);
+                            setIsDeleteModalOpen(true);
+                        }),
                 });
             }
 
@@ -305,7 +306,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
         if (isEmptyObject(policies)) {
             return [];
         }

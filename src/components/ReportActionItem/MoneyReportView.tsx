@@ -10,6 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -75,6 +76,22 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && ReportUtils.isReportFieldOfTypeTitle(enabledReportFields[0]);
     const shouldShowReportField =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(report) && ReportUtils.isPaidGroupPolicyExpenseReport(report) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+
+    const renderThreadDivider = useMemo(
+        () =>
+            shouldHideThreadDividerLine && !isCombinedReport ? (
+                <UnreadActionIndicator
+                    reportActionID={report.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            ) : (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                />
+            ),
+        [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule, isCombinedReport],
+    );
 
     return (
         <>
@@ -197,12 +214,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && (
-                <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
-                />
-            )}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotal) && renderThreadDivider}
         </>
     );
 }
