@@ -17,12 +17,7 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type CardInstructionsStepProps = {
-    // ID of the policy that the card will be issued under
-    policyID: string;
-};
-
-function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
+function CardInstructionsStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();

@@ -18,12 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-type DetailsStepProps = {
-    // ID of the policy that the card will be issued under
-    policyID: string;
-};
-
-function DetailsStep({policyID}: DetailsStepProps) {
+function DetailsStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
