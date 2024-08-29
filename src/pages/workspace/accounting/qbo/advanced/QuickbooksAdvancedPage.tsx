@@ -102,17 +102,22 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: !!autoCreateVendor,
             onToggle: (isOn) => {
+                const autoCreateVendorKey = CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR;
+                const nonReimbursableVendorKey = CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
+                const nonReimbursableVendorUpdateValue = isOn
+                    ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+                const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+
                 QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
-                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
-                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                            ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                            : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                        [autoCreateVendorKey]: isOn,
+                        [nonReimbursableVendorKey]: nonReimbursableVendorUpdateValue,
                     },
                     {
-                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: autoCreateVendor,
-                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                        [autoCreateVendorKey]: autoCreateVendor,
+                        [nonReimbursableVendorKey]: nonReimbursableVendorCurrentValue,
                     },
                 );
             },
