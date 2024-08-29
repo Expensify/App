@@ -7965,6 +7965,10 @@ function mergeDuplicates(params: TransactionMergeParams) {
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
 
+function updateLastLocationPermissionPrompt() {
+    Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -8034,5 +8038,6 @@ export {
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
     mergeDuplicates,
+    updateLastLocationPermissionPrompt,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

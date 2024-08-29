@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -92,6 +93,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = TransactionUtils.getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -568,7 +570,12 @@ function IOURequestStepConfirmation({
 
     const onConfirm = (listOfParticipants: Participant[]) => {
         setSelectedParticipantList(listOfParticipants);
-        if (gpsRequired) {
+        const shouldStartLocationPermissionFlow =
+            !lastLocationPermissionPrompt ||
+            (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') && DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > 7);
+
+        if (gpsRequired && shouldStartLocationPermissionFlow) {
+            IOU.updateLastLocationPermissionPrompt();
             setStartLocationPermissionFlow(true);
             return;
         }
