@@ -245,7 +245,7 @@ const ViolationsUtils = {
             category,
             rejectedBy = '',
             rejectReason = '',
-            formattedLimit,
+            formattedLimit = '',
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,

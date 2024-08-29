@@ -27,6 +27,7 @@ export function flattenObject<T = typeof en>(obj: TranslationBase<T>): Translati
             // Recursive call to the keys and connect to the respective data
             Object.keys(data).forEach((k) => {
                 isEmpty = false;
+                // @ts-expect-error - The key is a string since forEach is always iterating over the keys like strings
                 recursive(data[k] as TranslationBase<T>, key ? `${key}.${k}` : k);
             });
 

@@ -7617,7 +7617,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
         default:
             return '';
     }

@@ -83,6 +83,7 @@ import type {
     NotYouParams,
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
+    OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
     PaidElsewhereWithAmountParams,
@@ -741,7 +742,7 @@ const translations = {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -765,7 +766,7 @@ const translations = {
         original: 'Original',
         split: 'Split',
         splitExpense: 'Split expense',
-        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
         share: 'Share',
@@ -1662,7 +1663,7 @@ const translations = {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -3234,7 +3235,7 @@ const translations = {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: ({connectionName}: Partial<ConnectionNameParams>) => {
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
                 return `Disconnect ${integrationName}`;
@@ -3268,7 +3269,7 @@ const translations = {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
-            disconnectPrompt: ({connectionName}: Partial<ConnectionNameParams>) => {
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
@@ -3832,16 +3833,16 @@ const translations = {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: ({date}: Partial<DateParams>) => `Before ${date ?? ''}`,
-                after: ({date}: Partial<DateParams>) => `After ${date ?? ''}`,
+                before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
+                after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
             amount: {
-                lessThan: ({amount}: Partial<RequestAmountParams>) => `Less than ${amount ?? ''}`,
-                greaterThan: ({amount}: Partial<RequestAmountParams>) => `Greater than ${amount ?? ''}`,
+                lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
+                greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
             },
         },
@@ -4201,7 +4202,7 @@ const translations = {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
         billableExpense: 'Billable no longer valid',
-        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Unit no longer valid',
@@ -4212,7 +4213,7 @@ const translations = {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -4261,10 +4262,10 @@ const translations = {
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Missing ${tagName ?? 'Tag'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Missing ${tagName ?? 'Tag'}`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
         none: 'None',

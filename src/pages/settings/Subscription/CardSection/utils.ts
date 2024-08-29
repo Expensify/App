@@ -40,7 +40,7 @@ function getBillingStatus(
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted}),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted ?? ''}),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -55,7 +55,7 @@ function getBillingStatus(
         case SubscriptionUtils.PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicing.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted}),
+                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted ?? ''}),
                 isError: true,
                 isAddButtonDark: true,
             };

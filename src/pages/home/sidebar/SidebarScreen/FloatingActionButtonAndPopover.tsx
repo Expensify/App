@@ -215,7 +215,7 @@ function FloatingActionButtonAndPopover(
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? -1), true) ?? '';
-            return translate('quickAction.paySomeone', name);
+            return translate('quickAction.paySomeone', {name});
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';

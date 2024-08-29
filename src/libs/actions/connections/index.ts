@@ -370,7 +370,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): string | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         if (

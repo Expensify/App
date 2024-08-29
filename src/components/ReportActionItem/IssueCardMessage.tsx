@@ -35,11 +35,11 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const getTranslation = () => {
         switch (action?.actionName) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
-                return translate('workspace.expensifyCard.issuedCard', assignee);
+                return translate('workspace.expensifyCard.issuedCard', {assignee});
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
                 return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-                return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, assignee);
+                return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, {assignee});
             default:
                 return '';
         }

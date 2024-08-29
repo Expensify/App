@@ -9,7 +9,7 @@ type AddressLineParams = {
 };
 
 type CharacterLimitParams = {
-    limit: number;
+    limit: number | string;
 };
 
 type AssigneeParams = {
@@ -225,25 +225,25 @@ type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
-type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string};
+type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
-type ViolationsConversionSurchargeParams = {surcharge?: number};
+type ViolationsConversionSurchargeParams = {surcharge: number};
 
-type ViolationsInvoiceMarkupParams = {invoiceMarkup?: number};
+type ViolationsInvoiceMarkupParams = {invoiceMarkup: number};
 
 type ViolationsMaxAgeParams = {maxAge: number};
 
-type ViolationsMissingTagParams = {tagName?: string};
+type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
+type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
 
-type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
+type ViolationsOverCategoryLimitParams = {formattedLimit: string};
 
-type ViolationsOverLimitParams = {formattedLimit?: string};
+type ViolationsOverLimitParams = {formattedLimit: string};
 
-type ViolationsPerDayLimitParams = {formattedLimit?: string};
+type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
@@ -255,11 +255,11 @@ type ViolationsRterParams = {
     member?: string;
 };
 
-type ViolationsTagOutOfPolicyParams = {tagName?: string};
+type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsTaxOutOfPolicyParams = {taxName?: string};
+type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
-type PaySomeoneParams = {name?: string};
+type PaySomeoneParams = {name?: string} | undefined;
 
 type TaskCreatedActionParams = {title: string};
 
@@ -315,6 +315,8 @@ type TranslationPaths = FlattenObject<EnglishTranslation>;
 type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
+
+type OptionalParam<T> = Partial<T> | undefined;
 
 type TermsParams = {amount: string};
 
@@ -423,9 +425,9 @@ type FiltersAmountBetweenParams = {greaterThan: string; lessThan: string};
 
 type StatementPageTitleParams = {year: string | number; monthName: string};
 
-type DisconnectPromptParams = {currentIntegration?: ConnectionName};
+type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
 
-type DisconnectTitleParams = {integration?: ConnectionName};
+type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
 
@@ -439,7 +441,7 @@ type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
 
-type OwnerOwesAmountParams = {amount: number; email: string};
+type OwnerOwesAmountParams = {amount: string; email: string};
 
 type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
 
@@ -453,19 +455,19 @@ type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName:
 
 type RenamedWorkspaceNameActionParams = {oldName: string; newName: string};
 
-type StatementTitleParams = {year: number; monthName: string};
+type StatementTitleParams = {year: number | string; monthName: string};
 
 type BadgeFreeTrialParams = {numOfDays: number};
 
 type BillingBannerSubtitleWithDateParams = {date: string};
 
-type BillingBannerDisputePendingParams = {amountOwed: string; cardEnding: string};
+type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string};
 
 type BillingBannerCardAuthenticationRequiredParams = {cardEnding: string};
 
-type BillingBannerInsufficientFundsParams = {amountOwed: string};
+type BillingBannerInsufficientFundsParams = {amountOwed: number};
 
-type BillingBannerCardExpiredParams = {amountOwed: string};
+type BillingBannerCardExpiredParams = {amountOwed: number};
 
 type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string};
 
@@ -489,7 +491,7 @@ type SubscriptionSettingsRenewsOnParams = {date: string};
 
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
 
-type IncorrectZipFormatParams = {zipFormat?: string};
+type IncorrectZipFormatParams = {zipFormat?: string} | undefined;
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
@@ -697,4 +699,5 @@ export type {
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,
+    OptionalParam,
 };
