@@ -62,7 +62,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         Card.openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    useNetwork({onReconnect: fetchCardDetails});
+    const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
