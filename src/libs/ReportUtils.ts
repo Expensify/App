@@ -461,6 +461,7 @@ type OptionData = {
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
     isConciergeChat?: boolean;
+    isBold?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -3657,7 +3658,7 @@ function getReportName(
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
-        if (reportNameFromCache && reportNameFromCache.reportName === report?.reportName) {
+        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName) {
             return reportNameFromCache.reportName;
         }
     }
