@@ -16,9 +16,9 @@ type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEA
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {policyIDs, q, isCustomQuery} = route.params;
+    const {q, isCustomQuery} = route.params;
 
-    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q, policyIDs), [q, policyIDs]);
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
@@ -43,7 +43,6 @@ function SearchPage({route}: SearchPageProps) {
                     <Search
                         isCustomQuery={isCustomQuery}
                         queryJSON={queryJSON}
-                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>
