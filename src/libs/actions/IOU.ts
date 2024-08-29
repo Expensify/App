@@ -56,7 +56,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant, Split} from '@src/types/onyx/IOU';
+import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -3232,6 +3232,7 @@ function convertTrackedExpenseToRequest(
     comment: string,
     merchant: string,
     created: string,
+    attendees?: Attendee[],
     receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
@@ -3256,6 +3257,7 @@ function convertTrackedExpenseToRequest(
     failureData?.push(...moveTransactionFailureData);
 
     const parameters = {
+        attendees,
         amount,
         currency,
         comment,
@@ -3438,6 +3440,7 @@ function shareTrackedExpense(
 function requestMoney(
     report: OnyxEntry<OnyxTypes.Report>,
     amount: number,
+    attendees: Attendee[] | undefined,
     currency: string,
     created: string,
     merchant: string,
@@ -3533,6 +3536,7 @@ function requestMoney(
                 comment,
                 merchant,
                 created,
+                attendees,
                 receipt,
             );
             break;

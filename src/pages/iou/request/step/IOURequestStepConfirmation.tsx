@@ -244,6 +244,7 @@ function IOURequestStepConfirmation({
             IOU.requestMoney(
                 report,
                 transaction.amount,
+                transaction.attendees,
                 transaction.currency,
                 transaction.created,
                 transaction.merchant,

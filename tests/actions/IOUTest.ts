@@ -80,7 +80,7 @@ describe('actions/IOU', () => {
             let transactionThread: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -276,7 +276,7 @@ describe('actions/IOU', () => {
                     }),
                 )
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                    IOU.requestMoney(chatReport, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -477,7 +477,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(chatReport, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
                     }
                     return waitForBatchedUpdates();
                 })
@@ -617,7 +617,7 @@ describe('actions/IOU', () => {
             let transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return (
                 waitForBatchedUpdates()
                     .then(
@@ -1417,7 +1417,7 @@ describe('actions/IOU', () => {
             let createIOUAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let payIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -1617,7 +1617,7 @@ describe('actions/IOU', () => {
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
 
             mockFetch?.pause?.();
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
@@ -1771,7 +1771,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(() => {
                     Onyx.set(ONYXKEYS.SESSION, {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID});
@@ -1953,7 +1953,19 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            [],
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            comment,
+                            {},
+                        );
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2066,7 +2078,19 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            [],
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            comment,
+                            {},
+                        );
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2152,7 +2176,7 @@ describe('actions/IOU', () => {
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
-            IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
+            IOU.requestMoney({reportID: ''}, amount, [], CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
             await waitForBatchedUpdates();
 
             // When fetching all reports from Onyx
@@ -2883,7 +2907,7 @@ describe('actions/IOU', () => {
             const amount2 = 20000;
             const comment2 = 'Send me money please 2';
             if (chatReport) {
-                IOU.requestMoney(chatReport, amount2, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment2, {});
+                IOU.requestMoney(chatReport, amount2, [], CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment2, {});
             }
 
             await waitForBatchedUpdates();
@@ -3089,6 +3113,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,
@@ -3192,6 +3217,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,
@@ -3296,6 +3322,7 @@ describe('actions/IOU', () => {
                         IOU.requestMoney(
                             chatReport,
                             amount,
+                            [],
                             CONST.CURRENCY.USD,
                             '',
                             merchant,

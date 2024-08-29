@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,8 +24,12 @@ function AttendeeSelectionPage({
     const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
     const {translate} = useLocalize();
 
+    const saveAttendees = useCallback(() => {}, []);
+
     const navigateBack = () => {
-        // save if possible...
+        if (attendees.length > 0) {
+            saveAttendees();
+        }
         Navigation.goBack(backTo);
     };
 
@@ -37,7 +41,7 @@ function AttendeeSelectionPage({
             testID={AttendeeSelectionPage.displayName}
         >
             <MoneyRequestAttendeeSelector
-                onFinish={() => {}}
+                onFinish={saveAttendees}
                 onAttendeesAdded={(v) => setAttendees(v)}
                 attendees={attendees}
                 iouType={iouType}

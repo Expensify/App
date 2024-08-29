@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -166,6 +167,20 @@ function IOURequestStepAmount({
         }
     };
 
+    const getInitialAttendee = () => {
+        const initialAttendee: Attendee = {
+            email: currentUserPersonalDetails?.login,
+            displayName: currentUserPersonalDetails.displayName,
+            avatarUrl: currentUserPersonalDetails.avatar,
+            accountID: currentUserPersonalDetails.accountID,
+            text: currentUserPersonalDetails.login,
+            selected: true,
+            reportID,
+        };
+
+        return [initialAttendee];
+    };
+
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -227,6 +242,7 @@ function IOURequestStepAmount({
                     IOU.requestMoney(
                         report,
                         backendAmount,
+                        getInitialAttendee(),
                         currency,
                         transaction?.created ?? '',
                         '',

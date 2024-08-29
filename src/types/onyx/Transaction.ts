@@ -455,7 +455,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
     },
-    keyof Comment | keyof TransactionCustomUnit
+    keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
 
 /** Keys of pending transaction fields */
