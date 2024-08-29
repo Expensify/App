@@ -118,10 +118,7 @@ function AddDelegatePage() {
         }));
     }, [personalDetails, recentReports, translate]);
 
-    const onSelectRow = useCallback((option: Participant) => {
-        // setDelegateEmail(option.login ?? '');
-        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1));
-    }, []);
+    const onSelectRow = useCallback((option: Participant) => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1)), []);
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
