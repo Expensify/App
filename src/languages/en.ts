@@ -2,15 +2,16 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     ActionsAreCurrentlyRestricted,
+    AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AgeParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
+    AssigneeParams,
     BadgeFreeTrialParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -37,24 +38,38 @@ import type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    ConnectionNameParams,
+    CustomersOrJobsLabelParams,
+    DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
+    DefaultVendorDescriptionParams,
+    DelegateRoleParams,
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DeleteExpenseTranslationParams,
     DidSplitAmountMessageParams,
+    DimensionsCountParams,
     DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
+    ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
+    ExportIntegrationSelectedParams,
+    FiltersAmountBetweenParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
+    ImportFieldParams,
+    IncorrectZipFormatParams,
     InstantSummaryParams,
+    IntacctMappingTitleParams,
+    IntegrationSyncFailedParams,
     IssueVirtualCardParams,
+    LastSyncAccountingParams,
     LastSyncDateParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -79,8 +94,10 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReconciliationWorksParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     RenamedWorkspaceNameActionParams,
@@ -91,6 +108,7 @@ import type {
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
+    RequiredFieldParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
@@ -111,6 +129,7 @@ import type {
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSizeParams,
+    SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -121,10 +140,12 @@ import type {
     TranslationBase,
     TrialStartedTitleParams,
     UnapprovedParams,
+    UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
@@ -720,7 +741,7 @@ const translations = {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        paySomeone: (name: string) => `Pay ${name ?? 'someone'}`,
+        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
@@ -766,7 +787,7 @@ const translations = {
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        receiptIssuesFound: (count: number) => `${count === 1 ? 'Issue' : 'Issues'} found`,
+        receiptIssuesFound: ({count}: DistanceRateOperationsParams) => `${count === 1 ? 'Issue' : 'Issues'} found`,
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
@@ -816,9 +837,9 @@ const translations = {
         yourSplit: ({amount}: UserSplitParams) => `Your split ${amount}`,
         payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
-        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer ? `${payer} ` : ''}paid ${amount}`,
+        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
-        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} spent ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
@@ -913,7 +934,7 @@ const translations = {
         unapprove: 'Unapprove',
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
-        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
@@ -1296,15 +1317,16 @@ const translations = {
         availableSpend: 'Remaining limit',
         smartLimit: {
             name: 'Smart limit',
-            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and the limit will reset as your submitted expenses are approved.`,
+            title: ({formattedLimit}: ViolationsOverLimitParams) => `You can spend up to ${formattedLimit} on this card, and the limit will reset as your submitted expenses are approved.`,
         },
         fixedLimit: {
             name: 'Fixed limit',
-            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and then it will deactivate.`,
+            title: ({formattedLimit}: ViolationsOverLimitParams) => `You can spend up to ${formattedLimit} on this card, and then it will deactivate.`,
         },
         monthlyLimit: {
             name: 'Monthly limit',
-            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
+            title: ({formattedLimit}: ViolationsOverLimitParams) =>
+                `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
         },
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
@@ -1512,7 +1534,7 @@ const translations = {
         groupMembersListTitle: 'Directory of all group members.',
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
-        defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
+        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}'s group chat`,
     },
     languagePage: {
         language: 'Language',
@@ -1640,7 +1662,7 @@ const translations = {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -1657,8 +1679,8 @@ const translations = {
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: (user: OurEmailProviderParams) =>
-            `Our email provider has temporarily suspended emails to ${user.login} due to delivery issues. To unblock your login, please follow these steps:`,
+        ourEmailProvider: ({login}: OurEmailProviderParams) =>
+            `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
         confirmThat: ({login}: ConfirmThatParams) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
         emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
         ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
@@ -2191,7 +2213,7 @@ const translations = {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
-            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
@@ -2419,7 +2441,7 @@ const translations = {
             },
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
-            defaultVendorDescription: (isReimbursable: boolean): string =>
+            defaultVendorDescription: ({isReimbursable}: DefaultVendorDescriptionParams) =>
                 `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
@@ -2633,12 +2655,12 @@ const translations = {
                     importJobs: 'Import projects',
                     customers: 'customers',
                     jobs: 'projects',
-                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
+                    label: ({importFields, importType}: CustomersOrJobsLabelParams) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
-                    requiredFieldError: (fieldName: string) => `Please enter the ${fieldName}`,
+                    requiredFieldError: ({fieldName}: RequiredFieldParams) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
@@ -2679,7 +2701,7 @@ const translations = {
                             customRecordMappingTitle: 'How should this custom record be displayed in Expensify?',
                         },
                         errors: {
-                            uniqueFieldError: (fieldName: string) => `A custom segment/record with this ${fieldName?.toLowerCase()} already exists.`,
+                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `A custom segment/record with this ${fieldName?.toLowerCase()} already exists.`,
                         },
                     },
                     customLists: {
@@ -2713,18 +2735,18 @@ const translations = {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite employee default',
                         description: 'Not imported into Expensify, applied on export',
-                        footerContent: (importField: string) =>
+                        footerContent: ({importField}: ImportFieldParams) =>
                             `If you use ${importField} in NetSuite, we'll apply the default set on the employee record upon export to Expense Report or Journal Entry.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Line-item level',
-                        footerContent: (importField: string) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
+                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Report fields',
                         description: 'Report level',
-                        footerContent: (importField: string) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
+                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
                     },
                 },
             },
@@ -2755,8 +2777,8 @@ const translations = {
             addAUserDefinedDimension: 'Add a user-defined dimension',
             detailedInstructionsLink: 'View detailed instructions',
             detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
-            userDimensionsAdded: (dimensionsCount: number) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} added`,
-            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+            userDimensionsAdded: ({dimensionsCount}: DimensionsCountParams) => `${dimensionsCount} ${Str.pluralize('UDD', `UDDs`, dimensionsCount)} added`,
+            mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return 'departments';
@@ -2825,20 +2847,21 @@ const translations = {
             deactivate: 'Deactivate card',
             changeCardLimit: 'Change card limit',
             changeLimit: 'Change limit',
-            smartLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
-            monthlyLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
-            fixedLimitWarning: (limit: string) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
+            smartLimitWarning: ({limit}: CharacterLimitParams) =>
+                `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
+            monthlyLimitWarning: ({limit}: CharacterLimitParams) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
+            fixedLimitWarning: ({limit}: CharacterLimitParams) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
             changeCardLimitType: 'Change card limit type',
             changeLimitType: 'Change limit type',
-            changeCardSmartLimitTypeWarning: (limit: string) =>
+            changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
-            changeCardMonthlyLimitTypeWarning: (limit: string) =>
+            changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addMailingAddress: 'Add mailing address',
-            issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCard: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
+            issuedCardNoMailingAddress: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
-            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
+            addedAddress: ({assignee}: AssigneeParams) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3098,7 +3121,7 @@ const translations = {
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
             removeMemberGroupButtonTitle: 'Remove from group',
-            removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
+            removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
@@ -3188,8 +3211,8 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            connectionName: (integration: ConnectionName) => {
-                switch (integration) {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Quickbooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3204,21 +3227,22 @@ const translations = {
                 }
             },
             setup: 'Connect',
-            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+            disconnectTitle: ({connectionName}: Partial<ConnectionNameParams>) => {
+                const integrationName =
+                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integration';
                 return `Disconnect ${integrationName}`;
             },
-            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
+            connectTitle: ({connectionName}: ConnectionNameParams) => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
 
-            syncError: (integration?: ConnectionName): string => {
-                switch (integration) {
+            syncError: ({connectionName}: ConnectionNameParams) => {
+                switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
@@ -3244,20 +3268,18 @@ const translations = {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+            disconnectPrompt: ({connectionName}: Partial<ConnectionNameParams>) => {
                 const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        : 'this integration';
+                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectPrompt: (integrationToConnect: ConnectionName): string =>
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Are you sure you want to connect ${
-                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
                 }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
@@ -3390,7 +3412,7 @@ const translations = {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 accountMatches: 'Make sure this account matches your ',
                 settlementAccount: 'Expensify Card settlement account ',
-                reconciliationWorks: (lastFourPAN: string) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         export: {
@@ -3564,7 +3586,7 @@ const translations = {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: (reportName: string, connectionName: ConnectionName) =>
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
                 `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
@@ -3627,7 +3649,7 @@ const translations = {
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
-                successMessage: (policyName: string) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
+                successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
@@ -3657,7 +3679,7 @@ const translations = {
                 maxAge: 'Max age',
                 maxExpenseAge: 'Max expense age',
                 maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
-                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('day', 'days', age)}`,
+                maxExpenseAgeDays: ({age}: AgeParams) => `${age} ${Str.pluralize('day', 'days', age)}`,
                 billableDefault: 'Billable default',
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
                 billable: 'Billable',
@@ -3810,17 +3832,17 @@ const translations = {
         filtersHeader: 'Filters',
         filters: {
             date: {
-                before: (date?: string) => `Before ${date ?? ''}`,
-                after: (date?: string) => `After ${date ?? ''}`,
+                before: ({date}: Partial<DateParams>) => `Before ${date ?? ''}`,
+                after: ({date}: Partial<DateParams>) => `After ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
             amount: {
-                lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
-                greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                lessThan: ({amount}: Partial<RequestAmountParams>) => `Less than ${amount ?? ''}`,
+                greaterThan: ({amount}: Partial<RequestAmountParams>) => `Greater than ${amount ?? ''}`,
+                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
             },
         },
         expenseType: 'Expense type',
@@ -3938,7 +3960,7 @@ const translations = {
                     nonReimbursableLink: 'View company card expenses.',
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
-                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
+                integrationsMessage: ({errorMessage, label}: IntegrationSyncFailedParams) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
@@ -3955,10 +3977,10 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
-                integrationSyncFailed: (label: string, errorMessage: string) => `failed to sync with ${label} ("${errorMessage}")`,
-                addEmployee: (email: string, role: string) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
-                updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
-                removeMember: (email: string, role: string) => `removed ${role} ${email}`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label} ("${errorMessage}")`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'user' ? 'member' : 'admin'}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
+                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
             },
         },
     },
@@ -4191,7 +4213,7 @@ const translations = {
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
-        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
                     return 'Amount differs from calculated distance';
@@ -4259,7 +4281,7 @@ const translations = {
         hold: 'Hold',
     },
     reportViolations: {
-        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
     },
     violationDismissal: {
         rter: {
@@ -4520,7 +4542,7 @@ const translations = {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
-        role: (role: DelegateRole): string => {
+        role: ({role}: DelegateRoleParams) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Full';

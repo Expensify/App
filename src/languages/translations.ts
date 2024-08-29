@@ -15,7 +15,7 @@ import type {TranslationBase, TranslationFlatObject} from './types';
 export function flattenObject<T = typeof en>(obj: TranslationBase<T>): TranslationFlatObject {
     const result: Record<string, unknown> = {};
 
-    const recursive = (data: TranslationBase<typeof en>, key: string): void => {
+    const recursive = (data: TranslationBase<T>, key: string): void => {
         // If the data is a function or not a object (eg. a string or array),
         // it's the final value for the key being built and there is no need
         // for more recursion
@@ -27,7 +27,7 @@ export function flattenObject<T = typeof en>(obj: TranslationBase<T>): Translati
             // Recursive call to the keys and connect to the respective data
             Object.keys(data).forEach((k) => {
                 isEmpty = false;
-                recursive(data[k] as TranslationBase<typeof en>, key ? `${key}.${k}` : k);
+                recursive(data[k] as TranslationBase<T>, key ? `${key}.${k}` : k);
             });
 
             // Check for when the object is empty but a key exists, so that

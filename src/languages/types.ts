@@ -1,5 +1,6 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {ConnectionName, Unit} from '@src/types/onyx/Policy';
+import type {DelegateRole} from '@src/types/onyx/Account';
+import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
@@ -9,6 +10,10 @@ type AddressLineParams = {
 
 type CharacterLimitParams = {
     limit: number;
+};
+
+type AssigneeParams = {
+    assignee: string;
 };
 
 type CharacterLengthLimitParams = {
@@ -361,9 +366,14 @@ type UnshareParams = {to: string};
 type StripePaidParams = {amount: string; currency: string};
 
 type UnapprovedParams = {amount: string; currency: string};
+
 type RemoveMembersWarningPrompt = {
     memberName: string;
     ownerName: string;
+};
+
+type RemoveMemberPromptParams = {
+    memberName: string;
 };
 
 type DeleteExpenseTranslationParams = {
@@ -407,9 +417,7 @@ type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
 type RemoveMemberParams = {email: string; role: string};
 
-type DateParams = {date?: string};
-
-type AmountParams = {amount?: string};
+type DateParams = {date: string};
 
 type FiltersAmountBetweenParams = {greaterThan: string; lessThan: string};
 
@@ -479,7 +487,47 @@ type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
+type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
+
+type IncorrectZipFormatParams = {zipFormat?: string};
+
+type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
+
+type DefaultVendorDescriptionParams = {isReimbursable: boolean};
+
+type RequiredFieldParams = {fieldName: string};
+
+type ImportFieldParams = {importField: string};
+
+type DimensionsCountParams = {dimensionsCount: number};
+
+type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
+
+type AgeParams = {age: number};
+
+type LastSyncAccountingParams = {relativeDate: string};
+
+type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
+
+type ReconciliationWorksParams = {lastFourPAN: string};
+
+type DelegateRoleParams = {role: DelegateRole};
+
 export type {
+    DelegateRoleParams,
+    ReconciliationWorksParams,
+    LastSyncAccountingParams,
+    SyncStageNameConnectionsParams,
+    AgeParams,
+    RequiredFieldParams,
+    DimensionsCountParams,
+    IntacctMappingTitleParams,
+    ImportFieldParams,
+    AssigneeParams,
+    DefaultVendorDescriptionParams,
+    ExportIntegrationSelectedParams,
+    UnapproveWithIntegrationWarningParams,
+    IncorrectZipFormatParams,
     CardNextPaymentParams,
     CardEndingParams,
     CardInfoParams,
@@ -496,6 +544,7 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -643,7 +692,6 @@ export type {
     UpdateRoleParams,
     RemoveMemberParams,
     DateParams,
-    AmountParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
     DisconnectPromptParams,
