@@ -2327,7 +2327,6 @@ const CONST = {
         CARD_TITLE_INPUT_LIMIT: 255,
     },
     COMPANY_CARDS: {
-        STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             CARD_TYPE: 'CardType',
             CARD_INSTRUCTIONS: 'CardInstructions',
