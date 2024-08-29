@@ -334,10 +334,22 @@ function updateQuickbooksOnlineReceivableAccount(policyID: string, settingValue:
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineExportDate(policyID: string, settingValue: QBOConnectionConfig['exportDate']) {
+    const {optimisticData, failureData, successData} = buildQuickbooksOnlineUpdateConfigOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     getQuickbooksOnlineSetupLink,
     updateQuickbooksOnlineEnableNewCategories,
     updateQuickbooksOnlineAutoCreateVendor,
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineReceivableAccount,
+    updateQuickbooksOnlineExportDate,
 };
