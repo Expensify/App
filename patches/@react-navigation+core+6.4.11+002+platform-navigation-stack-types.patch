@@ -60,7 +60,7 @@ index a3da390..bca9dc0 100644
 +{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":";;;;;;AAmLO,MAAMA,iBAAiB,CAA4B;AAYzD"}
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
-index 778981c..5ec8c4f 100644
+index 778981c..87fa958 100644
 --- a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
 +++ b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js
 @@ -21,8 +21,10 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj &&
@@ -75,7 +75,7 @@ index 778981c..5ec8c4f 100644
    let {
      state,
      screens,
-@@ -67,29 +69,43 @@ function useDescriptors(_ref) {
+@@ -67,29 +69,45 @@ function useDescriptors(_ref) {
      const config = screens[route.name];
      const screen = config.props;
      const navigation = navigations[route.key];
@@ -88,12 +88,9 @@ index 778981c..5ec8c4f 100644
 -    screen.options,
 -    // The options set via `navigation.setOptions`
 -    options[route.key]];
--    const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
--    // @ts-expect-error: we check for function but TS still complains
--    typeof curr !== 'function' ? curr : curr({
-+    const optionsList = [];
++    let optionsList;
 +    if (convertCustomScreenOptions) {
-+      optionsList.push([
++      optionsList = [
 +      // The default `screenOptions` passed to the navigator
 +      convertCustomScreenOptions(screenOptions),
 +      // The `screenOptions` props passed to `Group` elements
@@ -101,9 +98,9 @@ index 778981c..5ec8c4f 100644
 +      // The `options` prop passed to `Screen` elements,
 +      convertCustomScreenOptions(screen.options),
 +      // The options set via `navigation.setOptions`
-+      convertCustomScreenOptions(options[route.key])]);
++      convertCustomScreenOptions(options[route.key])];
 +    } else {
-+      optionsList.push([
++      optionsList = [
 +      // The default `screenOptions` passed to the navigator
 +      screenOptions,
 +      // The `screenOptions` props passed to `Group` elements
@@ -111,9 +108,11 @@ index 778981c..5ec8c4f 100644
 +      // The `options` prop passed to `Screen` elements,
 +      screen.options,
 +      // The options set via `navigation.setOptions`
-+      options[route.key]]);
++      options[route.key]];
 +    }
-+    const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc, typeof curr !== 'function' ? curr : curr({
+     const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
+     // @ts-expect-error: we check for function but TS still complains
+     typeof curr !== 'function' ? curr : curr({
        route,
        navigation
      })), {});
@@ -133,13 +132,13 @@ index 778981c..5ec8c4f 100644
      };
      const clearOptions = () => setOptions(o => {
 diff --git a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
-index d2248a2..1c4fe0c 100644
+index d2248a2..33f2f63 100644
 --- a/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
 +++ b/node_modules/@react-navigation/core/lib/commonjs/useDescriptors.js.map
 @@ -1 +1 @@
 -{"version":3,"names":["useDescriptors","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","React","useState","onDispatchAction","onOptionsChange","stackRef","useContext","NavigationBuilderContext","context","useMemo","navigations","useNavigationCache","routes","useRouteCache","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","customOptions","curr","Object","assign","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
 \ No newline at end of file
-+{"version":3,"names":["useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","React","useState","onDispatchAction","onOptionsChange","stackRef","useContext","NavigationBuilderContext","context","useMemo","navigations","useNavigationCache","routes","useRouteCache","reduce","acc","route","i","config","name","screen","props","key","optionsList","push","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
++{"version":3,"names":["useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","React","useState","onDispatchAction","onOptionsChange","stackRef","useContext","NavigationBuilderContext","context","useMemo","navigations","useNavigationCache","routes","useRouteCache","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/commonjs/useNavigationBuilder.js
 index 14338b9..70564a7 100644
@@ -248,7 +247,7 @@ index 21fd3e8..29de331 100644
 +{"version":3,"names":["PrivateValueStore"],"sourceRoot":"../../src","sources":["types.tsx"],"mappings":"AAmLA,OAAO,MAAMA,iBAAiB,CAA4B"}
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
-index b8f73f9..726800e 100644
+index b8f73f9..76fdab1 100644
 --- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js
 +++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
 @@ -12,8 +12,10 @@ import useRouteCache from './useRouteCache';
@@ -263,7 +262,7 @@ index b8f73f9..726800e 100644
    let {
      state,
      screens,
-@@ -58,29 +60,43 @@ export default function useDescriptors(_ref) {
+@@ -58,29 +60,45 @@ export default function useDescriptors(_ref) {
      const config = screens[route.name];
      const screen = config.props;
      const navigation = navigations[route.key];
@@ -276,12 +275,9 @@ index b8f73f9..726800e 100644
 -    screen.options,
 -    // The options set via `navigation.setOptions`
 -    options[route.key]];
--    const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
--    // @ts-expect-error: we check for function but TS still complains
--    typeof curr !== 'function' ? curr : curr({
-+    const optionsList = [];
++    let optionsList;
 +    if (convertCustomScreenOptions) {
-+      optionsList.push([
++      optionsList = [
 +      // The default `screenOptions` passed to the navigator
 +      convertCustomScreenOptions(screenOptions),
 +      // The `screenOptions` props passed to `Group` elements
@@ -289,9 +285,9 @@ index b8f73f9..726800e 100644
 +      // The `options` prop passed to `Screen` elements,
 +      convertCustomScreenOptions(screen.options),
 +      // The options set via `navigation.setOptions`
-+      convertCustomScreenOptions(options[route.key])]);
++      convertCustomScreenOptions(options[route.key])];
 +    } else {
-+      optionsList.push([
++      optionsList = [
 +      // The default `screenOptions` passed to the navigator
 +      screenOptions,
 +      // The `screenOptions` props passed to `Group` elements
@@ -299,9 +295,11 @@ index b8f73f9..726800e 100644
 +      // The `options` prop passed to `Screen` elements,
 +      screen.options,
 +      // The options set via `navigation.setOptions`
-+      options[route.key]]);
++      options[route.key]];
 +    }
-+    const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc, typeof curr !== 'function' ? curr : curr({
+     const customOptions = optionsList.reduce((acc, curr) => Object.assign(acc,
+     // @ts-expect-error: we check for function but TS still complains
+     typeof curr !== 'function' ? curr : curr({
        route,
        navigation
      })), {});
@@ -321,13 +319,13 @@ index b8f73f9..726800e 100644
      };
      const clearOptions = () => setOptions(o => {
 diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map b/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
-index 77a198a..006eff2 100644
+index 77a198a..026d685 100644
 --- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
 +++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js.map
 @@ -1 +1 @@
 -{"version":3,"names":["React","NavigationBuilderContext","NavigationContext","NavigationRouteContext","SceneView","useNavigationCache","useRouteCache","useDescriptors","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","useState","onDispatchAction","onOptionsChange","stackRef","useContext","context","useMemo","navigations","routes","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","customOptions","curr","Object","assign","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
 \ No newline at end of file
-+{"version":3,"names":["React","NavigationBuilderContext","NavigationContext","NavigationRouteContext","SceneView","useNavigationCache","useRouteCache","useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","useState","onDispatchAction","onOptionsChange","stackRef","useContext","context","useMemo","navigations","routes","reduce","acc","route","i","config","name","screen","props","key","optionsList","push","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
++{"version":3,"names":["React","NavigationBuilderContext","NavigationContext","NavigationRouteContext","SceneView","useNavigationCache","useRouteCache","useDescriptors","convertCustomScreenOptions","state","screens","navigation","screenOptions","defaultScreenOptions","onAction","getState","setState","addListener","addKeyedListener","onRouteFocus","router","emitter","options","setOptions","useState","onDispatchAction","onOptionsChange","stackRef","useContext","context","useMemo","navigations","routes","reduce","acc","route","i","config","name","screen","props","key","optionsList","filter","Boolean","map","customOptions","curr","Object","assign","customDefaultScreenOptions","mergedOptions","clearOptions","o","_","rest","render"],"sourceRoot":"../../src","sources":["useDescriptors.tsx"],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
 index 6fb49e0..e17764e 100644
@@ -878,13 +876,13 @@ index b0f331a..195ea3c 100644
          type: string;
          payload?: object | undefined;
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
-index b67e6ea..684d9c5 100644
+index b67e6ea..754cba5 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/useDescriptors.d.ts.map
 @@ -1 +1 @@
 -{"version":3,"file":"useDescriptors.d.ts","sourceRoot":"","sources":["../../../src/useDescriptors.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,MAAM,EACP,MAAM,2BAA2B,CAAC;AAGnC,OAAiC,EAC/B,gBAAgB,EAChB,WAAW,EACZ,MAAM,4BAA4B,CAAC;AAIpC,OAAO,KAAK,EACV,UAAU,EACV,YAAY,EACZ,iBAAiB,EACjB,cAAc,EACd,WAAW,EACX,SAAS,EACV,MAAM,SAAS,CAAC;AACjB,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,mBAAmB,CAAC;AAIhE,MAAM,MAAM,sBAAsB,CAChC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,IAAI,EAAE,CAAC,MAAM,GAAG,SAAS,CAAC,EAAE,CAAC;IAC7B,OAAO,EAAE,CAAC,uBAAuB,CAAC,aAAa,CAAC,GAAG,SAAS,CAAC,EAAE,GAAG,SAAS,CAAC;IAC5E,KAAK,EAAE,WAAW,CAAC,aAAa,EAAE,MAAM,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;CAC3E,CAAC;AAEF,KAAK,uBAAuB,CAAC,aAAa,SAAS,EAAE,IACjD,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;IACP,KAAK,EAAE,SAAS,CAAC,aAAa,EAAE,MAAM,CAAC,CAAC;IACxC,UAAU,EAAE,GAAG,CAAC;CACjB,KAAK,aAAa,CAAC,CAAC;AAEzB,KAAK,OAAO,CACV,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,KAAK,EAAE,KAAK,CAAC;IACb,OAAO,EAAE,MAAM,CACb,MAAM,EACN,sBAAsB,CAAC,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CACvD,CAAC;IACF,UAAU,EAAE,iBAAiB,CAAC,aAAa,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,uBAAuB,CAAC,aAAa,CAAC,CAAC;IACvD,oBAAoB,CAAC,EACjB,aAAa,GACb,CAAC,CAAC,KAAK,EAAE;QACP,KAAK,EAAE,SAAS,CAAC,aAAa,CAAC,CAAC;QAChC,UAAU,EAAE,GAAG,CAAC;QAChB,OAAO,EAAE,aAAa,CAAC;KACxB,KAAK,aAAa,CAAC,CAAC;IACzB,QAAQ,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,OAAO,CAAC;IAChD,QAAQ,EAAE,MAAM,KAAK,CAAC;IACtB,QAAQ,EAAE,CAAC,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;IACjC,WAAW,EAAE,WAAW,CAAC;IACzB,gBAAgB,EAAE,gBAAgB,CAAC;IACnC,YAAY,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC,KAAK,EAAE,gBAAgB,CAAC,CAAC;IACxC,OAAO,EAAE,sBAAsB,CAAC,QAAQ,CAAC,CAAC;CAC3C,CAAC;AAEF;;;;;;;GAOG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CACpC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,EACA,KAAK,EACL,OAAO,EACP,UAAU,EACV,aAAa,EACb,oBAAoB,EACpB,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,WAAW,EACX,gBAAgB,EAChB,YAAY,EACZ,MAAM,EACN,OAAO,GACR,EAAE,OAAO,CAAC,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;mNAyIzC"}
 \ No newline at end of file
-+{"version":3,"file":"useDescriptors.d.ts","sourceRoot":"","sources":["../../../src/useDescriptors.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,MAAM,EACP,MAAM,2BAA2B,CAAC;AAGnC,OAAiC,EAC/B,gBAAgB,EAChB,WAAW,EACZ,MAAM,4BAA4B,CAAC;AAIpC,OAAO,KAAK,EACV,0BAA0B,EAC1B,8BAA8B,EAC9B,UAAU,EACV,YAAY,EACZ,iBAAiB,EACjB,cAAc,EACd,WAAW,EACX,SAAS,EACT,uBAAuB,EACxB,MAAM,SAAS,CAAC;AACjB,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,mBAAmB,CAAC;AAIhE,MAAM,MAAM,sBAAsB,CAChC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,IAAI,EAAE,CAAC,MAAM,GAAG,SAAS,CAAC,EAAE,CAAC;IAC7B,OAAO,EAAE,CAAC,uBAAuB,CAAC,aAAa,CAAC,GAAG,SAAS,CAAC,EAAE,GAAG,SAAS,CAAC;IAC5E,KAAK,EAAE,WAAW,CAAC,aAAa,EAAE,MAAM,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;CAC3E,CAAC;AAEF,KAAK,OAAO,CACV,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,IAC5C;IACF,KAAK,EAAE,KAAK,CAAC;IACb,OAAO,EAAE,MAAM,CACb,MAAM,EACN,sBAAsB,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,CAC7E,CAAC;IACF,UAAU,EAAE,iBAAiB,CAAC,aAAa,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,uBAAuB,CAAC,aAAa,GAAG,mBAAmB,CAAC,CAAC;IAC7E,oBAAoB,CAAC,EAAE,8BAA8B,CACnD,aAAa,GAAG,mBAAmB,CACpC,CAAC;IACF,QAAQ,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,OAAO,CAAC;IAChD,QAAQ,EAAE,MAAM,KAAK,CAAC;IACtB,QAAQ,EAAE,CAAC,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;IACjC,WAAW,EAAE,WAAW,CAAC;IACzB,gBAAgB,EAAE,gBAAgB,CAAC;IACnC,YAAY,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC,KAAK,EAAE,gBAAgB,CAAC,CAAC;IACxC,OAAO,EAAE,sBAAsB,CAAC,QAAQ,CAAC,CAAC;CAC3C,CAAC;AAEF;;;;;;;;;GASG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CACpC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,EAE9C,EACE,KAAK,EACL,OAAO,EACP,UAAU,EACV,aAAa,EACb,oBAAoB,EACpB,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,WAAW,EACX,gBAAgB,EAChB,YAAY,EACZ,MAAM,EACN,OAAO,GACR,EAAE,OAAO,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,EAChE,0BAA0B,EACtB,0BAA0B,CAAC,mBAAmB,EAAE,aAAa,CAAC,GAC9D,SAAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;mNAwKd"}
++{"version":3,"file":"useDescriptors.d.ts","sourceRoot":"","sources":["../../../src/useDescriptors.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,gBAAgB,EAChB,eAAe,EACf,aAAa,EACb,MAAM,EACP,MAAM,2BAA2B,CAAC;AAGnC,OAAiC,EAC/B,gBAAgB,EAChB,WAAW,EACZ,MAAM,4BAA4B,CAAC;AAIpC,OAAO,KAAK,EACV,0BAA0B,EAC1B,8BAA8B,EAC9B,UAAU,EACV,YAAY,EACZ,iBAAiB,EACjB,cAAc,EACd,WAAW,EACX,SAAS,EACT,uBAAuB,EACxB,MAAM,SAAS,CAAC;AACjB,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,mBAAmB,CAAC;AAIhE,MAAM,MAAM,sBAAsB,CAChC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,IAC3B;IACF,IAAI,EAAE,CAAC,MAAM,GAAG,SAAS,CAAC,EAAE,CAAC;IAC7B,OAAO,EAAE,CAAC,uBAAuB,CAAC,aAAa,CAAC,GAAG,SAAS,CAAC,EAAE,GAAG,SAAS,CAAC;IAC5E,KAAK,EAAE,WAAW,CAAC,aAAa,EAAE,MAAM,EAAE,KAAK,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;CAC3E,CAAC;AAEF,KAAK,OAAO,CACV,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,IAC5C;IACF,KAAK,EAAE,KAAK,CAAC;IACb,OAAO,EAAE,MAAM,CACb,MAAM,EACN,sBAAsB,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,CAC7E,CAAC;IACF,UAAU,EAAE,iBAAiB,CAAC,aAAa,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,uBAAuB,CAAC,aAAa,GAAG,mBAAmB,CAAC,CAAC;IAC7E,oBAAoB,CAAC,EAAE,8BAA8B,CACnD,aAAa,GAAG,mBAAmB,CACpC,CAAC;IACF,QAAQ,EAAE,CAAC,MAAM,EAAE,gBAAgB,KAAK,OAAO,CAAC;IAChD,QAAQ,EAAE,MAAM,KAAK,CAAC;IACtB,QAAQ,EAAE,CAAC,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;IACjC,WAAW,EAAE,WAAW,CAAC;IACzB,gBAAgB,EAAE,gBAAgB,CAAC;IACnC,YAAY,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;IACpC,MAAM,EAAE,MAAM,CAAC,KAAK,EAAE,gBAAgB,CAAC,CAAC;IACxC,OAAO,EAAE,sBAAsB,CAAC,QAAQ,CAAC,CAAC;CAC3C,CAAC;AAEF;;;;;;;;;GASG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CACpC,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,MAAM,CAAC,MAAM,EAAE,MAAM,IAAI,CAAC,EAChD,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,mBAAmB,SAAS,EAAE,GAAG,aAAa,EAE9C,EACE,KAAK,EACL,OAAO,EACP,UAAU,EACV,aAAa,EACb,oBAAoB,EACpB,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,WAAW,EACX,gBAAgB,EAChB,YAAY,EACZ,MAAM,EACN,OAAO,GACR,EAAE,OAAO,CAAC,KAAK,EAAE,aAAa,GAAG,mBAAmB,EAAE,QAAQ,CAAC,EAChE,0BAA0B,EACtB,0BAA0B,CAAC,mBAAmB,EAAE,aAAa,CAAC,GAC9D,SAAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;mNAyKd"}
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
 index 53d474e..bf68b60 100644
@@ -1057,7 +1055,7 @@ index b691d75..e9b8ea4 100644
    ParamList extends ParamListBase,
    RouteName extends keyof ParamList,
 diff --git a/node_modules/@react-navigation/core/src/useDescriptors.tsx b/node_modules/@react-navigation/core/src/useDescriptors.tsx
-index d5a192c..d5481c0 100644
+index d5a192c..2e4ee0f 100644
 --- a/node_modules/@react-navigation/core/src/useDescriptors.tsx
 +++ b/node_modules/@react-navigation/core/src/useDescriptors.tsx
 @@ -14,12 +14,15 @@ import NavigationContext from './NavigationContext';
@@ -1168,7 +1166,7 @@ index d5a192c..d5481c0 100644
    const [options, setOptions] = React.useState<Record<string, object>>({});
    const { onDispatchAction, onOptionsChange, stackRef } = React.useContext(
      NavigationBuilderContext
-@@ -160,38 +161,68 @@ export default function useDescriptors<
+@@ -160,18 +161,42 @@ export default function useDescriptors<
      const screen = config.props;
      const navigation = navigations[route.key];
  
@@ -1184,9 +1182,9 @@ index d5a192c..d5481c0 100644
 -      // The options set via `navigation.setOptions`
 -      options[route.key],
 -    ];
-+    const optionsList: any[] = [];
++    let optionsList: (ScreenOptionsOrCallback<ScreenOptions> | undefined)[];
 +    if (convertCustomScreenOptions) {
-+      optionsList.push([
++      optionsList = [
 +        // The default `screenOptions` passed to the navigator
 +        convertCustomScreenOptions(
 +          screenOptions as ScreenOptionsOrCallback<CustomScreenOptions>
@@ -1205,29 +1203,25 @@ index d5a192c..d5481c0 100644
 +        convertCustomScreenOptions(
 +          options[route.key] as ScreenOptionsOrCallback<CustomScreenOptions>
 +        ),
-+      ]);
++      ];
 +    } else {
-+      optionsList.push([
++      optionsList = [
 +        // The default `screenOptions` passed to the navigator
-+        screenOptions,
++        screenOptions as ScreenOptionsOrCallback<ScreenOptions>,
 +        // The `screenOptions` props passed to `Group` elements
 +        ...((config.options
 +          ? config.options.filter(Boolean)
 +          : []) as ScreenOptionsOrCallback<ScreenOptions>[]),
 +        // The `options` prop passed to `Screen` elements,
-+        screen.options,
++        screen.options as ScreenOptionsOrCallback<ScreenOptions>,
 +        // The options set via `navigation.setOptions`
-+        options[route.key],
-+      ]);
++        options[route.key] as ScreenOptionsOrCallback<ScreenOptions>,
++      ];
 +    }
  
      const customOptions = optionsList.reduce<ScreenOptions>(
        (acc, curr) =>
-         Object.assign(
-           acc,
--          // @ts-expect-error: we check for function but TS still complains
-           typeof curr !== 'function' ? curr : curr({ route, navigation })
-         ),
+@@ -183,15 +208,22 @@ export default function useDescriptors<
        {} as ScreenOptions
      );
  
