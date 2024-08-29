@@ -16,17 +16,17 @@ type InteractiveStepWrapperProps = {
     // Function to handle back button press
     handleBackButtonPress: () => void;
 
-    // Index of the highlighted step
-    startStepIndex: number;
-
-    // Array of step names
-    stepNames: readonly string[];
-
     // Title of the back button header
     headerTitle: string;
+
+    // Index of the highlighted step
+    startStepIndex?: number;
+
+    // Array of step names
+    stepNames?: readonly string[];
 };
 
-function InteractiveStepWrapper({children, wrapperID, handleBackButtonPress, startStepIndex, stepNames, headerTitle}: InteractiveStepWrapperProps) {
+function InteractiveStepWrapper({children, wrapperID, handleBackButtonPress, headerTitle, startStepIndex, stepNames}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
@@ -40,12 +40,14 @@ function InteractiveStepWrapper({children, wrapperID, handleBackButtonPress, sta
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={startStepIndex}
-                    stepNames={stepNames}
-                />
-            </View>
+            {startStepIndex && stepNames && (
+                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                    <InteractiveStepSubHeader
+                        startStepIndex={startStepIndex}
+                        stepNames={stepNames}
+                    />
+                </View>
+            )}
             {children}
         </ScreenWrapper>
     );
