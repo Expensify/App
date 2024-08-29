@@ -44,11 +44,14 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
 
     const styles = useThemeStyles();
     const stateToRender = getStateToRender(state);
+    const selectedTab = stateToRender.routes.at(-1)?.name;
 
     return (
         <ScreenWrapper
             testID={CustomBottomTabNavigator.displayName}
             shouldShowOfflineIndicator={false}
+            shouldEnableKeyboardAvoidingView={false}
+            shouldEnablePickerAvoiding={false}
         >
             <View style={styles.flex1}>
                 <NavigationContent>
@@ -60,7 +63,7 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
                         navigation={navigation}
                     />
                 </NavigationContent>
-                <BottomTabBar />
+                <BottomTabBar selectedTab={selectedTab} />
             </View>
         </ScreenWrapper>
     );

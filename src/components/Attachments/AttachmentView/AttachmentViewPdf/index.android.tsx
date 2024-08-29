@@ -41,6 +41,7 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
                 if (translateX > translateY && translateX > SCROLL_THRESHOLD && scale.value === 1 && allowEnablingScroll) {
+                    // eslint-disable-next-line react-compiler/react-compiler
                     isScrollEnabled.value = true;
                 } else if (translateY > SCROLL_THRESHOLD) {
                     isScrollEnabled.value = false;

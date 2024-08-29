@@ -68,7 +68,7 @@ If your group/room is Private, you can only share the chat link with other membe
 {% include option.html value="desktop" %}
 1. Open the chat group or room you want to invite someone to.
 2. Click the room or group header.
-3. Click **Share code**.
+3. Click **Share**.
 4. Copy the link or share the QR code. 
    - **Copy link**: Click **Copy URL** and paste the link into another chat, email, Slack, etc.
    - **Share QR Code**: Present your device to another user so they can scan the QR code with their device.

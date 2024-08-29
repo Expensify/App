@@ -1,5 +1,6 @@
-import {forwardRef} from 'react';
+import React from 'react';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -39,4 +40,4 @@ function TextInputClearButton({onPressButton}: TextInputClearButtonProps) {
 
 TextInputClearButton.displayName = 'TextInputClearButton';
 
-export default forwardRef(TextInputClearButton);
+export default TextInputClearButton;

@@ -2,8 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,52 +13,45 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type ReportParticipantsPageOnyxProps = {
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-type ReportParticipantsPageProps = ReportParticipantsPageOnyxProps & WithReportOrNotFoundProps;
-
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function ReportParticipantsPage({report, personalDetails, session}: ReportParticipantsPageProps) {
+function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isFocused = useIsFocused();
+    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     useEffect(() => {
         if (isFocused) {
@@ -70,36 +62,34 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+        const chatParticipants = ReportUtils.getParticipantsList(report, personalDetails);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
-            if (!details) {
-                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
-                return;
-            }
 
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID);
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
+            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
-                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details?.isOptimisticPersonalDetail,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details?.avatar, accountID),
+                        source: details?.avatar ?? Expensicons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -110,7 +100,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, canSelectMultiple]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -176,15 +166,19 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
      * Toggle user from the selectedMembers list
      */
     const toggleUser = useCallback(
-        (accountID: number) => {
+        (user: MemberOption) => {
+            if (user.accountID === currentUserAccountID) {
+                return;
+            }
+
             // Add or remove the user if the checkbox is enabled
-            if (selectedMembers.includes(accountID)) {
-                removeUser(accountID);
+            if (selectedMembers.includes(user.accountID)) {
+                removeUser(user.accountID);
             } else {
-                addUser(accountID);
+                addUser(user.accountID);
             }
         },
-        [selectedMembers, addUser, removeUser],
+        [selectedMembers, addUser, removeUser, currentUserAccountID],
     );
 
     const headerContent = useMemo(() => {
@@ -211,12 +205,12 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             </View>
         );
 
-        if (isCurrentUserAdmin) {
+        if (canSelectMultiple) {
             return header;
         }
 
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5]}>{header}</View>;
-    }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils]);
+    }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
@@ -234,7 +228,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             options.push({
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.MakeAdmin,
+                icon: Expensicons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             });
         }
@@ -260,7 +254,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         return (
             <View style={styles.w100}>
-                {selectedMembers.length > 0 ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
@@ -268,7 +262,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
@@ -277,13 +272,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -309,17 +304,29 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         }
         return translate('common.details');
     }, [report, translate, isGroupChat]);
+
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
-                    shouldShowBackButton
+                    title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedMembers([]);
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+
+                        if (report) {
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                        }
+                    }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
@@ -342,14 +349,17 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                     }}
                 />
                 <View style={[styles.w100, styles.flex1]}>
-                    <SelectionList
+                    <SelectionListWithModal
                         ref={selectionListRef}
-                        canSelectMultiple={isGroupChat && isCurrentUserAdmin}
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
-                        onCheckboxPress={(item) => toggleUser(item.accountID)}
+                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        onCheckboxPress={(item) => toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator
                         textInputRef={textInputRef}
@@ -364,13 +374,4 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
-export default withReportOrNotFound()(
-    withOnyx<ReportParticipantsPageProps, ReportParticipantsPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(ReportParticipantsPage),
-);
+export default withReportOrNotFound()(ReportParticipantsPage);

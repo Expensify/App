@@ -28,30 +28,49 @@ type AmountTextInputProps = {
     /** Style for the container */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to disable keyboard */
+    disableKeyboard?: boolean;
+
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 
     /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 function AmountTextInput(
-    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress, containerStyle, ...rest}: AmountTextInputProps,
+    {
+        formattedAmount,
+        onChangeAmount,
+        placeholder,
+        selection,
+        onSelectionChange,
+        style,
+        touchableInputWrapperStyle,
+        onKeyPress,
+        containerStyle,
+        disableKeyboard = true,
+        hideFocusedState = true,
+        ...rest
+    }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     return (
         <TextInput
-            disableKeyboard
             autoGrow
-            hideFocusedState
+            hideFocusedState={hideFocusedState}
             shouldInterceptSwipe
+            disableKeyboard={disableKeyboard}
             inputStyle={style}
             textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}
             placeholder={placeholder}
-            inputMode={CONST.INPUT_MODE.NUMERIC}
+            inputMode={CONST.INPUT_MODE.DECIMAL}
             blurOnSubmit={false}
             selection={selection}
             onSelectionChange={onSelectionChange}

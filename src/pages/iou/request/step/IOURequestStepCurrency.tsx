@@ -61,7 +61,8 @@ function IOURequestStepCurrency({
         if (pageIndex !== 'confirm') {
             IOU.setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
         }
-        navigateBack(option.currencyCode);
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
     };
 
     return (
@@ -93,7 +94,7 @@ IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOURequestStepCurrencyOnyxProps>({
     draftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params?.transactionID ?? 0;
+            const transactionID = route?.params?.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },

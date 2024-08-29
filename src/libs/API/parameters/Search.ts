@@ -1,6 +1,8 @@
+import type {SearchQueryString} from '@components/Search/types';
+
 type SearchParams = {
-    query: string;
     hash: number;
+    jsonQuery: SearchQueryString;
 };
 
 export default SearchParams;

@@ -111,7 +111,7 @@ function BaseGetPhysicalCard({
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const cardID = cardToBeIssued?.cardID.toString() ?? '';
+    const cardID = cardToBeIssued?.cardID.toString() ?? '-1';
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
@@ -132,7 +132,7 @@ function BaseGetPhysicalCard({
         }
 
         if (!draftValues) {
-            const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(null, privatePersonalDetails, loginList);
+            const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(undefined, privatePersonalDetails, loginList);
             // Form draft data needs to be initialized with the private personal details
             // If no draft data exists
             FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
@@ -140,15 +140,15 @@ function BaseGetPhysicalCard({
         }
 
         // Redirect user to previous steps of the flow if he hasn't finished them yet
-        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
+        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails));
         isRouteSet.current = true;
     }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     const onSubmit = useCallback(() => {
-        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
+        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
-            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? 0, session?.authToken ?? '', updatedPrivatePersonalDetails);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
@@ -156,7 +156,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
-    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken]);
+    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken, privatePersonalDetails]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}

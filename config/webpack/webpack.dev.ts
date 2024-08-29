@@ -53,6 +53,10 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                         cert: path.join(__dirname, 'certificate.pem'),
                     },
                 },
+                headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Document-Policy': 'js-profiling',
+                },
             },
             plugins: [
                 new DefinePlugin({
@@ -72,8 +76,8 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             snapshot: {
                 // A list of paths webpack trusts would not be modified while webpack is running
                 managedPaths: [
-                    // Onyx can be modified on the fly, changes to other node_modules would not be reflected live
-                    /([\\/]node_modules[\\/](?!react-native-onyx))/,
+                    // Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules would not be reflected live
+                    /([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/,
                 ],
             },
         });

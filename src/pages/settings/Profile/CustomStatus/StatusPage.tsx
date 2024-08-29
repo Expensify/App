@@ -74,6 +74,26 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
+    const navigateBackToPreviousScreenTask = useRef<{
+        then: (
+            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
+            onrejected?: () => typeof InteractionManager.runAfterInteractions,
+        ) => Promise<typeof InteractionManager.runAfterInteractions>;
+        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
+        cancel: () => void;
+    } | null>(null);
+
+    useEffect(
+        () => () => {
+            if (!navigateBackToPreviousScreenTask.current) {
+                return;
+            }
+
+            navigateBackToPreviousScreenTask.current.cancel();
+        },
+        [],
+    );
+
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
@@ -90,7 +110,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
             User.clearDraftCustomStatus();
-            InteractionManager.runAfterInteractions(() => {
+            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 navigateBackToPreviousScreen();
             });
         },
@@ -106,7 +126,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        InteractionManager.runAfterInteractions(() => {
+        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
     };
@@ -121,7 +141,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         }
 
         return () => User.clearDraftCustomStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
@@ -131,7 +151,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return {};
     }, [brickRoadIndicator]);
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -166,7 +186,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
-                            onModalHide={() => {}}
+                            onModalHide={() => {
+                                inputRef.current?.focus();
+                            }}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />

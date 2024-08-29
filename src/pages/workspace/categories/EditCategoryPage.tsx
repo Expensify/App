@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +29,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
+    const backTo = route.params?.backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -36,14 +37,14 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
 
             if (!newCategoryName) {
-                errors.categoryName = 'workspace.categories.categoryRequiredError';
+                errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
-                errors.categoryName = 'workspace.categories.existingCategoryError';
+                errors.categoryName = translate('workspace.categories.existingCategoryError');
             }
 
             return errors;
         },
-        [policyCategories, currentCategoryName],
+        [policyCategories, currentCategoryName, translate],
     );
 
     const editCategory = useCallback(
@@ -51,10 +52,15 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
+            if (backTo) {
+                Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
+                return;
+            }
+            Navigation.goBack();
         },
-        [currentCategoryName, route.params.policyID],
+        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -71,7 +77,11 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                    onBackButtonPress={() =>
+                        backTo
+                            ? Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo))
+                            : Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
+                    }
                 />
                 <CategoryForm
                     onSubmit={editCategory}

@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -19,13 +19,13 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
-        Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.currencyCode);
-        Navigation.goBack();
+        Policy.updateGeneralSettings(policy?.id ?? '-1', policy?.name ?? '', item.currencyCode);
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? ''}
+            policyID={policy?.id ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{onLinkPress: PolicyUtils.goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >

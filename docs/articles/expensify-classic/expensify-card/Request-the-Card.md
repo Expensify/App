@@ -2,45 +2,36 @@
 title: Request the Card
 description: Details on requesting the Expensify Card as an employee
 ---
-# Overview
+To start using the Expensify Card, do the following:
+1. **Enable Expensify Cards:** An admin must first enable the cards. Then, an admin can assign you a card by setting a limit, which allows access to the card.
+2. **Request the Card:**
+   - If you haven’t been assigned a limit, look for the task on your account’s homepage that says, “Ask your admin for the card!”
+   - Completing that task will send an in-product notification to your admin team that you requested the card. 
+   - Once you’re assigned a card limit, you’ll receive an email notification. Click the link in the email to provide your shipping address on your account’s homepage.
+   - Enter your address, and the physical card will be shipped within 3-5 business days.
+3. **Activate the Card:** When your physical card arrives, activate it in Expensify by entering the last four digits of the card in the activation task on your homepage.
 
-Once your organization is approved for the Expensify Visa® Commercial Card, you can request a card! 
+### Virtual Cards
+Once you've been assigned a limit, a virtual card is available immediately. You can view its details via _**Settings > Account > Credit Card Import > Show Details**_.
 
-This article covers how to request, activate, and replace your physical and virtual Expensify Cards.
+To protect your account and card spend, enable two-factor authentication under _**Settings > Account > Account Details**_.
 
-# How to get your first Expensify Card
+### Notifications
+- Download the Expensify mobile app and enable push notifications to stay updated on your card’s limit and spending.
+- Each transaction triggers a push notification.
+- You’ll also get notifications for potentially fraudulent activity, allowing you to confirm or dispute charges.
 
-An admin in your organization must first enable the Expensify Cards before you can receive a card. After that, an admin may assign you a card by setting a limit. You can think of setting a card limit as “unlocking” access to the card.
+## Request a Replacement Expensify Card
+### If the card is lost, stolen, or damaged Card:
+  - Go to _**Settings > Account > Credit Card Import** and click **Request a New Card**_.
+  - Confirm your shipping information and complete the prompts. The new card will arrive in 2-3 business days.
+  - Selecting “lost” or “stolen” deactivates your current card to prevent fraud. Choosing “damaged” keeps the current card active until the new one arrives.
+  - If you can’t access the website or app, call 1-877-751-5848 (US) or +44 808 196 0632 (Internationally) to cancel your card.
 
-If you haven’t been assigned a limit yet, look for the task on your account's homepage that says, “Ask your admin for the card!” This task allows you to message your admin team to make that request.
-
-Once you’re assigned a card limit, we’ll notify you via email to let you know you can request a card. A link within the notification email will take you to your account’s homepage, where you can provide your shipping address for the physical card. Enter your address, and we’ll ship the card to arrive within 3-5 business days.
- 
-Once your physical card arrives in the mail, activate it in Expensify by entering the last four digits of the card in the activation task on your account’s homepage. 
-
-# Virtual Card
-
-Once assigned a limit, a virtual card is available immediately. You can view the virtual card details via **Settings > Account > Credit Card Import > Show Details**. Feel free to begin transacting with the virtual card while your physical card is in transit – your virtual card and physical card share a limit.
-
-Please note that you must enable two-factor authentication on your account if you want to have the option to dispute transactions made on your virtual card. 
-
-# Notifications
-
-To stay up-to-date on your card’s limit and spending activity, download the Expensify mobile app and enable push notifications. Your card is connected to your Expensify account, so each transaction on your card will trigger a push notification. We’ll also send you a push notification if we detect potentially fraudulent activity and allow you to confirm your purchase. 
-
-# How to request a replacement Expensify Card
-
-You can request a new card anytime if your Expensify Card is lost, stolen, or damaged. From your Expensify account on the web, head to **Settings > Account > Credit Card Import** and click **Request a New Card**. Confirm the shipping information, complete the prompts, and your new card will arrive in 2 - 3 business days.
-
-Selecting the “lost” or “stolen” options will deactivate your current card to prevent potentially fraudulent activity. However, choosing the “damaged” option will leave your current card active so you can use it while the new one is shipped to you.
-
-If you need to cancel your Expensify Card and cannot access the website or mobile app, call our interactive voice recognition phone service (available 24/7). Call 1-877-751-5848 (US) or +44 808 196 0632 (Internationally). 
-
-It's not possible to order a replacement card over the phone, so, if applicable, you would need to handle this step from your Expensify account.
-
-# Card Expiration Date
-
-If you notice that your card expiration date is soon, it's time for a new Expensify card. Expensify will automatically input a notification in your account's Home (Inbox) tab. This notice will ask you to input your address, but this is more if you have changed your address since your card was issued to you. You can ignore it and do nothing; the new Expensify card will ship to your address on file. The new Expensify card will have a new, unique card number and will not be associated with the old one.
+### If the card is expiring
+- If your card is about to expire, Expensify will notify you via your account’s Home (Inbox) tab. 
+- Enter your address if it has changed; otherwise, do nothing, and the new card will ship to your address on file.
+- The new card will have a unique number and will not be linked to the old one.
 
 {% include faq-begin.md %}
 

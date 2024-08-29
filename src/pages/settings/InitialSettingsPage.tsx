@@ -4,15 +4,14 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -21,23 +20,23 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -51,9 +50,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InitialSettingsPageOnyxProps = {
-    /** The user's session */
-    session: OnyxEntry<OnyxTypes.Session>;
-
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
@@ -86,25 +82,30 @@ type MenuData = {
     iconStyles?: StyleProp<ViewStyle>;
     fallbackIcon?: IconAsset;
     shouldStackHorizontally?: boolean;
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     floatRightAvatars?: TIcon[];
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
+    badgeText?: string;
+    badgeStyle?: ViewStyle;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
+function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
-    const {translate, formatPhoneNumber} = useLocalize();
-    const activeRoute = useActiveRoute();
+    const {translate} = useLocalize();
+    const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const subscriptionPlan = useSubscriptionPlan();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -189,8 +190,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
-                translationKey: 'allSettingsScreen.cardsAndDomains',
-                icon: Expensicons.CardsAndDomains,
+                translationKey: 'allSettingsScreen.domains',
+                icon: Expensicons.Globe,
                 action: () => {
                     Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
@@ -200,16 +201,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             },
         ];
 
-        if (shouldShowSubscriptionsMenu) {
+        if (subscriptionPlan) {
             items.splice(1, 0, {
-                translationKey: 'allSettingsScreen.subscriptions',
-                icon: Expensicons.MoneyBag,
-                action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
-                },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                translationKey: 'allSettingsScreen.subscription',
+                icon: Expensicons.CreditCard,
+                routeName: ROUTES.SETTINGS_SUBSCRIPTION,
+                brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
+                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -218,7 +217,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.workspaceSettingsSectionContainer]);
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -226,7 +225,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      */
     const generalMenuItemsData: Menu = useMemo(() => {
         const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
-        const defaultMenu: Menu = {
+        return {
             sectionStyle: {
                 ...styles.pt4,
             },
@@ -266,8 +265,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 },
             ],
         };
-
-        return defaultMenu;
     }, [styles.pt4, signOut]);
 
     /**
@@ -316,7 +313,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                     }
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={getWalletBalance(isPaymentItem)}
+                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 floatRightAvatars={item.floatRightAvatars}
@@ -324,10 +322,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
                                 hoverAndPressStyle={styles.hoveredComponentBG}
-                                shouldBlockSelection={Boolean(item.link)}
+                                shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
-                                    !!activeRoute?.name && !!item.routeName && !!(activeRoute?.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
+                                    !!activeCentralPaneRoute &&
+                                    !!item.routeName &&
+                                    !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
                                 }
                                 isPaneMenu
                                 iconRight={item.iconRight}
@@ -348,7 +348,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             userWallet?.currentBalance,
             isExecuting,
             singleExecution,
-            activeRoute,
+            activeCentralPaneRoute,
             waitForNavigate,
         ],
     );
@@ -357,94 +357,35 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
-    const currentUserDetails = currentUserPersonalDetails;
-    const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '';
-
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
+        <View style={[styles.ph5, styles.pb3]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
             ) : (
-                <>
-                    <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
-                        <Tooltip text={translate('common.shareCode')}>
-                            <PressableWithFeedback
-                                accessibilityLabel={translate('common.shareCode')}
-                                accessibilityRole="button"
-                                accessible
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                            >
-                                <View style={styles.primaryMediumIcon}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
+                    <AccountSwitcher />
+                    <Tooltip text={translate('statusPage.status')}>
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('statusPage.status')}
+                            accessibilityRole="button"
+                            accessible
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                {emojiCode ? (
+                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                ) : (
                                     <Icon
-                                        src={Expensicons.QrCode}
+                                        src={Expensicons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}
                                     />
-                                </View>
-                            </PressableWithFeedback>
-                        </Tooltip>
-                        <Tooltip text={translate('statusPage.status')}>
-                            <PressableWithFeedback
-                                accessibilityLabel={translate('statusPage.status')}
-                                accessibilityRole="button"
-                                accessible
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                            >
-                                <View style={styles.primaryMediumIcon}>
-                                    {emojiCode ? (
-                                        <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                    ) : (
-                                        <Icon
-                                            src={Expensicons.Emoji}
-                                            width={variables.iconSizeNormal}
-                                            height={variables.iconSizeNormal}
-                                            fill={theme.icon}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
-                        </Tooltip>
-                    </View>
-                    <OfflineWithFeedback
-                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                        style={[styles.mb3, styles.w100]}
-                    >
-                        <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
-                            source={UserUtils.getAvatar(avatarURL, accountID)}
-                            onImageSelected={PersonalDetails.updateAvatar}
-                            onImageRemoved={PersonalDetails.deleteAvatar}
-                            size={CONST.AVATAR_SIZE.XLARGE}
-                            avatarStyle={styles.avatarXLarge}
-                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                            errorRowStyles={styles.mt6}
-                            onErrorClose={PersonalDetails.clearAvatarErrors}
-                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                            originalFileName={currentUserDetails.originalFileName}
-                            headerTitle={translate('profilePage.profileAvatar')}
-                            fallbackIcon={currentUserDetails?.fallbackIcon}
-                            editIconStyle={styles.smallEditIconAccount}
-                        />
-                    </OfflineWithFeedback>
-                    <Text
-                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                        numberOfLines={1}
-                    >
-                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
-                    </Text>
-                    {Boolean(currentUserPersonalDetails.displayName) && (
-                        <Text
-                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
-                            numberOfLines={1}
-                        >
-                            {formatPhoneNumber(session?.email ?? '')}
-                        </Text>
-                    )}
-                </>
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    </Tooltip>
+                </View>
             )}
         </View>
     );
@@ -523,9 +464,6 @@ export default withCurrentUserPersonalDetails(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

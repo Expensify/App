@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,20 +34,23 @@ type NewContactMethodPageOnyxProps = {
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-    const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-    const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-    const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
-
-    User.addNewContactMethodAndNavigate(submitDetail);
-};
-
 function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+
+    const addNewContactMethod = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+            const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+            const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+
+            User.addNewContactMethodAndNavigate(submitDetail, route.params?.backTo);
+        },
+        [route.params?.backTo],
+    );
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -57,15 +60,15 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
             const errors = {};
 
             if (!values.phoneOrEmail) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
             }
 
             if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
             if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
             }
 
             return errors;
@@ -73,8 +76,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
         // We don't need `loginList` because when submitting this form
         // the loginList gets updated, causing this function to run again.
         // https://github.com/Expensify/App/issues/20610
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [translate],
     );
 
     const onBackButtonPress = useCallback(() => {

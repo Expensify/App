@@ -3,9 +3,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -24,15 +24,15 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const computedStyles = useMemo((): StyleProp<ViewStyle> => {
         if (containerStyles) {
             return containerStyles;
         }
 
-        return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-    }, [containerStyles, isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
+        return shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator;
+    }, [containerStyles, shouldUseNarrowLayout, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
     if (!isOffline) {
         return null;

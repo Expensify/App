@@ -1,42 +1,50 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
+import * as SearchUtils from '@libs/SearchUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
 
-type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
-    const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
-    const query = currentQuery as SearchQuery;
-    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
+    const {q, isCustomQuery} = route.params;
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+    const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+
+    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
+    if (shouldUseNarrowLayout) {
+        return null;
+    }
 
     return (
-        <ScreenWrapper testID={Search.displayName}>
+        <ScreenWrapper
+            testID={Search.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+        >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!isValidQuery}
+                shouldShow={!queryJSON}
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                <HeaderWithBackButton
-                    title={translate('common.expenses')}
-                    icon={Illustrations.MoneyReceipts}
-                    shouldShowBackButton={false}
-                />
-                <Search query={query} />
+                {queryJSON && (
+                    <Search
+                        isCustomQuery={isCustomQuery}
+                        queryJSON={queryJSON}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

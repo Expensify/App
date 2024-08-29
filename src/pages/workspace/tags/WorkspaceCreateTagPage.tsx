@@ -18,16 +18,16 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 type WorkspaceCreateTagPageOnyxProps = {
     /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
@@ -40,26 +40,28 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = values.tagName.trim();
+            const tagName = PolicyUtils.escapeTagName(values.tagName.trim());
             const {tags} = PolicyUtils.getTagList(policyTags, 0);
 
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = 'workspace.tags.tagRequiredError';
+                errors.tagName = translate('workspace.tags.tagRequiredError');
+            } else if (tagName === '0') {
+                errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[tagName]) {
-                errors.tagName = 'workspace.tags.existingTagError';
+                errors.tagName = translate('workspace.tags.existingTagError');
             } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'tagName', ['common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}));
             }
 
             return errors;
         },
-        [policyTags],
+        [policyTags, translate],
     );
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
+            Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack();
         },

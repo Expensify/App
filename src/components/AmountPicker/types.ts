@@ -1,6 +1,5 @@
 import type {AmountFormProps} from '@components/AmountForm';
 import type {MenuItemBaseProps} from '@components/MenuItem';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type AmountSelectorModalProps = {
     /** Whether the modal is visible */
@@ -24,7 +23,7 @@ type AmountPickerProps = {
     title?: string | ((value?: string) => string);
 
     /** Form Error description */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;

@@ -2,7 +2,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -22,6 +22,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -49,12 +51,12 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             optionsList.reports,
             optionsList.personalDetails,
             betas,
-            debouncedSearchValue.trim(),
+            '',
             [],
             CONST.EXPENSIFY_EMAILS,
             false,
@@ -66,13 +68,12 @@ function useOptions() {
             {},
             [],
             true,
+            false,
+            false,
+            0,
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
-            Boolean(userToInvite),
-            debouncedSearchValue,
-        );
+        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 
         if (isLoading) {
             setIsLoading(false);
@@ -84,8 +85,28 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+
+    const options = useMemo(() => {
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
+            !!filteredOptions.userToInvite,
+            debouncedSearchValue,
+        );
+
+        return {
+            ...filteredOptions,
+            headerMessage,
+        };
+    }, [debouncedSearchValue, defaultOptions]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -101,14 +122,14 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
-            return null;
+            return;
         }
         if (report && !ReportUtils.isTaskReport(report)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.dismissModal(report.reportID);
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`] ?? null;
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route]);
 
     const sections = useMemo(() => {
@@ -158,6 +179,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const selectReport = useCallback(
         (option: ListItem) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             if (!option) {
                 return;
             }
@@ -169,24 +191,27 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        null, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
+                        undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
-
                     // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? 0, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
-                Navigation.dismissModal(report.reportID);
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.dismissModal(report.reportID);
+                });
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 TaskActions.setAssigneeValue(
                     option?.login ?? '',
-                    option.accountID,
+                    option.accountID ?? -1,
                     task?.shareDestination ?? '',
-                    null, // passing null as report is null in this condition
+                    undefined, // passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
-                Navigation.goBack(ROUTES.NEW_TASK);
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.goBack(ROUTES.NEW_TASK);
+                });
             }
         },
         [session?.accountID, task?.shareDestination, report],
@@ -217,10 +242,11 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                     />

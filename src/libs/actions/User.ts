@@ -13,7 +13,6 @@ import type {
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     UpdateChatPriorityModeParams,
-    UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
@@ -22,6 +21,7 @@ import type {
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,15 +36,13 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
 import * as Report from './Report';
@@ -60,7 +58,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -68,8 +66,15 @@ Onyx.connect({
             return;
         }
 
-        myPersonalDetails = value[currentUserAccountID];
+        myPersonalDetails = value[currentUserAccountID] ?? undefined;
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 /**
@@ -156,7 +161,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -203,7 +208,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  * @param contactMethod - the contact method being deleted
  * @param loginList
  */
-function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
     const oldLoginData = loginList[contactMethod];
 
     const optimisticData: OnyxUpdate[] = [
@@ -239,7 +244,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                     ...oldLoginData,
                     errorFields: {
                         ...oldLoginData?.errorFields,
-                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -252,7 +257,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 /**
@@ -287,7 +292,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
 /**
  * Adds a secondary login to a user's account
  */
-function addNewContactMethodAndNavigate(contactMethod: string) {
+function addNewContactMethodAndNavigate(contactMethod: string, backTo?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -326,7 +331,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -339,7 +344,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 /**
@@ -367,7 +372,7 @@ function validateLogin(accountID: number, validateCode: string) {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(contactMethod: string, validateCode: string) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -399,6 +404,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validatedDate: DateUtils.getDBTime(),
                     pendingFields: {
                         validateLogin: null,
                     },
@@ -413,7 +419,78 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {
+                validated: true,
+            },
+        },
     ];
+    // If the primary login isn't validated yet, set the secondary login as the primary login
+    if (!loginList?.[currentEmail].validatedDate) {
+        successData.push(
+            ...[
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {
+                        primaryLogin: contactMethod,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.SESSION,
+                    value: {
+                        email: contactMethod,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            login: contactMethod,
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
+                        },
+                    },
+                },
+            ],
+        );
+
+        Object.values(allPolicies ?? {}).forEach((policy) => {
+            if (!policy) {
+                return;
+            }
+
+            let optimisticPolicyDataValue;
+
+            if (policy.employeeList) {
+                const currentEmployee = policy.employeeList[currentEmail];
+                optimisticPolicyDataValue = {
+                    employeeList: {
+                        [currentEmail]: null,
+                        [contactMethod]: currentEmployee,
+                    },
+                };
+            }
+
+            if (policy.ownerAccountID === currentUserAccountID) {
+                optimisticPolicyDataValue = {
+                    ...optimisticPolicyDataValue,
+                    owner: contactMethod,
+                };
+            }
+
+            if (optimisticPolicyDataValue) {
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: optimisticPolicyDataValue,
+                });
+            }
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -422,7 +499,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                         validateCodeSent: null,
                     },
                     pendingFields: {
@@ -475,10 +552,10 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connectionId = Onyx.connect({
+        const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connectionId);
+                Onyx.disconnect(connection);
 
                 resolve(
                     !report?.notificationPreference ||
@@ -523,9 +600,13 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 }
             }
 
-            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+            const types = flatten.map((data) => ReportActionsUtils.getOriginalMessage(data)).filter(Boolean);
 
             for (const message of types) {
+                if (!message) {
+                    return;
+                }
+
                 // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
@@ -645,23 +726,6 @@ function updatePreferredSkinTone(skinTone: number) {
 }
 
 /**
- * Sync frequentlyUsedEmojis with Onyx and Server
- */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[]) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-            value: frequentlyUsedEmojis,
-        },
-    ];
-
-    const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
-
-    API.write(WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS, parameters, {optimisticData});
-}
-
-/**
  * Sync user chat priority mode with Onyx and Server
  * @param mode
  * @param [automatic] if we changed the mode automatically
@@ -772,7 +836,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -851,7 +915,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },
@@ -865,24 +929,53 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
         },
     ];
 
-    Object.values(policies ?? {}).forEach((policy) => {
-        if (policy?.ownerAccountID !== currentUserAccountID) {
+    Object.values(allPolicies ?? {}).forEach((policy) => {
+        if (!policy) {
             return;
         }
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+
+        let optimisticPolicyDataValue;
+        let failurePolicyDataValue;
+
+        if (policy.employeeList) {
+            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
+            optimisticPolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: null,
+                    [newDefaultContactMethod]: currentEmployee,
+                },
+            };
+            failurePolicyDataValue = {
+                employeeList: {
+                    [oldDefaultContactMethod]: currentEmployee,
+                    [newDefaultContactMethod]: null,
+                },
+            };
+        }
+
+        if (policy.ownerAccountID === currentUserAccountID) {
+            optimisticPolicyDataValue = {
+                ...optimisticPolicyDataValue,
                 owner: newDefaultContactMethod,
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-            value: {
+            };
+            failurePolicyDataValue = {
+                ...failurePolicyDataValue,
                 owner: policy.owner,
-            },
-        });
+            };
+        }
+
+        if (optimisticPolicyDataValue && failurePolicyDataValue) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: optimisticPolicyDataValue,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: failurePolicyDataValue,
+            });
+        }
     });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
@@ -893,7 +986,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
@@ -952,7 +1045,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {optimisticData});
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }
 
 /**
@@ -1011,11 +1104,20 @@ function dismissTrackTrainingModal() {
     });
 }
 
+function dismissWorkspaceTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
+}
+
+function requestRefund() {
+    API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissWorkspaceTooltip,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1030,7 +1132,6 @@ export {
     setShouldUseStagingServer,
     setMuteAllSounds,
     clearUserErrorMessage,
-    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
@@ -1042,4 +1143,5 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
+    requestRefund,
 };

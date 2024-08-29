@@ -5,7 +5,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
 });
 
@@ -19,8 +18,8 @@ const request: OnyxTypes.Request = {
 };
 
 test('Request.use() can register a middleware and it will run', () => {
-    const testMiddleware = jest.fn();
-    Request.use(testMiddleware);
+    const testMiddleware = jest.fn<Middleware, Parameters<Middleware>>();
+    Request.use(testMiddleware as unknown as Middleware);
 
     Request.processWithMiddleware(request, true);
     return waitForBatchedUpdates().then(() => {

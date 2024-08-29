@@ -194,14 +194,11 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 ### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back (_Applies to USD purchases only._)
-- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Cardholder-Settings-and-Features) to control what each individual cardholder can spend
-- A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
-- Receipt compliance - informing notifications (e.g. add a receipt!) for users *as soon as the card is swiped*
-- Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
-- A 50% discount on the price of all Expensify plans
-- Multiple discounts and savings on a host of partner tech suppliers 
-- Good Karma - 10% of all card interchange we earn goes directly to the Expensify.org Social Justice Community funds
+- Finish your expenses in a swipe, we'll take care of everything else
+- Get cash back on every US purchase and up to 50% off your monthly Expensify bill
+- Stay in control with realtime alerts, spend limits, and auto-reconciliation
+- Don't worry about credit checks, annual fees, or personal guarantees
+- Create unlimited virtual cards with fixed or monthly limits for specific purchases
 
 The Expensify Card is recommended as the most efficient way to manage your company's spending. 
 

@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-compiler-healthcheck/dist/index.js b/node_modules/react-compiler-healthcheck/dist/index.js
+index 4bf23db..fa2ab22 100755
+--- a/node_modules/react-compiler-healthcheck/dist/index.js
++++ b/node_modules/react-compiler-healthcheck/dist/index.js
+@@ -69088,6 +69088,9 @@ const COMPILER_OPTIONS = {
+   compilationMode: "infer",
+   panicThreshold: "critical_errors",
+   logger: logger,
++  environment: {
++    enableTreatRefLikeIdentifiersAsRefs: true,
++  },
+ };
+ function isActionableDiagnostic(detail) {
+   switch (detail.severity) {
+diff --git a/node_modules/react-compiler-healthcheck/src/checks/reactCompiler.ts b/node_modules/react-compiler-healthcheck/src/checks/reactCompiler.ts
+index 09c9b9b..d2418e0 100644
+--- a/node_modules/react-compiler-healthcheck/src/checks/reactCompiler.ts
++++ b/node_modules/react-compiler-healthcheck/src/checks/reactCompiler.ts
+@@ -51,6 +51,9 @@ const COMPILER_OPTIONS: Partial<PluginOptions> = {
+   compilationMode: "infer",
+   panicThreshold: "critical_errors",
+   logger,
++  environment: {
++    enableTreatRefLikeIdentifiersAsRefs: true,
++  },
+ };
+ 
+ function isActionableDiagnostic(detail: CompilerErrorDetailOptions) {

@@ -8,18 +8,9 @@ import {promiseDoWhile} from '@github/libs/promiseWhile';
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
 
 function run() {
-    console.info('[awaitStagingDeploys] POLL RATE', CONST.POLL_RATE);
-    console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] getStringInput', getStringInput);
-    console.info('[awaitStagingDeploys] GitHubUtils', GitHubUtils);
-    console.info('[awaitStagingDeploys] promiseDoWhile', promiseDoWhile);
-
     const tag = getStringInput('TAG', {required: false});
-    console.info('[awaitStagingDeploys] run() tag', tag);
 
     let currentStagingDeploys: CurrentStagingDeploys = [];
-
-    console.info('[awaitStagingDeploys] run()  _.throttle', lodashThrottle);
 
     const throttleFunc = () =>
         Promise.all([
@@ -42,24 +33,20 @@ function run() {
                 }),
         ])
             .then((responses) => {
-                console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
                 const workflowRuns = responses[0].data.workflow_runs;
                 if (!tag && typeof responses[1] === 'object') {
                     workflowRuns.push(...responses[1].data.workflow_runs);
                 }
-                console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
                 return workflowRuns;
             })
             .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
             .then(() => {
-                console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
                 console.log(
                     !currentStagingDeploys.length
                         ? 'No current staging deploys found'
                         : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
                 );
             });
-    console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
 
     return promiseDoWhile(
         () => !!currentStagingDeploys.length,

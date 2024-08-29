@@ -2,11 +2,13 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SelectedTagOption} from '@components/TagPicker';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
@@ -19,13 +21,12 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: '1',
-            participantAccountIDs: [2, 1],
-            visibleChatMemberAccountIDs: [2, 1],
             participants: {
                 2: {},
                 1: {},
+                5: {},
             },
-            reportName: 'Iron Man, Mister Fantastic',
+            reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
         '2': {
@@ -33,9 +34,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: '2',
-            participantAccountIDs: [3],
-            visibleChatMemberAccountIDs: [3],
             participants: {
+                2: {},
                 3: {},
             },
             reportName: 'Spider-Man',
@@ -48,9 +48,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: '3',
-            participantAccountIDs: [1],
-            visibleChatMemberAccountIDs: [1],
             participants: {
+                2: {},
                 1: {},
             },
             reportName: 'Mister Fantastic',
@@ -61,9 +60,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: '4',
-            participantAccountIDs: [4],
-            visibleChatMemberAccountIDs: [4],
             participants: {
+                2: {},
                 4: {},
             },
             reportName: 'Black Panther',
@@ -74,9 +72,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: '5',
-            participantAccountIDs: [5],
-            visibleChatMemberAccountIDs: [5],
             participants: {
+                2: {},
                 5: {},
             },
             reportName: 'Invisible Woman',
@@ -87,9 +84,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: '6',
-            participantAccountIDs: [6],
-            visibleChatMemberAccountIDs: [6],
             participants: {
+                2: {},
                 6: {},
             },
             reportName: 'Thor',
@@ -102,9 +98,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: '7',
-            participantAccountIDs: [7],
-            visibleChatMemberAccountIDs: [7],
             participants: {
+                2: {},
                 7: {},
             },
             reportName: 'Captain America',
@@ -117,9 +112,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '8',
-            participantAccountIDs: [12],
-            visibleChatMemberAccountIDs: [12],
             participants: {
+                2: {},
                 12: {},
             },
             reportName: 'Silver Surfer',
@@ -132,9 +126,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: '9',
-            participantAccountIDs: [8],
-            visibleChatMemberAccountIDs: [8],
             participants: {
+                2: {},
                 8: {},
             },
             reportName: 'Mister Sinister',
@@ -148,8 +141,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: '10',
             isPinned: false,
-            participantAccountIDs: [2, 7],
-            visibleChatMemberAccountIDs: [2, 7],
             participants: {
                 2: {},
                 7: {},
@@ -163,6 +154,8 @@ describe('OptionsListUtils', () => {
             // This indicates that the report is archived
             stateNum: 2,
             statusNum: 2,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
@@ -242,9 +235,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '11',
-            participantAccountIDs: [999],
-            visibleChatMemberAccountIDs: [999],
             participants: {
+                2: {},
                 999: {},
             },
             reportName: 'Concierge',
@@ -259,9 +251,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '12',
-            participantAccountIDs: [1000],
-            visibleChatMemberAccountIDs: [1000],
             participants: {
+                2: {},
                 1000: {},
             },
             reportName: 'Chronos',
@@ -276,9 +267,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '13',
-            participantAccountIDs: [1001],
-            visibleChatMemberAccountIDs: [1001],
             participants: {
+                2: {},
                 1001: {},
             },
             reportName: 'Receipts',
@@ -293,9 +283,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '14',
-            participantAccountIDs: [1, 10, 3],
-            visibleChatMemberAccountIDs: [1, 10, 3],
             participants: {
+                2: {},
                 1: {},
                 10: {},
                 3: {},
@@ -308,16 +297,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CHAT_ROOM = {
+    const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
         ...REPORTS,
         15: {
             lastReadTime: '2021-01-14 11:25:39.301',
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '15',
-            participantAccountIDs: [3, 4],
-            visibleChatMemberAccountIDs: [3, 4],
             participants: {
+                2: {},
                 3: {},
                 4: {},
             },
@@ -404,50 +392,24 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CONCIERGE: OptionsListUtils.OptionList;
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACES: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACES = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
     });
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+        const results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
-
-        // When we filter again but provide a searchValue
-        results = OptionsListUtils.getSearchOptions(OPTIONS, 'spider');
-
-        // Then only one option should be returned and it's the one matching the search value
-        expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].login).toBe('peterparker@expensify.com');
-
-        // When we filter again but provide a searchValue that should match multiple times
-        results = OptionsListUtils.getSearchOptions(OPTIONS, 'fantastic');
-
-        // Value with latest lastVisibleActionCreated should be at the top.
-        expect(results.recentReports.length).toBe(2);
-        expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Mister Fantastic');
-
-        return waitForBatchedUpdates()
-            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
-            .then(() => {
-                const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
-                // When we filter again but provide a searchValue that should match with periods
-                results = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, 'barry.allen@expensify.com');
-                // Then we expect to have the personal detail with period filtered
-                expect(results.recentReports.length).toBe(1);
-                expect(results.recentReports[0].text).toBe('The Flash');
-            });
     });
 
     it('getFilteredOptions()', () => {
@@ -486,7 +448,7 @@ describe('OptionsListUtils', () => {
         // When we don't include personal detail to the result
         results = OptionsListUtils.getFilteredOptions(
             [],
-            OPTIONS.personalDetails,
+            [],
             [],
             '',
             undefined,
@@ -502,6 +464,7 @@ describe('OptionsListUtils', () => {
             undefined,
             undefined,
             undefined,
+            0,
             undefined,
             undefined,
             undefined,
@@ -512,34 +475,6 @@ describe('OptionsListUtils', () => {
 
         // Then no personal detail options will be returned
         expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
-
-        // Then no options will be returned
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches an email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'peterparker@expensify.com');
-
-        // Then one recentReports will be returned and it will be the correct option
-        // personalDetails should be empty array
-        expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].text).toBe('Spider-Man');
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches a partial display name or email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '.com');
-
-        // Then several options will be returned and they will be each have the search string in their email or name
-        // even though the currently logged in user matches they should not show.
-        // Should be ordered by lastVisibleActionCreated values.
-        expect(results.personalDetails.length).toBe(4);
-        expect(results.recentReports.length).toBe(5);
-        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-        expect(results.recentReports[0].text).toBe('Captain America');
-        expect(results.recentReports[1].text).toBe('Mr Sinister');
-        expect(results.recentReports[2].text).toBe('Black Panther');
 
         // Test for Concierge's existence in chat options
 
@@ -594,27 +529,6 @@ describe('OptionsListUtils', () => {
         const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
         expect(personalDetailsOverlapWithReports).toBe(false);
 
-        // When we search for an option that is only in a personalDetail with no existing report
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'hulk');
-
-        // Then reports should return no results
-        expect(results.recentReports.length).toBe(0);
-
-        // And personalDetails should show just one option and it will be the one we expect
-        expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
-
-        // When we search for an option that matches things in both personalDetails and reports
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '.com');
-
-        // Then all single participant reports that match will show up in the recentReports array, Recently used contact should be at the top
-        expect(results.recentReports.length).toBe(5);
-        expect(results.recentReports[0].text).toBe('Captain America');
-
-        // And logins with no single participant reports will show up in personalDetails
-        expect(results.personalDetails.length).toBe(4);
-        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
-
         // When we provide no selected options to getFilteredOptions()
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '', []);
 
@@ -629,72 +543,6 @@ describe('OptionsListUtils', () => {
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is not a potential email or phone
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'marc@expensify');
-
-        // Then we should have no options or personal details at all and also that there is no userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).toBe(null);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential email
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'marc@expensify.com');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-
-        // When we add a search term with a period, with options for it that don't contain the period
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'peter.parker@expensify.com');
-
-        // Then we should have no options at all but there should be a userToInvite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number without country code added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '5005550006');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number with country code added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '+15005550006');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
-
-        // When we add a search term for which no options exist and the searchValue itself
-        // is a potential phone number with special characters added
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '+1 (800)324-3233');
-
-        // Then we should have no options or personal details at all but there should be a userToInvite and the login
-        // should have the country code included
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+18003243233');
-
-        // When we use a search term for contact number that contains alphabet characters
-        results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '998243aaaa');
-
-        // Then we shouldn't have any results or user to invite
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).toBe(null);
 
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getFilteredOptions(OPTIONS_WITH_CONCIERGE.reports, OPTIONS_WITH_CONCIERGE.personalDetails);
@@ -748,20 +596,8 @@ describe('OptionsListUtils', () => {
         // Then we should expect all the recent reports to show but exclude the archived rooms
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
 
-        // When we pass a search value that doesn't match the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], 'mutants');
-
-        // Then we should expect no recent reports to show
-        expect(results.recentReports.length).toBe(0);
-
-        // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], 'Iron Man, Fantastic');
-
-        // Then we should expect the group chat to show along with the contacts matching the search
-        expect(results.recentReports.length).toBe(1);
-
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
-        const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACES.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+        const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
             const report = option.item;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
@@ -774,43 +610,18 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACES.reports).length - 1);
-
-        // When we search for a workspace room
-        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], 'Avengers Room');
-
-        // Then we should expect only the workspace room to show
-        expect(results.recentReports.length).toBe(1);
-
-        // When we search for a workspace room that doesn't exist
-        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], 'Mutants Lair');
-
-        // Then we should expect no results to show
-        expect(results.recentReports.length).toBe(0);
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
     });
 
     it('getMemberInviteOptions()', () => {
         // When we only pass personal details
-        let results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+        const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Panther');
         expect(results.personalDetails[1].text).toBe('Black Widow');
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
-
-        // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], 'magneto');
-
-        // Then no options will be returned
-        expect(results.personalDetails.length).toBe(0);
-
-        // When we provide a search value that matches an email
-        results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], 'peterparker@expensify.com');
-
-        // Then one personal should be in personalDetails list
-        expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].text).toBe('Spider-Man');
     });
 
     it('getFilteredOptions() for categories', () => {
@@ -833,6 +644,7 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
+                pendingAction: undefined,
             },
             Restaurant: {
                 enabled: true,
@@ -842,6 +654,7 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
+                pendingAction: 'delete',
             },
             Food: {
                 enabled: true,
@@ -851,6 +664,7 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
+                pendingAction: undefined,
             },
             'Food: Meat': {
                 enabled: true,
@@ -860,6 +674,7 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
+                pendingAction: undefined,
             },
         };
         const smallResultList: OptionsListUtils.CategoryTreeSection[] = [
@@ -874,6 +689,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Meat',
@@ -882,14 +698,16 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meat',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
                         searchText: 'Restaurant',
                         tooltipText: 'Restaurant',
-                        isDisabled: false,
+                        isDisabled: true,
                         isSelected: false,
+                        pendingAction: 'delete',
                     },
                 ],
                 indexOffset: 3,
@@ -908,6 +726,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Meat',
@@ -916,6 +735,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1067,8 +887,9 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1084,6 +905,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Restaurant',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1099,6 +921,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cars',
                         isDisabled: true,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Audi',
@@ -1107,6 +930,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Audi',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Mercedes-Benz',
@@ -1115,6 +939,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Mercedes-Benz',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Food',
@@ -1123,6 +948,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Meat',
@@ -1131,6 +957,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meat',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Milk',
@@ -1139,6 +966,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Milk',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Restaurant',
@@ -1147,6 +975,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Restaurant',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Travel',
@@ -1155,6 +984,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Travel',
                         isDisabled: true,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '    Meals',
@@ -1163,6 +993,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meals',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '        Breakfast',
@@ -1171,6 +1002,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Breakfast',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: '        Lunch',
@@ -1179,6 +1011,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Lunch',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1196,6 +1029,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Meat',
@@ -1204,6 +1038,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Milk',
@@ -1212,6 +1047,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Milk',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1236,8 +1072,9 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1332,6 +1169,7 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'HR',
                 accountID: undefined,
+                pendingAction: 'delete',
             },
         };
         const smallResultList: OptionsListUtils.CategorySection[] = [
@@ -1347,14 +1185,16 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'HR',
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
-                        isDisabled: false,
+                        isDisabled: true,
                         isSelected: false,
+                        pendingAction: 'delete',
                     },
                     {
                         text: 'Medical',
@@ -1363,6 +1203,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1379,6 +1220,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1440,6 +1282,7 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Taxes',
                 accountID: undefined,
+                pendingAction: 'delete',
             },
             Benefits: {
                 enabled: true,
@@ -1459,6 +1302,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: false,
                         isSelected: true,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1473,6 +1317,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1488,6 +1333,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Benefits',
@@ -1496,6 +1342,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Benefits',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Cleaning',
@@ -1504,6 +1351,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cleaning',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Food',
@@ -1512,6 +1360,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'HR',
@@ -1520,6 +1369,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Software',
@@ -1528,14 +1378,16 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Software',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Taxes',
                         keyForList: 'Taxes',
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
-                        isDisabled: false,
+                        isDisabled: true,
                         isSelected: false,
+                        pendingAction: 'delete',
                     },
                 ],
             },
@@ -1552,6 +1404,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                     {
                         text: 'Cleaning',
@@ -1560,6 +1413,7 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cleaning',
                         isDisabled: false,
                         isSelected: false,
+                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1721,6 +1575,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Restaurant',
@@ -1729,6 +1584,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Restaurant',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Food',
@@ -1737,6 +1593,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    Meat',
@@ -1745,6 +1602,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meat',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    Milk',
@@ -1753,6 +1611,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Milk',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Cars',
@@ -1761,6 +1620,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars',
                 isDisabled: true,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    Audi',
@@ -1769,6 +1629,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    Mercedes-Benz',
@@ -1777,6 +1638,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Mercedes-Benz',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Travel',
@@ -1785,6 +1647,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel',
                 isDisabled: true,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    Meals',
@@ -1793,6 +1656,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '        Breakfast',
@@ -1801,6 +1665,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Breakfast',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '        Lunch',
@@ -1809,6 +1674,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Lunch',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Plain',
@@ -1817,6 +1683,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Plain',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Audi',
@@ -1825,6 +1692,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Health',
@@ -1833,6 +1701,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Health',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'A',
@@ -1841,6 +1710,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A',
                 isDisabled: true,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '    B',
@@ -1849,6 +1719,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'B',
                 isDisabled: true,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '        C',
@@ -1857,6 +1728,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'C',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '            D',
@@ -1865,6 +1737,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'D',
                 isDisabled: true,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: '                E',
@@ -1873,6 +1746,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'E',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
         ];
         const resultOneLine = [
@@ -1883,6 +1757,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Restaurant',
@@ -1891,6 +1766,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Restaurant',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Food',
@@ -1899,6 +1775,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Food: Meat',
@@ -1907,6 +1784,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food: Meat',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Food: Milk',
@@ -1915,6 +1793,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food: Milk',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Cars: Audi',
@@ -1923,6 +1802,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars: Audi',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Cars: Mercedes-Benz',
@@ -1931,6 +1811,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars: Mercedes-Benz',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals',
@@ -1939,6 +1820,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals: Breakfast',
@@ -1947,6 +1829,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals: Breakfast',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals: Lunch',
@@ -1955,6 +1838,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals: Lunch',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Plain',
@@ -1963,6 +1847,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Plain',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Audi',
@@ -1971,6 +1856,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'Health',
@@ -1979,6 +1865,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Health',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'A: B: C',
@@ -1987,6 +1874,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A: B: C',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
             {
                 text: 'A: B: C: D: E',
@@ -1995,6 +1883,7 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A: B: C: D: E',
                 isDisabled: false,
                 isSelected: false,
+                pendingAction: undefined,
             },
         ];
 
@@ -2023,6 +1912,7 @@ describe('OptionsListUtils', () => {
             Test: {
                 name: 'Test',
                 enabled: true,
+                pendingAction: 'delete' as PendingAction,
             },
             Test1: {
                 name: 'Test1',
@@ -2077,70 +1967,87 @@ describe('OptionsListUtils', () => {
             {
                 name: 'Taxes',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Taxi',
                 enabled: false,
+                pendingAction: undefined,
             },
             {
                 name: 'Test',
                 enabled: true,
+                pendingAction: 'delete',
             },
             {
                 name: 'Test: Test1',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest1',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest2',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest3',
                 enabled: false,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest4',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test2',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test: Test3: Subtest1',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test1',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest1',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest2',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest3',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Travel',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Travel: Nested-Travel',
                 enabled: true,
+                pendingAction: undefined,
             },
             {
                 name: 'Utilities',
                 enabled: true,
+                pendingAction: undefined,
             },
         ];
         const categoriesIncorrectOrdering2 = {
@@ -2205,58 +2112,72 @@ describe('OptionsListUtils', () => {
             {
                 enabled: true,
                 name: 'Cars: Audi',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Cars: BMW',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Cars: Mercedes-Benz',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food: Meat',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food: Milk',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Food: Vegetables',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Medical',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Restaurant',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Taxi',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals: Breakfast',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Travel: Meals: Dinner',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals: Lunch',
+                pendingAction: undefined,
             },
         ];
         const categoriesIncorrectOrdering3 = {
@@ -2289,26 +2210,32 @@ describe('OptionsListUtils', () => {
             {
                 enabled: true,
                 name: 'Dr. House',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'House, M.D.',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Many.dots.on.the.way.',
+                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'More.Many.dots.on.the.way.',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Movies',
+                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Movies: Mr. Nobody',
+                pendingAction: undefined,
             },
         ];
 
@@ -2557,114 +2484,107 @@ describe('OptionsListUtils', () => {
                     value: '3%',
                     code: 'CODE2',
                     modifiedName: 'Tax rate 2 (3%)',
+                    pendingAction: 'delete',
                 },
                 CODE3: {
                     name: 'Tax option 3',
                     value: '5%',
                     code: 'CODE3',
                     modifiedName: 'Tax option 3 (5%)',
+                    pendingAction: undefined,
                 },
                 CODE1: {
                     name: 'Tax exempt 1',
                     value: '0%',
                     code: 'CODE1',
                     modifiedName: 'Tax exempt 1 (0%) • Default',
+                    pendingAction: undefined,
                 },
             },
         };
+        const policy = {
+            taxRates: taxRatesWithDefault,
+        } as Policy;
+
+        const transaction = {
+            taxCode: 'CODE1',
+        } as Transaction;
 
         const resultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: false,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        // Adds 'Default' title to default tax.
-                        // Adds value to tax name for more description.
-                        text: 'Tax exempt 1 (0%) • Default',
+                        code: 'CODE1',
+                        isDisabled: false,
+                        isSelected: undefined,
                         keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
+                        text: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
-                        isDisabled: undefined,
-                        // creates a data option.
-                        data: {
-                            name: 'Tax exempt 1',
-                            code: 'CODE1',
-                            modifiedName: 'Tax exempt 1 (0%) • Default',
-                            value: '0%',
-                        },
+                        pendingAction: undefined,
                     },
                     {
-                        text: 'Tax option 3 (5%)',
+                        code: 'CODE3',
+                        isDisabled: false,
+                        isSelected: undefined,
                         keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
+                        text: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax option 3',
-                            code: 'CODE3',
-                            modifiedName: 'Tax option 3 (5%)',
-                            value: '5%',
-                        },
+                        pendingAction: undefined,
                     },
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: true,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
+                        pendingAction: 'delete',
                     },
                 ],
+                shouldShow: false,
+                title: '',
             },
         ];
 
         const searchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: true,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
+                        pendingAction: 'delete',
                     },
                 ],
+                shouldShow: true,
+                title: '',
             },
         ];
 
         const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
                 data: [],
+                shouldShow: true,
+                title: '',
             },
         ];
 
-        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const result = OptionsListUtils.getTaxRatesSection(policy, [], emptySearch, transaction);
 
-        expect(result.taxRatesOptions).toStrictEqual(resultList);
+        expect(result).toStrictEqual(resultList);
 
-        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
+        const searchResult = OptionsListUtils.getTaxRatesSection(policy, [], search, transaction);
+        expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = OptionsListUtils.getFilteredOptions([], [], [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
+        const wrongSearchResult = OptionsListUtils.getTaxRatesSection(policy, [], wrongSearch, transaction);
+        expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {
@@ -2690,20 +2610,19 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, '');
 
-            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length);
+            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length + filteredOptions.personalDetails.length);
         });
 
         it('should return filtered options in correct order', () => {
             const searchText = 'man';
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-            expect(filteredOptions.recentReports.length).toBe(5);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
+            expect(filteredOptions.recentReports.length).toBe(4);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
+            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should filter users by email', () => {
@@ -2730,15 +2649,15 @@ describe('OptionsListUtils', () => {
             const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
 
             expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
         });
 
-        it('should include workspaces in the search results', () => {
+        it('should include workspace rooms in the search results', () => {
             const searchText = 'avengers';
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACES, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2752,7 +2671,7 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);
         });
 
@@ -2775,7 +2694,281 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+        });
+
+        it('should return the user to invite when the search value is a valid, non-existent email', () => {
+            const searchText = 'test@email.com';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.userToInvite?.login).toBe(searchText);
+        });
+
+        it('should not return any results if the search value is on an exluded logins list', () => {
+            const searchText = 'admin@expensify.com';
+
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], searchText, [], CONST.EXPENSIFY_EMAILS);
+            const filterOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            expect(filterOptions.recentReports.length).toBe(0);
+        });
+
+        it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
+            const searchText = 'test@email.com';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+
+            expect(filteredOptions.userToInvite?.login).toBe(searchText);
+        });
+
+        it('should return limited amount of recent reports if the limit is set', () => {
+            const searchText = '';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {maxRecentReportsToShow: 2});
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+        });
+
+        it('should not return any user to invite if email exists on the personal details list', () => {
+            const searchText = 'natasharomanoff@expensify.com';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
+            const options = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'magneto');
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
+            const options = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com');
+
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.personalDetails[0].text).toBe('Spider-Man');
+        });
+
+        it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
+            // Filter current REPORTS as we do in the component, before getting share destination options
+            const filteredReports = Object.values(OPTIONS.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'mutants');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+        });
+
+        it('should return a workspace room when we search for a workspace room(getShareDestinationsOptions)', () => {
+            const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'Avengers Room');
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+        });
+
+        it('should not show any results if searching for a non-existing workspace room(getShareDestinationOptions)', () => {
+            const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+                const report = option.item;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+                    filtered.push(option);
+                }
+                return filtered;
+            }, []);
+
+            const options = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'Mutants Lair');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+        });
+
+        it('should show the option from personal details when searching for personal detail with no existing report (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'hulk');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.personalDetails[0].login).toBe('brucebanner@expensify.com');
+        });
+
+        it('should return all matching reports and personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
+
+            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+
+            expect(filteredOptions.personalDetails.length).toBe(4);
+            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+        });
+
+        it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'marc@expensify.com');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+        });
+
+        it('should return user to invite when search term has a period with options for it that do not contain the period (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peter.parker@expensify.com');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '5005550006');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '+15005550006');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
+        });
+
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '+1 (800)324-3233');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).not.toBe(null);
+            expect(filteredOptions.userToInvite?.login).toBe('+18003243233');
+        });
+
+        it('should not return any options or user to invite if contact number contains alphabet characters (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '998243aaaa');
+
+            expect(filteredOptions.recentReports.length).toBe(0);
+            expect(filteredOptions.personalDetails.length).toBe(0);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
+
+        it('should not return any options if search value does not match any personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'magneto');
+
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return one recent report and no personal details if a search value provides an email (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+            expect(filteredOptions.personalDetails.length).toBe(0);
+        });
+
+        it('should return all matching reports and personal details (getFilteredOptions)', () => {
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
+
+            expect(filteredOptions.personalDetails.length).toBe(4);
+            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports[0].text).toBe('Captain America');
+            expect(filteredOptions.recentReports[1].text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports[2].text).toBe('Black Panther');
+        });
+
+        it('should return matching option when searching (getSearchOptions)', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'spider');
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].text).toBe('Spider-Man');
+        });
+
+        it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
+                .then(() => {
+                    const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+                    const results = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '');
+                    const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
+
+                    expect(filteredResults.recentReports.length).toBe(1);
+                    expect(filteredResults.recentReports[0].text).toBe('The Flash');
+                });
+        });
+    });
+
+    describe('canCreateOptimisticPersonalDetailOption', () => {
+        const VALID_EMAIL = 'valid@email.com';
+        it('should allow to create optimistic personal detail option if email is valid', () => {
+            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
+                searchValue: VALID_EMAIL,
+                recentReportOptions: OPTIONS.reports,
+                personalDetailsOptions: OPTIONS.personalDetails,
+                currentUserOption: null,
+                excludeUnknownUsers: false,
+            });
+
+            expect(canCreate).toBe(true);
+        });
+
+        it('should not allow to create option if email is an email of current user', () => {
+            const currentUserEmail = 'tonystark@expensify.com';
+            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
+                searchValue: currentUserEmail,
+                recentReportOptions: OPTIONS.reports,
+                personalDetailsOptions: OPTIONS.personalDetails,
+                currentUserOption: null,
+                excludeUnknownUsers: false,
+            });
+
+            expect(canCreate).toBe(false);
         });
     });
 });

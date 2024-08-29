@@ -40,7 +40,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
     const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 

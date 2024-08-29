@@ -1,8 +1,8 @@
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -10,14 +10,17 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
+import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
+import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
@@ -28,7 +31,7 @@ import withNavigationFallback from './withNavigationFallback';
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
-        paddingBottom?: DimensionValue;
+        paddingBottom?: ViewStyle['paddingBottom'];
     };
     didScreenTransitionEnd: boolean;
 };
@@ -93,13 +96,18 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+    /** Overrides the focus trap default settings */
+    focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
-const ScreenWrapperStatusContext = createContext({didScreenTransitionEnd: false});
+type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
+
+const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
 
 function ScreenWrapper(
     {
@@ -122,19 +130,22 @@ function ScreenWrapper(
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
+        focusTrapSettings,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
     /**
      * We are only passing navigation as prop from
-     * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+     * ReportScreen -> ScreenWrapper
      *
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldUseCachedViewportHeight);
+    const isFocused = useIsFocused();
+    const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -169,12 +180,18 @@ function ScreenWrapper(
     ).current;
 
     useEffect(() => {
+        // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
+        const timeout = setTimeout(() => {
+            setDidScreenTransitionEnd(true);
+            onEntryTransitionEnd?.();
+        }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
         const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
             }
-
+            clearTimeout(timeout);
             setDidScreenTransitionEnd(true);
             onEntryTransitionEnd?.();
         });
@@ -192,6 +209,7 @@ function ScreenWrapper(
             : undefined;
 
         return () => {
+            clearTimeout(timeout);
             unsubscribeTransitionEnd();
 
             if (beforeRemoveSubscription) {
@@ -199,10 +217,10 @@ function ScreenWrapper(
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (
@@ -230,53 +248,56 @@ function ScreenWrapper(
                 }
 
                 return (
-                    <View
-                        ref={ref}
-                        style={[styles.flex1, {minHeight}]}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...panResponder.panHandlers}
-                        testID={testID}
-                    >
+                    <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
                         <View
-                            style={[styles.flex1, paddingStyle, style]}
+                            ref={ref}
+                            style={[styles.flex1, {minHeight}]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...keyboardDissmissPanResponder.panHandlers}
+                            {...panResponder.panHandlers}
+                            testID={testID}
                         >
-                            <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
-                                behavior={keyboardAvoidingViewBehavior}
-                                enabled={shouldEnableKeyboardAvoidingView}
+                            <View
+                                fsClass="fs-unmask"
+                                style={[styles.flex1, paddingStyle, style]}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...keyboardDissmissPanResponder.panHandlers}
                             >
-                                <PickerAvoidingView
-                                    style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
-                                    enabled={shouldEnablePickerAvoiding}
+                                <KeyboardAvoidingView
+                                    style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
+                                    behavior={keyboardAvoidingViewBehavior}
+                                    enabled={shouldEnableKeyboardAvoidingView}
                                 >
-                                    <HeaderGap styles={headerGapStyles} />
-                                    <TestToolsModal />
-                                    {isDevelopment && <CustomDevMenu />}
-                                    <ScreenWrapperStatusContext.Provider value={contextValue}>
-                                        {
-                                            // If props.children is a function, call it to provide the insets to the children.
-                                            typeof children === 'function'
-                                                ? children({
-                                                      insets,
-                                                      safeAreaPaddingBottomStyle,
-                                                      didScreenTransitionEnd,
-                                                  })
-                                                : children
-                                        }
-                                    </ScreenWrapperStatusContext.Provider>
-                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                    {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
-                                        <OfflineIndicator
-                                            containerStyles={[]}
-                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                        />
-                                    )}
-                                </PickerAvoidingView>
-                            </KeyboardAvoidingView>
+                                    <PickerAvoidingView
+                                        style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
+                                        enabled={shouldEnablePickerAvoiding}
+                                    >
+                                        <HeaderGap styles={headerGapStyles} />
+                                        <TestToolsModal />
+                                        {isDevelopment && <CustomDevMenu />}
+                                        <ScreenWrapperStatusContext.Provider value={contextValue}>
+                                            {
+                                                // If props.children is a function, call it to provide the insets to the children.
+                                                typeof children === 'function'
+                                                    ? children({
+                                                          insets,
+                                                          safeAreaPaddingBottomStyle,
+                                                          didScreenTransitionEnd,
+                                                      })
+                                                    : children
+                                            }
+                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                            {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
+                                                <OfflineIndicator
+                                                    containerStyles={[]}
+                                                    style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                                />
+                                            )}
+                                        </ScreenWrapperStatusContext.Provider>
+                                    </PickerAvoidingView>
+                                </KeyboardAvoidingView>
+                            </View>
                         </View>
-                    </View>
+                    </FocusTrapForScreens>
                 );
             }}
         </SafeAreaConsumer>

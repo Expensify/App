@@ -1,14 +1,18 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
+import {isSafari} from '@libs/Browser';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
-import type NAVIGATORS from '@src/NAVIGATORS';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -16,11 +20,21 @@ type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NA
 
 const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator({navigation}: RightModalNavigatorProps) {
+function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
+    const styleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
     const isExecutingRef = useRef<boolean>(false);
+    const screenOptions = useMemo(() => {
+        const options = ModalNavigatorScreenOptions(styles);
+        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
+        if (isSafari()) {
+            const customInterpolator = createModalCardStyleInterpolator(styleUtils);
+            options.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+        }
+
+        return options;
+    }, [isSmallScreenWidth, styleUtils, styles]);
 
     return (
         <NoDropZone>
@@ -36,7 +50,27 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                 />
             )}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={screenOptions}>
+                <Stack.Navigator
+                    screenOptions={screenOptions}
+                    screenListeners={{
+                        blur: () => {
+                            if (
+                                // @ts-expect-error There is something wrong with a types here and it's don't see the params list
+                                navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
+                                    SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
+                                route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
+                            ) {
+                                return;
+                            }
+                            // Delay clearing review duplicate data till the RHP is completely closed
+                            // to avoid not found showing briefly in confirmation page when RHP is closing
+                            InteractionManager.runAfterInteractions(() => {
+                                abandonReviewDuplicateTransactions();
+                            });
+                        },
+                    }}
+                    id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                >
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}
                         component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -44,10 +78,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DETAILS}
-                        component={ModalStackNavigators.DetailsModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PROFILE}
@@ -64,6 +94,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
+                        component={ModalStackNavigators.CategoriesModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
@@ -134,12 +168,24 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
+                        component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRAVEL}
                         component={ModalStackNavigators.TravelModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                         component={ModalStackNavigators.SearchReportModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
+                        component={ModalStackNavigators.RestrictedActionModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
+                        component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

@@ -5,6 +5,7 @@ phases:
     commands:
       # Install correct version of node
       - export NVM_DIR=$HOME/.nvm
+      - export FLASHLIGHT_BINARY_PATH=$DEVICEFARM_TEST_PACKAGE_PATH/zip/bin
       - . $NVM_DIR/nvm.sh
       # Note: Node v16 is the latest supported version of node for AWS Device Farm
       # using v20 will not work!

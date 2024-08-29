@@ -32,6 +32,7 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
     const initialURL = useContext(InitialURLContext);
+
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
@@ -39,7 +40,8 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
         const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
-            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+            // We don't want to close react-native app in this particular case.
+            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin, false);
             return;
         }
 
@@ -64,7 +66,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
             SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
         }
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
@@ -75,15 +77,15 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
-        if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        // For HybridApp we have separate logic to handle transitions.
+        if (!NativeModules.HybridAppModule && exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
-                const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.goBack();
-                Navigation.navigate(exitUrl);
+                Navigation.navigate(exitTo);
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
     return <FullScreenLoadingIndicator />;

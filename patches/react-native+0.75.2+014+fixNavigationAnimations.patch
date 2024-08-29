@@ -1,0 +1,39 @@
+diff --git a/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js b/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
+index d6c3462..582892b 100644
+--- a/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
++++ b/node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js
+@@ -46,6 +46,7 @@ export default class AnimatedProps extends AnimatedNode {
+     super();
+     this._props = createAnimatedProps(props);
+     this._callback = callback;
++    this._connectedToView = false;
+   }
+ 
+   __getValue(): Object {
+@@ -120,6 +121,8 @@ export default class AnimatedProps extends AnimatedNode {
+       if (this._animatedView) {
+         this.__connectAnimatedView();
+       }
++    } else if (!this._connectedToView && this._animatedView) {
++      this.__connectAnimatedView();
+     }
+   }
+ 
+@@ -140,6 +143,8 @@ export default class AnimatedProps extends AnimatedNode {
+       nativeViewTag != null,
+       'Unable to locate attached view in the native tree',
+     );
++
++    this._connectedToView = true;
+     NativeAnimatedHelper.API.connectAnimatedNodeToView(
+       this.__getNativeTag(),
+       nativeViewTag,
+@@ -153,6 +158,8 @@ export default class AnimatedProps extends AnimatedNode {
+       nativeViewTag != null,
+       'Unable to locate attached view in the native tree',
+     );
++
++    this._connectedToView = false;
+     NativeAnimatedHelper.API.disconnectAnimatedNodeFromView(
+       this.__getNativeTag(),
+       nativeViewTag,

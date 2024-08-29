@@ -7,9 +7,12 @@ import {scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +33,8 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -84,7 +88,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             // If the input is not focused and the new index is out of range, focus the input
-            if (newIndex < 0 && !searchInputRef.current?.isFocused() && shouldFocusInputOnScreenFocus) {
+            if (newIndex < 0 && !isTextInputFocused(searchInputRef) && shouldFocusInputOnScreenFocus) {
                 searchInputRef.current?.focus();
             }
         },
@@ -138,21 +142,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 return;
             }
 
-            // Select the currently highlighted emoji if enter is pressed
             if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                let indexToSelect = focusedIndex;
-                if (highlightFirstEmoji) {
-                    indexToSelect = 0;
-                }
-
-                const item = filteredEmojis[indexToSelect];
-                if (!item) {
-                    return;
-                }
-                if ('types' in item || 'name' in item) {
-                    const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
-                    onEmojiSelected(emoji, item);
-                }
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
@@ -163,16 +153,41 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !isTextInputFocused(searchInputRef))) {
                 setIsUsingKeyboardMovement(true);
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !searchInputRef.current.isFocused() && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
+            if (searchInputRef.current && !isTextInputFocused(searchInputRef) && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, focusedIndex, highlightFirstEmoji, isFocused, onEmojiSelected, preferredSkinTone],
+        [isFocused],
+    );
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        (keyBoardEvent) => {
+            if (!(keyBoardEvent instanceof KeyboardEvent) || isEnterWhileComposition(keyBoardEvent) || keyBoardEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                return;
+            }
+
+            // Select the currently highlighted emoji if enter is pressed
+            let indexToSelect = focusedIndex;
+            if (highlightFirstEmoji) {
+                indexToSelect = 0;
+            }
+
+            const item = filteredEmojis[indexToSelect];
+            if (!item) {
+                return;
+            }
+            if ('types' in item || 'name' in item) {
+                const emoji = typeof preferredSkinTone === 'number' && item?.types?.[preferredSkinTone] ? item?.types?.[preferredSkinTone] : item.code;
+                onEmojiSelected(emoji, item);
+            }
+        },
+        {shouldPreventDefault: true, shouldStopPropagation: true},
     );
 
     /**
@@ -248,7 +263,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
             if ('header' in item && item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(isSmallScreenWidth, windowWidth) : undefined]}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>
                 );
@@ -292,7 +307,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             highlightFirstEmoji,
             singleExecution,
             styles,
-            isSmallScreenWidth,
+            shouldUseNarrowLayout,
             windowWidth,
             translate,
             onEmojiSelected,
@@ -305,7 +320,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         <View
             style={[
                 styles.emojiPickerContainer,
-                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout),
                 // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
             ]}

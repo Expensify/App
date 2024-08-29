@@ -3,7 +3,7 @@ import {useWindowDimensions} from 'react-native';
 import variables from '@styles/variables';
 
 type OnboardingLayout = {
-    shouldUseNarrowLayout: boolean;
+    isMediumOrLargerScreenWidth: boolean;
 };
 
 /**
@@ -15,5 +15,5 @@ type OnboardingLayout = {
 export default function useOnboardingLayout(): OnboardingLayout {
     const {width: windowWidth} = useWindowDimensions();
 
-    return {shouldUseNarrowLayout: windowWidth > variables.mobileResponsiveWidthBreakpoint};
+    return {isMediumOrLargerScreenWidth: windowWidth > variables.mobileResponsiveWidthBreakpoint};
 }

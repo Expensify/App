@@ -14,16 +14,14 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import ValidateAccountMessage from '@components/ValidateAccountMessage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
-import * as Session from '@userActions/Session';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,7 +79,7 @@ function BankAccountStep({
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -129,7 +127,7 @@ function BankAccountStep({
                         </View>
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button
@@ -163,25 +161,7 @@ function BankAccountStep({
                             />
                         </View>
                     </Section>
-                    {!user?.validated && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                            <Icon
-                                src={Expensicons.Exclamation}
-                                fill={theme.danger}
-                            />
-
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
-                                {translate('bankAccount.validateAccountError.phrase1')}
-                                <TextLink
-                                    fontSize={variables.fontSizeLabel}
-                                    onPress={() => Session.signOutAndRedirectToSignIn()}
-                                >
-                                    {translate('bankAccount.validateAccountError.phrase2')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    )}
+                    {!user?.validated && <ValidateAccountMessage />}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback

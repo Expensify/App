@@ -73,6 +73,12 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
+
+    /** The color of the fallback icon */
+    fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 };
 
 function ReceiptImage({
@@ -89,6 +95,8 @@ function ReceiptImage({
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
+    fallbackIconColor,
+    fallbackIconBackground,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -106,7 +114,7 @@ function ReceiptImage({
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? ''}
+                    transactionID={transactionID ?? '-1'}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -124,6 +132,8 @@ function ReceiptImage({
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
+                fallbackIconColor={fallbackIconColor}
+                fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );

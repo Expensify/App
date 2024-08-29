@@ -1,4 +1,3 @@
-import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -7,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: getSplashBackgroundColor(),
+    splashBG: colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
@@ -81,8 +80,11 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+    tooltipHighlightBG: colors.green100,
+    tooltipHighlightText: colors.green500,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
+    trialBannerBackgroundColor: colors.green700,
     skeletonLHNIn: colors.productDark400,
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
@@ -91,6 +93,8 @@ const darkTheme = {
     white: colors.white,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
+    emptyFolderBG: colors.yellow600,
+    travelBG: colors.blue600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.
@@ -129,12 +133,12 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
-            backgroundColor: colors.blue700,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {

@@ -98,7 +98,7 @@ function VerifyStep({account}: VerifyStepProps) {
                     </View>
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
                     <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        {Boolean(account?.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
+                        {!!account?.twoFactorAuthSecretKey && <Text>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}

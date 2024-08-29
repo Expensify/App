@@ -1,5 +1,7 @@
 package com.expensify.chat
 
+import com.facebook.react.common.assets.ReactFontManager
+
 import android.app.ActivityManager
 import android.content.res.Configuration
 import android.database.CursorWindow
@@ -42,6 +44,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
 
         RNPerformance.getInstance().mark("appCreationStart", false);
 
@@ -52,14 +57,14 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load()
+            load(bridgelessEnabled = false)
         }
         if (BuildConfig.DEBUG) {
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
         }
 
         // Force the app to LTR mode.
-        val sharedI18nUtilInstance = I18nUtil.getInstance()
+        val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
 
         // Start the "js_load" custom performance tracing metric. This timer is stopped by a native

@@ -26,13 +26,13 @@ After adopting the new Expensify Card, domain admins can issue virtual cards to 
 
 **To assign a virtual card:**
 
-1. Head to **Settings** > **Domains** > [**Company Cards**](https://www.expensify.com/domain_companycards).
-2. Click the **Issue Virtual Cards** button.
-3. Enter a card name (i.e., "Google Ads").
-4. Select a domain member to assign the card to.
-5. Enter a card limit.
-6. Select a **Limit Type** of _Fixed_ or _Monthly_.
-7. Click **Issue Card**.
+Head to **Settings** > **Domains** > [**Company Cards**](https://www.expensify.com/domain_companycards) and click the **Issue Virtual Cards** button. From there: 
+
+1. Enter a card name (i.e., "Google Ads").
+2. Select a domain member to assign the card to.
+3. Enter a card limit.
+4. Select a **Limit Type** of _Fixed_ or _Monthly_.
+5. Click **Issue Card**.
 
 ![The Issue Virtual Cards modal is open in the middle of the screen. There are four options to set; Card Name, Assignee, Card Limit, and Limit type. A cancel (left) and save (right) button are at the bottom right of the modal.]({{site.url}}/assets/images/AdminissuedVirtualCards.png){:width="100%"}
 
@@ -65,6 +65,8 @@ There are two different limit types that are best suited for their intended purp
 
 - _Fixed limit_ spend cards are ideal for one-time expenses or providing employees access to a card for a designated purchase. 
 - _Monthly_ limit spend cards are perfect for managing recurring expenses such as subscriptions and memberships.
+
+A virtual card with either of these limit types doesn't share its limit with any other cards, including the cardholder's smart limit cards. 
 
 **Where can employees see their virtual cards?**
 

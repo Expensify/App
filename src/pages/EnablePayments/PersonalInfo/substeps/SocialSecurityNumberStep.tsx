@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -19,20 +19,29 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
-        errors.ssn = 'bankAccount.error.ssnLast4';
-    }
-
-    return errors;
-};
 function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (shouldAskForFullSSN) {
+                if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+                    errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
+                }
+            } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+                errors.ssn = translate('bankAccount.error.ssnLast4');
+            }
+
+            return errors;
+        },
+        [translate, shouldAskForFullSSN],
+    );
 
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -57,13 +66,13 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
-                        label={translate('personalInfoStep.last4SSN')}
-                        aria-label={translate('personalInfoStep.last4SSN')}
+                        label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
+                        aria-label={translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         shouldSaveDraft={!isEditing}
                     />
                 </View>

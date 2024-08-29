@@ -1,4 +1,6 @@
 import 'react-native-url-polyfill/auto';
+import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 
 /**
  * Add / to the end of any URL if not present
@@ -6,6 +8,13 @@ import 'react-native-url-polyfill/auto';
 function addTrailingForwardSlash(url: string): string {
     if (!url.endsWith('/')) {
         return `${url}/`;
+    }
+    return url;
+}
+
+function addLeadingForwardSlash(url: string): string {
+    if (!url.startsWith('/')) {
+        return `/${url}`;
     }
     return url;
 }
@@ -48,12 +57,12 @@ function appendParam(url: string, paramName: string, paramValue: string) {
     // If parameter exists, replace it
     if (url.includes(`${paramName}=`)) {
         const regex = new RegExp(`${paramName}=([^&]*)`);
-        return url.replace(regex, `${paramName}=${paramValue}`);
+        return url.replace(regex, `${paramName}=${paramValue}`) as Route;
     }
 
     // If parameter doesn't exist, append it
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}${paramName}=${paramValue}`;
+    return `${url}${separator}${paramName}=${paramValue}` as Route;
 }
 
 function hasURL(text: string) {
@@ -62,4 +71,9 @@ function hasURL(text: string) {
     return urlPattern.test(text);
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL};
+function extractUrlDomain(url: string): string | undefined {
+    const match = String(url).match(CONST.REGEX.DOMAIN_BASE);
+    return match?.[1];
+}
+
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};

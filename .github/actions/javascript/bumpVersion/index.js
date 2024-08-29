@@ -1928,7 +1928,7 @@ class SemVer {
     do {
       const a = this.build[i]
       const b = other.build[i]
-      debug('prerelease compare', i, a, b)
+      debug('build compare', i, a, b)
       if (a === undefined && b === undefined) {
         return 0
       } else if (b === undefined) {
@@ -3473,12 +3473,15 @@ function updateNativeVersions(version) {
     }
 }
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });
-if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semanticVersionLevel)) {
+if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
     semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 const { version: previousVersion } = JSON.parse(fs_1.default.readFileSync('./package.json').toString());
-const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
+if (!previousVersion) {
+    core.setFailed('Error: Could not read package.json');
+}
+const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
 console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 updateNativeVersions(newVersion);
 console.log(`Setting npm version to ${newVersion}`);
@@ -3586,7 +3589,7 @@ exports.updateiOSVersion = updateiOSVersion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -3596,6 +3599,10 @@ const SEMANTIC_VERSION_LEVELS = {
 exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
 const MAX_INCREMENTS = 99;
 exports.MAX_INCREMENTS = MAX_INCREMENTS;
+function isValidSemverLevel(str) {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
+}
+exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */

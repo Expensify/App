@@ -1,11 +1,14 @@
 import React from 'react';
+import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
-import ROUTES from '@src/ROUTES';
-import Navigation from './Navigation/Navigation';
+import SCREENS from '@src/SCREENS';
+import getTopmostRouteName from './Navigation/getTopmostRouteName';
+import isReportOpenInRHP from './Navigation/isReportOpenInRHP';
+import navigationRef from './Navigation/navigationRef';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
-const composerRef = React.createRef<TextInput>();
+const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
@@ -30,8 +33,9 @@ function onComposerFocus(callback: FocusCallback | null, isMainComposer = false)
  * Request focus on the ReportActionComposer
  */
 function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
-    /** Do not trigger the refocusing when the active route is not the report route, */
-    if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
+    /** Do not trigger the refocusing when the active route is not the report screen */
+    const navigationState = navigationRef.getState();
+    if (!navigationState || (!isReportOpenInRHP(navigationState) && getTopmostRouteName(navigationState) !== SCREENS.REPORT)) {
         return;
     }
 

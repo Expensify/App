@@ -47,11 +47,11 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
         if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street])) {
-            errors[inputKeys.street] = 'bankAccount.error.addressStreet';
+            errors[inputKeys.street] = translate('bankAccount.error.addressStreet');
         }
 
         if (values[inputKeys.zipCode] && !ValidationUtils.isValidZipCode(values[inputKeys.zipCode])) {
-            errors[inputKeys.zipCode] = 'bankAccount.error.zipCode';
+            errors[inputKeys.zipCode] = translate('bankAccount.error.zipCode');
         }
 
         return errors;
@@ -69,7 +69,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            submitButtonStyles={[styles.mb0, styles.pb5]}
+            submitButtonStyles={[styles.mb0]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
