@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
