@@ -229,7 +229,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                 ];
             }
 
-            console.log('[LOG]: ', newSelectedOptions);
             onAttendeesAdded(newSelectedOptions);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes

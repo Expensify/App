@@ -171,7 +171,7 @@ function IOURequestStepAmount({
         const initialAttendee: Attendee = {
             email: currentUserPersonalDetails?.login,
             displayName: currentUserPersonalDetails.displayName,
-            avatarUrl: currentUserPersonalDetails.avatar,
+            avatarUrl: currentUserPersonalDetails.avatar?.toString(),
             accountID: currentUserPersonalDetails.accountID,
             text: currentUserPersonalDetails.login,
             selected: true,

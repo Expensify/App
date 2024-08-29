@@ -403,6 +403,10 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
 }
 
+function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
+}
+
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
@@ -2987,6 +2991,23 @@ function updateMoneyRequestMerchant(
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
+}
+
+/** Updates the attendees list of an expense */
+function updateMoneyRequestAttendees(
+    transactionID: string,
+    transactionThreadReportID: string,
+    value: Attendee[],
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    const transactionChanges: TransactionChanges = {
+        attendees: value,
+    };
+    const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = data;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
 }
 
 /** Updates the tag of an expense */
@@ -8010,6 +8031,7 @@ export {
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,
+    setMoneyRequestAttendees,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
@@ -8034,6 +8056,7 @@ export {
     trackExpense,
     unapproveExpenseReport,
     unholdRequest,
+    updateMoneyRequestAttendees,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
