@@ -60,9 +60,9 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.187.0
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '2.7'
+          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -186,7 +186,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.187.0
+        uses: ruby/setup-ruby@v1.190.0
         with:
           ruby-version: '2.7'
           bundler-cache: true

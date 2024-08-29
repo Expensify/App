@@ -56,7 +56,7 @@ runs:
         distribution: "oracle"
         java-version: "17"
 
-    - uses: ruby/setup-ruby@v1.187.0
+    - uses: ruby/setup-ruby@v1.190.0
       with:
         ruby-version: "2.7"
         bundler-cache: true
