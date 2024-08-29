@@ -1,6 +1,8 @@
 name: E2E Performance Tests
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_call:
     inputs:
       PR_NUMBER:
@@ -39,25 +41,28 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: ./.github/actions/javascript/getArtifactInfo
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+      # - name: Check if there's an existing artifact for this baseline
+      #   id: checkForExistingArtifact
+      #   uses: ./.github/actions/javascript/getArtifactInfo
+      #   with:
+      #     GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+      #     ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
-        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+      # - name: Skip build if there's already an existing artifact for the baseline
+      #   if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+      #   run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+      - name: Checkout "Baseline" commit (prev merge commit)
+      #  if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+      #  run: |
+      #    git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+      #    git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
         run: |
-          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
-
+           previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
+           git checkout $previous_merge
+           echo $previous_merge
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+      #  if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
