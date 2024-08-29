@@ -175,6 +175,9 @@ type OriginalMessageClosed = {
 
     /** If the report was closed because accounts got merged, then this is the old account ID */
     oldAccountID?: number;
+
+    /** Name of the invoice receiver's policy */
+    receiverPolicyName?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
