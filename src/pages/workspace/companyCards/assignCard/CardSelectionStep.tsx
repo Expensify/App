@@ -38,10 +38,11 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [cardSelected, setCardSelected] = useState('');
 
     const isEditing = assignCard?.isEditing;
     const assignee = assignCard?.data?.email ?? '';
+
+    const [cardSelected, setCardSelected] = useState(assignCard?.data?.cardName ?? '');
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -60,7 +61,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     };
 
     const cardListOptions = mockedCardList.map((item) => ({
-        keyForList: item.key,
+        keyForList: item.cardNumber,
         value: item.cardNumber,
         text: item.cardNumber,
         isSelected: cardSelected === item.cardNumber,
@@ -93,6 +94,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
                 sections={[{data: cardListOptions}]}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => setCardSelected(value)}
+                initiallyFocusedOptionKey={cardSelected}
                 shouldUpdateFocusedIndex
             />
             <Button

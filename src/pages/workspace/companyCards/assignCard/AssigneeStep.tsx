@@ -35,10 +35,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [selectedMember, setSelectedMember] = useState('');
 
     const isEditing = assignCard?.isEditing;
 
+    const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const selectMember = (assignee: ListItem) => {
