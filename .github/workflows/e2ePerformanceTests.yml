@@ -23,19 +23,24 @@ jobs:
   buildBaseline:
     runs-on: ubuntu-latest-xl
     name: Build apk from latest release as a baseline
+    outputs:
+      BASELINE_REF: ${{ steps.getBaselineRef.outputs.BASELINE_REF }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetches the entire history
 
       - name: Checkout "Baseline" commit (prev merge commit)
+        id: getBaselineRef
         run: |
            previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
            git checkout $previous_merge
            echo $previous_merge
+           echo "BASELINE_REF=$previous_merge" >> "$GITHUB_OUTPUT"
+
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
-          ARTIFACT_NAME: ""
+          ARTIFACT_NAME: baseline-apk-${{ steps.getBaselineRef.outputs.BASELINE_REF }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -137,11 +142,8 @@ jobs:
         uses: actions/download-artifact@v4
         id: downloadBaselineAPK
         with:
-          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
+          name: baseline-apk-${{ needs.buildBaseline.outputs.BASELINE_REF }}
           path: zip
-          # Set github-token only if the baseline was built in this workflow run:
-          github-token: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID && github.token }}
-          run-id: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID }}
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK
