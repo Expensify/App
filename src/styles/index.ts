@@ -2827,8 +2827,6 @@ const styles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         avatarSectionWrapperSettings: {
@@ -4529,6 +4527,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        profilePageAvatar: {
+            borderColor: theme.highlightBG,
+        },
+
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
@@ -5081,6 +5083,15 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        emptyStateCardIllustrationContainer: {
+            height: 220,
+        },
+
+        emptyStateCardIllustration: {
+            width: 164,
+            height: 190,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
@@ -5141,6 +5152,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
+            width: '100%',
         },
 
         emptyStateHeader: (isIllustration: boolean) => ({
@@ -5170,6 +5182,15 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        accountSwitcherPopover: {
+            width: variables.sideBarWidth - 19,
+        },
+
+        accountSwitcherAnchorPosition: {
+            top: 80,
+            left: 12,
         },
     } satisfies Styles);
 
