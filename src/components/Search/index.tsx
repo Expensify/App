@@ -38,7 +38,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
-    policyIDs?: string;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
@@ -76,7 +75,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs, isCustomQuery, onSearchListScroll}: SearchProps) {
+function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -120,7 +119,7 @@ function Search({queryJSON, policyIDs, isCustomQuery, onSearchListScroll}: Searc
             return;
         }
 
-        SearchActions.search({queryJSON, offset, policyIDs});
+        SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 
@@ -404,7 +403,7 @@ function Search({queryJSON, policyIDs, isCustomQuery, onSearchListScroll}: Searc
             />
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
-                prompt={translate('search.offlinePrompt')}
+                prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
