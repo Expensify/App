@@ -5,7 +5,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import React, {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/convertToNativeNavigationOptions';
+import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,

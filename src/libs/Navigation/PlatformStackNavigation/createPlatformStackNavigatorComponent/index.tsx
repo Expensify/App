@@ -5,7 +5,7 @@ import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/convertToWebNavigationOptions';
+import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
