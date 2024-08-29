@@ -42,7 +42,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
 
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
-    // oad the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
+    // load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
     if (!isSplashHidden || !isInteractionComplete) {
         return;
     }
