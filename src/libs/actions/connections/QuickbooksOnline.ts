@@ -8,7 +8,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, QBOConnectionConfig} from '@src/types/onyx/Policy';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -19,6 +19,80 @@ function getQuickbooksOnlineSetupLink(policyID: string) {
         shouldSkipWebProxy: true,
     });
     return commandURL + new URLSearchParams(params).toString();
+}
+
+function buildQuickbooksOnlineUpdateConfigOnyxData<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [settingName]: settingValue ?? null,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
 }
 
 function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValue: boolean) {
@@ -249,4 +323,21 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName exten
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
-export {getQuickbooksOnlineSetupLink, updateQuickbooksOnlineEnableNewCategories, updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineReimbursableExpensesAccount};
+function updateQuickbooksOnlineReceivableAccount(policyID: string, settingValue: QBOConnectionConfig['receivableAccount']) {
+    const {optimisticData, failureData, successData} = buildQuickbooksOnlineUpdateConfigOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.RECEIVABLE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
+export {
+    getQuickbooksOnlineSetupLink,
+    updateQuickbooksOnlineEnableNewCategories,
+    updateQuickbooksOnlineAutoCreateVendor,
+    updateQuickbooksOnlineReimbursableExpensesAccount,
+    updateQuickbooksOnlineReceivableAccount,
+};
