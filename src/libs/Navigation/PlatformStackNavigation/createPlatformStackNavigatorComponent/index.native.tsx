@@ -5,7 +5,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import React, {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
+import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/convertToNativeNavigationOptions';
 import type {PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PlatformNavigationBuilderOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationBuilder';
 import type {CreatePlatformStackNavigatorComponentOptions, CustomCodeProps, CustomCodePropsWithTransformedState} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
@@ -43,7 +43,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 screenListeners,
                 initialRouteName,
             } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, RouterOptions>,
-            withNativeNavigationOptions,
+            convertToNativeNavigationOptions,
         );
 
         const customCodeProps = useMemo<CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(

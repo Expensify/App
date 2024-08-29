@@ -5,7 +5,7 @@ import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
+import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/convertToWebNavigationOptions';
 import type {PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PlatformNavigationBuilderOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationBuilder';
 import type {CreatePlatformStackNavigatorComponentOptions, CustomCodeProps, CustomCodePropsWithTransformedState} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
@@ -43,7 +43,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 screenListeners,
                 initialRouteName,
             } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, StackNavigationEventMap, ParamListBase, RouterOptions>,
-            withWebNavigationOptions,
+            convertToWebNavigationOptions,
         );
 
         const customCodeProps = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
