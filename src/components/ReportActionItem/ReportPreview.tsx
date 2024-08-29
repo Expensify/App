@@ -299,7 +299,7 @@ function ReportPreview({
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
@@ -365,7 +365,7 @@ function ReportPreview({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                count: numberOfRequests,
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
             }),
