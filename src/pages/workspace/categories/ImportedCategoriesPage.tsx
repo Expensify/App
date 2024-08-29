@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
@@ -25,6 +26,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader} = spreadsheet ?? {};
+    const [errors, setErrors] = useState<Errors>({});
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -52,29 +54,33 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Record<string, string | null> = {};
+        const newErrors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    newErrors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    setErrors(newErrors);
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                newErrors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                setErrors(newErrors);
             } else {
-                errors = {};
+                setErrors({});
             }
         }
-
-        return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importCategories = useCallback(() => {
         validate();
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
+
         const columns = Object.values(spreadsheet?.columns ?? {});
         const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
         const categoriesGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
@@ -93,7 +99,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             setIsImportingCategories(true);
             importPolicyCategories(policyID, categories);
         }
-    }, [validate, spreadsheet, containsHeader, policyID]);
+    }, [validate, errors, spreadsheet, containsHeader, policyID]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
@@ -113,7 +119,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
                 importFunction={importCategories}
-                errors={validate()}
+                errors={errors}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
                 headerText={translate('workspace.categories.importedCategoriesMessage')}

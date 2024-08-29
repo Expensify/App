@@ -161,10 +161,7 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         isSelected: spreadsheet?.columns[columnIndex] === item.value,
     }));
 
-    const columnValuesString = column
-        .slice(containsHeader ? 1 : 0, 6)
-        .join(', ')
-        .concat(column.length > 6 ? '...' : '');
+    const columnValuesString = column.join(', ');
 
     const colName = findColumnName(column[0]);
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
@@ -183,7 +180,13 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         <View style={[styles.importColumnCard, styles.mt4]}>
             <Text style={styles.textSupporting}>{columnHeader}</Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                <Text style={[styles.flex1, styles.flexWrap]}>{columnValuesString}</Text>
+                <Text
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                    style={[styles.flex1, styles.flexWrap]}
+                >
+                    {columnValuesString}
+                </Text>
 
                 <View style={styles.ml2}>
                     <ButtonWithDropdownMenu
