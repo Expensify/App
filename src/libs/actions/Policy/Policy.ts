@@ -12,6 +12,7 @@ import type {
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    DisablePolicyBillableModeParams,
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
@@ -32,6 +33,7 @@ import type {
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
     RequestExpensifyCardLimitIncreaseParams,
+    SetPolicyBillableModeParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -3665,7 +3667,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyBillableModeParams = {
         policyID,
         defaultBillable,
         disabledFields: JSON.stringify({
@@ -3722,7 +3724,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
         ],
     };
 
-    const parameters = {
+    const parameters: DisablePolicyBillableModeParams = {
         policyID,
     };
 
