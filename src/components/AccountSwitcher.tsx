@@ -176,7 +176,7 @@ function AccountSwitcher() {
                     anchorPosition={styles.accountSwitcherAnchorPosition}
                 >
                     <View style={styles.pb4}>
-                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb2, styles.pt4]}>{translate('delegate.switchAccount')}</Text>
+                        <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pb3, !shouldUseNarrowLayout && styles.pt4]}>{translate('delegate.switchAccount')}</Text>
                         <MenuItemList
                             menuItems={menuItems()}
                             shouldUseSingleExecution
