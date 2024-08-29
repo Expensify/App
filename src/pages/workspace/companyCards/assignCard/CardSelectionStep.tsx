@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import {ValueOf} from 'type-fest';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -42,6 +43,12 @@ const mockedCardList = [
 
 const mockedCardListEmpty: MockedCard[] = [];
 
+const feedNamesMapping = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'MasterCard',
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
+};
+
 type CardSelectionStepProps = {
     feed: string;
 };
@@ -56,6 +63,7 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     const assignee = assignCard?.data?.email ?? '';
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.cardName ?? '');
+    const [shouldShowError, setShouldShowError] = useState(false);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -68,7 +76,16 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
         CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
+    const handleSelectCard = (cardNumber: string) => {
+        setCardSelected(cardNumber);
+        setShouldShowError(false);
+    };
+
     const submit = () => {
+        if (!cardSelected) {
+            setShouldShowError(true);
+            return;
+        }
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
             data: {cardName: cardSelected},
@@ -127,23 +144,23 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                         {translate('workspace.companyCards.chooseCardFor', {
                             assignee: PersonalDetailsUtils.getPersonalDetailByEmail(assignee ?? '')?.displayName ?? '',
-                            feed: feed ?? 'visa',
+                            feed: feedNamesMapping[feed as ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>] ?? 'visa',
                         })}
                     </Text>
                     <SelectionList
                         sections={[{data: cardListOptions}]}
                         ListItem={RadioListItem}
-                        onSelectRow={({value}) => setCardSelected(value)}
+                        onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
                         shouldUpdateFocusedIndex
                     />
-                    <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onPress={submit}
-                        style={styles.m5}
+                    <FormAlertWithSubmitButton
+                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onSubmit={submit}
+                        isAlertVisible={shouldShowError}
+                        containerStyles={styles.ph5}
+                        message={translate('common.error.pleaseSelectOne')}
+                        buttonStyles={styles.mb5}
                     />
                 </>
             )}

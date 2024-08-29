@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +25,9 @@ function ConfirmationStep() {
 
     const data = assignCard?.data;
 
-    const submit = () => {};
+    const submit = () => {
+        Navigation.goBack();
+    };
 
     const editStep = (step: AssignCardStep) => {
         CompanyCards.setAssignCardStepAndData({currentStep: step, isEditing: true});

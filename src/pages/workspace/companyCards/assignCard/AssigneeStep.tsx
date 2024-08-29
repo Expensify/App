@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -40,12 +40,18 @@ function AssigneeStep({policy}: AssigneeStepProps) {
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [shouldShowError, setShouldShowError] = useState(false);
 
     const selectMember = (assignee: ListItem) => {
         setSelectedMember(assignee.login ?? '');
+        setShouldShowError(false);
     };
 
     const submit = () => {
+        if (!selectedMember) {
+            setShouldShowError(true);
+            return;
+        }
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
             data: {
@@ -149,13 +155,13 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 initiallyFocusedOptionKey={selectedMember}
                 shouldUpdateFocusedIndex
             />
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={styles.m5}
+            <FormAlertWithSubmitButton
+                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                onSubmit={submit}
+                isAlertVisible={shouldShowError}
+                containerStyles={styles.ph5}
+                message={translate('common.error.pleaseSelectOne')}
+                buttonStyles={styles.mb5}
             />
         </InteractiveStepWrapper>
     );
