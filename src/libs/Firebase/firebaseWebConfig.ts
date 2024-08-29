@@ -1,5 +1,5 @@
-import {initializeApp} from 'firebase/app';
-import {getPerformance, initializePerformance} from 'firebase/performance';
+import {initializeApp} from '@firebase/app';
+import {getPerformance, initializePerformance} from '@firebase/performance';
 
 // TODO add newly created Firebase web project details before merging
 
@@ -12,7 +12,6 @@ const firebaseConfig = {
     appId: 'YOUR_APP_ID',
     measurementId: 'YOUR_MEASUREMENT_ID',
 };
-
 const firebaseApp = initializeApp(firebaseConfig);
 
 initializePerformance(firebaseApp, {dataCollectionEnabled: true});

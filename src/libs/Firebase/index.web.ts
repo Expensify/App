@@ -1,4 +1,4 @@
-import {trace} from 'firebase/performance';
+import {trace} from '@firebase/performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -40,7 +40,7 @@ const stopTrace: StopTrace = (customEventName) => {
     //     return;
     // }
 
-    const perfTrace = traceMap[customEventName].trace;
+    const perfTrace = traceMap[customEventName]?.trace;
 
     if (!perfTrace) {
         return;
