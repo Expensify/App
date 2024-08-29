@@ -26,7 +26,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -141,18 +140,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
-
-    useEffect(() => {
-        const policyDraftId = policyDraft?.id;
-
-        if (!policyDraftId) {
-            return;
-        }
-
-        App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
-        // We only care when the component renders the first time
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
