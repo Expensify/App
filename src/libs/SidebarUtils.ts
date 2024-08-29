@@ -237,6 +237,7 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
+    lastMessageTextFromReport,
     transactionViolations,
     invoiceReceiverPolicy,
 }: {
@@ -247,6 +248,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
@@ -381,7 +383,11 @@ function getOptionData({
     }
 
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+
+    if (!lastMessageTextFromReport) {
+        // eslint-disable-next-line no-param-reassign
+        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+    }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
