@@ -1150,27 +1150,17 @@ describe('actions/IOU', () => {
                                     expect(isEmptyObject(vitIOUReport)).toBe(false);
                                     expect(vitIOUReport?.total).toBe(amount / 4);
 
-                                    const groupParticipants = {
-                                        [CARLOS_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                            role: CONST.REPORT.ROLE.MEMBER,
-                                        },
-                                        [JULES_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                            role: CONST.REPORT.ROLE.MEMBER,
-                                        },
-                                        [VIT_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                                            role: CONST.REPORT.ROLE.MEMBER,
-                                        },
-                                        [RORY_ACCOUNT_ID]: {
-                                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                                            role: CONST.REPORT.ROLE.ADMIN,
-                                        },
-                                    };
-
                                     // 7. The group chat with everyone
-                                    groupChat = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participants, groupParticipants));
+                                    groupChat = Object.values(allReports ?? {}).find(
+                                        (report) =>
+                                            report?.type === CONST.REPORT.TYPE.CHAT &&
+                                            isEqual(report.participants, {
+                                                [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
+                                                [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
+                                                [VIT_ACCOUNT_ID]: VIT_PARTICIPANT,
+                                                [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                                            }),
+                                    );
                                     expect(isEmptyObject(groupChat)).toBe(false);
                                     expect(groupChat?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
 
