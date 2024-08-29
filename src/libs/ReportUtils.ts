@@ -5457,9 +5457,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         policyName,
         undefined,
         undefined,
-
-        // #announce contains all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const announceChatReportID = announceChatData.reportID;
     const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
