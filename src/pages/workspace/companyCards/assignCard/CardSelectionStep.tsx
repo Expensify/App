@@ -44,13 +44,18 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
     const assignee = assignCard?.data?.email ?? '';
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
         CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
     const submit = () => {
         CompanyCards.setAssignCardStepAndData({
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
             data: {cardName: cardSelected},
-            currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
+            isEditing: false,
         });
     };
 

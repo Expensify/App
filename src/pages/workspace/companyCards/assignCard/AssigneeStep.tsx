@@ -47,15 +47,17 @@ function AssigneeStep({policy}: AssigneeStepProps) {
 
     const submit = () => {
         CompanyCards.setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.CARD,
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
             data: {
                 email: selectedMember,
             },
+            isEditing: false,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
+            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'));

@@ -28,6 +28,10 @@ function TransactionStartDateStep() {
     const [startDate, setStartDate] = useState(DateUtils.extractDate(new Date().toString()));
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            return;
+        }
         CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
     };
 
@@ -50,6 +54,7 @@ function TransactionStartDateStep() {
                 dateOption: dateOptionSelected,
                 startDate,
             },
+            isEditing: false,
         });
     };
 
