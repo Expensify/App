@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
@@ -44,6 +45,7 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
+    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName), [currentUserPersonalDetails]);
 
     const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         return {
@@ -143,7 +145,9 @@ function AccountSwitcher() {
                                 numberOfLines={1}
                                 style={[styles.textBold, styles.textLarge]}
                             >
-                                {currentUserPersonalDetails?.displayName}
+                                {processedTextArray.length !== 0
+                                    ? processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))
+                                    : currentUserPersonalDetails?.displayName}
                             </Text>
                             {canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>
