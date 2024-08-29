@@ -204,6 +204,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
      */
     const addAttendeeToSelection = useCallback(
         (option: Attendee) => {
+            console.log('OPTION: ', option);
             const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
                     return true;
@@ -277,7 +278,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                 {!isCategorizeOrShareAction && (
                     <Button
                         success
-                        text={translate('common.next')}
+                        text={translate('common.save')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
                         large

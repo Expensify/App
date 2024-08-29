@@ -29,7 +29,7 @@ type IOURequestStepAttendeesOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
-type IOURequestStepAttendeesProps = IOURequestStepAttendeesOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ATTENDEE>;
+type IOURequestStepAttendeesProps = IOURequestStepAttendeesOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
 
 function IOURequestStepAttendees({
     route,
@@ -40,7 +40,7 @@ function IOURequestStepAttendees({
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route?.params.transactionID || -1}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
     const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
@@ -55,7 +55,8 @@ function IOURequestStepAttendees({
         if (isEditing) {
             IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories);
         }
-    }, [attendees, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID]);
+        Navigation.goBack(backTo);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

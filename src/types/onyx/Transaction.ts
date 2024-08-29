@@ -348,6 +348,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The edited transaction amount */
         modifiedAmount?: number;
 
+        /** The edited attendees list */
+        modifiedAttendees?: Attendee[];
+
         /** The edited transaction date */
         modifiedCreated?: string;
 

@@ -1,7 +1,8 @@
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -160,8 +161,38 @@ function shouldUseTransactionDraft(action: IOUAction | undefined) {
     return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
 }
 
+function formatAttendeesTitle(attendees?: Attendee[]) {
+    if (!attendees) {
+        return '';
+    }
+    return attendees.length > 3
+        ? `${attendees
+              .slice(0, 3)
+              .map((item) => item.displayName ?? item.login)
+              .join(', ')}, ...`
+        : attendees.map((item) => item.displayName ?? item.login).join(', ');
+}
+
+function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
+    if (!currentUser) {
+        return;
+    }
+    const initialAttendee: Attendee = {
+        email: currentUser?.login,
+        displayName: currentUser.displayName,
+        avatarUrl: currentUser.avatar?.toString(),
+        accountID: currentUser.accountID,
+        text: currentUser.login,
+        selected: true,
+        reportID,
+    };
+
+    return [initialAttendee];
+}
+
 export {
     calculateAmount,
+    formatAttendeesTitle,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
@@ -170,4 +201,5 @@ export {
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
     temporary_isValidMoneyRequestType,
+    formatCurrentUserToAttendee,
 };

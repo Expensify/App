@@ -44,7 +44,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
-    | typeof SCREENS.MONEY_REQUEST.ATTENDEE;
+    | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 

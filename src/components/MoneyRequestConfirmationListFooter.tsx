@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -25,7 +26,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
 import MenuItem from './MenuItem';
@@ -63,6 +64,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The category of the IOU */
     iouCategory: string;
+
+    /** The list of attendees */
+    iouAttendees: Attendee[];
 
     /** The comment of the IOU */
     iouComment: string | undefined;
@@ -176,6 +180,7 @@ function MoneyRequestConfirmationListFooter({
     formattedAmount,
     formError,
     hasRoute,
+    iouAttendees,
     iouCategory,
     iouComment,
     iouCreated,
@@ -223,6 +228,7 @@ function MoneyRequestConfirmationListFooter({
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM), [policy?.id, policy?.type]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -265,6 +271,8 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    // console.log('INFO: ', Navigation.getActiveRouteWithoutParams());
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
@@ -493,6 +501,22 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key="attendees"
+                    shouldShowRightIcon
+                    title={IOUUtils.formatAttendeesTitle(iouAttendees)}
+                    description={translate('iou.attendees')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    interactive
+                />
+            ),
+            shouldShow: shouldShowAttendees,
             isSupplementary: true,
         },
         {

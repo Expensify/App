@@ -3413,6 +3413,10 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
         originalMessage.merchant = transactionChanges?.merchant;
     }
+    if ('attendees' in transactionChanges) {
+        originalMessage.oldAttendees = TransactionUtils.getAttendees(oldTransaction);
+        originalMessage.attendees = transactionChanges?.attendees?.map((item) => item.displayName ?? item.login).join(', ');
+    }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
     // to match how we handle the modified expense action in oldDot

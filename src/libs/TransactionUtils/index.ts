@@ -405,6 +405,14 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ */
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>): string {
+    const oldAttendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+    return oldAttendees.map((item) => item.displayName ?? item.login).join(', ');
+}
+
+/**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
 function getReimbursable(transaction: Transaction): boolean {
@@ -1081,6 +1089,7 @@ export {
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
+    getAttendees,
     getMerchant,
     getMCCGroup,
     getCreated,
