@@ -19,7 +19,7 @@ function withAnimation<PlatformSpecificNavigationOptions extends StackNavigation
         case 'none':
             return none as PlatformSpecificNavigationOptions;
         default:
-            return slideFromRight as PlatformSpecificNavigationOptions;
+            return {} as PlatformSpecificNavigationOptions;
     }
 }
 
