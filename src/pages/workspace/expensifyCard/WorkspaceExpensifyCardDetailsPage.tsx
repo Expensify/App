@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -57,7 +58,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         Card.openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
+    useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
@@ -115,31 +116,38 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.availableSpend')}
-                                title={formattedAvailableSpendAmount}
-                                interactive={false}
-                                titleStyle={styles.newKansasLarge}
-                                containerStyle={isOffline ? styles.buttonOpacityDisabled : null}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.expensifyCard.cardLimit')}
-                                title={formattedLimit}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.card.issueNewCard.limitType')}
-                                title={translationForLimitType ? translate(translationForLimitType) : ''}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.card.issueNewCard.cardName')}
-                                title={card?.nameValuePairs?.cardTitle}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
-                            />
+                            <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.availableSpend')}
+                                    title={formattedAvailableSpendAmount}
+                                    interactive={false}
+                                    titleStyle={styles.newKansasLarge}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.expensifyCard.cardLimit')}
+                                    title={formattedLimit}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.card.issueNewCard.limitType')}
+                                    title={translationForLimitType ? translate(translationForLimitType) : ''}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.card.issueNewCard.cardName')}
+                                    title={card?.nameValuePairs?.cardTitle}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
                                 icon={Expensicons.Trashcan}
                                 iconFill={theme.icon}
