@@ -79,6 +79,10 @@ export default {
         marginVertical: 16,
     },
 
+    mv4half: {
+        marginVertical: 18,
+    },
+
     mv5: {
         marginVertical: 20,
     },

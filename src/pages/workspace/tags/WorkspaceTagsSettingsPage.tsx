@@ -88,30 +88,26 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                 pendingAction={policy?.pendingFields?.requiresTag}
                 errorRowStyles={styles.mh5}
             >
-                <View style={[styles.mt2, styles.mh4]}>
-                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
-                        <Switch
-                            isOn={policy?.requiresTag ?? false}
-                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={updateWorkspaceRequiresTag}
-                            disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                        />
-                    </View>
+                <View style={[styles.flexRow, styles.mh5, styles.mv4half, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
+                    <Switch
+                        isOn={policy?.requiresTag ?? false}
+                        accessibilityLabel={translate('workspace.tags.requiresTag')}
+                        onToggle={updateWorkspaceRequiresTag}
+                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
+                    />
                 </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                 {canUseWorkspaceRules && policy?.areRulesEnabled && (
-                    <View style={[styles.mt2, styles.mh4]}>
-                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
-                            <Switch
-                                isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                                accessibilityLabel={translate('workspace.tags.trackBillable')}
-                                onToggle={() => toggleBillableExpenses(policy)}
-                                // disabled={policy?.disabledFields?.defaultBillable}
-                            />
-                        </View>
+                    <View style={[styles.flexRow, styles.mh5, styles.mv4half, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
+                        <Switch
+                            isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                            accessibilityLabel={translate('workspace.tags.trackBillable')}
+                            onToggle={() => toggleBillableExpenses(policy)}
+                            // disabled={policy?.disabledFields?.defaultBillable}
+                        />
                     </View>
                 )}
             </OfflineWithFeedback>
