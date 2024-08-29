@@ -33,10 +33,10 @@ jobs:
       - name: Checkout "Baseline" commit (prev merge commit)
         id: getBaselineRef
         run: |
-           previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
-           git checkout $previous_merge
-           echo $previous_merge
-           echo "BASELINE_REF=$previous_merge" >> "$GITHUB_OUTPUT"
+          previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
+          git checkout $previous_merge
+          echo $previous_merge
+          echo "BASELINE_REF=$previous_merge" >> "$GITHUB_OUTPUT"
 
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
