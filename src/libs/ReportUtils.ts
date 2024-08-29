@@ -5819,7 +5819,7 @@ function doesTransactionThreadHaveViolations(
     return (
         TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) ||
         TransactionUtils.hasWarningTypeViolation(IOUTransactionID, transactionViolations) ||
-        TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations)
+        (isPaidGroupPolicy(report) && TransactionUtils.hasModifiedAmountOrDateViolation(IOUTransactionID, transactionViolations))
     );
 }
 
