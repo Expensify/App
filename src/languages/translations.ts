@@ -12,7 +12,7 @@ import type {TranslationBase, TranslationFlatObject} from './types';
  */
 // Necessary to export so that it is accessible to the unit tests
 // eslint-disable-next-line rulesdir/no-inline-named-export
-export function flattenObject(obj: TranslationBase<typeof en>): TranslationFlatObject {
+export function flattenObject<T = typeof en>(obj: TranslationBase<T>): TranslationFlatObject {
     const result: Record<string, unknown> = {};
 
     const recursive = (data: TranslationBase<typeof en>, key: string): void => {

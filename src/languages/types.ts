@@ -96,7 +96,7 @@ type ReportArchiveReasonsRemovedFromPolicyParams = {
     shouldUseYou?: boolean;
 };
 
-type ReportArchiveReasonsPolicyDeletedParams = {
+type ReportPolicyNameParams = {
     policyName: string;
 };
 
@@ -421,9 +421,93 @@ type DisconnectTitleParams = {integration?: ConnectionName};
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
 
+type SelectedNumberParams = {selectedNumber: number};
+
 type LowerUpperParams = {lower: string; upper: string};
 
+type CategoryNameParams = {categoryName: string};
+
+type TaxAmountParams = {taxAmount: number};
+
+type SecondaryLoginParams = {secondaryLogin: string};
+
+type OwnerOwesAmountParams = {amount: number; email: string};
+
+type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
+
+type ChangeOwnerDuplicateSubscriptionParams = {email: string; workspaceName: string};
+
+type ChangeOwnerHasFailedSettlementsParams = {email: string};
+
+type ActionsAreCurrentlyRestricted = {workspaceName: string};
+
+type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
+
+type RenamedWorkspaceNameActionParams = {oldName: string; newName: string};
+
+type StatementTitleParams = {year: number; monthName: string};
+
+type BadgeFreeTrialParams = {numOfDays: number};
+
+type BillingBannerSubtitleWithDateParams = {date: string};
+
+type BillingBannerDisputePendingParams = {amountOwed: string; cardEnding: string};
+
+type BillingBannerCardAuthenticationRequiredParams = {cardEnding: string};
+
+type BillingBannerInsufficientFundsParams = {amountOwed: string};
+
+type BillingBannerCardExpiredParams = {amountOwed: string};
+
+type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string};
+
+type TrialStartedTitleParams = {numOfDays: number};
+
+type CardNextPaymentParams = {nextPaymentDate: string};
+
+type CardEndingParams = {cardNumber: string};
+
+type CardInfoParams = {name: string; expiration: string; currency: string};
+
+type YourPlanPriceParams = {lower: string; upper: string};
+
+type SubscriptionSizeParams = {size: number};
+
+type SubscriptionCommitmentParams = {size: number; date: string};
+
+type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
+
+type SubscriptionSettingsRenewsOnParams = {date: string};
+
 export type {
+    CardNextPaymentParams,
+    CardEndingParams,
+    CardInfoParams,
+    YourPlanPriceParams,
+    SubscriptionSizeParams,
+    SubscriptionCommitmentParams,
+    SubscriptionSettingsSaveUpToParams,
+    SubscriptionSettingsRenewsOnParams,
+    BadgeFreeTrialParams,
+    BillingBannerSubtitleWithDateParams,
+    BillingBannerDisputePendingParams,
+    BillingBannerCardAuthenticationRequiredParams,
+    BillingBannerInsufficientFundsParams,
+    BillingBannerCardExpiredParams,
+    BillingBannerCardOnDisputeParams,
+    TrialStartedTitleParams,
+    StatementTitleParams,
+    RenamedWorkspaceNameActionParams,
+    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    ActionsAreCurrentlyRestricted,
+    ChangeOwnerHasFailedSettlementsParams,
+    OwnerOwesAmountParams,
+    ChangeOwnerDuplicateSubscriptionParams,
+    ChangeOwnerSubscriptionParams,
+    SecondaryLoginParams,
+    TaxAmountParams,
+    CategoryNameParams,
+    SelectedNumberParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
@@ -482,7 +566,7 @@ export type {
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
-    ReportArchiveReasonsPolicyDeletedParams,
+    ReportPolicyNameParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
