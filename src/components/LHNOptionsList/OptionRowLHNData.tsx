@@ -78,6 +78,7 @@ function OptionRowLHNData({
         receiptTransactions,
         invoiceReceiverPolicy,
         shouldDisplayReportViolations,
+        lastMessageTextFromReport,
     ]);
 
     return (
