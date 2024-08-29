@@ -6,6 +6,7 @@ import type {
     OpenPolicyTagsPageParams,
     RenamePolicyTaglistParams,
     RenamePolicyTagsParams,
+    SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
     UpdatePolicyTagGLCodeParams,
@@ -846,6 +847,16 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
+function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
+    const parameters: SetPolicyTagApproverParams = {
+        policyID,
+        tagName: tag,
+        email: approver,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters);
+}
+
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -861,6 +872,7 @@ export {
     renamePolicyTaglist,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
+    setPolicyTagApprover,
 };
 
 export type {NewCustomUnit};

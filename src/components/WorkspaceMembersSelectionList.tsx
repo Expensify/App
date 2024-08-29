@@ -84,7 +84,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
+                data: filteredApprovers,
                 shouldShow: true,
             },
         ];

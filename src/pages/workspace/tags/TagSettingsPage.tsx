@@ -86,7 +86,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     };
 
     const navigateToEditTagApprover = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_APPROVER.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -155,17 +155,21 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         />
                     </OfflineWithFeedback>
 
-                    <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
-                        <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
-                    </View>
-                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
-                        <MenuItemWithTopDescription
-                            title="test"
-                            description={translate(`workspace.tags.approverDescription`)}
-                            onPress={navigateToEditTagApprover}
-                            shouldShowRightIcon
-                        />
-                    </OfflineWithFeedback>
+                    {policy?.areRulesEnabled && (
+                        <>
+                            <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
+                                <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
+                            </View>
+                            <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                                <MenuItemWithTopDescription
+                                    title="test"
+                                    description={translate(`workspace.tags.approverDescription`)}
+                                    onPress={navigateToEditTagApprover}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                        </>
+                    )}
 
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
