@@ -59,10 +59,6 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocused]);
-
-    useEffect(() => {
         if (isFocused) {
             return;
         }
@@ -86,6 +82,10 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
 
     // Include the search bar when there are 8 or more active members in the selection list
     const shouldShowTextInput = activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+
+    useEffect(() => {
+        setSearchValue(shouldShowTextInput ? SearchInputManager.searchInput : '');
+    }, [isFocused, shouldShowTextInput]);
 
     const getParticipants = () => {
         let result: MemberOption[] = [];

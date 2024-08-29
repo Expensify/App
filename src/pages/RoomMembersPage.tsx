@@ -71,10 +71,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
-    useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocusedScreen]);
-
     useEffect(
         () => () => {
             SearchInputManager.searchInput = '';
@@ -187,6 +183,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         });
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
     }, [participants, personalDetails, isOffline, report]);
+
+    useEffect(() => {
+        setSearchValue(shouldShowTextInput ? SearchInputManager.searchInput : '');
+    }, [isFocusedScreen, shouldShowTextInput]);
 
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
