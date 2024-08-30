@@ -16,8 +16,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-// type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ATTENDEE>;
-
 type IOURequestStepAttendeesOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;

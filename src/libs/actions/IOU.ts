@@ -2998,13 +2998,13 @@ function updateMoneyRequestMerchant(
 function updateMoneyRequestAttendees(
     transactionID: string,
     transactionThreadReportID: string,
-    value: Attendee[],
+    attendees: Attendee[],
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
-        attendees: value,
+        attendees,
     };
     const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     const {params, onyxData} = data;
