@@ -1221,10 +1221,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
 
                 value: {
-                    rules: {
-                        ...policy?.rules,
-                        expenseRules: updatedExpenseRules,
-                    },
                     pendingFields: {
                         rules: null,
                     },

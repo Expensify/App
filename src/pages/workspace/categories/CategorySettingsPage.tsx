@@ -85,7 +85,7 @@ function CategorySettingsPage({
     const approverText = useMemo(() => {
         const categoryApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName);
         return categoryApprover ?? '';
-    }, [categoryName, policy]);
+    }, [categoryName, policy?.rules?.approvalRules]);
 
     const defaultTaxRateText = useMemo(() => {
         const taxID = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName);
@@ -101,7 +101,7 @@ function CategorySettingsPage({
         }
 
         return CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
-    }, [categoryName, policy, translate]);
+    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
 
     const requireReceiptsOverText = useMemo(() => {
         if (!policy) {
