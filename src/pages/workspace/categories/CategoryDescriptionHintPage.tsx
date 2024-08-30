@@ -49,7 +49,7 @@ function CategoryDescriptionHintPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.descriptionHint')}
+                    title={translate('workspace.rules.categoryRules.descriptionHint')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <FormProvider

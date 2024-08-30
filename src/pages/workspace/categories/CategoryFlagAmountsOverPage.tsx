@@ -60,7 +60,7 @@ function CategoryFlagAmountsOverPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.flagAmountsOver')}
+                    title={translate('workspace.rules.categoryRules.flagAmountsOver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <FormProvider

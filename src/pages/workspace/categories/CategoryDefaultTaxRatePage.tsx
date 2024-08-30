@@ -64,7 +64,7 @@ function CategoryDefaultTaxRatePage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.defaultTaxRate')}
+                    title={translate('workspace.rules.categoryRules.defaultTaxRate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <SelectionList
