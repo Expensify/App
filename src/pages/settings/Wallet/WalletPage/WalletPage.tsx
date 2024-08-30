@@ -582,7 +582,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 />
                             </View>
                         )}
-                        <ConfirmModal
+                    </Popover>
+                    <ConfirmModal
                             isVisible={showConfirmDeleteModal}
                             onConfirm={() => {
                                 deletePaymentMethod();
@@ -597,7 +598,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                             danger
                             onModalHide={resetSelectedPaymentMethodData}
                         />
-                    </Popover>
                 </ScreenWrapper>
             )}
             <AddPaymentMethodMenu
