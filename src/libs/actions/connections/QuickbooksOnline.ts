@@ -252,6 +252,81 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineSyncPeople(policyID: string, settingValue: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: settingValue ?? null,
+                            pendingFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: settingValue ?? null,
+                            pendingFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: null,
+                            },
+                            errorFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: settingValue ?? null,
+                            pendingFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: null,
+                            },
+                            errorFields: {
+                                [CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE, parameters, {optimisticData, failureData, successData});
+}
+
 function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
@@ -492,6 +567,7 @@ export {
     updateQuickbooksOnlineAutoCreateVendor,
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineAutoSync,
+    updateQuickbooksOnlineSyncPeople,
     updateQuickbooksOnlineReimbursementAccountID,
     updateQuickbooksOnlinePreferredExporter,
 };
