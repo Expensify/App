@@ -2843,11 +2843,6 @@ export default {
             updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
-            requireDescription: 'Require description',
-            defaultTaxRate: 'Default tax rate',
-            flagAmountsOver: 'Flag amounts over',
-            descriptionHint: 'Description hint',
-            approver: 'Approver',
         },
         moreFeatures: {
             spendSection: {
@@ -3651,6 +3646,7 @@ export default {
             },
             categoryRules: {
                 title: 'Category rules',
+                approver: 'Approver',
                 requireDescription: 'Require description',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: (categoryName: string) =>
@@ -3674,6 +3670,8 @@ export default {
                     always: 'Always require receipts',
                 },
                 defaultTaxRate: 'Default tax rate',
+                goTo: 'Go to',
+                andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
         },
     },

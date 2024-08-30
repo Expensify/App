@@ -1343,19 +1343,6 @@ type PendingJoinRequestPolicy = {
     >;
 };
 
-type ExpenseRule = {
-    tax: {
-        field_id_TAX: {
-            externalID: string;
-        };
-    };
-    /** Set of conditions under which the expense rule should be applied */
-    applyWhen: ApplyRulesWhen[];
-
-    /** An id of the rule */
-    id?: string;
-};
-
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
@@ -1374,6 +1361,24 @@ type ApprovalRule = {
     approver: string;
 
     /** Set of conditions under which the approval rule should be applied */
+    applyWhen: ApplyRulesWhen[];
+
+    /** An id of the rule */
+    id?: string;
+};
+
+/** Expense rule data model */
+type ExpenseRule = {
+    /** Object containing information about the tax field id and its external identifier */
+    tax: {
+        /** Object wrapping the external tax id */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: {
+            /** The external id of the tax field. */
+            externalID: string;
+        };
+    };
+    /** Set of conditions under which the expense rule should be applied */
     applyWhen: ApplyRulesWhen[];
 
     /** An id of the rule */
