@@ -50,9 +50,8 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
-import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
-import type {AutoAuthState} from '@src/types/onyx/Session';
 import type Session from '@src/types/onyx/Session';
+import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -96,15 +95,6 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
-});
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
 });
 
 function isSupportAuthToken(): boolean {
@@ -432,13 +422,10 @@ function beginSignIn(email: string) {
  * Create Onyx update to clean up anonymous user data
  */
 function buildOnyxDataToCleanUpAnonymousUser() {
-    const anonAccountIDs = Object.values(allPersonalDetails ?? {})
-        .filter((detail) => detail?.login?.includes(CONST.EMAIL.ANONYMOUS_USER_DOMAIN) && detail?.accountID)
-        .map((detail) => detail?.accountID) as number[];
-    const data = anonAccountIDs.reduce((res, accountID) => {
-        res[accountID] = null;
-        return res;
-    }, {} as Record<number, null>);
+    const data: Record<string, null> = {};
+    if (session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
+        data[session.accountID] = null;
+    }
     return {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: data,
@@ -1082,39 +1069,39 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 export {
-    beginSignIn,
+    authenticatePusher,
     beginAppleSignIn,
     beginGoogleSignIn,
-    setSupportAuthToken,
+    beginSignIn,
+    canAnonymousUserAccessRoute,
     checkIfActionIsAllowed,
-    signIn,
-    signInWithValidateCode,
-    handleExitToNavigation,
-    signInWithValidateCodeAndNavigate,
-    initAutoAuthState,
-    signInWithShortLivedAuthToken,
     cleanupSession,
+    clearAccountMessages,
+    clearSignInData,
+    handleExitToNavigation,
+    hasAuthToken,
+    hasStashedSession,
+    initAutoAuthState,
+    invalidateAuthToken,
+    invalidateCredentials,
+    isAnonymousUser,
+    isSupportAuthToken,
+    reauthenticatePusher,
+    requestUnlinkValidationLink,
+    resendValidateCode,
+    resendValidationLink,
+    setAccountError,
+    setSupportAuthToken,
+    signIn,
+    signInWithShortLivedAuthToken,
+    signInWithSupportAuthToken,
+    signInWithValidateCode,
+    signInWithValidateCodeAndNavigate,
     signOut,
     signOutAndRedirectToSignIn,
-    resendValidationLink,
-    resendValidateCode,
-    requestUnlinkValidationLink,
-    unlinkLogin,
-    clearSignInData,
-    clearAccountMessages,
-    setAccountError,
-    authenticatePusher,
-    reauthenticatePusher,
-    invalidateCredentials,
-    invalidateAuthToken,
-    isAnonymousUser,
+    signUpUser,
     toggleTwoFactorAuth,
+    unlinkLogin,
     validateTwoFactorAuth,
     waitForUserSignIn,
-    hasAuthToken,
-    canAnonymousUserAccessRoute,
-    signInWithSupportAuthToken,
-    isSupportAuthToken,
-    hasStashedSession,
-    signUpUser,
 };
