@@ -1,8 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
-import React from 'react';
+import React, {useState} from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
+import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -36,6 +37,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
+import {KEYS_TO_PRESERVE} from './libs/actions/App';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -43,6 +45,9 @@ import type {Route} from './ROUTES';
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
+
+    /** Boolean passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
+    newSignIn?: boolean;
 };
 
 LogBox.ignoreLogs([
@@ -56,9 +61,15 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url}: AppProps) {
+function App({url, newSignIn}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    const [shouldClearOnyx, setShouldClearOnyx] = useState(!!newSignIn);
+    if (shouldClearOnyx) {
+        setShouldClearOnyx(false);
+        Onyx.clear(KEYS_TO_PRESERVE);
+    }
 
     return (
         <StrictModeWrapper>
