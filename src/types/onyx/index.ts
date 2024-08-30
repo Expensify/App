@@ -115,7 +115,6 @@ export type {
     Credentials,
     Currency,
     CurrencyList,
-    CardFeeds,
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,
@@ -222,4 +221,5 @@ export type {
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
     WorkspaceTooltip,
+    CardFeeds,
 };
