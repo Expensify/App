@@ -4827,5 +4827,23 @@ export default {
         date: 'Date',
         time: 'Time',
         none: 'None',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Has draft comment',
+            hasGBR: 'Has GBR',
+            pinnedByUser: 'Pinned by user',
+            isNonReimbursedIOU: 'Is non reimbursed IOU',
+            hasAddWorkspaceRoomErrors: 'Has add workspace room errors',
+            isUnread: 'Is unread (focus mode)',
+            isArchived: 'Is archived (most recent mode)',
+            isSelfDM: 'Is self DM',
+            isFocused: 'Is temporarily focused',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Has join request (admin room)',
+            isUnreadWithMention: 'Is unread with mention',
+            isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
+            hasChildReportAwaitingAction: 'Has child report awaiting action',
+            hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
+        },
     },
 } satisfies TranslationBase;

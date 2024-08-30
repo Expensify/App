@@ -38,7 +38,7 @@ type DebugDetailsProps = {
     validate: (key: never, value: string) => void;
 };
 
-function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
+function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);

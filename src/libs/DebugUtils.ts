@@ -1,9 +1,20 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch} from 'date-fns';
 import isValid from 'date-fns/isValid';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as IOU from './actions/IOU';
+import {hasValidDraftComment} from './DraftCommentUtils';
+import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -106,6 +117,56 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
+
+let isInFocusMode: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (priorityMode) => {
+        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        allTransactions = Object.keys(value)
+            .filter((key) => !!value[key])
+            .reduce((result: OnyxCollection<Transaction>, key) => {
+                if (result) {
+                    // eslint-disable-next-line no-param-reassign
+                    result[key] = value[key];
+                }
+                return result;
+            }, {});
+    },
+});
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+
+        allReportActions = actions ?? {};
+    },
+});
+
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
 
 function stringifyJSON(data: Record<string, unknown>) {
     return JSON.stringify(data, null, 6);
@@ -551,6 +612,164 @@ function validateReportActionJSON(json: string) {
     });
 }
 
+/**
+ * Gets the reason for showing LHN row
+ *
+ * @param report
+ * @returns translation key or null
+ */
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>): TranslationPaths | null {
+    if (!report) {
+        return null;
+    }
+
+    const isInDefaultMode = !isInFocusMode;
+
+    if (hasValidDraftComment(report.reportID)) {
+        return 'debug.reasonVisibleInLHN.hasDraftComment';
+    }
+
+    if (ReportUtils.requiresAttentionFromCurrentUser(report)) {
+        return 'debug.reasonVisibleInLHN.hasGBR';
+    }
+
+    if (report.isPinned) {
+        return 'debug.reasonVisibleInLHN.pinnedByUser';
+    }
+
+    const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+    if (ReportUtils.isExpenseRequest(report) && !reportIsSettled) {
+        return 'debug.reasonVisibleInLHN.isNonReimbursedIOU';
+    }
+
+    if (report.errorFields?.addWorkspaceRoom) {
+        return 'debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors';
+    }
+
+    if (isInFocusMode && ReportUtils.isUnread(report) && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
+        return 'debug.reasonVisibleInLHN.isUnread';
+    }
+
+    if (isInDefaultMode && ReportUtils.isArchivedRoom(report, ReportUtils.getReportNameValuePairs(report?.reportID))) {
+        return 'debug.reasonVisibleInLHN.isArchived';
+    }
+
+    if (ReportUtils.isSelfDM(report)) {
+        return 'debug.reasonVisibleInLHN.isSelfDM';
+    }
+
+    return 'debug.reasonVisibleInLHN.isFocused';
+}
+
+/**
+ * Gets the reason that is causing the GBR to show up in LHN row
+ *
+ * @param report
+ * @param parentReportAction
+ * @returns translation key or null
+ */
+function getReasonForShowingGreenDotInLHNRow(report: OnyxEntry<Report>, parentReportAction?: ReportAction): TranslationPaths | null {
+    if (!report) {
+        return null;
+    }
+
+    if (ReportUtils.isJoinRequestInAdminRoom(report)) {
+        return 'debug.reasonGBR.hasJoinRequest';
+    }
+
+    if (ReportUtils.isUnreadWithMention(report)) {
+        return 'debug.reasonGBR.isUnreadWithMention';
+    }
+
+    if (ReportUtils.isWaitingForAssigneeToCompleteAction(report, parentReportAction)) {
+        return 'debug.reasonGBR.isWaitingForAssigneeToCompleteAction';
+    }
+
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (report.hasOutstandingChildRequest) {
+        return 'debug.reasonGBR.hasChildReportAwaitingAction';
+    }
+
+    const invoiceRoomReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const hasMissinginvoiceBankAccountInInvoiceRoom =
+        ReportUtils.isInvoiceRoom(report) &&
+        Object.values(invoiceRoomReportActions).some(
+            (reportAction) =>
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && ReportUtils.hasMissingInvoiceBankAccount(reportAction.childReportID),
+        );
+    if (ReportUtils.hasMissingInvoiceBankAccount(report.reportID) || hasMissinginvoiceBankAccountInInvoiceRoom) {
+        return 'debug.reasonGBR.hasMissingInvoiceBankAccount';
+    }
+
+    return null;
+}
+
+/**
+ * Gets the report action that is causing the GBR to show up in LHN
+ *
+ * @param report
+ * @param reportActions
+ * @returns report action
+ */
+function getGBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+    if (!report) {
+        return undefined;
+    }
+
+    if (ReportUtils.isJoinRequestInAdminRoom(report)) {
+        return Object.values(reportActions ?? {}).find(
+            (reportActionItem) =>
+                ReportActionsUtils.isActionableJoinRequest(reportActionItem) && ReportActionsUtils.getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
+        );
+    }
+
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (report.hasOutstandingChildRequest) {
+        return Object.values(reportActions ?? {}).find((action) => {
+            const iouReport = ReportUtils.getReportOrDraftReport(action.childReportID ?? '-1');
+            const policy = PolicyUtils.getPolicy(iouReport?.policyID);
+            const shouldShowSettlementButton = IOU.canIOUBePaid(iouReport, report, policy) || IOU.canApproveIOU(iouReport, policy);
+            return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
+        });
+    }
+
+    return undefined;
+}
+
+/**
+ * Gets the report action that is causing the RBR to show up in LHN
+ *
+ * Based on OptionListUtils.getAllReportErrors
+ *
+ * @param report
+ * @param reportActions
+ * @returns report action
+ */
+function getRBRReportAction(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+    const parentReportAction: OnyxEntry<ReportAction> =
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
+
+    const reportActionsValues = Object.values(reportActions ?? {});
+
+    // TODO: This branch is never reached because parentReportAction is undefined
+    if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
+            return undefined;
+        }
+    } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
+        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !ReportUtils.isSettled(report?.reportID)) {
+            return ReportUtils.getReportActionWithMissingSmartscanFields(report?.reportID ?? '-1');
+        }
+    } else if (ReportUtils.hasSmartscanError(reportActionsValues)) {
+        return ReportUtils.getReportActionWithSmartscanError(reportActionsValues);
+    }
+
+    return reportActionsValues.find((action) => action && !isEmptyObject(action.errors));
+}
+
 const DebugUtils = {
     stringifyJSON,
     onyxDataToDraftData,
@@ -568,6 +787,10 @@ const DebugUtils = {
     validateReportDraftProperty,
     validateReportActionDraftProperty,
     validateReportActionJSON,
+    getReasonForShowingRowInLHN,
+    getReasonForShowingGreenDotInLHNRow,
+    getGBRReportAction,
+    getRBRReportAction,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };
