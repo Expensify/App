@@ -138,6 +138,7 @@ export default {
         attachment: 'Archivo adjunto',
         from: 'De',
         to: 'A',
+        in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
         center: 'Centrar',

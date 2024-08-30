@@ -5329,6 +5329,7 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            IN: 'in',
             HAS: 'has',
         },
     },
