@@ -162,7 +162,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             />
                             <DecisionModal
                                 title={translate('common.youAppearToBeOffline')}
-                                prompt={translate('search.offlinePrompt')}
+                                prompt={translate('common.offlinePrompt')}
                                 isSmallScreenWidth={isSmallScreenWidth}
                                 onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
                                 secondOptionText={translate('common.buttonConfirm')}

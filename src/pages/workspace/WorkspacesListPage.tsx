@@ -308,7 +308,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
         if (isEmptyObject(policies)) {
             return [];
         }
