@@ -15,7 +15,7 @@ type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamLi
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
     // TODO correct Onyx flag should be defined in separate PR for "Pending State with No Other Feeds"
-    const isFeedAdded = true;
+    const isFeedAdded = false;
 
     return (
         <AccessOrNotFoundWrapper
