@@ -1,4 +1,3 @@
-import {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FeatureList from '@components/FeatureList';
@@ -8,12 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import colors from '@styles/theme/colors';
 import * as CompanyCards from '@userActions/CompanyCards';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 const companyCardFeatures: FeatureListItem[] = [
     {
@@ -30,18 +28,15 @@ const companyCardFeatures: FeatureListItem[] = [
     },
 ];
 
-type WorkspaceCompanyCardPageEmptyStateProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>;
-
-function WorkspaceCompanyCardPageEmptyState({route}: WorkspaceCompanyCardPageEmptyStateProps) {
+function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const policyID = route.params.policyID ?? '-1';
 
     const startFlow = useCallback(() => {
         CompanyCards.clearAddNewCardFlow();
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
-    }, [policyID]);
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy?.id ?? '-1'));
+    }, [policy?.id]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
