@@ -7729,10 +7729,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
 }
 
 function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report)
-        && report?.hasParentAccess === false
-        && report?.managerID === currentUserAccountID
-        && isProcessingReport(report);
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
 }
 
 export {
