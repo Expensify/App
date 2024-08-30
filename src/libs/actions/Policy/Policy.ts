@@ -2141,6 +2141,11 @@ function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[])
 }
 
 function openDraftWorkspaceRequest(policyID: string) {
+    if (policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+        Log.warn('openDraftWorkspaceRequest invalid params', {policyID});
+        return;
+    }
+
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
@@ -2590,6 +2595,26 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[movedReportAction.reportActionID]: null},
+    });
+
+    // We know that this new workspace has no BankAccount yet, so we can set
+    // the reimbursement account to be immediately in the setup state for a new bank account:
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        value: {
+            isLoading: false,
+            achData: {
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                policyID,
+                subStep: '',
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     });
 
     const params: CreateWorkspaceFromIOUPaymentParams = {

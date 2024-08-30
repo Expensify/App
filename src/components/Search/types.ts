@@ -63,6 +63,7 @@ type SearchQueryAST = {
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     filters: ASTNode;
+    policyID?: string;
 };
 
 type SearchQueryJSON = {
