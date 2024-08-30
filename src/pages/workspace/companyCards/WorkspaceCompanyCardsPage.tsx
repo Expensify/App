@@ -8,11 +8,14 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
+    // TODO correct Onyx flag should be defined in separate PR for "Pending State with No Other Feeds"
+    const isFeedAdded = false;
 
     return (
         <AccessOrNotFoundWrapper
@@ -20,14 +23,15 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <WorkspacePageWithSections
-                shouldUseScrollView
+                shouldUseScrollView={!isFeedAdded}
                 icon={Illustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <WorkspaceCompanyCardPageEmptyState route={route} />
+                {!isFeedAdded && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                {isFeedAdded && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
