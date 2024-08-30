@@ -27,88 +27,87 @@ import type {CardList, PersonalDetailsList} from '@src/types/onyx';
 
 const baseFilterConfig = {
     date: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.date' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
     },
     currency: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
     },
     merchant: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.merchant' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
     },
     description: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.description' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
     },
     reportID: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.reportID' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
     },
     amount: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.total' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
     },
     category: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.category' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
     },
     keyword: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.hasKeywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
     },
     cardID: {
-        title: getFilterCardDisplayTitle,
+        getTitle: getFilterCardDisplayTitle,
         description: 'common.card' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
-        shouldHide: (cards: CardList) => Object.keys(cards).length === 0,
     },
     taxRate: {
-        title: getFilterTaxRateDisplayTitle,
+        getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
     },
     expenseType: {
-        title: getExpenseTypeDisplayTitle,
+        getTitle: getExpenseTypeDisplayTitle,
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
     },
     tag: {
-        title: getFilterDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.tag' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
     },
     from: {
-        title: getFilterParticipantDisplayTitle,
+        getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
     },
     to: {
-        title: getFilterParticipantDisplayTitle,
+        getTitle: getFilterParticipantDisplayTitle,
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
     },
     has: {
-        title: getFilterHasDisplayTitle,
+        getTitle: getFilterHasDisplayTitle,
         description: 'search.filters.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
     },
 };
 
 const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to'],
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to'],
-    [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'to', 'has'],
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -260,15 +259,18 @@ function AdvancedSearchFilters() {
             key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
             key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
         ) {
-            filterTitle = baseFilterConfig[key].title(searchAdvancedFilters, key, translate);
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filterTitle = baseFilterConfig[key].title(searchAdvancedFilters, cardList);
+            if (Object.keys(cardList).length === 0) {
+                return undefined;
+            }
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            filterTitle = baseFilterConfig[key].title(searchAdvancedFilters, taxRates);
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filterTitle = baseFilterConfig[key].title(searchAdvancedFilters, translate);
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filterTitle = baseFilterConfig[key].title(searchAdvancedFilters[key] ?? [], personalDetails);
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
         }
         return {
             key,
@@ -283,6 +285,9 @@ function AdvancedSearchFilters() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     {filters.map((filter) => {
+                        if (filter === undefined) {
+                            return undefined;
+                        }
                         return (
                             <MenuItemWithTopDescription
                                 key={filter.description}
