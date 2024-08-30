@@ -2,7 +2,6 @@ import React, {createContext, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
-import * as App from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
@@ -22,7 +21,6 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         if (url) {
             signInAfterTransitionFromOldDot(url);
             setInitialURL(url);
-            App.openApp();
             return;
         }
         Linking.getInitialURL().then((initURL) => {
