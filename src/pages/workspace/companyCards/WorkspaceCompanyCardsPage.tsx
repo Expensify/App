@@ -88,7 +88,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 {!isFeedAdded && <WorkspaceCompanyCardPageEmptyState route={route} />}
                 {isFeedAdded && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <WorkspaceCompanyCardPageEmptyState route={route} />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
