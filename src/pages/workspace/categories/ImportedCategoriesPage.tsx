@@ -26,7 +26,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader} = spreadsheet ?? {};
-    const [errors, setErrors] = useState<Errors>({});
+    const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -54,30 +54,30 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        const newErrors: Errors = {};
+        let newErrors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
                     newErrors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
-                    setErrors(newErrors);
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
                 newErrors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
-                setErrors(newErrors);
             } else {
-                setErrors({});
+                newErrors = {};
             }
         }
+        return newErrors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importCategories = useCallback(() => {
-        validate();
-        if (Object.keys(errors).length > 0) {
+        setIsValidationEnabled(true);
+        const currentErrors = validate();
+        if (Object.keys(currentErrors).length > 0) {
             return;
         }
 
@@ -99,7 +99,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             setIsImportingCategories(true);
             importPolicyCategories(policyID, categories);
         }
-    }, [validate, errors, spreadsheet, containsHeader, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyID]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
@@ -119,7 +119,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
                 importFunction={importCategories}
-                errors={errors}
+                errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
                 headerText={translate('workspace.categories.importedCategoriesMessage')}
