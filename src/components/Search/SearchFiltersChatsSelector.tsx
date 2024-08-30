@@ -103,14 +103,24 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        const areResultsFound = areOptionsInitialized && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
+        const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
         const message = areResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, chatOptions.personalDetails, chatOptions.recentReports, cleanSearchTerm, personalDetails, selectedOptions, selectedReportIDs, translate]);
+    }, [
+        areOptionsInitialized,
+        chatOptions.personalDetails,
+        chatOptions.recentReports,
+        cleanSearchTerm,
+        didScreenTransitionEnd,
+        personalDetails,
+        selectedOptions,
+        selectedReportIDs,
+        translate,
+    ]);
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
