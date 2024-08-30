@@ -58,6 +58,13 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
+    useEffect(
+        () => () => {
+            SearchInputManager.searchInput = '';
+        },
+        [],
+    );
+
     useEffect(() => {
         if (isFocused) {
             return;
