@@ -341,7 +341,7 @@ function getPersonalDetailsLength() {
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
-        return userDetails[nameToDisplay] ?? userDetails.login;
+        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
     }
     return email;
 }
