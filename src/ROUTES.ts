@@ -943,10 +943,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/settings/feed-name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name` as const,
     },
-    WORKSPACE_COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY: {
-        route: 'settings/workspaces/:policyID/company-cards/settings/transaction-liability',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/transaction-liability` as const,
-    },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,

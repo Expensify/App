@@ -514,9 +514,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY.route,
-                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },

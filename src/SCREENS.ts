@@ -368,7 +368,6 @@ const SCREENS = {
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
-        COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY: 'Workspace_CompanyCards_Settings_Transaction_Liability',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',

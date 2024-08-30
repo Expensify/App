@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -9,6 +9,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ToggleSettingOptionRow from "@pages/workspace/workflows/ToggleSettingsOptionRow";
 
 type WorkspaceCompanyCardsSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -41,27 +44,22 @@ function WorkspaceCompanyCardsSettingsPage({
     const feedName = cardFeeds?.companyCardNicknames[lastSelectedFeed] ?? '';
     const liabilityType = cardFeeds?.companyCards[lastSelectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
-    const liabilityTypeTitle = isPersonal ? translate('workspace.moreFeatures.companyCards.personal') : translate('workspace.moreFeatures.companyCards.corporate');
 
-    const menuItems = useMemo(
-        () => [
-            {
-                title: feedName,
-                description: translate('workspace.moreFeatures.companyCards.cardFeedName'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID)),
-            },
-            {
-                title: !liabilityType ? undefined : liabilityTypeTitle,
-                description: translate('workspace.moreFeatures.companyCards.cardFeedTransaction'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_TRANSACTION_LIABILITY.getRoute(policyID)),
-            },
-        ],
-        [feedName, translate, liabilityType, liabilityTypeTitle, policyID],
-    );
+    const navigateToChangeFeedName = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
+    };
 
     const deleteCompanyCardFeed = () => {
         Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, lastSelectedFeed);
         Navigation.goBack();
+    };
+
+    const onToggleLiability = (isOn: boolean) => {
+        Policy.setWorkspaceCompanyCardTransactionLiability(
+            workspaceAccountID,
+            lastSelectedFeed,
+            isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
+        );
     };
 
     return (
@@ -76,17 +74,23 @@ function WorkspaceCompanyCardsSettingsPage({
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
-                        {menuItems.map((item) => (
-                            <MenuItemWithTopDescription
-                                key={item.description}
-                                shouldShowRightIcon
-                                title={item.title}
-                                description={item.description}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                onPress={item.action}
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={feedName}
+                            description={translate('workspace.moreFeatures.companyCards.cardFeedName')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={navigateToChangeFeedName}
+                        />
+                        <View style={[styles.mv3, styles.mh5]}>
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.moreFeatures.companyCards.personal')}
+                                switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
+                                onToggle={onToggleLiability}
+                                isActive={isPersonal}
                             />
-                        ))}
+                            <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
+                        </View>
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
