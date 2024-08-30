@@ -173,9 +173,12 @@ function MoneyRequestAmountInput(
                 ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
                 : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
 
+            // We should skip updating the amount if the currency symbol is invalid or we paste the amount with currency for only a part of amount
+            const shouldSkip = newCurrencySymbol && (!newCurrency || selection.end - selection.start < amount.length - 1);
+
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, newDecimals) || (newCurrencySymbol && (!newCurrency || selection.end - selection.start < amount.length - 1))) {
+            if (!MoneyRequestUtils.validateAmount(finalAmount, newDecimals) || shouldSkip) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
