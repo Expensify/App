@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 // import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -82,7 +83,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             >
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]} />
+                <WorkspaceCompanyCardPageEmptyState route={route} />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );

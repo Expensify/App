@@ -34,6 +34,7 @@ const WRITE_COMMANDS = {
     UPDATE_EXPENSIFY_CARD_LIMIT: 'UpdateExpensifyCardLimit',
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
     UPDATE_EXPENSIFY_CARD_LIMIT_TYPE: 'UpdateExpensifyCardLimitType',
+    CARD_DEACTIVATE: 'Card_Deactivate',
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
@@ -375,6 +376,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: Parameters.UpdateExpensifyCardLimitParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE]: Parameters.UpdateExpensifyCardLimitTypeParams;
+    [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP]: Parameters.AddPaymentCardParams;
@@ -837,6 +839,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
+    CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
+    DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -853,6 +857,8 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP]: Parameters.AddPaymentCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE]: Parameters.ConnectAsDelegateParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE]: EmptyObject;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
