@@ -10,33 +10,49 @@ index fb4260f..6a89639 100644
 +        IOS_FROM_RIGHT,
 +        IOS_FROM_LEFT,
      }
- 
+
      enum class ReplaceAnimation {
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-index 4b520d1..2b098c5 100644
+index 4b520d1..f327719 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-@@ -160,7 +160,8 @@ class ScreenStack(
+@@ -160,7 +160,16 @@ class ScreenStack(
                                  R.anim.rns_no_animation_medium,
                              )
                          StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_fade_from_bottom, R.anim.rns_no_animation_350)
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
-+                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
-+                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
++                        StackAnimation.IOS_FROM_RIGHT ->
++                            it.setCustomAnimations(
++                                R.anim.rns_ios_foreground_slide_from_right,
++                                R.anim.rns_ios_background_slide_from_right
++                            )
++                        StackAnimation.IOS_FROM_LEFT ->
++                            it.setCustomAnimations(
++                                R.anim.rns_ios_foreground_slide_from_left,
++                                R.anim.rns_ios_background_slide_from_left
++                            )
                      }
                  } else {
                      when (stackAnimation) {
-@@ -183,7 +184,8 @@ class ScreenStack(
+@@ -183,7 +192,16 @@ class ScreenStack(
                                  R.anim.rns_slide_out_to_bottom,
                              )
                          StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_no_animation_250, R.anim.rns_fade_to_bottom)
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
-+                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
-+                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
++                        StackAnimation.IOS_FROM_RIGHT ->
++                        it.setCustomAnimations(
++                                R.anim.rns_ios_foreground_slide_from_left,
++                                R.anim.rns_ios_background_slide_from_left
++                            )
++                        StackAnimation.IOS_FROM_LEFT ->
++                        it.setCustomAnimations(
++                                R.anim.rns_ios_foreground_slide_from_right,
++                                R.anim.rns_ios_background_slide_from_right
++                            )
                      }
                  }
              }
-@@ -373,6 +375,7 @@ class ScreenStack(
+@@ -373,6 +391,7 @@ class ScreenStack(
              Build.VERSION.SDK_INT >= 33 ||
                  fragmentWrapper.screen.stackAnimation === StackAnimation.SLIDE_FROM_BOTTOM ||
                  fragmentWrapper.screen.stackAnimation === StackAnimation.FADE_FROM_BOTTOM ||
@@ -59,6 +75,22 @@ index 99e88f6..ec4be76 100644
                  else -> throw JSApplicationIllegalArgumentException("Unknown animation type $animation")
              }
      }
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_left.xml
+similarity index 100%
+rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_left.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_right.xml
+similarity index 100%
+rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_right.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_left.xml
+similarity index 100%
+rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_left.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_right.xml
+similarity index 100%
+rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_right.xml
 diff --git a/node_modules/react-native-screens/ios/RNSConvert.mm b/node_modules/react-native-screens/ios/RNSConvert.mm
 index 2acf655..c0c3128 100644
 --- a/node_modules/react-native-screens/ios/RNSConvert.mm
@@ -194,7 +226,7 @@ index ce96e8e..f16c8e6 100644
 +- `"ios_from_right"` - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
 +- `"ios_from_left"` - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
  - `none` - the screen appears/disappears without an animation.
- 
+
  Defaults to `default`.
 diff --git a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
 index 71c2251..6a9fd9d 100644
@@ -207,9 +239,9 @@ index 71c2251..6a9fd9d 100644
 -  | 'ios';
 +  | 'ios_from_right'
 +  | 'ios_from_left';
- 
+
  type SwipeDirection = 'vertical' | 'horizontal';
- 
+
 diff --git a/node_modules/react-native-screens/src/native-stack/types.tsx b/node_modules/react-native-screens/src/native-stack/types.tsx
 index 5ad3184..5ca46bd 100644
 --- a/node_modules/react-native-screens/src/native-stack/types.tsx
@@ -248,104 +280,6 @@ index f83ad56..6ddd3d0 100644
     * - "none" – the screen appears/dissapears without an animation
     */
    stackAnimation?: StackAnimationTypes;
-diff --git a/node_modules/react-native-screens/windows/.gitignore b/node_modules/react-native-screens/windows/.gitignore
-new file mode 100644
-index 0000000..4ea0c7b
---- /dev/null
-+++ b/node_modules/react-native-screens/windows/.gitignore
-@@ -0,0 +1,92 @@
-+*AppPackages*
-+*BundleArtifacts*
-+
-+#OS junk files
-+[Tt]humbs.db
-+*.DS_Store
-+
-+#Visual Studio files
-+*.[Oo]bj
-+*.user
-+*.aps
-+*.pch
-+*.vspscc
-+*.vssscc
-+*_i.c
-+*_p.c
-+*.ncb
-+*.suo
-+*.tlb
-+*.tlh
-+*.bak
-+*.[Cc]ache
-+*.ilk
-+*.log
-+*.lib
-+*.sbr
-+*.sdf
-+*.opensdf
-+*.opendb
-+*.unsuccessfulbuild
-+ipch/
-+[Oo]bj/
-+[Bb]in
-+[Dd]ebug*/
-+[Rr]elease*/
-+Ankh.NoLoad
-+
-+# Visual C++ cache files
-+ipch/
-+*.aps
-+*.ncb
-+*.opendb
-+*.opensdf
-+*.sdf
-+*.cachefile
-+*.VC.db
-+*.VC.VC.opendb
-+
-+#MonoDevelop
-+*.pidb
-+*.userprefs
-+
-+#Tooling
-+_ReSharper*/
-+*.resharper
-+[Tt]est[Rr]esult*
-+*.sass-cache
-+
-+#Project files
-+[Bb]uild/
-+
-+#Subversion files
-+.svn
-+
-+# Office Temp Files
-+~$*
-+
-+# vim Temp Files
-+*~
-+
-+#NuGet
-+packages/
-+*.nupkg
-+
-+#ncrunch
-+*ncrunch*
-+*crunch*.local.xml
-+
-+# visual studio database projects
-+*.dbmdl
-+
-+#Test files
-+*.testsettings
-+
-+#Other files
-+*.DotSettings
-+.vs/
-+*project.lock.json
-+
-+#Files generated by the VS build
-+**/Generated Files/**
-+
 diff --git a/node_modules/react-native-screens/windows/RNScreens/Screen.h b/node_modules/react-native-screens/windows/RNScreens/Screen.h
 index fd02641..7abf426 100644
 --- a/node_modules/react-native-screens/windows/RNScreens/Screen.h
@@ -358,5 +292,5 @@ index fd02641..7abf426 100644
 +  IOS_FROM_RIGHT,
 +  IOS_FROM_LEFT
  };
- 
+
  enum class ReplaceAnimation { PUSH, POP };
