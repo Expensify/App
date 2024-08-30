@@ -33,15 +33,6 @@ function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected
     return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT;
 }
 
-function performAction(policyID: string, categoryName: string, value: number | null) {
-    if (typeof value === 'number') {
-        Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, value);
-        return;
-    }
-
-    Category.removePolicyCategoryReceiptsRequired(policyID, categoryName);
-}
-
 function CategoryRequireReceiptsOverPage({
     route: {
         params: {policyID, categoryName},
@@ -102,7 +93,11 @@ function CategoryRequireReceiptsOverPage({
                     sections={[{data: requireReceiptsOverListData}]}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        performAction(policyID, categoryName, item.value);
+                        if (typeof item.value === 'number') {
+                            Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value);
+                        } else {
+                            Category.removePolicyCategoryReceiptsRequired(policyID, categoryName);
+                        }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     shouldSingleExecuteRowSelect

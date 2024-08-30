@@ -41,7 +41,7 @@ function ExpenseLimitTypeSelector({defaultValue, wrapperStyle, label, setNewExpe
     };
 
     const title = translate(`workspace.rules.categoryRules.expenseLimitTypes.${defaultValue}`);
-    const descStyle = title.length === 0 ? styles.textNormal : null;
+    const descStyle = !title ? styles.textNormal : null;
 
     return (
         <View>
