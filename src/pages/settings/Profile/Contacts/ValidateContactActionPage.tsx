@@ -21,7 +21,7 @@ function ValidateContactActionPage() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const loginData = loginList?.[pendingContactAction?.contactMethod ?? '']
+    const loginData = loginList?.[pendingContactAction?.contactMethod ?? ''];
 
     useEffect(() => {
         if(!loginData || !!loginData.pendingFields?.addedLogin) {

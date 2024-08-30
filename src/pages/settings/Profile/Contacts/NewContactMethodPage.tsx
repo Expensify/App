@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -30,6 +30,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 type NewContactMethodPageOnyxProps = {
     /** Login list for the user that is signed in */
     loginList: OnyxEntry<LoginList>;
+
+    /** The details about the account that the user signed in with */
     account: OnyxEntry<Account>;
 };
 
@@ -39,6 +41,7 @@ function NewContactMethodPage({loginList, route, account}: NewContactMethodPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -48,11 +51,18 @@ function NewContactMethodPage({loginList, route, account}: NewContactMethodPageP
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
             const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-            User.saveNewContactMethodAndValidateAction(submitDetail);
-            Navigation.navigate(ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION);
+            User.saveNewContactMethodAndRequestValidationCode(submitDetail);
         },
         [route.params?.backTo],
     );
+
+    useEffect(() => {
+        if (!pendingContactAction?.validateCodeSent) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION);
+    }, [pendingContactAction]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {

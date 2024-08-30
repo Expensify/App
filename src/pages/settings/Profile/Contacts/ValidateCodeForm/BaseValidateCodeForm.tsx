@@ -56,10 +56,10 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
-    /**Whether we are validating the action taken to add the magic code */
+    /** Whether we are validating the action taken to add the magic code */
     isValidatingAction?: boolean;
 
-    /**The contact that's going to be added after the validation */
+    /** The contact that's going to be added after successful validation */
     pendingContact?: PendingContactAction;
 };
 
@@ -183,7 +183,7 @@ function BaseValidateCodeForm({
         setFormError({});
 
         if (!!pendingContact?.contactMethod && isValidatingAction) {
-            User.addNewContactMethodAndNavigate(pendingContact?.contactMethod, validateCode);
+            User.addNewContactMethod(pendingContact?.contactMethod, validateCode);
             return;
         }
 

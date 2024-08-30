@@ -291,7 +291,7 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
 /**
  * Validates the action to add secondary contact method
  */
-function saveNewContactMethodAndValidateAction(contactMethod: string) {
+function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -305,6 +305,11 @@ function saveNewContactMethodAndValidateAction(contactMethod: string) {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {isLoading: true}
         }
     ];
 
@@ -320,7 +325,12 @@ function saveNewContactMethodAndValidateAction(contactMethod: string) {
                 pendingFields: {
                     actionVerified: null,
                 },
-            },
+            }
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {isLoading: false}
         }
     ];
 
@@ -329,6 +339,7 @@ function saveNewContactMethodAndValidateAction(contactMethod: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
+                validateCodeSent: null,
                 errorFields: {
                     actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                 },
@@ -336,6 +347,16 @@ function saveNewContactMethodAndValidateAction(contactMethod: string) {
                     actionVerified: null,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {
+                isLoading: false,
+                errorFields: {
+                    ctionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                }
+            }
         }
     ];
 
@@ -345,7 +366,7 @@ function saveNewContactMethodAndValidateAction(contactMethod: string) {
 /**
  * Adds a secondary login to a user's account
  */
-function addNewContactMethodAndNavigate(contactMethod: string, validateCode = '') {
+function addNewContactMethod(contactMethod: string, validateCode = '') {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -385,6 +406,7 @@ function addNewContactMethodAndNavigate(contactMethod: string, validateCode = ''
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
+                validateCodeSent: null,
                 errorFields: {
                     actionVerified: null,
                 },
@@ -1202,7 +1224,7 @@ export {
     updateNewsletterSubscription,
     deleteContactMethod,
     clearContactMethodErrors,
-    addNewContactMethodAndNavigate,
+    addNewContactMethod,
     validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
@@ -1223,5 +1245,5 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndValidateAction,
+    saveNewContactMethodAndRequestValidationCode,
 };
