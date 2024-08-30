@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Header from '@components/Header';
@@ -82,7 +83,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
                 )}
 
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>{children}</View>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter, styles.gap4]}>{children}</View>
             </View>
         </View>
     );
@@ -167,9 +168,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 }
 
                 const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
-                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
-                    setDownloadErrorModalOpen?.();
-                });
+                SearchActions.exportSearchItemsToCSV(
+                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
+                    () => {
+                        setDownloadErrorModalOpen?.();
+                    },
+                );
             },
         });
 
@@ -257,6 +261,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
 
         return options;
     }, [
+        queryJSON,
         status,
         selectedTransactionsKeys,
         selectedTransactions,
@@ -304,9 +309,14 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
-                    style={styles.ml2}
                 />
             )}
+            <Button
+                text={translate('search.filtersHeader')}
+                icon={Expensicons.Filters}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                medium
+            />
         </HeaderWrapper>
     );
 }

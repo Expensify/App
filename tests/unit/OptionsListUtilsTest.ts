@@ -297,24 +297,6 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_WORKSPACE: OnyxCollection<Report> = {
-        ...REPORTS,
-        '15': {
-            lastReadTime: '2021-01-14 11:25:39.295',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
-            isPinned: false,
-            isChatRoom: false,
-            reportID: '15',
-            participants: {
-                1: {},
-                2: {},
-            },
-            reportName: 'Test Workspace',
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        },
-    };
-
     const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
         ...REPORTS,
         15: {
@@ -411,7 +393,6 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACE: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
@@ -419,7 +400,6 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_WORKSPACE = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE);
     });
 
     it('getSearchOptions()', () => {
@@ -2638,12 +2618,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports.length).toBe(4);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
             expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
         it('should filter users by email', () => {
@@ -2692,7 +2671,7 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);
         });
 
@@ -2742,17 +2721,6 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
-        });
-
-        it('should return the workspaces that match the participant login', () => {
-            const searchText = 'reedrichards@expensify.com';
-
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-
-            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
-
-            expect(recentReportsNames).toContain('Test Workspace');
         });
 
         it('should return limited amount of recent reports if the limit is set', () => {
