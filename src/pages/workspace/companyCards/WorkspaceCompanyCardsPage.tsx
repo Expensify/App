@@ -10,8 +10,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 
 const mockedFeeds: CardFeeds = {
     companyCards: {
@@ -78,12 +79,15 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 includeSafeAreaPaddingBottom
                 showLoadingAsFirstRender={false}
             >
-                <WorkspaceCompanyCardPageEmptyState route={route} />
-                <WorkspaceCompanyCardsList
-                    cardsList={cardsList}
-                    policyID={policyID}
-                    selectedFeed={selectedFeed}
-                />
+                {isEmptyObject(cardFeeds?.companyCards) ? (
+                    <WorkspaceCompanyCardPageEmptyState route={route} />
+                ) : (
+                    <WorkspaceCompanyCardsList
+                        cardsList={cardsList}
+                        policyID={policyID}
+                        selectedFeed={selectedFeed}
+                    />
+                )}
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
