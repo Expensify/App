@@ -5097,11 +5097,6 @@ const styles = (theme: ThemeColors) =>
             height: 188,
         },
 
-        emptyStateCardIllustration: {
-            width: 164,
-            height: 190,
-        },
-
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
