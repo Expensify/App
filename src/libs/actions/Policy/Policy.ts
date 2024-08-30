@@ -2151,7 +2151,11 @@ function openDraftWorkspaceRequest(policyID: string) {
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
-function requestExpensifyCardLimitIncrease(settlementBankAccountID: string) {
+function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
+    if (!settlementBankAccountID) {
+        return;
+    }
+
     const authToken = NetworkStore.getAuthToken();
 
     const params: RequestExpensifyCardLimitIncreaseParams = {
