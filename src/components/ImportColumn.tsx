@@ -161,7 +161,7 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         isSelected: spreadsheet?.columns[columnIndex] === item.value,
     }));
 
-    const columnValuesString = column.join(', ');
+    const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
     const colName = findColumnName(column[0]);
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
