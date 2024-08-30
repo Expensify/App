@@ -51,9 +51,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
-    const [containsHeader, setContainsHeader] = useState(false);
+    const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
@@ -87,7 +88,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importMembers = useCallback(() => {
-        validate();
+        setIsValidationEnabled(true);
+
+        const errors = validate();
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
+
         const columns = Object.values(spreadsheet?.columns ?? {});
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
@@ -127,14 +134,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
-                containsHeader={containsHeader}
-                setContainsHeader={setContainsHeader}
                 columnNames={columnNames}
                 importFunction={importMembers}
-                errors={validate()}
+                errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImporting}
                 headerText={translate('workspace.people.importedMembersMessage', spreadsheetColumns?.length)}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
 
             <ConfirmModal
