@@ -141,4 +141,4 @@ type PaginatedRequest = Request &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData};

@@ -3,6 +3,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
+import type {ConflictActionData} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -115,7 +116,7 @@ describe('SequentialQueue', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        const conflicyResolver = (persistedRequests: Request[]) => {
+        const conflicyResolver = (persistedRequests: Request[]): ConflictActionData => {
             // should be one instance of ReconnectApp, get the index to replace it later
             const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
             if (index === -1) {
