@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
