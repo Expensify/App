@@ -10,9 +10,12 @@ const readFromOnyxDatabase = () =>
         const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
 
         db.executeAsync(query, []).then(({rows}) => {
-            // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-unsafe-member-access
-            const result = rows?._array.map((row) => ({[row?.record_key]: JSON.parse(row?.valueJSON as string) as unknown}));
-
+            // eslint-disable-next-line no-underscore-dangle
+            const result = rows?._array.reduce<Record<string, unknown>>((acc, row) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                acc[row?.record_key] = JSON.parse(row?.valueJSON as string) as unknown;
+                return acc;
+            }, {});
             resolve(result);
         });
     });
