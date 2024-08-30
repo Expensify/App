@@ -23,141 +23,119 @@
 
 // global initializer (code executed only once)
 {{
-  function buildFilter(operator, left, right) {
-    return { operator, left, right };
-  }
-}}
-
-// per-parser initializer (code executed before every parse)
-{
-  const defaultValues = {
-    type: "expense",
-    status: "all",
-    sortBy: "date",
-    sortOrder: "desc",
-  };
-
-  function applyDefaults(filters) {
-    return {
-      ...defaultValues,
-      filters,
+    function buildFilter(operator, left, right) {
+      return { operator, left, right };
+    }
+  }}
+  
+  // per-parser initializer (code executed before every parse)
+  {
+    const defaultValues = {
+      type: "expense",
+      status: "all",
+      sortBy: "date",
+      sortOrder: "desc",
     };
+  
+    function applyDefaults(filters) {
+      return {
+        ...defaultValues,
+        filters,
+      };
+    }
+  
+    function updateDefaultValues(field, value) {
+      defaultValues[field] = value;
+    }
   }
-
-  function updateDefaultValues(field, value) {
-    defaultValues[field] = value;
-  }
-}
-
-query = _ filters:filterList? _ { return applyDefaults(filters); }
-
-filterList
-  = head:filter tail:(logicalAnd filter)* {
-      const allFilters = [head, ...tail.map(([_, filter]) => filter)]
-        .filter((filter) => filter !== null)
-        .filter(Boolean);
-      if (!allFilters.length) {
-        return null;
-      }
-
-      const keywords = allFilters.filter(
-        (filter) =>
-          filter.left === "keyword" || filter.right?.left === "keyword"
-      );
-      const nonKeywords = allFilters.filter(
-        (filter) =>
-          filter.left !== "keyword" && filter.right?.left !== "keyword"
-      );
-
-      if (!nonKeywords.length) {
-        return keywords.reduce((result, filter) =>
-          buildFilter("or", result, filter)
+  
+  query = _ filters:filterList? _ { return applyDefaults(filters); }
+  
+  filterList
+    = head:filter tail:(logicalAnd filter)* {
+        const allFilters = [head, ...tail.map(([_, filter]) => filter)]
+          .filter((filter) => filter !== null)
+          .filter(Boolean);
+        if (!allFilters.length) {
+          return null;
+        }
+  
+        const keywords = allFilters.filter(
+          (filter) =>
+            filter.left === "keyword" || filter.right?.left === "keyword"
+        );
+        const nonKeywords = allFilters.filter(
+          (filter) =>
+            filter.left !== "keyword" && filter.right?.left !== "keyword"
+        );
+  
+        if (!nonKeywords.length) {
+          return keywords.reduce((result, filter) =>
+            buildFilter("or", result, filter)
+          );
+        }
+        if (!keywords.length) {
+          return nonKeywords.reduce((result, filter) =>
+            buildFilter("and", result, filter)
+          );
+        }
+  
+        return buildFilter(
+          "and",
+          keywords.reduce((result, filter) => buildFilter("or", result, filter)),
+          nonKeywords.reduce((result, filter) =>
+            buildFilter("and", result, filter)
+          )
         );
       }
-      if (!keywords.length) {
-        return nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        );
+  
+  filter
+    = @(
+        defaultFilter
+        / standardFilter
+        / freeTextFilter
+      )
+  
+  defaultFilter
+    = _ key:defaultKey _ op:operator _ value:identifier {
+        updateDefaultValues(key, value);
       }
-
-      return buildFilter(
-        "and",
-        keywords.reduce((result, filter) => buildFilter("or", result, filter)),
-        nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        )
-      );
-    }
-
-filter
-  = @(
-      policyIDFilter
-      / quotedStringFilter
-      / standardFilter
-      / defaultFilter
-      / multiSelectFilter
-      / freeTextFilter
-    )
-
-defaultFilter
-  = _ key:defaultKey _ op:operator _ value:identifier {
-      updateDefaultValues(key, value.trim());
-    }
-
-freeTextFilter
-  = _ value:identifier _ { return buildFilter("eq", "keyword", value.trim()); }
-
-quotedStringFilter
-  = _ field:key _ op:operator _ value:quotedString { return buildFilter(op, field, value); }
-
-multiSelectFilter
-  = _ field:multiselectKey _ op:operator _ value:identifier {
-      return buildFilter(op, field, value);
-    }
-
-standardFilter
-  = _ field:key _ op:operator _ value:identifier {
-  	  return buildFilter(op, field, value);
-    }
-
-policyIDFilter "policyID filter"
-  = _ field:"policyID" _ op:operator _ value:identifier {
-      updateDefaultValues(field, value.trim());
-    }
-
-operator "operator"
-  = (":" / "=") { return "eq"; }
-  / "!=" { return "neq"; }
-  / ">=" { return "gte"; }
-  / ">" { return "gt"; }
-  / "<=" { return "lte"; }
-  / "<" { return "lt"; }
-
-key "key"
-  = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword")
-
-defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder")
-
-multiselectKey "multiselect key"
-  = @(
-      "in"
-      / "currency"
-      / "tag"
-      / "category"
-      / "to"
-      / "taxRate"
-      / "cardID"
-      / "from"
-      / "expenseType"
-    )
-
-identifier = parts:(quotedString / alphanumeric)+ { return parts.join(""); }
-
-quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
-
-alphanumeric "word"
-  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(""); }
-
-logicalAnd = _ { return "and"; }
-
-_ "whitespace" = [ \t\r\n]*
+  
+  freeTextFilter
+    = _ value:identifier _ { return buildFilter("eq", "keyword", value); }
+  
+  standardFilter
+    = _ field:key _ op:operator _ value:identifier {
+          return buildFilter(op, field, value);
+      }
+      
+  operator "operator"
+    = (":" / "=") { return "eq"; }
+    / "!=" { return "neq"; }
+    / ">=" { return "gte"; }
+    / ">" { return "gt"; }
+    / "<=" { return "lte"; }
+    / "<" { return "lt"; }
+  
+  key "key"
+    = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword" / "in" / "currency" / "tag" / "category" / "to" / "taxRate" / "cardID" / "from" / "expenseType")
+  
+  defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
+  
+  identifier = parts:(quotedString / alphanumeric)+ {
+      const value = parts.flat(); 
+      if (value.length > 1) {
+          return value;
+      }
+      return value[0];
+  }
+  
+  quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join("").trim(); }
+  
+  alphanumeric "word"
+    = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join("").trim().split(",").filter(val => val); }
+  
+  logicalAnd = _ { return "and"; }
+  
+  _ "whitespace" = [ \t\r\n]*
+  

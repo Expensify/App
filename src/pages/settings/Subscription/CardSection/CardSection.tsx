@@ -172,7 +172,7 @@ function CardSection() {
                     />
                 )}
 
-                {!!account?.hasPurchases && (
+                {/* {!!account?.hasPurchases && ( */}
                     <MenuItem
                         shouldShowRightIcon
                         icon={Expensicons.History}
@@ -182,7 +182,7 @@ function CardSection() {
                         onPress={viewPurchases}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
-                )}
+                {/* )} */}
 
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
