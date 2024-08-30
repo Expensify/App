@@ -186,10 +186,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workflowsPage.emptyContent.title')}
                 subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
+                subtitleStyle={styles.textSupporting}
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.textSupporting, styles.pb10],
     );
 
     return (

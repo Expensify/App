@@ -238,10 +238,11 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workflowsPage.emptyContent.title')}
                 subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
+                subtitleStyle={styles.textSupporting}
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.textSupporting, styles.pb10],
     );
 
     return (
