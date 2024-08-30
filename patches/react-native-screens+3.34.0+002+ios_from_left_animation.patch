@@ -13,7 +13,7 @@ index fb4260f..6a89639 100644
 
      enum class ReplaceAnimation {
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-index 4b520d1..f327719 100644
+index 4b520d1..6f5580c 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
 @@ -160,7 +160,16 @@ class ScreenStack(
@@ -23,13 +23,13 @@ index 4b520d1..f327719 100644
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
 +                        StackAnimation.IOS_FROM_RIGHT ->
 +                            it.setCustomAnimations(
-+                                R.anim.rns_ios_foreground_slide_from_right,
-+                                R.anim.rns_ios_background_slide_from_right
++                                R.anim.rns_ios_from_right_foreground_open,
++                                R.anim.rns_ios_from_right_background_open,
 +                            )
 +                        StackAnimation.IOS_FROM_LEFT ->
 +                            it.setCustomAnimations(
-+                                R.anim.rns_ios_foreground_slide_from_left,
-+                                R.anim.rns_ios_background_slide_from_left
++                                R.anim.rns_ios_from_left_foreground_open,
++                                R.anim.rns_ios_from_left_background_open,
 +                            )
                      }
                  } else {
@@ -40,14 +40,14 @@ index 4b520d1..f327719 100644
                          StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_no_animation_250, R.anim.rns_fade_to_bottom)
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
 +                        StackAnimation.IOS_FROM_RIGHT ->
-+                        it.setCustomAnimations(
-+                                R.anim.rns_ios_foreground_slide_from_left,
-+                                R.anim.rns_ios_background_slide_from_left
++                            it.setCustomAnimations(
++                                R.anim.rns_ios_from_right_foreground_close,
++                                R.anim.rns_ios_from_right_background_close,
 +                            )
 +                        StackAnimation.IOS_FROM_LEFT ->
-+                        it.setCustomAnimations(
-+                                R.anim.rns_ios_foreground_slide_from_right,
-+                                R.anim.rns_ios_background_slide_from_right
++                            it.setCustomAnimations(
++                                R.anim.rns_ios_from_left_foreground_close,
++                                R.anim.rns_ios_from_left_background_close,
 +                            )
                      }
                  }
@@ -75,22 +75,68 @@ index 99e88f6..ec4be76 100644
                  else -> throw JSApplicationIllegalArgumentException("Unknown animation type $animation")
              }
      }
-diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_left.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_close.xml
 similarity index 100%
 rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml
-rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_left.xml
-diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_right.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_close.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml
+new file mode 100644
+index 0000000..11a8d45
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="0%"
++    android:toXDelta="30%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml
+new file mode 100644
+index 0000000..2cb6237
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="0%"
++    android:toXDelta="-100%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml
+new file mode 100644
+index 0000000..394ac66
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="-100%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml
+new file mode 100644
+index 0000000..66a611f
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="-30%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_open.xml
 similarity index 100%
 rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml
-rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_background_slide_from_right.xml
-diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_left.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_open.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_close.xml
 similarity index 100%
 rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml
-rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_left.xml
-diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_right.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_close.xml
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_open.xml
 similarity index 100%
 rename from node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml
-rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_foreground_slide_from_right.xml
+rename to node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_open.xml
 diff --git a/node_modules/react-native-screens/ios/RNSConvert.mm b/node_modules/react-native-screens/ios/RNSConvert.mm
 index 2acf655..c0c3128 100644
 --- a/node_modules/react-native-screens/ios/RNSConvert.mm
