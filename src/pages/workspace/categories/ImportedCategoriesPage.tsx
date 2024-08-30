@@ -54,30 +54,30 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let newErrors: Errors = {};
+        let errors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    newErrors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                newErrors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
-                newErrors = {};
+                errors = {};
             }
         }
-        return newErrors;
+        return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);
-        const currentErrors = validate();
-        if (Object.keys(currentErrors).length > 0) {
+        const errors = validate();
+        if (Object.keys(errors).length > 0) {
             return;
         }
 

@@ -136,9 +136,6 @@ type ImportColumnProps = {
     /** It is an array of all values in specific column */
     column: string[];
 
-    /** Whether column contains header (user choice) */
-    containsHeader: boolean;
-
     /** It is column[0] when containsHeader = true or it is Column A, B, C,... otherwise */
     columnName: string;
 
@@ -149,10 +146,11 @@ type ImportColumnProps = {
     columnIndex: number;
 };
 
-function ImportColumn({column, containsHeader, columnName, columnRoles, columnIndex}: ImportColumnProps) {
+function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     const options: Array<DropdownOption<string>> = columnRoles.map((item) => ({
         text: item.text,
