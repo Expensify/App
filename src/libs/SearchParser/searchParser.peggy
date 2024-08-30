@@ -43,12 +43,35 @@
     };
   }
 
+  function applyPolicyID(filtersWithDefaults) {
+    return {
+      ...filtersWithDefaults,
+      policyID: filtersWithDefaults.policyID
+    };
+  }
+
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
+
+  function isDefaultField(field) {
+    return defaultValues.hasOwnProperty(field);
+  }
+
+  function isPolicyID(field) {
+    return field === 'policyID';
+  }
 }
 
-query = _ filters:filterList? _ { return applyDefaults(filters); }
+query
+  = _ filters:filterList? _ {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  }
 
 filterList
   = head:filter tail:(logicalAnd filter)* {
@@ -58,49 +81,31 @@ filterList
       if (!allFilters.length) {
         return null;
       }
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
+     const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+     if(!nonKeywords.length){
+     	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
+     }
+     if(!keywords.length){
+     	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
+     }
 
-      const keywords = allFilters.filter(
-        (filter) =>
-          filter.left === "keyword" || filter.right?.left === "keyword"
-      );
-      const nonKeywords = allFilters.filter(
-        (filter) =>
-          filter.left !== "keyword" && filter.right?.left !== "keyword"
-      );
+     return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
 
-      if (!nonKeywords.length) {
-        return keywords.reduce((result, filter) =>
-          buildFilter("or", result, filter)
-        );
-      }
-      if (!keywords.length) {
-        return nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        );
-      }
-
-      return buildFilter(
-        "and",
-        keywords.reduce((result, filter) => buildFilter("or", result, filter)),
-        nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        )
-      );
-
-      return allFilters.reduce((result, filter) =>
-        buildFilter("and", result, filter)
-      );
+      return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     }
 
-filter = @(standardFilter / defaultFilter / multiSelectFilter / freeTextFilter)
+filter
+  = _ field:key? _ op:operator? _ value:identifier {
+      if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
 
-defaultFilter
-  = _ key:defaultKey _ op:operator _ value:identifier {
-      updateDefaultValues(key, value.trim());
-    }
-
-freeTextFilter
-  = _ value:identifier _ { return buildFilter("eq", "keyword", value.trim()); }
+      if (isPolicyID(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
 
 multiSelectFilter
   = _ field:multiselectKey _ op:operator _ value:identifier {
@@ -125,35 +130,31 @@ operator
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
   / "<=" { return "lte"; }
-  / "<" { return "lt"; }
 
-key "key"
-  = @(
-      "date"
-      / "amount"
-      / "expenseType"
-      / "merchant"
-      / "description"
-      / "reportID"
-      / "keyword"
-    )
+key
+  = "type" { return "type"; }
+  / "status" { return "status"; }
+  / "date" { return "date"; }
+  / "amount" { return "amount"; }
+  / "expenseType" { return "expenseType"; }
+  / "in" { return "in"; }
+  / "currency" { return "currency"; }
+  / "merchant" { return "merchant"; }
+  / "description" { return "description"; }
+  / "from" { return "from"; }
+  / "to" { return "to"; }
+  / "category" { return "category"; }
+  / "tag" { return "tag"; }
+  / "taxRate" { return "taxRate"; }
+  / "cardID" { return "cardID"; }
+  / "reportID" { return "reportID"; }
+  / "keyword" { return "keyword"; }
+  / "sortBy" { return "sortBy"; }
+  / "sortOrder" { return "sortOrder"; }
+  / "policyID" { return "policyID"; }
 
-defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder")
-
-multiselectKey "multiselect key"
-  = @(
-      "in"
-      / "currency"
-      / "tag"
-      / "category"
-      / "to"
-      / "taxRate"
-      / "cardID"
-      / "from"
-      / "has"
-    )
-
-identifier = parts:(quotedString / alphanumeric)+ { return parts.join(""); }
+identifier
+ = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
 
 quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 
