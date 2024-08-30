@@ -20,7 +20,6 @@ import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
-import {SearchContextProvider} from './components/Search/SearchContext';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
