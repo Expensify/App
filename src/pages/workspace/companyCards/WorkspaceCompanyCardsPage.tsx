@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
+import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 
 const mockedFeeds: CardFeeds = {
     companyCards: {
@@ -77,6 +78,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 includeSafeAreaPaddingBottom
                 showLoadingAsFirstRender={false}
             >
+                <WorkspaceCompanyCardPageEmptyState route={route} />
                 <WorkspaceCompanyCardsList
                     cardsList={cardsList}
                     policyID={policyID}
