@@ -4,59 +4,95 @@ description: Connect Expensify to QuickBooks Desktop
 order: 1
 ---
 # Overview
-To connect Expensify to QuickBooks Desktop, use Right Networks as the hosting platform if possible. Right Networks is a cloud-based service that was built specifically for this integration. If you need a Right Networks account, complete [this form](https://info.rightnetworks.com/partner-expensify) to start the process.
-
-**A couple of notes before connecting QuickBooks Desktop to Expensify:**
-- Make sure you're logged into QuickBooks Desktop as an admin
-- Check that the company file you want to connect Expensify to is the only one open
-
+QuickBooks Desktop is an accounting package developed by Intuit. It is designed for small and medium-sized businesses to help them manage their financial and accounting tasks. You can connect Expensify to QuickBooks Desktop to make expense management seamless.
 
 # Connect to QuickBooks Desktop
 
-## Step 1: Set up submitters in QuickBooks Desktop
-- Make sure all report submitters are set up as Vendors in QuickBooks Desktop and their Expensify email is in the "Main Email" field of their Vendor record. You can do this in the vendor section of QuickBooks.
-- If you want to export reports to your users' employee records instead of vendor records, select Check or Journal Entry as your reimbursable export option.
-- To set up Expensify users as employees, activate QuickBooks Desktop Payroll. This module is necessary to access the Employee Profile tab, where you can enter the submitter's email addresses.
-  
-## Step 2: Enable/install the Expensify Sync Manager
-1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**
-2. Click **Connect to QuickBooks Desktop** to initiate the connection
+{% include info.html %}
+To connect QuickBooks Desktop to Expensify, you must log into QuickBooks Desktop as an Admin, and the company file that you want to connect to Expensify must be the only one that is open. 
+{% include end-info.html %}
 
-**Option 1: Enable the Expensify Sync Manager in Right Networks (recommended)**
-- For this option, **single-user mode** in QuickBooks Desktop is required.
-- If you don't have an account with Right Networks, you can contact Right Networks [here](https://info.rightnetworks.com/partner-expensify)
-- Once set up, you can enable the Expensify Sync Manager from the **My Account** section in Right Networks' portal
+1. In Expensify, hover over **Settings** and click on **Workspaces**.
+2. Select the workspace you want to connect to QuickBooks Desktop.
+3. Click the **Connections** tab. 
+4. Click **Connect to QuickBooks Desktop**. 
+5. Click Copy to copy the link, then paste the link into the computer where QuickBooks Desktop is running.
 
-**Option 2: Install the Expensify Sync Manager on Your Third-Party Remote Desktop.**
-To download the Sync Manager to your desktop, you must contact your third-party remote desktop provider and request permission. They might have security restrictions, so it's best to communicate with them directly to avoid potential problems with the Sync Manager. Remember that the Sync Manager program file should be stored in the same location (i.e., the same drive) as your QuickBooks Desktop program.
+     ![QuickBooks Desktop Setup pop-up link, containing the URL to paste](https://help.expensify.com/assets/images/QBO_desktop_01.png){:width="100%"}
 
-## Step 3: Complete the connection
-1. Open QuickBooks and access the desired Company File using the QuickBooks Admin credentials (admin credentials are necessary for creating the connection)
-2. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**
-3. Copy the Token by selecting the copy icon
-4. While QuickBooks is still running, launch the Expensify Sync Manager by pasting the Token into the Sync Manager
-5. Click **Save**
-6. Once the Sync Manager status displays **Connected**, return to Expensify and click **Continue**
+6. Select the version of QuickBooks Desktop that you currently have.
 
-## Step 4: Allow access
-1. Return to QuickBooks where you'll see an **Application Certificate** screen
-   - On the first page of the Certificate screen, click **Yes, always; allow access even if QuickBooks is not running**
-3. Click **Continue**
-4. On the second page of the Certificate screen, choose the Admin user from the dropdown menu
-5. Click **Done**
-7. Return to Expensify and wait for the sync to complete
+    ![The Web Connnector Pop-up to allow you to select the type of QuickBooks Desktop you have](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 
-{% include faq-begin.md %}
+7. Download the Web Connector and go through the guided installation process.
+8. Open the Web Connector. 
+9. Click on **Add an Application**. 
 
-## After connecting, how do I sync QuickBooks and Expensify?
-1. Confirm that both the Expensify Sync Manager and QuickBooks Desktop are running
-2. On the Expensify website, navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**, and click **Sync now**
-3. Wait for the sync to complete
+    ![The Web Connnector Pop-up where you will need to click on Add an Application](https://help.expensify.com/assets/images/QBO_desktop_03.png){:width="100%"}
 
-Typically, this takes about 2-5 minutes, but it might take longer, depending on when you last synced and the size of your QuickBooks company file. The page will refresh automatically once syncing is complete.
+{% include info.html %}
+For this step, it is key to ensure that the correct company file is open in QuickBooks Desktop and that it is the only one open.
+{% include end-info.html %}
 
-We recommend syncing at least once a week or whenever you make changes in QuickBooks Desktop that could impact how your reports export from Expensify. Changes could include adjustments to your Chart of Accounts, Vendors, Employees, Customers/Jobs, or Items. 
+10. In QuickBooks Desktop, select **"Yes, always allow access, even when QuickBooks is not running"** and click **Continue**. 
 
-Remember, both the Sync Manager and QuickBooks Desktop need to be running for syncing or exporting to work.
+    ![The QuickBooks Desktop pop-up, where you will need to select "Yes, always allow access, even when QuickBooks is not running"](https://help.expensify.com/assets/images/QBO_desktop_04.png){:width="100%"}
 
-{% include faq-end.md %}
+11. Click **OK**, then click **Yes**.
+
+    ![The QuickBooks Desktop pop-up, where you will need to click "Ok" then select "Yes"](https://help.expensify.com/assets/images/QBO_desktop_05.png){:width="100%"}
+
+12. Click **Copy** to copy the password.
+
+    ![The Web Connector pop-up, where you will need to click "Copy"](https://help.expensify.com/assets/images/QBO_desktop_06.png){:width="100%"}
+
+13. Paste the password into the Password field of the Web Connector and press **Enter**.
+
+    ![The Web Connector pop-up, where you will need to paste the password into the password field](https://help.expensify.com/assets/images/QBO_desktop_08.png){:width="100%"}
+
+14. Click **Yes** to save the password. The new connection now appears in the Web Connector.
+
+    ![The Web Connector pop-up, where you will need to click "Yes"](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
+
+# FAQ
+
+## What are the hardware and software requirements for the QuickBooks Desktop connector?
+
+- Hardware requirements: You will need to ensure that the host machine meets [Intuit's recommended specifications](https://quickbooks.intuit.com/learn-support/en-us/help-article/install-products/system-requirements-quickbooks-desktop-2022/L9664spDA_US_en_US) for running QuickBooks Desktop.
+- Software requirements: Windows 10 or Windows 11 with the latest service pack(s) installed. Users have successfully run the connector on older versions of Windows; however, we do not officially support this due to Microsoft's withdrawal of support for these operating systems. The web connector will not run on Mac OS.
+
+## What versions of QuickBooks Desktop are supported?
+
+Expensify’s QuickBooks Desktop integration follows [Intuit’s service discontinuation policy](https://quickbooks.intuit.com/learn-support/en-us/help-article/feature-preferences/quickbooks-desktop-service-discontinuation-policy/L17cXxlie_US_en_US) for QuickBooks Desktop and fully supports the following versions, version tiers, and special editions:
+
+- The latest three versions of:
+
+    - QuickBooks Desktop (US)
+    - QuickBooks Desktop (Canada)
+
+- Version tiers:
+
+    - Accountant
+    - Pro
+    - Pro Plus
+    - Premier
+    - Premier Plus
+    - Enterprise
+
+- Special editions:
+
+    - Contractor edition
+    - Manufacturing and Wholesale edition
+    - Accountant edition
+    - Professional Services edition
+    - Nonprofit edition
+
+## Can multiple QuickBooks Desktop Connectors be installed on the same machine?
+
+Yes. You must have one connector per company file, but you can install multiple QuickBooks Desktop Connectors to sync multiple company files to Expensify from the same computer. 
+
+If syncing multiple companies, make sure you’re logged in to the correct QuickBooks company file when syncing between QuickBooks and Expensify.
+
+## Can I export negative expenses?
+
+Generally, yes. However, if you have Check selected as your export option, the report’s total cannot be negative. This also applies to non-reimbursable expenses exported as debit card transactions. Because QuickBooks Desktop does not have debit card functionality, the transactions export as a non-reimbursable check, which must have a positive total amount. 

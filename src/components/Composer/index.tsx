@@ -282,7 +282,7 @@ function Composer(
             return;
         }
 
-        const currentText = textInput.current.innerText;
+        const currentText = textInput.current.value;
         textInput.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web

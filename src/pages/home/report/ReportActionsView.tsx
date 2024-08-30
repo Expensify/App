@@ -436,8 +436,8 @@ function ReportActionsView({
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
-        Timing.end(CONST.TIMING.SWITCH_REPORT_THREAD);
-        Timing.end(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
+        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
     }, [hasCachedActionOnFirstRender]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -555,12 +555,12 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
             key: ONYXKEYS.SESSION,
         },
         transactionThreadReportActions: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? -1}`,
             canEvict: false,
             selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         },
         transactionThreadReport: {
-            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`,
             initialValue: {} as OnyxTypes.Report,
         },
     })(MemoizedReportActionsView),
