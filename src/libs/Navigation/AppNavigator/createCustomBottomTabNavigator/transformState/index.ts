@@ -1,6 +1,5 @@
 import type {EventMapBase, ParamListBase} from '@react-navigation/native';
-import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
