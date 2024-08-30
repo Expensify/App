@@ -56,7 +56,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
         },
     ];
-    const activeItemIndex = typeMenuItems.findIndex((item) => item.type === type);
+    const activeItemIndex = isCustomQuery ? -1 : typeMenuItems.findIndex((item) => item.type === type);
 
     if (shouldUseNarrowLayout) {
         const title = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : undefined;
