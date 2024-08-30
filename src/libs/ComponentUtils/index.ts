@@ -1,4 +1,4 @@
-import type {TextInput} from 'react-native';
+import type {Component} from 'react';
 import type {AnimatedRef} from 'react-native-reanimated';
 import type {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
 
@@ -9,10 +9,13 @@ const PASSWORD_AUTOCOMPLETE_TYPE: PasswordAutocompleteType = 'current-password';
 const NEW_PASSWORD_AUTOCOMPLETE_TYPE: NewPasswordAutocompleteType = 'new-password';
 const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'form';
 
-function forceClearInput(animatedInputRef: AnimatedRef<TextInput>) {
+function forceClearInput(animatedInputRef: AnimatedRef<Component>) {
     'worklet';
 
-    animatedInputRef.current?.clear();
+    const input = animatedInputRef.current;
+    if (input && 'clear' in input && typeof input.clear === 'function') {
+        input.clear();
+    }
 }
 
 export {PASSWORD_AUTOCOMPLETE_TYPE, ACCESSIBILITY_ROLE_FORM, NEW_PASSWORD_AUTOCOMPLETE_TYPE, forceClearInput};
