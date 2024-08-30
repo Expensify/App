@@ -92,7 +92,6 @@ function App({url}: AppProps) {
                             VolumeContextProvider,
                             VideoPopoverMenuContextProvider,
                             KeyboardProvider,
-                            SearchContextProvider,
                         ]}
                     >
                         <CustomStatusBarAndBackground />
