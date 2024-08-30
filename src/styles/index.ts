@@ -5177,11 +5177,6 @@ const styles = (theme: ThemeColors) =>
             height: 112,
         },
 
-        emptyCompanyCardsFolderBG: {
-            backgroundColor: theme.emptyCompanyCardsBG,
-            justifyContent: 'flex-start',
-        },
-
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,

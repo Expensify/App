@@ -4,6 +4,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 function WorkspaceCompanyCardsFeedAddedEmptyPage() {
@@ -15,7 +16,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage() {
             SkeletonComponent={TableListItemSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={Illustrations.CompanyCardsEmptyState}
-            headerStyles={styles.emptyCompanyCardsFolderBG}
+            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
             headerContentStyles={styles.emptyStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
             subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
