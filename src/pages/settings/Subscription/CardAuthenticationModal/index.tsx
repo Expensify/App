@@ -6,11 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
@@ -26,7 +24,6 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const onModalClose = useCallback(() => {
         setIsVisible(false);
         PaymentMethods.clearPaymentCard3dsVerification();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     }, []);
 
     useEffect(() => {
