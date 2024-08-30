@@ -12,30 +12,32 @@ index fb4260f..9d08d39 100644
 
      enum class ReplaceAnimation {
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-index 4b520d1..9aa4974 100644
+index 4b520d1..2a920f8 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
-@@ -160,7 +160,8 @@ class ScreenStack(
+@@ -160,7 +160,9 @@ class ScreenStack(
                                  R.anim.rns_no_animation_medium,
                              )
                          StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_fade_from_bottom, R.anim.rns_no_animation_350)
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
++                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_open, R.anim.rns_ios_from_right_background_open)
 +                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_open, R.anim.rns_ios_from_right_background_open)
 +                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_ios_from_left_foreground_open, R.anim.rns_ios_from_left_background_open)
                      }
                  } else {
                      when (stackAnimation) {
-@@ -183,7 +184,8 @@ class ScreenStack(
+@@ -183,7 +185,9 @@ class ScreenStack(
                                  R.anim.rns_slide_out_to_bottom,
                              )
                          StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_no_animation_250, R.anim.rns_fade_to_bottom)
 -                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
++                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_close, R.anim.rns_ios_from_right_background_close)
 +                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_close, R.anim.rns_ios_from_right_background_close)
 +                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_ios_from_left_foreground_close, R.anim.rns_ios_from_left_background_close)
                      }
                  }
              }
-@@ -373,6 +375,7 @@ class ScreenStack(
+@@ -373,6 +377,7 @@ class ScreenStack(
              Build.VERSION.SDK_INT >= 33 ||
                  fragmentWrapper.screen.stackAnimation === StackAnimation.SLIDE_FROM_BOTTOM ||
                  fragmentWrapper.screen.stackAnimation === StackAnimation.FADE_FROM_BOTTOM ||
