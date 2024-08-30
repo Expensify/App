@@ -51,6 +51,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
@@ -70,42 +71,34 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             OptionsListUtils.getEmptyOptions();
         }
-
-        const optionList = OptionsListUtils.getFilteredOptions(
+        const optionList = OptionsListUtils.getAttendeeOptions(
             options.reports,
             options.personalDetails,
             betas,
-            '',
             attendees as Attendee[],
-            CONST.EXPENSIFY_EMAILS,
-
-            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to submit an expense from their admin on their own Workspace Chat.
+            recentAttendees ?? [],
             iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
-
             !isCategorizeOrShareAction,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
             !isCategorizeOrShareAction,
-            false,
-            false,
-            0,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
             isPaidGroupPolicy,
         );
 
         return optionList;
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, attendees, isPaidGroupPolicy]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        betas,
+        attendees,
+        recentAttendees,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
+        isPaidGroupPolicy,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {

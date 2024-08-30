@@ -34,7 +34,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -178,6 +178,7 @@ type GetOptionsConfig = {
     includeDomainEmail?: boolean;
     action?: IOUAction;
     shouldAcceptName?: boolean;
+    recentAttendees?: Attendee[];
 };
 
 type GetUserToInviteConfig = {
@@ -1748,6 +1749,7 @@ function getOptions(
         includeInvoiceRooms = false,
         includeDomainEmail = false,
         action,
+        recentAttendees,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1988,6 +1990,9 @@ function getOptions(
                 optionsToExclude.push({login: reportOption.login});
             }
         }
+    } else if (recentAttendees && recentAttendees?.length > 0) {
+        recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
+        recentAttendees.map((attendee) => attendee as ReportUtils.OptionData);
     }
 
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
@@ -2170,6 +2175,52 @@ function getFilteredOptions(
             includeInvoiceRooms,
             action,
             sortByReportTypeInSearch,
+        },
+    );
+}
+
+function getAttendeeOptions(
+    reports: Array<SearchOption<Report>>,
+    personalDetails: Array<SearchOption<PersonalDetails>>,
+    betas: OnyxEntry<Beta[]>,
+    attendees: Attendee[],
+    recentAttendees: Attendee[],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    canInviteUser = true,
+    includeInvoiceRooms = false,
+    action: IOUAction | undefined = undefined,
+    sortByReportTypeInSearch = false,
+) {
+    return getOptions(
+        {reports, personalDetails},
+        {
+            betas,
+            searchInputValue: '',
+            selectedOptions: attendees,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            includeOwnedWorkspaceChats,
+            includeRecentReports: true,
+            includeP2P,
+            includeCategories: false,
+            categories: {},
+            recentlyUsedCategories: [],
+            includeTags: false,
+            tags: {},
+            recentlyUsedTags: [],
+            canInviteUser,
+            includeSelectedOptions: false,
+            includeTaxRates: false,
+            maxRecentReportsToShow: 0,
+            taxRates: {} as TaxRatesWithDefault,
+            includeSelfDM: false,
+            includePolicyReportFieldOptions: false,
+            policyReportFieldOptions: [],
+            recentlyUsedPolicyReportFieldOptions: [],
+            includeInvoiceRooms,
+            action,
+            sortByReportTypeInSearch,
+            recentAttendees,
         },
     );
 }
@@ -2504,10 +2555,6 @@ function getEmptyOptions(): Options {
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
     return report.isUnread === true && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-}
-
-function getAttendeeOptions() {
-    return getEmptyOptions();
 }
 
 export {
