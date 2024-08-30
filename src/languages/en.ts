@@ -2919,6 +2919,8 @@ export default {
                 personal: 'Allow deleting transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
+                emptyAddedFeedTitle: 'Assign company cards',
+                emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
             },
             workflows: {
                 title: 'Workflows',
@@ -3817,6 +3819,8 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
+            has: 'Has',
+            link: 'Link',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,

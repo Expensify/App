@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -67,6 +68,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             />
         </View>
     );
+    // TODO correct Onyx flag should be defined in separate PR for "Pending State with No Other Feeds"
+    const isFeedAdded = false;
 
     return (
         <AccessOrNotFoundWrapper
@@ -74,7 +77,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <WorkspacePageWithSections
-                shouldUseScrollView
+                shouldUseScrollView={!isFeedAdded}
                 icon={Illustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
@@ -82,6 +85,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             >
+                {!isFeedAdded && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                {isFeedAdded && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <WorkspaceCompanyCardPageEmptyState route={route} />
             </WorkspacePageWithSections>

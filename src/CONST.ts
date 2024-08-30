@@ -5235,6 +5235,7 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5277,6 +5278,10 @@ const CONST = {
                 APPROVED: 'approved',
                 PAID: 'paid',
             },
+        },
+        CHAT_TYPES: {
+            LINK: 'link',
+            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5324,6 +5329,7 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            HAS: 'has',
         },
     },
 

@@ -2964,6 +2964,8 @@ export default {
                 setFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
                 setTransactionLiabilityDescription:
                     'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
+                emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
+                emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -3868,6 +3870,8 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
+            has: 'Tiene',
+            link: 'Enlace',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
