@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,10 +14,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>>();
 
     const submit = () => {
@@ -28,6 +31,10 @@ function CardTypeStep() {
             isEditing: false,
         });
     };
+
+    useEffect(() => {
+        setTypeSelected(addNewCard?.data.cardType);
+    }, [addNewCard?.data.cardType]);
 
     const handleBackButtonPress = () => {
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
@@ -99,11 +106,12 @@ function CardTypeStep() {
                 onSelectRow={({value}) => setTypeSelected(value)}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={typeSelected}
+                initiallyFocusedOptionKey={addNewCard?.data.cardType}
                 shouldUpdateFocusedIndex
             />
             <Button
                 success
+                isDisabled={!typeSelected}
                 large
                 pressOnEnter
                 text={translate('common.next')}
