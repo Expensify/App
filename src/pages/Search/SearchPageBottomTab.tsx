@@ -27,17 +27,17 @@ function SearchPageBottomTab() {
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const {queryJSON, policyIDs, isCustomQuery} = useMemo(() => {
-        if (!activeCentralPaneRoute || activeCentralPaneRoute.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyIDs: undefined};
+    const {queryJSON, policyID, isCustomQuery} = useMemo(() => {
+        if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
+            return {queryJSON: undefined, policyID: undefined, isCustomQuery: undefined};
         }
 
-        // This will be SEARCH_CENTRAL_PANE as we checked that in if.
-        const searchParams = activeCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+        const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+        const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
 
         return {
-            queryJSON: SearchUtils.buildSearchQueryJSON(searchParams.q, searchParams.policyIDs),
-            policyIDs: searchParams.policyIDs,
+            queryJSON: parsedQuery,
+            policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
             isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
@@ -58,7 +58,7 @@ function SearchPageBottomTab() {
                 {!selectionMode?.isEnabled && queryJSON ? (
                     <>
                         <TopBar
-                            activeWorkspaceID={policyIDs}
+                            activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
                         />
@@ -80,7 +80,6 @@ function SearchPageBottomTab() {
                     <Search
                         queryJSON={queryJSON}
                         isCustomQuery={isCustomQuery}
-                        policyIDs={policyIDs}
                     />
                 )}
             </FullPageNotFoundView>
