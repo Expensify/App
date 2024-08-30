@@ -28,13 +28,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !feature || !policy || !PolicyUtils.isPolicyAdmin(policy);
+    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
 
     const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const upgradeToCorporate = () => {
-        if (!policy || !feature) {
+        if (!canPerformUpgrade) {
             return;
         }
 
@@ -59,16 +58,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {
-            if (!isUpgraded || shouldShowNotFoundPage) {
+            if (!isUpgraded || !canPerformUpgrade) {
                 return;
             }
             confirmUpgrade();
         });
 
         return unsubscribeListener;
-    }, [isUpgraded, shouldShowNotFoundPage, confirmUpgrade, navigation]);
+    }, [isUpgraded, canPerformUpgrade, confirmUpgrade, navigation]);
 
-    if (!feature || !policy || shouldShowNotFoundPage) {
+    if (!canPerformUpgrade) {
         return <NotFoundPage />;
     }
 
