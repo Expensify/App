@@ -277,6 +277,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.rules',
+            icon: Expensicons.Feed,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.RULES,
+        });
+    }
+
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
@@ -322,15 +331,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canUseWorkspaceRules) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.rules',
-            icon: Expensicons.Feed,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.RULES,
         });
     }
 
