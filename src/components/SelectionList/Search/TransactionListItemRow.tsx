@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,11 +17,14 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
@@ -79,7 +83,12 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     const isViewAction = transactionItem.action === CONST.SEARCH.ACTION_TYPES.VIEW;
-    const canModifyReceipt = isViewAction && transactionItem.canDelete;
+    const parentReportAction = getIOUActionForReportID(transactionItem.reportID, transactionItem.transactionID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID ?? '-1'}`);
+    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
+    const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+    const canModifyReceipt = isViewAction && canEditReceipt;
 
     return (
         <View
