@@ -98,7 +98,6 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                 <TextWithEmojiFragment
                     message={message}
                     style={[
-                        containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                         styles.ltr,
                         style,
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
