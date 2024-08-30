@@ -9,6 +9,7 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -199,6 +200,16 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+
+                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
+                {searchResults?.search?.type === type ? (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                ) : (
+                    <SearchStatusSkeleton shouldAnimate />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
