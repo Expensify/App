@@ -30,6 +30,8 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 4. Tap **Add Bank Account** or **Add debit or credit card** to issue payment.
 {% include end-option.html %}
 
+{% include end-selector.html %}
+
 # FAQ
 
 **Can someone else pay an invoice besides the person who received it?**
