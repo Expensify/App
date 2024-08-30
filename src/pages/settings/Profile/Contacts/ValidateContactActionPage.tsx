@@ -32,7 +32,10 @@ function ValidateContactActionPage() {
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
     }, [loginData, loginData?.pendingFields, loginList]);
 
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
+    const onBackButtonPress = () => {
+        User.clearUnvalidatedNewContactMethodAction();
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)
+    }
 
     return (
         <ScreenWrapper
@@ -42,7 +45,7 @@ function ValidateContactActionPage() {
         >
             <HeaderWithBackButton
                 title={account?.primaryLogin ?? ''}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={onBackButtonPress}
             />
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
                 <DotIndicatorMessage

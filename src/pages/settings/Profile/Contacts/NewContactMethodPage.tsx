@@ -61,8 +61,6 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
         Navigation.navigate(ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION);
     }, [pendingContactAction]);
 
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
-
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
