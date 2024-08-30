@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
@@ -375,6 +376,9 @@ export default {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        offlinePrompt: "You can't take this action right now.",
+        outstanding: 'Outstanding',
+        days: 'days',
     },
     location: {
         useCurrent: 'Use current location',
@@ -853,6 +857,7 @@ export default {
         expenseOnHold: 'This expense was put on hold. Please review the comments for next steps.',
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Please review the duplicates to remove the hold.',
+        someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
@@ -1339,8 +1344,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
+        approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
@@ -2102,6 +2106,7 @@ export default {
         viewTrip: 'View trip',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
+        trips: 'Trips',
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -2110,9 +2115,9 @@ export default {
         common: {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
+            companyCards: 'Company Cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
-            companyCards: 'Company cards',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -2745,6 +2750,10 @@ export default {
             control: 'Control',
             collect: 'Collect',
         },
+        companyCards: {
+            addCompanyCards: 'Add company cards',
+            selectCardFeed: 'Select card feed',
+        },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
@@ -2879,7 +2888,16 @@ export default {
             },
             companyCards: {
                 title: 'Company Cards',
-                subtitle: 'Import spend from existing company cards',
+                subtitle: 'Import spend from existing company cards.',
+                feed: {
+                    title: 'Import company cards',
+                    features: {
+                        support: 'Support for all major card providers',
+                        assignCards: 'Assign cards to the entire team',
+                        automaticImport: 'Automatic transaction import',
+                    },
+                    ctaTitle: 'Add company cards',
+                },
                 disableCardTitle: 'Disable Company Cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
@@ -3613,6 +3631,23 @@ export default {
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: 'Set spend controls and defaults for individual expenses. You can also create rules for',
+                receiptRequiredAmount: 'Receipt required amount',
+                receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                maxExpenseAmount: 'Max expense amount',
+                maxExpenseAmountDescription: 'Flag spend that exceeds this amount, unless overridden by a category rule.',
+                maxAge: 'Max age',
+                maxExpenseAge: 'Max expense age',
+                maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('day', 'days', age)}`,
+                billableDefault: 'Billable default',
+                billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
+                billable: 'Billable',
+                billableDescription: 'Expenses are most often re-billed to clients',
+                nonBillable: 'Non-billable',
+                nonBillableDescription: 'Expenses are occasionally re-billed to clients',
+                eReceipts: 'eReceipts',
+                eReceiptsHint: 'eReceipts are auto-created',
+                eReceiptsHintLink: 'for most USD credit transactions',
             },
             expenseReportRules: {
                 title: 'Expense reports',
@@ -3735,6 +3770,7 @@ export default {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3753,7 +3789,6 @@ export default {
             unhold: 'Unhold',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
-        offlinePrompt: "You can't take this action right now.",
         filtersHeader: 'Filters',
         filters: {
             date: {
@@ -4467,5 +4502,19 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'set the room description to:',
         clearRoomDescription: 'cleared the room description',
+    },
+    delegate: {
+        switchAccount: 'Switch accounts:',
+        role: (role: DelegateRole): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Full';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Limited';
+                default:
+                    return '';
+            }
+        },
+        genericError: 'Oops, something went wrong. Please try again.',
     },
 } satisfies TranslationBase;

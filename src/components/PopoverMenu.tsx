@@ -226,6 +226,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
@@ -269,6 +270,7 @@ function PopoverMenu({
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
+                            badgeText={item.badgeText}
                         />
                     ))}
                 </View>

@@ -2959,6 +2959,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         });
         spawnedProcess.on('close', (code) => {
             if (code !== 0) {
+                console.log('code: ', code);
                 return reject(new Error(`${stderr}`));
             }
             resolve(stdout);

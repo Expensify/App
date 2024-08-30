@@ -57,6 +57,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
+    const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
@@ -71,6 +72,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            altText={alt}
         />
     );
 

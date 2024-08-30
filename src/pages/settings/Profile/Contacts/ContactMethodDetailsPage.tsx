@@ -49,6 +49,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+    const backTo = route.params.backTo;
 
     /**
      * Gets the current contact method from the route params
@@ -78,8 +79,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        User.setContactMethodAsDefault(contactMethod);
-    }, [contactMethod]);
+        User.setContactMethodAsDefault(contactMethod, backTo);
+    }, [contactMethod, backTo]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -128,8 +129,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const confirmDeleteAndHideModal = useCallback(() => {
         toggleDeleteModal(false);
-        User.deleteContactMethod(contactMethod, loginList ?? {});
-    }, [contactMethod, loginList, toggleDeleteModal]);
+        User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+    }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
     useEffect(() => {
         if (isEmptyObject(loginData)) {
@@ -148,8 +149,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -161,8 +162,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 <FullPageNotFoundView
                     shouldShow
                     linkKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 />
             </ScreenWrapper>
         );
@@ -181,7 +182,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         >
             <HeaderWithBackButton
                 title={formattedContactMethod}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
             />
             <ScrollView keyboardShouldPersistTaps="handled">
                 <ConfirmModal
