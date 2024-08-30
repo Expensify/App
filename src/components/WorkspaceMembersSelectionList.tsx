@@ -100,7 +100,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         <SelectionList
             sections={sections}
             ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.findMember')}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputValue={searchTerm}
             onChangeText={setSearchTerm}
             headerMessage={headerMessage}
