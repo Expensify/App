@@ -1,5 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
-import React, {useState} from 'react';
+import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
@@ -45,9 +45,6 @@ import type {Route} from './ROUTES';
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
-
-    /** Boolean passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
-    newSignIn?: boolean;
 };
 
 LogBox.ignoreLogs([
@@ -61,15 +58,18 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, newSignIn}: AppProps) {
+function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
-    const [shouldClearOnyx, setShouldClearOnyx] = useState(!!newSignIn);
-    if (shouldClearOnyx) {
-        setShouldClearOnyx(false);
-        Onyx.clear(KEYS_TO_PRESERVE);
-    }
+    useEffect(() => {
+        const params = new URLSearchParams(url);
+        const shouldClearOnyxOnStartParam = params.get('shouldClearOnyxOnStart');
+
+        if (shouldClearOnyxOnStartParam === 'true') {
+            Onyx.clear(KEYS_TO_PRESERVE);
+        }
+    }, [url]);
 
     return (
         <StrictModeWrapper>
