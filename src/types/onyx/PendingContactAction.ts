@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of action to add a new contact method */
 type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Phone/Email associated with user */

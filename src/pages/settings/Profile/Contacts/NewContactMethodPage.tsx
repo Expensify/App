@@ -24,20 +24,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
-import type {Account, LoginList} from '@src/types/onyx';
+import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type NewContactMethodPageOnyxProps = {
     /** Login list for the user that is signed in */
     loginList: OnyxEntry<LoginList>;
-
-    /** The details about the account that the user signed in with */
-    account: OnyxEntry<Account>;
 };
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({loginList, route, account}: NewContactMethodPageProps) {
+function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
@@ -45,16 +42,13 @@ function NewContactMethodPage({loginList, route, account}: NewContactMethodPageP
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
-    const addNewContactMethod = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
-            const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-            const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+    const addNewContactMethod = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+        const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
+        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-            User.saveNewContactMethodAndRequestValidationCode(submitDetail);
-        },
-        [route.params?.backTo],
-    );
+        User.saveNewContactMethodAndRequestValidationCode(submitDetail);
+    }, []);
 
     useEffect(() => {
         if (!pendingContactAction?.validateCodeSent) {
@@ -142,5 +136,4 @@ NewContactMethodPage.displayName = 'NewContactMethodPage';
 
 export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
     loginList: {key: ONYXKEYS.LOGIN_LIST},
-    account: {key: ONYXKEYS.ACCOUNT},
 })(NewContactMethodPage);

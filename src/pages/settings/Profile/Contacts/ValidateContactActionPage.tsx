@@ -1,17 +1,16 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {ValidateCodeFormHandle} from '@pages/settings/Profile/Contacts/ValidateCodeForm/BaseValidateCodeForm';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ValidateCodeForm from './ValidateCodeForm';
+import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 function ValidateContactActionPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -24,13 +23,13 @@ function ValidateContactActionPage() {
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? ''];
 
     useEffect(() => {
-        if(!loginData || !!loginData.pendingFields?.addedLogin) {
+        if (!loginData || !!loginData.pendingFields?.addedLogin) {
             return;
         }
 
         // Navigate to methods page on successful magic code verification
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
-    }, [loginData?.pendingFields, loginList]);
+    }, [loginData, loginData?.pendingFields, loginList]);
 
     return (
         <ScreenWrapper

@@ -188,7 +188,7 @@ function BaseValidateCodeForm({
         }
 
         User.validateSecondaryLogin(loginList, contactMethod, validateCode);
-    }, [loginList, validateCode, contactMethod]);
+    }, [loginList, validateCode, contactMethod, isValidatingAction, pendingContact?.contactMethod]);
 
     return (
         <>
@@ -222,7 +222,7 @@ function BaseValidateCodeForm({
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {(hasMagicCodeBeenSent || !!pendingContact?.validateCodeSent) && (
+                    {(hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}

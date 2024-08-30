@@ -297,7 +297,7 @@ function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
-                contactMethod: contactMethod,
+                contactMethod,
                 errorFields: {
                     actionVerified: null,
                 },
@@ -309,8 +309,8 @@ function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true}
-        }
+            value: {isLoading: true},
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -325,13 +325,13 @@ function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
                 pendingFields: {
                     actionVerified: null,
                 },
-            }
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false}
-        }
+            value: {isLoading: false},
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -355,12 +355,12 @@ function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
                 isLoading: false,
                 errorFields: {
                     ctionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                }
-            }
-        }
+                },
+            },
+        },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, {}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
