@@ -15,9 +15,9 @@ import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from '@pa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
+type GetCodeProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
-function CodesStep({account}: CodesStepProps) {
+function GetCode({account}: GetCodeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -34,7 +34,7 @@ function CodesStep({account}: CodesStepProps) {
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mt3]}>
-                    <Text style={styles.textLabel}>{translate('twoFactorAuth.explainProcessToRemove')}</Text>
+                    <Text>{translate('twoFactorAuth.explainProcessToRemove')}</Text>
                 </View>
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
@@ -62,11 +62,11 @@ function CodesStep({account}: CodesStepProps) {
     );
 }
 
-CodesStep.displayName = 'CodesStep';
+GetCode.displayName = 'GetCode';
 
-export default withOnyx<CodesStepProps, BaseTwoFactorAuthFormOnyxProps>({
+export default withOnyx<GetCodeProps, BaseTwoFactorAuthFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     user: {
         key: ONYXKEYS.USER,
     },
-})(CodesStep);
+})(GetCode);
