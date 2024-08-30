@@ -19,7 +19,7 @@ PODS:
     - Airship/Core
   - AirshipFrameworkProxy (7.1.2):
     - Airship (= 18.7.2)
-  - AirshipServiceExtension (17.8.0)
+  - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
     - AppAuth/ExternalUserAgent (= 1.7.5)
@@ -3055,7 +3055,7 @@ CHECKOUT OPTIONS:
 SPEC CHECKSUMS:
   Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
   AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
-  AirshipServiceExtension: 0a5fb14c3fd1879355ab05a81d10f64512a4f79c
+  AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca

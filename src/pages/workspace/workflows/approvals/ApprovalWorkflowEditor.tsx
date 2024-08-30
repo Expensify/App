@@ -38,11 +38,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
+    const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
-        (index: number) =>
-            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
-        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+        (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
+        [approverCount, toLocaleOrdinal, translate],
     );
 
     const members = useMemo(() => {
@@ -94,15 +94,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy)) {
+        if (!PolicyUtils.isControlPolicy(policy) && approverCount > 0) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
         Navigation.navigate(
-            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approvalWorkflow.approvers.length, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
+            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
             CONST.NAVIGATION.ACTION_TYPE.PUSH,
         );
-    }, [approvalWorkflow.approvers.length, policy, policyID]);
+    }, [approverCount, policy, policyID]);
 
     return (
         <ScrollView
@@ -156,7 +156,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 })}
 
                 <MenuItemWithTopDescription
-                    description={translate('workflowsCreateApprovalsPage.additionalApprover')}
+                    description={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
                     onPress={addAdditionalApprover}
                     shouldShowRightIcon
                     wrapperStyle={styles.sectionMenuItemTopDescription}
