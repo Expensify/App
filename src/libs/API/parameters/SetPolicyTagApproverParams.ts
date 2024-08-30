@@ -1,7 +1,7 @@
 type SetPolicyTagApproverParams = {
     policyID: string;
     tagName: string;
-    email: string;
+    approver: string;
 };
 
 export default SetPolicyTagApproverParams;

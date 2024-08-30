@@ -969,6 +969,15 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
+function getTagExpenseRule(policyID: string, tagName: string) {
+    const policy = getPolicy(policyID);
+
+    const expenseRules = policy?.rules?.expenseRules ?? [];
+    const expenseRule = expenseRules.find((rule) => rule.applyWhen.find(({condition, field, value}) => condition === 'matches' && field === 'tag' && value === tagName));
+
+    return expenseRule;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1074,6 +1083,7 @@ export {
     getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
+    getTagExpenseRule,
 };
 
 export type {MemberEmailsToAccountIDs};

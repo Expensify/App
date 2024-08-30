@@ -1360,10 +1360,10 @@ type ExpenseRule = {
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
-    condition: 'matches';
+    condition: string;
 
     /** The target field to which the rule is applied */
-    field: 'category' | 'tag';
+    field: string;
 
     /** The value of the target field */
     value: string;

@@ -848,13 +848,74 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 }
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
+    const policy = PolicyUtils.getPolicy(policyID);
+    const prevExpenseRules = policy?.rules?.approvalRules ?? [];
+    const expenseRuleToUpdate = PolicyUtils.getTagExpenseRule(policyID, tag);
+    const filteredExpenseRules = expenseRuleToUpdate ? prevExpenseRules.filter((rule) => rule.id === expenseRuleToUpdate.id) : prevExpenseRules;
+
+    const updatedExpenseRule = expenseRuleToUpdate
+        ? {...expenseRuleToUpdate, approver}
+        : {
+              applyWhen: [
+                  {
+                      condition: 'matches',
+                      field: 'tag',
+                      value: tag,
+                  },
+              ],
+              approver,
+              id: '-1',
+          };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        expenseRules: [...filteredExpenseRules, updatedExpenseRule],
+                    },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        expenseRules: [...filteredExpenseRules, updatedExpenseRule],
+                    },
+                    pendingAction: null,
+                    pendingFields: {rules: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        expenseRules: prevExpenseRules,
+                    },
+                    pendingAction: null,
+                    pendingFields: {rules: null},
+                },
+            },
+        ],
+    };
+
     const parameters: SetPolicyTagApproverParams = {
         policyID,
         tagName: tag,
-        email: approver,
+        approver,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters);
+    API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
 }
 
 export {

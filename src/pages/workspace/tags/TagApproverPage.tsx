@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
@@ -26,10 +27,9 @@ function TagApproverPage({route}: TagApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyExpenseRules = policy?.rules?.expenseRules;
-    // const tagExpenseRule = policyExpenseRules?.find(({applyWhen}) => applyWhen.some(({condition, field, value}) => condition === 'matches' && field === 'tag' && value === tagName));
+    const tagApprover = PolicyUtils.getTagExpenseRule(policyID, tagName)?.approver;
 
-    console.log('POLICY EXPENSE RULES ', policyTags);
+    console.log('POLICY ', policy);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -48,7 +48,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
                 />
                 <WorkspaceMembersSelectionList
                     policyID={policyID}
-                    selectedApprover=""
+                    selectedApprover={tagApprover ?? ''}
                     setApprover={(email) => {
                         Tag.setPolicyTagApprover(policyID, tagName, email);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

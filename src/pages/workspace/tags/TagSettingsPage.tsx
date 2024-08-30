@@ -91,6 +91,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const tagApprover = PolicyUtils.getTagExpenseRule(route.params.policyID, currentPolicyTag.name)?.approver;
 
     const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
 
@@ -160,9 +161,9 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                            <OfflineWithFeedback pendingAction={policy.pendingFields?.rules}>
                                 <MenuItemWithTopDescription
-                                    title="test"
+                                    title={tagApprover ?? ''}
                                     description={translate(`workspace.tags.approverDescription`)}
                                     onPress={navigateToEditTagApprover}
                                     shouldShowRightIcon
