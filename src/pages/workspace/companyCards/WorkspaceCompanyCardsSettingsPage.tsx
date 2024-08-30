@@ -50,7 +50,8 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const deleteCompanyCardFeed = () => {
         Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, lastSelectedFeed);
-        Navigation.goBack();
+        setDeleteCompanyCardConfirmModalVisible(false);
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {

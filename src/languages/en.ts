@@ -2918,7 +2918,7 @@ export default {
                 corporate: 'Restrict deleting transactions',
                 personal: 'Allow deleting transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
-                setTransactionLiabilityDescription: 'Choose whether cardholders can delete card transactions. New transactions will follow these rules.',
+                setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
             },
             workflows: {
                 title: 'Workflows',

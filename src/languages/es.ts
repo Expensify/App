@@ -2962,7 +2962,7 @@ export default {
                 corporate: 'Restringir eliminación de transacciones',
                 personal: 'Permitir eliminación de transacciones',
                 setFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
-                setTransactionLiabilityDescription: 'Elige si los titulares de tarjetas pueden eliminar transacciones de tarjetas. Las nuevas transacciones seguirán estas reglas.',
+                setTransactionLiabilityDescription: 'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
