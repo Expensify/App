@@ -22,6 +22,7 @@ import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
 type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+type KeysOfRootKeysObject = keyof typeof CONST.SEARCH.SYNTAX_ROOT_KEYS;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -441,7 +442,14 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
         if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
+                return `${filterValue as string}`;
+            }
+        }
+
+        if ((filterKey === FILTER_KEYS.TYPE || filterKey === FILTER_KEYS.STATUS) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_ROOT_KEYS) as KeysOfRootKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_ROOT_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS[keyInCorrectForm]}:${filterValue as string}`;
             }
         }
 
@@ -457,7 +465,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
-            const filterValueArray = filterValues[filterKey] ?? [];
+            const filterValueArray = Array.from(new Set<string>(filterValues[filterKey] ?? []));
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
@@ -515,6 +523,41 @@ function getFilters(queryJSON: SearchQueryJSON) {
     }
 
     return filters;
+}
+
+function getFilterFormObject(filters: QueryFilters) {
+    const filterKeys = Object.keys(filters);
+    const filterFormObject = {} as Partial<SearchAdvancedFiltersForm>;
+    for (const filterKey of filterKeys) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+            filterFormObject[filterKey] = filters[filterKey]?.[0]?.value.toLocaleString();
+        }
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
+        ) {
+            filterFormObject[filterKey] = filters[filterKey]?.map((filter) => filter.value.toLocaleString());
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterFormObject[filterKey] = filters[filterKey]?.map((filter) => filter.value.toLocaleString()).join(' ');
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+            filterFormObject[FILTER_KEYS.DATE_BEFORE] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toLocaleString();
+            filterFormObject[FILTER_KEYS.DATE_AFTER] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toLocaleString();
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            filterFormObject[FILTER_KEYS.LESS_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toLocaleString();
+            filterFormObject[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toLocaleString();
+        }
+    }
+
+    return filterFormObject;
 }
 
 /**
@@ -575,6 +618,7 @@ export {
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
+    getFilterFormObject,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSearchHeaderTitle,

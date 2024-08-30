@@ -314,7 +314,14 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             <Button
                 text={translate('search.filtersHeader')}
                 icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                onPress={() => {
+                    const filters = SearchUtils.getFilters(queryJSON);
+                    const form = SearchUtils.getFilterFormObject(filters);
+                    form.type = queryJSON.type;
+                    form.status = queryJSON.status;
+                    SearchActions.updateAdvancedFilters(form);
+                    Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
                 medium
             />
         </HeaderWrapper>
