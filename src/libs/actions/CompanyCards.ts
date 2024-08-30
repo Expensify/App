@@ -17,5 +17,11 @@ function setAddNewCompanyCardStepAndData({data, isEditing, step}: AddNewCompanyC
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {setAddNewCompanyCardStepAndData};
+function clearAddNewCardFlow() {
+    Onyx.set(ONYXKEYS.ADD_NEW_COMPANY_CARD, {
+        currentStep: null,
+        data: {},
+    });
+}
+
+export {setAddNewCompanyCardStepAndData, clearAddNewCardFlow};
