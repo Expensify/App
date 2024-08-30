@@ -22,7 +22,7 @@ function getQuickbooksOnlineSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-function updateManyQuickbooksOnyxData<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
+function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
@@ -88,7 +88,7 @@ function updateManyQuickbooksOnyxData<TConfigUpdate extends Partial<Connections[
     };
 }
 
-function updateQuickbooksOnyxData<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
+function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
@@ -166,7 +166,7 @@ function updateQuickbooksOnyxData<TSettingName extends keyof Connections['quickb
 }
 
 function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValue: boolean) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -181,7 +181,7 @@ function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Co
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
-    const onyxData = updateManyQuickbooksOnyxData(policyID, configUpdate, configCurrentData);
+    const onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData);
 
     const parameters: UpdateQuickbooksOnlineAutoCreateVendorParams = {
         policyID,
@@ -197,7 +197,7 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName exten
     policyID: string,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -208,7 +208,7 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName exten
 }
 
 function updateQuickbooksOnlineSyncLocations(policyID: string, settingValue: IntegrationEntityMap) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -219,7 +219,7 @@ function updateQuickbooksOnlineSyncLocations(policyID: string, settingValue: Int
 }
 
 function updateQuickbooksOnlineSyncCustomers(policyID: string, settingValue: IntegrationEntityMap) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -230,7 +230,7 @@ function updateQuickbooksOnlineSyncCustomers(policyID: string, settingValue: Int
 }
 
 function updateQuickbooksOnlineSyncClasses(policyID: string, settingValue: IntegrationEntityMap) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES, settingValue);
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
@@ -240,7 +240,7 @@ function updateQuickbooksOnlineSyncClasses(policyID: string, settingValue: Integ
 }
 
 function updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID: string, settingValue: string) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -251,7 +251,7 @@ function updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID: string
 }
 
 function updateQuickbooksOnlineSyncTax(policyID: string, settingValue: boolean) {
-    const onyxData = updateQuickbooksOnyxData(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, settingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
