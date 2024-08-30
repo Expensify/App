@@ -41,7 +41,7 @@ function CategoryApproverPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.approver')}
+                    title={translate('workspace.rules.categoryRules.approver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <WorkspaceMembersSelectionList
