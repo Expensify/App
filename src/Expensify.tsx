@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, Platform} from 'react-native';
+import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -302,8 +302,9 @@ function Expensify({
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
-            {/* HybridApp has own middleware to hide SplashScreen */}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {!NativeModules.HybridAppModule && shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {/* On HybridApp we want to hide BootSplash once we're authenticated */}
+            {NativeModules.HybridAppModule && isAuthenticated && shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
