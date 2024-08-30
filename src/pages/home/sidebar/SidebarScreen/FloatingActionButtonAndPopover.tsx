@@ -341,11 +341,6 @@ function FloatingActionButtonAndPopover(
         },
     }));
 
-    const handleMenuItemSelection = useCallback(() => {
-        hideCreateMenu();
-        Report.clearReportActionIDForCurrentUserAction(session?.accountID);
-    }, [session?.accountID, hideCreateMenu]);
-
     const toggleCreateMenu = () => {
         if (isCreateMenuActive) {
             hideCreateMenu();
@@ -362,7 +357,7 @@ function FloatingActionButtonAndPopover(
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={handleMenuItemSelection}
+                onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {

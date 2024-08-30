@@ -272,8 +272,7 @@ function ReportActionCompose({
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
-        Report.clearReportActionIDForCurrentUserAction(currentUserPersonalDetails.accountID);
-    }, [currentUserPersonalDetails.accountID]);
+    }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -308,7 +307,6 @@ function ReportActionCompose({
     const submitForm = useCallback(
         (newComment: string) => {
             playSound(SOUNDS.DONE);
-            Report.clearReportActionIDForCurrentUserAction(currentUserPersonalDetails.accountID);
 
             const newCommentTrimmed = newComment.trim();
 
@@ -320,7 +318,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [currentUserPersonalDetails.accountID, onSubmit, reportID],
+        [onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

@@ -437,13 +437,11 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
-/** Clears the reportActionID if the action is performed by the current user */
-function clearReportActionIDForCurrentUserAction(accountID?: number) {
-    const isCurrentUserAction = accountID === currentUserAccountID;
+/** */
+function clearLinkedReportActionID() {
     const state = navigationRef?.getState();
     const reportActionID = getTopmostReportActionID(state);
-
-    if (!isCurrentUserAction || !reportActionID) {
+    if (!reportActionID) {
         return;
     }
     Navigation.setParams({reportActionID: ''});
@@ -457,6 +455,9 @@ function clearReportActionIDForCurrentUserAction(accountID?: number) {
  * - Add both a comment and attachment simultaneously
  */
 function addActions(reportID: string, text = '', file?: FileObject) {
+    //
+    clearLinkedReportActionID();
+
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -4166,7 +4167,6 @@ export {
     updateReportName,
     deleteReportField,
     clearReportFieldKeyErrors,
-    clearReportActionIDForCurrentUserAction,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     updateRoomVisibility,
