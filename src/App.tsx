@@ -1,8 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {KeyboardProvider} from 'react-native-keyboard-controller';
+import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -36,6 +37,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
+import {KEYS_TO_PRESERVE} from './libs/actions/App';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -59,6 +61,15 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({ch
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    useEffect(() => {
+        const params = new URLSearchParams(url);
+        const shouldClearOnyxOnStartParam = params.get('shouldClearOnyxOnStart');
+
+        if (shouldClearOnyxOnStartParam === 'true') {
+            Onyx.clear(KEYS_TO_PRESERVE);
+        }
+    }, [url]);
 
     return (
         <StrictModeWrapper>
