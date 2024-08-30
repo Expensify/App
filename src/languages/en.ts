@@ -3801,6 +3801,8 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
+            has: 'Has',
+            link: 'Link',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
