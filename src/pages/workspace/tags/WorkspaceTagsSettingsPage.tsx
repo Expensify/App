@@ -40,6 +40,14 @@ function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
     return policy?.pendingFields?.disabledFields;
 }
 
+function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
+    if (policy?.disabledFields?.defaultBillable) {
+        Policy.setPolicyBillableMode(policy.id, false);
+    } else if (policy) {
+        Policy.disableWorkspaceBillableExpenses(policy.id);
+    }
+}
+
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
@@ -56,14 +64,6 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
         },
         [policyID],
     );
-
-    function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
-        if (policy?.disabledFields?.defaultBillable) {
-            Policy.setPolicyBillableMode(policyID, false);
-        } else {
-            Policy.disableWorkspaceBillableExpenses(policyID);
-        }
-    }
 
     const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
         <View style={styles.flexGrow1}>
