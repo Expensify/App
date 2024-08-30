@@ -52,7 +52,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
             }
         },
-        [config?.syncOptions?.mapping, policyID],
+        [config?.syncOptions?.mapping, policyID, importCustomer, importJobs],
     );
 
     return (
