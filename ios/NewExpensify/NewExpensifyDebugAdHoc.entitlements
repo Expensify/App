@@ -17,6 +17,8 @@
 	<key>com.apple.developer.usernotifications.communication</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>
-	<array/>
+	<array>
+		<string>group.com.expensify.new</string>
+	</array>
 </dict>
 </plist>
