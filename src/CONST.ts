@@ -2341,6 +2341,12 @@ const CONST = {
             PAYPERUSE: 'monthly2018',
         },
     },
+    COMPANY_CARDS: {
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
