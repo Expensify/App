@@ -34,8 +34,8 @@ function ValidateContactActionPage() {
 
     const onBackButtonPress = () => {
         User.clearUnvalidatedNewContactMethodAction();
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route)
-    }
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    };
 
     return (
         <ScreenWrapper
