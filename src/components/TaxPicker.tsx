@@ -131,7 +131,7 @@ export default withOnyx<TaxPickerProps, TaxPickerOnyxProps>({
     },
     transaction: {
         key: ({transactionID, action}) => {
-            if (action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+            if (IOUUtils.shouldUseTransactionDraft(action)) {
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
