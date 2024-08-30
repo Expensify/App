@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -37,6 +37,10 @@ function ConfirmationStep({policyID}: ConfirmationStepProps) {
 
     const submitButton = useRef<View>(null);
 
+    useEffect(() => {
+        submitButton.current?.focus();
+    }, []);
+
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
@@ -59,7 +63,6 @@ function ConfirmationStep({policyID}: ConfirmationStepProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => submitButton.current?.focus()}
         >
             <HeaderWithBackButton
                 title={translate('workspace.card.issueCard')}
