@@ -288,6 +288,19 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
         },
     });
 }
+
+/**
+ * Clears unvalidated new contact method action
+ */
+function clearUnvalidatedNewContactMethodAction() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        validateCodeSent: null,
+        contactMethod: null,
+        pendingFields: null,
+        errorFields: null,
+    });
+}
+
 /**
  * Validates the action to add secondary contact method
  */
@@ -351,12 +364,7 @@ function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {
-                isLoading: false,
-                errorFields: {
-                    ctionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-            },
+            value: {isLoading: false},
         },
     ];
 
@@ -440,6 +448,11 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {validateCodeSent: null},
         },
     ];
 
@@ -1246,4 +1259,5 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     saveNewContactMethodAndRequestValidationCode,
+    clearUnvalidatedNewContactMethodAction,
 };

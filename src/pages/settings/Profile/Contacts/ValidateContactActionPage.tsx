@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as User from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,6 +31,8 @@ function ValidateContactActionPage() {
         // Navigate to methods page on successful magic code verification
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
     }, [loginData, loginData?.pendingFields, loginList]);
+
+    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     return (
         <ScreenWrapper

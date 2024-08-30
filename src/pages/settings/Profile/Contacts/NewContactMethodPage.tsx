@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -42,6 +43,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
+    const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
+
     const addNewContactMethod = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
         const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
@@ -57,6 +60,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
         Navigation.navigate(ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION);
     }, [pendingContactAction]);
+
+    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -127,6 +132,12 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
+                {hasFailedToSendVerificationCode && (
+                    <DotIndicatorMessage
+                        messages={ErrorUtils.getLatestErrorField(pendingContactAction, 'actionVerified')}
+                        type="error"
+                    />
+                )}
             </FormProvider>
         </ScreenWrapper>
     );
