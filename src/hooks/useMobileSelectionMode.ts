@@ -7,12 +7,10 @@ export default function useMobileSelectionMode(shouldAutoTurnOff = true) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     useEffect(() => {
-        return () => {
-            if (!shouldAutoTurnOff) {
-                return;
-            }
-            turnOffMobileSelectionMode();
-        };
+        if (!shouldAutoTurnOff) {
+            return;
+        }
+        turnOffMobileSelectionMode();
     }, [shouldAutoTurnOff]);
 
     return {selectionMode};
