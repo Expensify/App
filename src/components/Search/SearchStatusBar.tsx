@@ -129,7 +129,7 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
 
     return (
         <ScrollView
-            style={[styles.flexRow, styles.mb5, styles.overflowScroll, styles.flexGrow0]}
+            style={[styles.flexRow, styles.mb2, styles.overflowScroll, styles.flexGrow0]}
             horizontal
             showsHorizontalScrollIndicator={false}
         >

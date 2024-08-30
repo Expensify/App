@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,11 +13,13 @@ import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -26,16 +28,15 @@ import SearchTypeMenu from './SearchTypeMenu';
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
     const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
-    const MAX_BAR_OFFSET = 116;
-    const HEADER_HEIGHT = 196;
-    const scrollOffset = useRef(0);
+    const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue(0);
-    const headerHeight = useSharedValue(HEADER_HEIGHT);
+    const headerHeight = useSharedValue(CONST.SEARCH.SEARCH_HEADER_HEIGHT + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT);
     const animatedTopBarStyle = useAnimatedStyle(() => ({
         transform: [{translateY: topBarOffset.value}],
         zIndex: -1,
@@ -45,19 +46,24 @@ function SearchPageBottomTab() {
     }));
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const currentOffset = event.nativeEvent.contentOffset.y;
-        const isScrollingDown = currentOffset > scrollOffset.current;
-        if (isScrollingDown && event.nativeEvent.contentOffset.y > 20) {
-            const distanceScrolled = currentOffset - scrollOffset.current;
-            // eslint-disable-next-line react-compiler/react-compiler
-            topBarOffset.value = Math.max(-MAX_BAR_OFFSET, topBarOffset.value - distanceScrolled);
-            headerHeight.value = Math.max(80, headerHeight.value - distanceScrolled);
-        } else if (!isScrollingDown && event.nativeEvent.contentOffset.y + event.nativeEvent.layoutMeasurement.height < event.nativeEvent.contentSize.height - 10) {
-            topBarOffset.value = withTiming(0, {duration: 300});
-            headerHeight.value = withTiming(HEADER_HEIGHT, {duration: 300});
+        const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
+        if (windowHeight + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT > contentSize.height) {
+            return;
         }
 
-        scrollOffset.current = currentOffset;
+        const currentOffset = contentOffset.y;
+        const isScrollingDown = currentOffset > scrollOffset.value;
+        if (isScrollingDown && contentOffset.y > 20) {
+            const distanceScrolled = currentOffset - scrollOffset.value;
+            // eslint-disable-next-line react-compiler/react-compiler
+            topBarOffset.value = Math.max(-CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT, topBarOffset.value - distanceScrolled);
+            headerHeight.value = Math.max(CONST.SEARCH.SEARCH_HEADER_HEIGHT, headerHeight.value - distanceScrolled);
+        } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - 10) {
+            topBarOffset.value = withTiming(0, {duration: 300});
+            headerHeight.value = withTiming(CONST.SEARCH.SEARCH_HEADER_HEIGHT + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT, {duration: 300});
+        }
+
+        scrollOffset.value = currentOffset;
     };
 
     const {queryJSON, policyID, isCustomQuery} = useMemo(() => {

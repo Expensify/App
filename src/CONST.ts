@@ -5315,6 +5315,8 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
         },
+        TYPE_AND_STATUS_BAR_HEIGHT: 106,
+        SEARCH_HEADER_HEIGHT: 80,
     },
 
     REFERRER: {
