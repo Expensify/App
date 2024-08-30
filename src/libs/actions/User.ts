@@ -295,7 +295,6 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
 function clearUnvalidatedNewContactMethodAction() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         validateCodeSent: null,
-        contactMethod: null,
         pendingFields: null,
         errorFields: null,
     });
