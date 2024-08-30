@@ -424,7 +424,6 @@ function addNewContactMethodAndNavigate(contactMethod: string, validateCode = ''
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod, validateCode};
 
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    // Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
