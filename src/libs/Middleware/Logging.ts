@@ -25,6 +25,10 @@ function getCircularReplacer() {
     };
 }
 
+function serializeLoggingData(logData?: Record<string, unknown> | null): Record<string, unknown> | undefined | null {
+    return logData && (JSON.parse(JSON.stringify(logData, getCircularReplacer())) as Record<string, unknown>);
+}
+
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
@@ -59,7 +63,7 @@ function logRequestDetails(message: string, request: Request, response?: Respons
     if (request.command !== 'AuthenticatePusher') {
         extraData.request = {
             ...request,
-            data: JSON.parse(JSON.stringify(request.data, getCircularReplacer())) as Record<string, unknown>,
+            data: serializeLoggingData(request.data),
         };
         extraData.response = response;
     }
@@ -148,4 +152,4 @@ const Logging: Middleware = (response, request) => {
 
 export default Logging;
 
-export {getCircularReplacer};
+export {serializeLoggingData};
