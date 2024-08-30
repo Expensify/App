@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
@@ -372,6 +373,9 @@ export default {
         enabled: 'Habilitado',
         ignore: 'Ignorar',
         import: 'Importar',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
+        outstanding: 'Pendiente',
+        days: 'días',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -669,8 +673,8 @@ export default {
         column: (name: string) => `Columna ${name}`,
         fieldNotMapped: (fieldName: string) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
         singleFieldMultipleColumns: (fieldName: string) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
-        importFailedDescription: 'La importación ha fallado. Por favor, revise los errores e inténtelo de nuevo',
-        importFailedTitle: 'Importación fallida',
+        importFailedTitle: 'Fallo en la importación',
+        importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importMembersSuccessfullDescription: (members: number) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importSuccessfullTitle: 'Importar categorías',
@@ -870,6 +874,7 @@ export default {
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expensesOnHold: 'Todos los gastos quedaron bloqueados. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar el bloqueo.',
+        someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -1369,8 +1374,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
@@ -2157,6 +2161,7 @@ export default {
         viewTrip: 'Ver viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
+        trips: 'Viajes',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2165,6 +2170,7 @@ export default {
         common: {
             card: 'Tarjetas',
             expensifyCard: 'Tarjeta Expensify',
+            companyCards: 'Tarjetas de empresa',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
@@ -2179,7 +2185,7 @@ export default {
             reportFields: 'Campos de informe',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
-            invoices: 'Enviar facturas',
+            invoices: 'Facturas',
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
@@ -2813,6 +2819,10 @@ export default {
             control: 'Control',
             collect: 'Recolectar',
         },
+        companyCards: {
+            addCompanyCards: 'Agregar tarjetas de empresa',
+            selectCardFeed: 'Seleccionar feed de tarjetas',
+        },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
@@ -2906,8 +2916,7 @@ export default {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            importedCategoriesMessage: (columnCounts: number) =>
-                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las categorías. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la categoría.`,
+            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
             spendSection: {
@@ -2946,6 +2955,22 @@ export default {
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
                 },
+            },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
+                feed: {
+                    title: 'Importar tarjetas de empresa',
+                    features: {
+                        support: 'Compatibilidad con los principales proveedores de tarjetas',
+                        assignCards: 'Asignar tarjetas a todo el equipo',
+                        automaticImport: 'Importación automática de transacciones',
+                    },
+                    ctaTitle: 'Añadir tarjetas de empresa',
+                },
+                disableCardTitle: 'Deshabilitar tarjetas de empresa',
+                disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
+                disableCardButton: 'Chatear con Concierge',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -3060,6 +3085,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
+            invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
@@ -3638,6 +3664,11 @@ export default {
                 description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Control, a partir de ',
             },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                description: `Las tarjetas de empresa le permiten importar los gastos de las tarjetas de empresa existentes de todos los principales emisores de tarjetas. Puede asignar tarjetas a empleados e importar transacciones automáticamente.`,
+                onlyAvailableOnPlan: 'Las tarjetas de empresa solo están disponibles en el plan Control, a partir de ',
+            },
             rules: {
                 title: 'Reglas',
                 description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
@@ -3678,6 +3709,23 @@ export default {
             individualExpenseRules: {
                 title: 'Gastos',
                 subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+                receiptRequiredAmount: 'Cantidad requerida para los recibos',
+                receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                maxExpenseAmount: 'Importe máximo del gasto',
+                maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
+                maxAge: 'Antigüedad máxima',
+                maxExpenseAge: 'Antigüedad máxima de los gastos',
+                maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('día', 'días', age)}`,
+                billableDefault: 'Valor predeterminado facturable',
+                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
+                billable: 'Facturable',
+                billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
+                nonBillable: 'No facturable',
+                nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
+                eReceipts: 'Recibos electrónicos',
+                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
+                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
             },
             expenseReportRules: {
                 title: 'Informes de gastos',
@@ -3801,6 +3849,7 @@ export default {
     search: {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        resetFilters: 'Restablecer filtros',
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
@@ -3819,7 +3868,6 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
-        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         filtersHeader: 'Filtros',
         filters: {
             date: {
@@ -4754,6 +4802,7 @@ export default {
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
+        normal: 'Normal',
     },
     exitSurvey: {
         header: 'Antes de irte',
@@ -4995,5 +5044,19 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
+    },
+    delegate: {
+        switchAccount: 'Cambiar de cuenta:',
+        role: (role: DelegateRole): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Completo';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Limitado';
+                default:
+                    return '';
+            }
+        },
+        genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
     },
 } satisfies EnglishTranslation;

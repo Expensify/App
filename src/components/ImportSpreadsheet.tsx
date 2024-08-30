@@ -26,7 +26,10 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreedsheetProps = {
+    // The route to navigate to when the back button is pressed.
     backTo: Routes;
+
+    // The route to navigate to after the file import is completed.
     goTo: Routes;
 };
 
@@ -104,6 +107,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 <ImageSVG
                     src={Expensicons.SpreadsheetComputer}
                     contentFit="contain"
+                    style={styles.mb4}
                     width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                     height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                 />
@@ -140,7 +144,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         </>
     );
 
-    const hideRecieptModal = () => {
+    const hideInvalidAttachmentModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -176,6 +180,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                         <ImageSVG
                                             src={Expensicons.SpreadsheetComputer}
                                             contentFit="contain"
+                                            style={styles.mb4}
                                             width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />
@@ -186,8 +191,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                             </DragAndDropConsumer>
                             <ConfirmModal
                                 title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                                onConfirm={hideRecieptModal}
-                                onCancel={hideRecieptModal}
+                                onConfirm={hideInvalidAttachmentModal}
+                                onCancel={hideInvalidAttachmentModal}
                                 isVisible={isAttachmentInvalid}
                                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                                 confirmText={translate('common.close')}

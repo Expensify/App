@@ -17,6 +17,9 @@ type ImportedSpreadsheet = {
         /** Message to display */
         prompt: string;
     };
+
+    /** Whether the first row of the spreadsheet contains headers */
+    containsHeader: boolean;
 };
 
 export default ImportedSpreadsheet;

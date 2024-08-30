@@ -178,6 +178,9 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
+    /** Character limit after which the menu item text will be truncated */
+    characterLimit?: number;
+
     isLabelHoverable?: boolean;
 
     /** Label to be displayed on the right */
@@ -200,6 +203,9 @@ type MenuItemBaseProps = {
 
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState?: boolean;
+
+    /** Should we truncate the title */
+    shouldTruncateTitle?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -328,7 +334,6 @@ type MenuItemBaseProps = {
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
 function MenuItem(
     {
         interactive = true,
@@ -379,6 +384,8 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        shouldTruncateTitle = false,
+        characterLimit = 200,
         isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
@@ -481,8 +488,13 @@ function MenuItem(
             titleToWrap = html;
         }
 
+        if (shouldTruncateTitle) {
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            return titleToWrap;
+        }
+
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';

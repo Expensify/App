@@ -2,6 +2,13 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+function openImportPage(containsHeader?: boolean): Promise<void> | undefined {
+    if (containsHeader !== undefined) {
+        return;
+    }
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader: true});
+}
+
 function setSpreadsheetData(data: string[][]): Promise<void | void[]> {
     if (!Array.isArray(data) || !Array.isArray(data[0])) {
         return Promise.reject(new Error('Invalid data format'));
@@ -20,8 +27,12 @@ function setColumnName(columnIndex: number, columnName: string): Promise<void> {
     return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: {[columnIndex]: columnName}});
 }
 
-function closeImportPage(): Promise<void> {
-    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, null);
+function setContainsHeader(containsHeader: boolean): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
 
-export {setSpreadsheetData, setColumnName, closeImportPage};
+function closeImportPage(): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {data: null, columns: null, shouldFinalModalBeOpened: false, importFinalModal: null});
+}
+
+export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader, openImportPage};

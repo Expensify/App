@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -111,8 +112,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
-                        large={isButtonSizeLarge}
-                        medium={!isButtonSizeLarge}
+                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
@@ -128,8 +130,9 @@ function ButtonWithDropdownMenu<IValueType>({
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
-                            large={isButtonSizeLarge}
-                            medium={!isButtonSizeLarge}
+                            large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                            small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         >
@@ -157,8 +160,9 @@ function ButtonWithDropdownMenu<IValueType>({
                     isLoading={isLoading}
                     text={selectedItem.text}
                     onPress={(event) => onPress(event, options[0].value)}
-                    large={isButtonSizeLarge}
-                    medium={!isButtonSizeLarge}
+                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
@@ -181,12 +185,11 @@ function ButtonWithDropdownMenu<IValueType>({
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => item.onSelected?.()
+                            ? () => Modal.close(() => item.onSelected?.())
                             : () => {
                                   onOptionSelected?.(item);
                                   setSelectedItemIndex(index);
                               },
-                        shouldCallAfterModalHide: true,
                     }))}
                 />
             )}

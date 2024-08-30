@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
+import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -17,43 +18,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
-
-function numberToColumn(index: number) {
-    let column = '';
-    let number = index;
-    while (number >= 0) {
-        column = String.fromCharCode((number % 26) + 65) + column;
-        number = Math.floor(number / 26) - 1;
-    }
-    return column;
-}
-
-function generateColumnNames(length: number) {
-    return Array.from({length}, (_, i) => numberToColumn(i));
-}
-
-function findDuplicate(array: string[]): string | null {
-    const frequencyCounter: Record<string, number> = {};
-
-    for (const item of array) {
-        if (item !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
-            if (frequencyCounter[item]) {
-                return item;
-            }
-            frequencyCounter[item] = (frequencyCounter[item] || 0) + 1;
-        }
-    }
-
-    return null;
-}
-
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
-    const [containsHeader, setContainsHeader] = useState(false);
+    const {containsHeader} = spreadsheet ?? {};
+    const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -69,7 +42,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         );
 
         if (isControl) {
-            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE, isRequired: true});
+            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
         return roles;
@@ -81,29 +54,33 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Record<string, string | null> = {};
+        let newErrors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    newErrors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                newErrors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
-                errors = {};
+                newErrors = {};
             }
         }
-
-        return errors;
+        return newErrors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importCategories = useCallback(() => {
-        validate();
+        setIsValidationEnabled(true);
+        const currentErrors = validate();
+        if (Object.keys(currentErrors).length > 0) {
+            return;
+        }
+
         const columns = Object.values(spreadsheet?.columns ?? {});
         const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
         const categoriesGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
@@ -140,14 +117,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
-                containsHeader={containsHeader}
-                setContainsHeader={setContainsHeader}
                 columnNames={columnNames}
                 importFunction={importCategories}
-                errors={validate()}
+                errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
-                headerText={translate('workspace.categories.importedCategoriesMessage', spreadsheetColumns?.length)}
+                headerText={translate('workspace.categories.importedCategoriesMessage')}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 
             <ConfirmModal
