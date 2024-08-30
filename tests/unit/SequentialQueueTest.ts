@@ -109,7 +109,7 @@ describe('SequentialQueue', () => {
         expect(PersistedRequests.getLength()).toBe(2);
     });
 
-    it.only('should replace request request in queue while a similar one is ongoing', async () => {
+    it('should replace request request in queue while a similar one is ongoing', async () => {
         // .push at the end flush the queue
         SequentialQueue.push(request);
 
