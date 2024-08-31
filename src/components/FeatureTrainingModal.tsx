@@ -231,12 +231,6 @@ function FeatureTrainingModal({
                             )}
                             <Button
                                 large
-                                style={[styles.mb3]}
-                                onPress={onHelp}
-                                text={helpText}
-                            />
-                            <Button
-                                large
                                 success
                                 pressOnEnter
                                 onPress={closeAndConfirmModal}
