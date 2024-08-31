@@ -312,11 +312,6 @@ function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: Li
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
-function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
-    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
-}
-
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -372,9 +367,7 @@ function getCurrentSearchParams() {
     }
 
     if (lastSearchBottomTabRoute) {
-        const {policyID, ...rest} = lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
-        const params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE] = {policyIDs: policyID, ...rest};
-        return params;
+        return lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
     }
 }
 
@@ -386,18 +379,16 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
+function buildSearchQueryJSON(query: SearchQueryString) {
     try {
-        // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.inputQuery = query;
 
-        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
-        const policyIDPart = policyID ?? '';
-        result.hash = getQueryHashFromString(query + policyIDPart);
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
         return result;
     } catch (e) {
-        console.error(e);
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
 }
 
@@ -405,12 +396,12 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (queryJSON?.[key]) {
-            queryParts.push(`${key}:${queryJSON[key]}`);
-        } else if (defaultQueryJSON) {
-            queryParts.push(`${key}:${defaultQueryJSON[key]}`);
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
         }
     }
 
@@ -503,12 +494,28 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+            }
+        }
+        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
@@ -523,7 +530,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.TAG ||
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO) &&
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -587,6 +596,26 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
+/**
+ * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
+ * and return just the first policyID value from the filter.
+ *
+ * Note: `policyID` property can store multiple policy ids (just like many other search filters) as a comma separated value;
+ * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
+ */
+function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
+    const policyIDFilter = queryJSON.policyID;
+
+    if (!policyIDFilter) {
+        return;
+    }
+
+    // policyID is a comma-separated value
+    const [policyID] = policyIDFilter.split(',');
+
+    return policyID;
+}
+
 function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
@@ -625,8 +654,8 @@ export {
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
+    getPolicyIDFromSearchQuery,
     getListItem,
-    getQueryHash,
     getSearchHeaderTitle,
     getSections,
     getShouldShowMerchant,
@@ -639,4 +668,5 @@ export {
     shouldShowYear,
     buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
 };

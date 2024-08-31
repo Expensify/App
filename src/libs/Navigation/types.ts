@@ -69,7 +69,6 @@ type CentralPaneScreensParamList = {
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
         isCustomQuery: boolean;
-        policyIDs?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -690,6 +689,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
@@ -1243,7 +1248,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: Omit<CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE], 'policyIDs'> & {policyID: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
