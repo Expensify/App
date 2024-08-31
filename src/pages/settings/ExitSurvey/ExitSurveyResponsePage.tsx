@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -45,11 +46,19 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
-    const {top: safeAreaInsetsTop, bottom: safeAreaInsetsBottom} = useSafeAreaInsets();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
-    const safePaddingBottomStyleValue = 'paddingBottom' in safePaddingBottomStyle ? (safePaddingBottomStyle.paddingBottom as number) : 0;
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const [headerTitleHeight, setHeaderTitleHeight] = useState(0);
+
+    // Device safe area top and bottom insets.
+    // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
+    const {top: safeAreaInsetsTop, bottom: safeAreaInsetsBottom} = useSafeAreaInsets();
+    const safeAreaInsetsBottomValue = !keyboardHeight ? safeAreaInsetsBottom : 0;
+    // FormWrapper bottom padding
+    const {paddingBottom: formPaddingBottom} = useStyledSafeAreaInsets();
+    const formPaddingBottomValue = formPaddingBottom || styles.pb5.paddingBottom;
+    // Extra bottom padding in FormAlertWithSubmitButton
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
+    const safePaddingBottomStyleValue = 'paddingBottom' in safePaddingBottomStyle ? (safePaddingBottomStyle.paddingBottom as number) : 0;
 
     const {reason, backTo} = route.params;
     const {isOffline} = useNetwork({
@@ -89,8 +98,9 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     );
     const responseInputMaxHeight = NumberUtils.roundDownToLargestMultiple(
         formMaxHeight -
-            safeAreaInsetsBottom -
+            safeAreaInsetsBottomValue -
             safePaddingBottomStyleValue -
+            formPaddingBottomValue -
             // Minus the height of the text component
             headerTitleHeight -
             // Minus the response input margins (multiplied by 2 to create the effect of margins on top and bottom).
@@ -99,10 +109,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
             baseResponseInputContainerStyle.marginTop * 2 -
             // Minus the approximate size of a default button
             variables.componentSizeLarge -
-            // Minus the vertical margins around the form button
-            40 -
-            // Minus the extra height for the form error text
-            variables.lineHeightNormal,
+            // Minus the height above the button for the form error text, accounting for 2 lines max.
+            variables.lineHeightNormal * 2 -
+            // Minus the margin between the button and the form error text
+            styles.mb3.marginBottom,
 
         // Round down to the largest number of full lines
         styles.baseTextInput.lineHeight,
