@@ -409,7 +409,7 @@ function ReportDetailsPage({policies, report, session, personalDetails, route}: 
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration, backTo));
                 },
             });
         }

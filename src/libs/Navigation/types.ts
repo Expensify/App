@@ -761,6 +761,7 @@ type ReportDetailsNavigatorParamList = {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        backTo?: Routes;
     };
 };
 
@@ -1086,27 +1087,35 @@ type PrivateNotesNavigatorParamList = {
 type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
         threadReportID: string;
+        backTo?: Routes;
     };
 };
 

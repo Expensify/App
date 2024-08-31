@@ -153,7 +153,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0, styles.ml2]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     )}
@@ -177,7 +177,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
                             }}
                         />
                     </View>

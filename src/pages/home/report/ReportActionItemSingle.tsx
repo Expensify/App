@@ -58,7 +58,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: string) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
 };
 
 const showWorkspaceDetails = (reportID: string) => {
