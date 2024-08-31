@@ -279,8 +279,8 @@ type Primitive = string | boolean | number;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ArgumentType<T, R> = T extends (arg: infer A, ...args: any[]) => R ? A : unknown;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue<T> = T extends string | string[]
-    ? string | string[]
+type TranslationBaseValue<T> = T extends string
+    ? string
     : // eslint-disable-next-line @typescript-eslint/no-explicit-any
     T extends (...args: any[]) => string | PluralizeValue
     ? (arg: ArgumentType<T, string | PluralizeValue> extends Primitive ? Record<string, unknown> : ArgumentType<T, string | PluralizeValue>, ...args: unknown[]) => string | PluralizeValue
@@ -288,7 +288,7 @@ type TranslationBaseValue<T> = T extends string | string[]
       (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>, ...args: unknown[]) => string | PluralizeValue;
 type TranslationBase<T = unknown> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [K in keyof T]: T[K] extends string | string[] | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
+    [K in keyof T]: T[K] extends string | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
 };
 
 /* Flat Translation Object types */
