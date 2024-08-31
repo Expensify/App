@@ -387,6 +387,7 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
     },
@@ -2340,6 +2341,12 @@ const CONST = {
             PAYPERUSE: 'monthly2018',
         },
     },
+    COMPANY_CARDS: {
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -2500,6 +2507,10 @@ const CONST = {
     // Account IDs that profile view is prohibited
     get RESTRICTED_ACCOUNT_IDS() {
         return [this.ACCOUNT_ID.NOTIFICATIONS];
+    },
+    // Account IDs that can't be added as a group member
+    get NON_ADDABLE_ACCOUNT_IDS() {
+        return [this.ACCOUNT_ID.NOTIFICATIONS, this.ACCOUNT_ID.CHRONOS];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
@@ -3877,6 +3888,10 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
     },
+    DELEGATE_ROLE: {
+        SUBMITTER: 'submitter',
+        ALL: 'all',
+    },
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
@@ -5220,6 +5235,7 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5262,6 +5278,10 @@ const CONST = {
                 APPROVED: 'approved',
                 PAID: 'paid',
             },
+        },
+        CHAT_TYPES: {
+            LINK: 'link',
+            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5309,6 +5329,8 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            IN: 'in',
+            HAS: 'has',
         },
     },
 
