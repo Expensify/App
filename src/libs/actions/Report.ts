@@ -437,13 +437,18 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
-/** */
+/**
+ * Clears the reportActionID from the current navigation route parameters.
+ * This removes any highlight from the report action item.
+ */
 function clearLinkedReportActionID() {
     const state = navigationRef?.getState();
-    const reportActionID = getTopmostReportActionID(state);
-    if (!reportActionID) {
+    const linkedReportActionID = getTopmostReportActionID(state);
+
+    if (!linkedReportActionID) {
         return;
     }
+
     Navigation.setParams({reportActionID: ''});
 }
 
@@ -455,9 +460,6 @@ function clearLinkedReportActionID() {
  * - Add both a comment and attachment simultaneously
  */
 function addActions(reportID: string, text = '', file?: FileObject) {
-    //
-    clearLinkedReportActionID();
-
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -4183,6 +4185,7 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearLinkedReportActionID,
     exportToIntegration,
     markAsManuallyExported,
     handleReportChanged,

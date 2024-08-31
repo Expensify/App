@@ -272,6 +272,8 @@ function ReportActionCompose({
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
+        // Clear the highlighted report item when an action from the + menu is taken
+        Report.clearLinkedReportActionID();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -317,6 +319,9 @@ function ReportActionCompose({
                 Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
                 onSubmit(newCommentTrimmed);
             }
+
+            // Clear the highlighted report item when a new comment or attachment is sent
+            Report.clearLinkedReportActionID();
         },
         [onSubmit, reportID],
     );

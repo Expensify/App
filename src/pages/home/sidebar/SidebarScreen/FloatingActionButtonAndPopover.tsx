@@ -351,13 +351,20 @@ function FloatingActionButtonAndPopover(
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
+    const onItemSelected = useCallback(() => {
+        hideCreateMenu();
+        // Clear the highlighted report item when an action from the + menu is taken
+        Report.clearLinkedReportActionID();
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={hideCreateMenu}
+                onItemSelected={onItemSelected}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {
