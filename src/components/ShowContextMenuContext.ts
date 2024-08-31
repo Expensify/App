@@ -16,6 +16,7 @@ type ShowContextMenuContextProps = {
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
+    canOpenContextMenu?: boolean;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
@@ -25,6 +26,7 @@ const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
+    canOpenContextMenu: true,
 });
 
 ShowContextMenuContext.displayName = 'ShowContextMenuContext';
