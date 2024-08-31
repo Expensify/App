@@ -91,7 +91,15 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     const shouldShowTextInput = activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
 
     useEffect(() => {
-        setSearchValue(shouldShowTextInput ? SearchInputManager.searchInput : '');
+        if (!isFocused) {
+            return;
+        }
+        if (shouldShowTextInput) {
+            setSearchValue(SearchInputManager.searchInput);
+        } else {
+            SearchInputManager.searchInput = '';
+            setSearchValue('');
+        }
     }, [isFocused, shouldShowTextInput]);
 
     const getParticipants = () => {

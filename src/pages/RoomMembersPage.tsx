@@ -185,7 +185,15 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     }, [participants, personalDetails, isOffline, report]);
 
     useEffect(() => {
-        setSearchValue(shouldShowTextInput ? SearchInputManager.searchInput : '');
+        if (!isFocusedScreen) {
+            return;
+        }
+        if (shouldShowTextInput) {
+            setSearchValue(SearchInputManager.searchInput);
+        } else {
+            SearchInputManager.searchInput = '';
+            setSearchValue('');
+        }
     }, [isFocusedScreen, shouldShowTextInput]);
 
     const data = useMemo((): ListItem[] => {
