@@ -1312,7 +1312,7 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Stripe Connect company website */
     companyWebsite?: string;
 
-    /** Back account */
+    /** Bank account */
     bankAccount?: {
         /** Account balance */
         stripeConnectAccountBalance?: number;
