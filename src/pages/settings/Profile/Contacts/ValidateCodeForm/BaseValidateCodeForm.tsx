@@ -147,7 +147,12 @@ function BaseValidateCodeForm({
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        User.requestContactMethodValidateCode(contactMethod);
+        if (!!pendingContact?.contactMethod && isValidatingAction) {
+            User.saveNewContactMethodAndRequestValidationCode(pendingContact?.contactMethod);
+        } else {
+            User.requestContactMethodValidateCode(contactMethod);
+        }
+
         inputValidateCodeRef.current?.clear();
     };
 
