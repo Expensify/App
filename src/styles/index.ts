@@ -5094,6 +5094,15 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        emptyStateCardIllustrationContainer: {
+            height: 220,
+        },
+
+        emptyStateCardIllustration: {
+            width: 164,
+            height: 190,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
@@ -5154,6 +5163,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
+            width: '100%',
         },
 
         emptyStateHeader: (isIllustration: boolean) => ({
