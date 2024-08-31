@@ -9,7 +9,9 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,7 +83,7 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
@@ -199,6 +201,16 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+
+                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
+                {searchResults?.search?.type === type ? (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                ) : (
+                    <SearchStatusSkeleton shouldAnimate />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
