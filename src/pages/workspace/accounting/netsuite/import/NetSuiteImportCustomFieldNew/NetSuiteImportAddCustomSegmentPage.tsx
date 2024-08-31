@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
@@ -40,7 +40,9 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
+        });
     }, [policyID]);
 
     const {
