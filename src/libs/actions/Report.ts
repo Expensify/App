@@ -64,7 +64,6 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
-import getTopmostReportActionID from '@libs/Navigation/getTopmostReportActionID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';

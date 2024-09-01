@@ -36,6 +36,7 @@ import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import Navigation from '@libs/Navigation/Navigation'; // Ensure this import is correctly formatted and positioned
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
@@ -52,7 +53,6 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
-import Navigation from '@libs/Navigation/Navigation';
 
 type ComposerRef = {
     blur: () => void;
