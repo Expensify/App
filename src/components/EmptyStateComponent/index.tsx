@@ -7,6 +7,7 @@ import Lottie from '@components/Lottie';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
@@ -27,6 +28,7 @@ function EmptyStateComponent({
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -87,7 +89,7 @@ function EmptyStateComponent({
             <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={styles.p8}>
+                    <View style={isSmallScreenWidth ? styles.p5 : styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {!!buttonText && !!buttonAction && (

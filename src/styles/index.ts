@@ -5161,6 +5161,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.emptyFolderBG,
         },
 
+        emptyFolderDarkBG: {
+            backgroundColor: '#782c04',
+        },
+
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
@@ -5169,6 +5173,11 @@ const styles = (theme: ThemeColors) =>
         emptyStateFolderIconSize: {
             width: 184,
             height: 112,
+        },
+
+        emptyStateFolderWithPaperIconSize: {
+            width: 160,
+            height: 100,
         },
 
         workflowApprovalVerticalLine: {
