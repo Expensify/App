@@ -12,7 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
-const ESH_PARTICIPANT: Participant = {hidden: false, role: 'admin'};
+const ESH_PARTICIPANT: Participant = {hidden: false};
 const WORKSPACE_NAME = "Esh's Workspace";
 
 OnyxUpdateManager();
