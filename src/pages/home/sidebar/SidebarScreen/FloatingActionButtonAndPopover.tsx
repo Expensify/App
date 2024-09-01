@@ -355,8 +355,7 @@ function FloatingActionButtonAndPopover(
         hideCreateMenu();
         // Clear the highlighted report item when an action from the + menu is taken
         Report.clearLinkedReportActionID();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [hideCreateMenu, Report.clearLinkedReportActionID]);
 
     return (
         <View style={styles.flexGrow1}>
