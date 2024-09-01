@@ -12,7 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
-const ESH_PARTICIPANT_ANNOUNCE_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
+const ESH_PARTICIPANT_ANNOUNCE_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const WORKSPACE_NAME = "Esh's Workspace";
