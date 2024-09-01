@@ -1,25 +1,25 @@
 PODS:
-  - Airship (17.7.3):
-    - Airship/Automation (= 17.7.3)
-    - Airship/Basement (= 17.7.3)
-    - Airship/Core (= 17.7.3)
-    - Airship/FeatureFlags (= 17.7.3)
-    - Airship/MessageCenter (= 17.7.3)
-    - Airship/PreferenceCenter (= 17.7.3)
-  - Airship/Automation (17.7.3):
+  - Airship (18.7.2):
+    - Airship/Automation (= 18.7.2)
+    - Airship/Basement (= 18.7.2)
+    - Airship/Core (= 18.7.2)
+    - Airship/FeatureFlags (= 18.7.2)
+    - Airship/MessageCenter (= 18.7.2)
+    - Airship/PreferenceCenter (= 18.7.2)
+  - Airship/Automation (18.7.2):
     - Airship/Core
-  - Airship/Basement (17.7.3)
-  - Airship/Core (17.7.3):
+  - Airship/Basement (18.7.2)
+  - Airship/Core (18.7.2):
     - Airship/Basement
-  - Airship/FeatureFlags (17.7.3):
+  - Airship/FeatureFlags (18.7.2):
     - Airship/Core
-  - Airship/MessageCenter (17.7.3):
+  - Airship/MessageCenter (18.7.2):
     - Airship/Core
-  - Airship/PreferenceCenter (17.7.3):
+  - Airship/PreferenceCenter (18.7.2):
     - Airship/Core
-  - AirshipFrameworkProxy (5.1.1):
-    - Airship (= 17.7.3)
-  - AirshipServiceExtension (18.6.0)
+  - AirshipFrameworkProxy (7.1.2):
+    - Airship (= 18.7.2)
+  - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
     - AppAuth/ExternalUserAgent (= 1.7.5)
@@ -1544,8 +1544,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (17.2.1):
-    - AirshipFrameworkProxy (= 5.1.1)
+  - react-native-airship (19.2.1):
+    - AirshipFrameworkProxy (= 7.1.2)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1840,7 +1840,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.0.6):
+  - react-native-quick-sqlite (8.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2474,7 +2474,51 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.13.0):
+  - RNReanimated (3.15.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNReanimated/reanimated (= 3.15.1)
+    - RNReanimated/worklets (= 3.15.1)
+    - Yoga
+  - RNReanimated/reanimated (3.15.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNReanimated/worklets (3.15.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3053,9 +3097,9 @@ CHECKOUT OPTIONS:
     :http: https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
-  Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
-  AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
-  AirshipServiceExtension: 74cd5af1c80924bbaa7886fad8609c048210cba3
+  Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
+  AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
+  AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -3132,7 +3176,7 @@ SPEC CHECKSUMS:
   React-logger: 8db32983d75dc2ad54f278f344ccb9b256e694fc
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
   React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
-  react-native-airship: eec8df1e4824d93569fff42d7ed5a4cdb56a1b86
+  react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44
   react-native-cameraroll: 478a0c1fcdd39f08f6ac272b7ed06e92b2c7c129
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
@@ -3147,7 +3191,7 @@ SPEC CHECKSUMS:
   react-native-pdf: dd6ae39a93607a80919bef9f3499e840c693989d
   react-native-performance: 3c608307be10964f8a97d3af462f37125b6d8fa5
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
-  react-native-quick-sqlite: cc2939134fbd404ac7d51d3dc8d69219eff242a8
+  react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
@@ -3196,7 +3240,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
-  RNReanimated: 601912257776588e7c0543f8dea4ba6dd393e9d0
+  RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: a3c2fbbca5682530b65ff405b34c91dad1e22442
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852

@@ -485,7 +485,8 @@ function MenuItem(
         }
 
         if (shouldTruncateTitle) {
-            titleToWrap = Parser.truncateHTML(titleToWrap, characterLimit, {ellipsis: '...'});
+            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
+            return titleToWrap;
         }
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';

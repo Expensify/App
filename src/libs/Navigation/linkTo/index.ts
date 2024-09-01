@@ -4,13 +4,13 @@ import {findFocusedRoute} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
-import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
 import {isCentralPaneName} from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getActionsFromPartialDiff from '@navigation/AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from '@navigation/AppNavigator/getPartialStateDiff';
 import dismissModal from '@navigation/dismissModal';
+import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import extrapolateStateFromParams from '@navigation/extrapolateStateFromParams';
 import getPolicyIDFromState from '@navigation/getPolicyIDFromState';
 import getStateFromPath from '@navigation/getStateFromPath';
@@ -49,18 +49,18 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
     // Creating path with /w/ included if necessary.
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-    const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
+
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
-    const policyID = extractedPolicyID ?? policyIDFromState ?? policyIDs;
+    const policyID = extractedPolicyID ?? policyIDFromState;
     const lastRoute = rootState?.routes?.at(-1);
 
     const isNarrowLayout = getIsNarrowLayout();
 
     const isFullScreenOnTop = lastRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
-    // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
-    if (policyID && !isFullScreenOnTop && !policyIDs) {
+    // policyID on SCREENS.SEARCH.CENTRAL_PANE can be present only as part of SearchQuery, while on other pages it's stored in the url in the format: /w/:policyID/
+    if (policyID && !isFullScreenOnTop && !policyIDFromState) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
         // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
@@ -95,8 +95,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         if (isCentralPaneName(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDsFromState);
+
+            const focusedRoute = findFocusedRoute(stateFromPath);
+            const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID ?? policyIDFromQuery);
             const isOpeningSearch = matchingBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB;
             const isNewPolicyID =
                 ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
@@ -113,11 +115,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             } else {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-            }
-
-            // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
-            if (targetName === SCREENS.SEARCH.CENTRAL_PANE && targetParams && policyID) {
-                (targetParams as Record<string, string | undefined>).policyIDs = policyID;
             }
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
