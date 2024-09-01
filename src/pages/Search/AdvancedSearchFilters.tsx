@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -17,13 +18,14 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
 
 const baseFilterConfig = {
     date: {
@@ -77,7 +79,7 @@ const baseFilterConfig = {
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
     },
     expenseType: {
-        getTitle: getExpenseTypeDisplayTitle,
+        getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
     },
@@ -101,13 +103,18 @@ const baseFilterConfig = {
         description: 'search.filters.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
     },
+    in: {
+        getTitle: getFilterInDisplayTitle,
+        description: 'common.in' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+    },
 };
 
 const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -201,7 +208,7 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return result.join(', ');
 }
 
-function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
@@ -209,6 +216,10 @@ function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>,
               .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
               .join(', ')
         : undefined;
+}
+
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+    return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
 }
 
 function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
@@ -226,12 +237,94 @@ function AdvancedSearchFilters() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
+    // const advancedFilters = useMemo(
+    //     () => [
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
+    //             description: 'common.date' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
+    //             description: 'common.currency' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
+    //             description: 'common.merchant' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
+    //             description: 'common.description' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
+    //             description: 'common.reportID' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
+    //             description: 'common.total' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
+    //             description: 'common.category' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
+    //             description: 'search.filters.hasKeywords' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+    //         },
+    //         {
+    //             title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
+    //             description: 'common.card' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+    //             shouldHide: Object.keys(cardList).length === 0,
+    //         },
+    //         {
+    //             title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
+    //             description: 'workspace.taxes.taxRate' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+    //         },
+    //         {
+    //             title: getFilterExpenseDisplayTitle(searchAdvancedFilters, translate),
+    //             description: 'search.expenseType' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
+    //             description: 'common.tag' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+    //         },
+    //         {
+    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
+    //             description: 'common.from' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+    //         },
+    //         {
+    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
+    //             description: 'common.to' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+    //         },
+    //         {
+    //             title: getFilterInDisplayTitle(searchAdvancedFilters, translate, reports),
+    //             description: 'common.in' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+    //         },
+    //     ],
+    //     [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
+    // );
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const onFormSubmit = () => {
@@ -272,6 +365,8 @@ function AdvancedSearchFilters() {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
         }
         return {
             key,
