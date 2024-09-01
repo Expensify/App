@@ -52,6 +52,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
+import Navigation from '@libs/Navigation/Navigation';
 
 type ComposerRef = {
     blur: () => void;
@@ -273,7 +274,7 @@ function ReportActionCompose({
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
         // Clear the highlighted report item when an action from the + menu is taken
-        Report.clearLinkedReportActionID();
+        Navigation.clearLinkedReportActionID();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -321,7 +322,7 @@ function ReportActionCompose({
             }
 
             // Clear the highlighted report item when a new comment or attachment is sent
-            Report.clearLinkedReportActionID();
+            Navigation.clearLinkedReportActionID();
         },
         [onSubmit, reportID],
     );

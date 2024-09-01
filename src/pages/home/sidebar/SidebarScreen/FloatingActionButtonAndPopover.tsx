@@ -354,8 +354,8 @@ function FloatingActionButtonAndPopover(
     const onItemSelected = useCallback(() => {
         hideCreateMenu();
         // Clear the highlighted report item when an action from the + menu is taken
-        Report.clearLinkedReportActionID();
-    }, [hideCreateMenu, Report.clearLinkedReportActionID]);
+        Navigation.clearLinkedReportActionID();
+    }, [hideCreateMenu]);
 
     return (
         <View style={styles.flexGrow1}>

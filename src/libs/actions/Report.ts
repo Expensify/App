@@ -438,21 +438,6 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
 }
 
 /**
- * Clears the reportActionID from the current navigation route parameters.
- * This removes any highlight from the report action item.
- */
-function clearLinkedReportActionID() {
-    const state = navigationRef?.getState();
-    const linkedReportActionID = getTopmostReportActionID(state);
-
-    if (!linkedReportActionID) {
-        return;
-    }
-
-    Navigation.setParams({reportActionID: ''});
-}
-
-/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -4185,7 +4170,6 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
-    clearLinkedReportActionID,
     exportToIntegration,
     markAsManuallyExported,
     handleReportChanged,
