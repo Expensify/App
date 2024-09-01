@@ -6711,6 +6711,31 @@ function getPayMoneyRequestParams(
         });
     }
 
+    // Optimistically unhold all transactions if we pay all requests
+    if (full) {
+        const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+        for (const transaction of reportTransactions) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: null,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: transaction.comment?.hold,
+                    },
+                },
+            });
+        }
+    }
+
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
