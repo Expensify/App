@@ -3673,6 +3673,9 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
         return getIOUForwardedMessage(parentReportAction, report);
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+        return getRejectedReportMessage();
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         return getIOUApprovedMessage(parentReportAction);
     }
@@ -4413,6 +4416,10 @@ function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInpu
     }
 
     return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
+}
+
+function getRejectedReportMessage() {
+    return Localize.translateLocal('iou.rejectedThisReport');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -7829,6 +7836,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
