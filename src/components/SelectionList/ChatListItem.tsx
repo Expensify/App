@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {AttachmentContext} from '@components/AttachmentContext';
 import MultipleAvatars from '@components/MultipleAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -41,6 +42,8 @@ function ChatListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
+    const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.SEARCH};
+
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
@@ -67,7 +70,7 @@ function ChatListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
-                <>
+                <AttachmentContext.Provider value={attachmentContextValue}>
                     <MultipleAvatars
                         icons={icons}
                         shouldShowTooltip={showTooltip}
@@ -98,7 +101,7 @@ function ChatListItem<TItem extends ListItem>({
                             />
                         </View>
                     </View>
-                </>
+                </AttachmentContext.Provider>
             )}
         </BaseListItem>
     );
