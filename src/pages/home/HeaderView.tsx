@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -59,6 +59,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -131,6 +132,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report.reportID || !title;
+    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
 
     return (
         <View
@@ -267,10 +269,10 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
+                                {ReportUtils.isChatUsedForOnboarding(report) && freeTrialText && (
                                     <Badge
                                         success
-                                        text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                        text={freeTrialText}
                                     />
                                 )}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}

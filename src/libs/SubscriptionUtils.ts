@@ -1,9 +1,11 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {translateLocal} from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -369,6 +371,24 @@ function calculateRemainingFreeTrialDays(): number {
     return diffInDays < 0 ? 0 : diffInDays;
 }
 
+function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
+    if (!PolicyUtils.hasPaidPolicy(policies, currentUserAccountID)) {
+        return undefined;
+    }
+
+    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+        return translateLocal('subscription.billingBanner.preTrial.title');
+    }
+    if (isUserOnFreeTrial()) {
+        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+    }
+    if (hasUserFreeTrialEnded()) {
+        return translateLocal('subscription.billingBanner.trialEnded.title');
+    }
+
+    return undefined;
+}
+
 /**
  * Whether the workspace's owner is on its free trial period.
  */
@@ -449,16 +469,17 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
+    getAmountOwed,
+    getCardForSubscriptionBilling,
+    getFreeTrialText,
+    getOverdueGracePeriodDate,
+    getSubscriptionStatus,
+    hasCardAuthenticatedError,
+    hasRetryBillingError,
+    hasSubscriptionGreenDotInfo,
+    hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
     isUserOnFreeTrial,
-    shouldRestrictUserBillableActions,
-    getSubscriptionStatus,
-    hasSubscriptionRedDotError,
-    getAmountOwed,
-    getOverdueGracePeriodDate,
-    getCardForSubscriptionBilling,
-    hasCardAuthenticatedError,
-    hasSubscriptionGreenDotInfo,
-    hasRetryBillingError,
     PAYMENT_STATUS,
+    shouldRestrictUserBillableActions,
 };

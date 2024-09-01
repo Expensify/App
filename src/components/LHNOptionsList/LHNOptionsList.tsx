@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,6 +149,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
+            const freeTrialText = SubscriptionUtils.getFreeTrialText(policy);
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
@@ -166,22 +169,23 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
+                    freeTrialText={freeTrialText}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                 />
             );
         },
         [
-            draftComments,
-            onSelectRow,
-            optionMode,
-            personalDetails,
-            policy,
-            preferredLocale,
-            reportActions,
             reports,
-            shouldDisableFocusOptions,
+            reportActions,
+            policy,
             transactions,
+            draftComments,
+            personalDetails,
+            optionMode,
+            shouldDisableFocusOptions,
+            onSelectRow,
+            preferredLocale,
             transactionViolations,
             onLayoutItem,
         ],

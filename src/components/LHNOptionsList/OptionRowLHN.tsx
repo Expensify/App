@@ -26,14 +26,23 @@ import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
+function OptionRowLHN({
+    reportID,
+    isFocused = false,
+    onSelectRow = () => {},
+    optionItem,
+    viewMode = 'default',
+    style,
+    onLayout = () => {},
+    hasDraftComment,
+    freeTrialText,
+}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -229,10 +238,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 ReportUtils.isSystemChat(report)
                                             }
                                         />
-                                        {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
+                                        {ReportUtils.isChatUsedForOnboarding(report) && freeTrialText && (
                                             <Badge
                                                 success
-                                                text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                                text={freeTrialText}
                                                 badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]}
                                             />
                                         )}
