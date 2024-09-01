@@ -29,7 +29,7 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentOfflineIndicato
             />
             <View style={[styles.pAbsolute, styles.deletedIndicator, styles.alignItemsCenter, styles.justifyContentCenter, containerStyles]}>
                 <Icon
-                    fill={theme.iconHovered}
+                    fill={theme.icon}
                     src={Expensicons.Trashcan}
                     width={variables.iconSizeSuperLarge}
                     height={variables.iconSizeSuperLarge}
