@@ -45,14 +45,16 @@ function IOURequestStepAttendees({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const saveAttendees = useCallback(() => {
-        if (attendees.length <= 0 || lodashIsEqual(previousAttendees, attendees)) {
+        if (attendees.length <= 0) {
             return;
         }
-
-        IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
-        if (isEditing) {
-            IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories);
+        if (!lodashIsEqual(previousAttendees, attendees)) {
+            IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
+            if (isEditing) {
+                IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories);
+            }
         }
+
         Navigation.goBack(backTo);
     }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID]);
 

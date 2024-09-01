@@ -33,7 +33,7 @@ type MoneyRequestAttendeesSelectorProps = {
     onAttendeesAdded: (value: Attendee[]) => void;
 
     /** Selected participants from MoneyRequestModal with login */
-    attendees?: Attendee[] | typeof CONST.EMPTY_ARRAY;
+    attendees?: Attendee[];
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
@@ -42,7 +42,7 @@ type MoneyRequestAttendeesSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -75,7 +75,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
             options.reports,
             options.personalDetails,
             betas,
-            attendees as Attendee[],
+            attendees,
             recentAttendees ?? [],
             iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
             !isCategorizeOrShareAction,
@@ -115,7 +115,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            selectedOptions: attendees as Attendee[],
+            selectedOptions: attendees,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
@@ -126,7 +126,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
 
     /**
      * Returns the sections needed for the OptionsSelector
-     * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
         const newSections: OptionsListUtils.CategorySection[] = [];
@@ -191,10 +190,6 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
         cleanSearchTerm,
     ]);
 
-    /**
-     * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param {Object} option
-     */
     const addAttendeeToSelection = useCallback(
         (option: Attendee) => {
             const isOptionSelected = (selectedOption: Attendee) => {
@@ -214,7 +209,8 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
                     ...attendees,
                     {
                         accountID: option.accountID ?? -1,
-                        login: option.login && option.login !== '' ? option.login : option.text,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        login: option.login || option.text,
                         displayName: option.text,
                         selected: true,
                         searchText: option.searchText,
@@ -225,8 +221,7 @@ function MoneyRequestAttendeeSelector({attendees = CONST.EMPTY_ARRAY, onFinish, 
 
             onAttendeesAdded(newSelectedOptions);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
-        [attendees, onAttendeesAdded],
+        [attendees, iouType, onAttendeesAdded],
     );
 
     const shouldShowErrorMessage = attendees.length < 1;

@@ -21,6 +21,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -407,9 +408,10 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>): string {
-    const oldAttendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
-    return oldAttendees.map((item) => item.displayName ?? item.login).join(', ');
+function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
+    const oldAttendees = modifiedAttendees ?? [];
+    const newAttendees = attendees ?? [];
+    return [oldAttendees.map((item) => item.displayName ?? item.login).join(', '), newAttendees.map((item) => item.displayName ?? item.login).join(', ')];
 }
 
 /**
@@ -1089,7 +1091,7 @@ export {
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
-    getAttendees,
+    getFormattedAttendees,
     getMerchant,
     getMCCGroup,
     getCreated,
