@@ -446,7 +446,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getIOUApprovedMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction);
+                    const displayMessage = ReportUtils.getIOUForwardedMessage(reportAction, reportID);
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));

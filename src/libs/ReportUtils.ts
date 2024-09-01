@@ -9,7 +9,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
@@ -3671,7 +3671,7 @@ function getReportName(
         return getIOUSubmittedMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-        return getIOUForwardedMessage(parentReportAction);
+        return getIOUForwardedMessage(parentReportAction, report);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         return getIOUApprovedMessage(parentReportAction);
@@ -4396,8 +4396,23 @@ function getIOUApprovedMessage(reportAction: ReportAction) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUForwardedMessage(reportAction: ReportAction) {
-    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportAction)});
+/**
+ * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
+ * so we retrieve the amount from the report instead
+ */
+function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInputOrEntry<Report> | string) {
+    const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
+    let formattedAmount;
+
+    // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
+    if (originalMessage?.amount) {
+        formattedAmount = getFormattedAmount(reportAction);
+    } else {
+        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+    }
+
+    return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
