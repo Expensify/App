@@ -7414,7 +7414,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     const personalDetailsListValues = Object.values(
         OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList),
-    ) as OnyxTypes.PersonalDetails[];
+    );
     const personalDetails = personalDetailsListValues[0] ?? {};
 
     let onboardingPurpose = introSelected.choice;

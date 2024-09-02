@@ -57,6 +57,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+import { SetNonNullable } from 'type-fest';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
@@ -379,8 +380,8 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetailsList {
-    const personalDetailsForAccountIDs: PersonalDetailsList = {};
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
+    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }
