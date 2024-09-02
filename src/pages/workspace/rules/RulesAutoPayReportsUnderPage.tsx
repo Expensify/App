@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/RulesAutoPayReportsUnderModalForm';
 type RulesAutoPayReportsUnderPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER>;
 
 function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps) {
-    const {policyID} = route.params;
+    const policyID = route?.params?.policyID ?? '-1';
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -45,7 +45,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? '-1'}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             shouldBeBlocked={!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable}

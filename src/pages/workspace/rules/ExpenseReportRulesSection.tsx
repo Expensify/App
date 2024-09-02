@@ -9,6 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -24,7 +25,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const policy = usePolicy(policyID);
 
     // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
-    const workflowApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || !!policy?.errorFields?.approvalMode;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const renderFallbackSubtitle = (featureName: string) => {
