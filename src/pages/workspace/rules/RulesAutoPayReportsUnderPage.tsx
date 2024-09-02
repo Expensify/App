@@ -32,6 +32,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency);
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
@@ -47,6 +48,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
             policyID={route.params.policyID ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            shouldBeBlocked={!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

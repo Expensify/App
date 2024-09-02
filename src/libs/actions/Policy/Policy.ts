@@ -3759,8 +3759,6 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
     const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
-    const titleFieldPendingValues = enabled ? {} : {fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3770,7 +3768,6 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
                 ...titleFieldValues,
                 pendingFields: {
                     shouldShowCustomReportTitleOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    ...titleFieldPendingValues,
                 },
             },
         },

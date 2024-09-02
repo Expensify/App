@@ -31,6 +31,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const workflowApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || !!policy?.errorFields?.approvalMode;
     const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency);
 
     return (
@@ -38,6 +39,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             policyID={route.params.policyID ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

@@ -30,6 +30,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const workflowApprovalsUnavailable = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || !!policy?.errorFields?.approvalMode;
     const defaultValue = policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE;
 
     return (
@@ -37,6 +38,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
             policyID={route.params.policyID ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

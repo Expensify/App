@@ -54,6 +54,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             policyID={route.params.policyID ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
