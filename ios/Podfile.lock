@@ -2453,7 +2453,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReactNativeHapticFeedback (2.2.0):
+  - RNReactNativeHapticFeedback (2.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3239,7 +3239,7 @@ SPEC CHECKSUMS:
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
-  RNReactNativeHapticFeedback: a15b431d2903bc2eb3474ff8d9a05d3e67a70199
+  RNReactNativeHapticFeedback: 31833c3ef341d716dbbd9d64e940f0c230db46f6
   RNReanimated: 76901886830e1032f16bbf820153f7dc3f02d51d
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
   RNShare: a3c2fbbca5682530b65ff405b34c91dad1e22442
