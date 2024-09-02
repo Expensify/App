@@ -23,8 +23,8 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
 
     useEffect(() => {
         if (url) {
-            signInAfterTransitionFromOldDot(url);
-            setInitialURL(url);
+            const route = signInAfterTransitionFromOldDot(url);
+            setInitialURL(route);
             setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             return;
         }
