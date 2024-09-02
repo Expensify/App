@@ -12,21 +12,15 @@ import * as CardUtils from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
-import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
 
 type WorkspaceCompanyCardsListProps = {
-    /** The current policyID */
-    policyID: string;
-
     /** List of company cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
-
-    /** Currently selected feed */
-    selectedFeed: string;
 };
 
-function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -79,20 +73,18 @@ function WorkspaceCompanyCardsList({policyID, cardsList, selectedFeed}: Workspac
         [styles, translate],
     );
 
+    if (sortedCards.length === 0) {
+        return <WorkspaceCompanyCardsFeedAddedEmptyPage />;
+    }
+
     return (
-        <View style={styles.flex1}>
-            <WorkspaceCompanyCardsListHeaderButtons
-                policyID={policyID}
-                selectedFeed={selectedFeed}
-            />
-            <FlatList
-                contentContainerStyle={styles.flexGrow1}
-                data={sortedCards}
-                renderItem={renderItem}
-                ListHeaderComponent={renderListHeader}
-                stickyHeaderIndices={[0]}
-            />
-        </View>
+        <FlatList
+            contentContainerStyle={styles.flexGrow1}
+            data={sortedCards}
+            renderItem={renderItem}
+            ListHeaderComponent={renderListHeader}
+            stickyHeaderIndices={[0]}
+        />
     );
 }
 

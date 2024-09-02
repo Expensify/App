@@ -69,8 +69,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 />
                 <Button
                     medium
-                    // TODO: navigate to Settings screen when it's implemented
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
                     style={shouldUseNarrowLayout && styles.flex1}
