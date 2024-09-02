@@ -435,6 +435,8 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
+            result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
