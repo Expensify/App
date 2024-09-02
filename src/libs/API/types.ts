@@ -425,7 +425,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: Parameters.RequestUnlinkValidationLinkParams;
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
-    [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: null;
+    [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;

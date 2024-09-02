@@ -3972,6 +3972,7 @@ const CONST = {
         SUCCESS: 'SUCCESS',
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
+        GETCODE: 'GETCODE',
     },
     DELEGATE_ROLE: {
         SUBMITTER: 'submitter',
