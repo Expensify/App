@@ -32,7 +32,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
-import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -273,8 +272,6 @@ function ReportActionCompose({
 
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
-        // Clear the highlighted report item when an action from the + menu is taken
-        Navigation.clearLinkedReportActionID();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -320,9 +317,6 @@ function ReportActionCompose({
                 Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
                 onSubmit(newCommentTrimmed);
             }
-
-            // Clear the highlighted report item when a new comment or attachment is sent
-            Navigation.clearLinkedReportActionID();
         },
         [onSubmit, reportID],
     );

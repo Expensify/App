@@ -308,19 +308,6 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
 }
 
 /**
- * Clears the reportActionID from the current navigation route parameters.
- * This removes any highlight from the report action item.
- */
-function clearLinkedReportActionID() {
-    const currentRoute = navigationRef.getCurrentRoute();
-    const params = (currentRoute?.params as {reportActionID?: string}) || {};
-    if (!params.reportActionID) {
-        return;
-    }
-    setParams({reportActionID: ''}, currentRoute?.key);
-}
-
-/**
  * Returns the current active route without the URL params
  */
 function getActiveRouteWithoutParams(): string {
@@ -435,7 +422,6 @@ export default {
     getTopmostReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
-    clearLinkedReportActionID,
     waitForProtectedRoutes,
     parseHybridAppUrl,
     navigateWithSwitchPolicyID,
