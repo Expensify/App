@@ -107,6 +107,16 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialR
     return undefined;
 }
 
+function initializePusher() {
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+    }).then(() => {
+        User.subscribeToUserEvents();
+    });
+}
+
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
@@ -125,7 +135,7 @@ Onyx.connect({
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
-            User.subscribeToUserEvents();
+            initializePusher();
         }
     },
 });
@@ -261,7 +271,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         }).then(() => {
-            User.subscribeToUserEvents();
+            initializePusher();
         });
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
