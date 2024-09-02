@@ -1,11 +1,12 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
-import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -36,12 +37,16 @@ function transformNumericKeysToArray(obj) {
 
 export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
                 return (
-                    <Button
-                        text={translate('initialSettingsPage.troubleshoot.importOnyxState')}
+                    <MenuItem
+                        icon={Expensicons.Upload}
+                        title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={() => {
                             // TODO should directly use 'react-native-document-picker'
                             openPicker({

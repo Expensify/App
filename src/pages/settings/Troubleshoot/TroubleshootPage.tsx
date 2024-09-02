@@ -1,11 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import RNFS from 'react-native-fs';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -105,14 +102,6 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
             .reverse();
     }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
 
-    const resetToOriginalState = () => {
-        Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false}).then(() => {
-            Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
-                App.openApp();
-            });
-        });
-    };
-
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -151,15 +140,6 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <OnyxStateImport setIsLoading={setIsLoading} />
-                            </View>
-                            <View style={styles.mt5}>
-                                <Button
-                                    text={translate('initialSettingsPage.troubleshoot.resetToOriginalState')}
-                                    onPress={resetToOriginalState}
-                                />
-                            </View>
-                            <View>
                                 <ClientSideLoggingToolMenu />
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
@@ -169,6 +149,7 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
                                     />
                                 </TestToolRow>
                             </View>
+                            <OnyxStateImport setIsLoading={setIsLoading} />
                             <MenuItemList
                                 menuItems={menuItems}
                                 shouldUseSingleExecution
