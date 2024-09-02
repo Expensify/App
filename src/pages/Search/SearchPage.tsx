@@ -40,10 +40,21 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {queryJSON && (
-                    <Search
-                        isCustomQuery={isCustomQuery}
-                        queryJSON={queryJSON}
-                    />
+                    <>
+                        {/* <SearchPageHeader
+                            isCustomQuery={isCustomQuery}
+                            queryJSON={queryJSON}
+                            hash={queryJSON.hash}
+                        />
+                        <SearchStatusBar
+                            type={queryJSON.type}
+                            status={queryJSON.status}
+                        /> */}
+                        <Search
+                            isCustomQuery={isCustomQuery}
+                            queryJSON={queryJSON}
+                        />
+                    </>
                 )}
             </FullPageNotFoundView>
         </ScreenWrapper>

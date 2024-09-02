@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +14,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {useSearchContext} from './SearchContext';
 import type {ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
@@ -126,6 +128,12 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const options = getOptions(type);
+    const {shouldShowStatusBarLoading} = useSearchContext();
+
+    /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
+    if (shouldShowStatusBarLoading) {
+        return <SearchStatusSkeleton shouldAnimate />;
+    }
 
     return (
         <ScrollView

@@ -10,7 +10,6 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -34,7 +33,6 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
-import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -84,13 +82,17 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setSelectedReports, setShouldShowStatusBarLoading} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    console.log('%%%%%\n', 'i render');
 
+    // DO PRZENIESIENIA
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
+    // DO PRZENIESIENIA
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+    // DO PRZENIESIENIA
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
@@ -124,11 +126,11 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
         SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
-
+    // DO PRZENIESIENIA
     const handleOnCancelConfirmModal = () => {
         setDeleteExpensesConfirmModalVisible(false);
     };
-
+    // DO PRZENIESIENIA
     const handleDeleteExpenses = () => {
         if (selectedTransactionsToDelete.length === 0) {
             return;
@@ -138,7 +140,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
         setDeleteExpensesConfirmModalVisible(false);
         SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
     };
-
+    // DO PRZENIESIENIA
     const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
         setSelectedTransactionsToDelete(itemsToDelete);
         setDeleteExpensesConfirmModalVisible(true);
@@ -189,6 +191,10 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
+        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type === type);
+    }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+
+    useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
             return;
         }
@@ -196,26 +202,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     if (shouldShowLoadingState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-
-                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
-                {searchResults?.search?.type === type ? (
-                    <SearchStatusBar
-                        type={type}
-                        status={status}
-                    />
-                ) : (
-                    <SearchStatusSkeleton shouldAnimate />
-                )}
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
+        return <SearchRowSkeleton shouldAnimate />;
     }
 
     if (searchResults === undefined) {
@@ -231,22 +218,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
     if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
-                    queryJSON={queryJSON}
-                    hash={hash}
-                />
-                {!isSmallScreenWidth && (
-                    <SearchStatusBar
-                        type={type}
-                        status={status}
-                    />
-                )}
-                <EmptySearchView type={type} />
-            </>
-        );
+        return <EmptySearchView type={type} />;
     }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
@@ -255,7 +227,9 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 return;
             }
 
-            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions));
+            const transactionList = prepareTransactionsList(item, selectedTransactions);
+            setSelectedTransactions(transactionList);
+            setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, transactionList));
             return;
         }
 
@@ -267,13 +241,16 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
             });
 
             setSelectedTransactions(reducedSelectedTransactions);
+            setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, reducedSelectedTransactions));
             return;
         }
 
-        setSelectedTransactions({
+        const newSelectedTransactions = {
             ...selectedTransactions,
             ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
-        });
+        };
+        setSelectedTransactions(newSelectedTransactions);
+        setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, newSelectedTransactions));
     };
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
@@ -315,7 +292,9 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
             return;
         }
 
-        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
+        const allSelectedTransactions = Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry));
+        setSelectedTransactions(allSelectedTransactions);
+        setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, allSelectedTransactions));
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
@@ -332,17 +311,10 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 isCustomQuery={isCustomQuery}
                 queryJSON={queryJSON}
                 hash={hash}
-                onSelectDeleteOption={handleOnSelectDeleteOption}
-                data={data}
-                setOfflineModalOpen={() => setOfflineModalVisible(true)}
-                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
+                onSelectDeleteOption={handleOnSelectDeleteOption} // NIE POTRZEBNE
+                setOfflineModalOpen={() => setOfflineModalVisible(true)} // NIE POTRZEBNE
+                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)} // NIE POTRZEBNE
             />
-            {!isSmallScreenWidth && (
-                <SearchStatusBar
-                    type={type}
-                    status={status}
-                />
-            )}
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
@@ -397,6 +369,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 scrollEventThrottle={16}
                 contentContainerStyle={styles.mt3}
             />
+            {/* DO PRZENIESIENIA */}
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
@@ -408,6 +381,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 cancelText={translate('common.cancel')}
                 danger
             />
+            {/* DO PRZENIESIENIA */}
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
@@ -417,6 +391,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
+            {/* DO PRZENIESIENIA */}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}

@@ -10,7 +10,6 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +27,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
@@ -96,7 +95,6 @@ type SearchPageHeaderProps = {
     isCustomQuery: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
-    data?: TransactionListItemType[] | ReportListItemType[];
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -118,30 +116,18 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
     }
 }
 
-function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    const selectedReports: Array<SearchReport['reportID']> = useMemo(
-        () =>
-            (data ?? [])
-                .filter(
-                    (item) =>
-                        !SearchUtils.isTransactionListItemType(item) &&
-                        item.reportID &&
-                        item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
-                )
-                .map((item) => item.reportID),
-        [data, selectedTransactions],
-    );
     const {status, type} = queryJSON;
     const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';

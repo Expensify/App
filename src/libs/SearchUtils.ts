@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SelectedTransactions, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -577,6 +577,17 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
+function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[], selectedTransactions: SelectedTransactions) {
+    return (data ?? [])
+        .filter(
+            (item) =>
+                !isTransactionListItemType(item) &&
+                item.reportID &&
+                item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+        )
+        .map((item) => item.reportID);
+}
+
 function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
 }
@@ -601,4 +612,5 @@ export {
     buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getChatFiltersTranslationKey,
+    getReportsFromSelectedTransactions,
 };
