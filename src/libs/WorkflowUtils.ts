@@ -170,6 +170,11 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
 
     /**
+     * The previous employee list before the approval workflow was created *
+     */
+    previousEmployeeList: PolicyEmployeeList;
+
+    /**
      * Members to remove from the approval workflow
      */
     membersToRemove?: Member[];
@@ -181,7 +186,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRemove, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, previousEmployeeList, membersToRemove, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -191,22 +196,48 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
 
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
+        const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '';
+
+        if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
+            return;
+        }
+
         updatedEmployeeList[approver.email] = {
             email: approver.email,
-            forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
+            forwardsTo,
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
+        const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '';
+
+        if (previousEmployeeList[email]?.submitsTo === submitsTo) {
+            return;
+        }
+
+        if (updatedEmployeeList[email]) {
+            updatedEmployeeList[email].submitsTo = submitsTo;
+            return;
+        }
+
         updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
+            email,
+            submitsTo,
         };
     });
 
     membersToRemove?.forEach(({email}) => {
+        if (previousEmployeeList[email]?.submitsTo === undefined || previousEmployeeList[email]?.submitsTo === '') {
+            return;
+        }
+
+        if (updatedEmployeeList[email]) {
+            updatedEmployeeList[email].submitsTo = '';
+            return;
+        }
+
         updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+            email,
             submitsTo: '',
         };
     });
