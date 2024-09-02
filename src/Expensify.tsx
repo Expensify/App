@@ -16,6 +16,7 @@ import UpdateAppModal from './components/UpdateAppModal';
 import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
+import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -103,6 +104,7 @@ function Expensify({
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -235,6 +237,16 @@ function Expensify({
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
+
+    useLayoutEffect(() => {
+        if (!isNavigationReady || !lastRoute) {
+            return;
+        }
+        updateLastRoute('');
+        Navigation.navigate(lastRoute as Route);
+        // Disabling this rule because we only want it to run on the first render.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isNavigationReady]);
 
     useEffect(() => {
         if (!isAuthenticated) {

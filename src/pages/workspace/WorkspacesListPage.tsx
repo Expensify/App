@@ -32,7 +32,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
-import * as Modal from '@userActions/Modal';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -46,7 +45,7 @@ import WorkspacesListRow from './WorkspacesListRow';
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
-    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID'> & {
+    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
         icon: AvatarSource;
         action: () => void;
         dismissError: () => void;
@@ -151,7 +150,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
      */
     const getMenuItem = useCallback(
         ({item, index}: GetMenuItem) => {
-            const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = PolicyUtils.isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
@@ -162,12 +161,12 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
-                    onSelected: () =>
-                        Modal.close(() => {
-                            setPolicyIDToDelete(item.policyID ?? '-1');
-                            setPolicyNameToDelete(item.title);
-                            setIsDeleteModalOpen(true);
-                        }),
+                    onSelected: () => {
+                        setPolicyIDToDelete(item.policyID ?? '-1');
+                        setPolicyNameToDelete(item.title);
+                        setIsDeleteModalOpen(true);
+                    },
+                    shouldCallAfterModalHide: true,
                 });
             }
 
@@ -231,7 +230,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID],
+        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -306,13 +305,13 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
         if (isEmptyObject(policies)) {
             return [];
         }
 
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline, session?.email))
             .map((policy): WorkspaceItem => {
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
@@ -352,10 +351,11 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
+                    employeeList: policy.employeeList,
                 };
             })
             .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms]);
+    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms, session?.email]);
 
     const getHeaderButton = () => (
         <Button
