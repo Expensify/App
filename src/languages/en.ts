@@ -2847,6 +2847,7 @@ export default {
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         moreFeatures: {
+            subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
             spendSection: {
                 title: 'Spend',
                 subtitle: 'Enable functionality that helps you scale your team.',
