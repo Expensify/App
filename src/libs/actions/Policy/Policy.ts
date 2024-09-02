@@ -3380,6 +3380,61 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
+    const policy = getPolicy(policyID);
+    if (!policy) {
+        return;
+    }
+
+    const {mccGroup} = policy;
+
+    const optimisticData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      isPendingUpgrade: true,
+                      mccGroup: {
+                          ...mccGroup,
+                          [groupID]: {
+                              category,
+                              groupID,
+                          },
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    const successData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      isPendingUpgrade: false,
+                  },
+              },
+          ]
+        : [];
+
+    const failureData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      isPendingUpgrade: false,
+                      mccGroup,
+                  },
+              },
+          ]
+        : [];
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
+}
+
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
@@ -3403,6 +3458,7 @@ export {
     openWorkspaceReimburseView,
     setPolicyIDForReimburseView,
     clearOnyxDataForReimburseView,
+    setWorkspaceDefaultSpendCategory,
     setRateForReimburseView,
     setUnitForReimburseView,
     generateDefaultWorkspaceName,
