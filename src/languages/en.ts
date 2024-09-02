@@ -19,6 +19,7 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
+    CompanyCardFeedNameParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -148,6 +149,7 @@ export default {
         center: 'Center',
         from: 'From',
         to: 'To',
+        in: 'In',
         optional: 'Optional',
         new: 'New',
         search: 'Search',
@@ -2901,6 +2903,25 @@ export default {
                 disableCardTitle: 'Disable Company Cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                assignCard: 'Assign card',
+                cardFeedName: 'Card feed name',
+                cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
+                cardFeedTransaction: 'Delete transactions',
+                cardFeedTransactionDescription: 'Choose whether cardholders can delete card transactions. New transactions will follow these rules.',
+                cardFeedRestrictDeletingTransaction: 'Restrict deleting transactions',
+                cardFeedAllowDeletingTransaction: 'Allow deleting transactions',
+                removeCardFeed: 'Remove card feed',
+                removeCardFeedTitle: ({feedName}: CompanyCardFeedNameParams) => `Remove ${feedName} feed`,
+                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
+                error: {
+                    feedNameRequired: 'Card feed name is required.',
+                },
+                corporate: 'Restrict deleting transactions',
+                personal: 'Allow deleting transactions',
+                setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
+                setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
+                emptyAddedFeedTitle: 'Assign company cards',
+                emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
             },
             workflows: {
                 title: 'Workflows',
@@ -3770,6 +3791,7 @@ export default {
     search: {
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        resetFilters: 'Reset filters',
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
@@ -3798,6 +3820,8 @@ export default {
             keyword: 'Keyword',
             hasKeywords: 'Has keywords',
             currency: 'Currency',
+            has: 'Has',
+            link: 'Link',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
