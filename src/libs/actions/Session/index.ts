@@ -12,6 +12,7 @@ import type {
     BeginAppleSignInParams,
     BeginGoogleSignInParams,
     BeginSignInParams,
+    DisableTwoFactorAuthParams,
     RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
@@ -877,7 +878,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
 /**
  * Toggles two-factor authentication based on the `enable` parameter
  */
-function toggleTwoFactorAuth(enable: boolean) {
+function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -894,6 +895,9 @@ function toggleTwoFactorAuth(enable: boolean) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+
+                // When disabling 2FA, the user needs to end up on the step that confirms the setting was disabled
+                twoFactorAuthStep: enable ? undefined : CONST.TWO_FACTOR_AUTH_STEPS.DISABLED,
             },
         },
     ];
@@ -908,7 +912,16 @@ function toggleTwoFactorAuth(enable: boolean) {
         },
     ];
 
-    API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
+    if (enable) {
+        API.write(WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
+        return;
+    }
+
+    // A 2FA code is required to disable 2FA
+    const params: DisableTwoFactorAuthParams = {twoFactorAuthCode};
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
 }
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
