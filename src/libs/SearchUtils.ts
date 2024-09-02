@@ -537,12 +537,12 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
-function getFilterFormObject(filters: QueryFilters) {
+function getFiltersForm(filters: QueryFilters) {
     const filterKeys = Object.keys(filters);
-    const filterFormObject = {} as Partial<SearchAdvancedFiltersForm>;
+    const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     for (const filterKey of filterKeys) {
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-            filterFormObject[filterKey] = filters[filterKey]?.[0]?.value.toString();
+            filtersForm[filterKey] = filters[filterKey]?.[0]?.value.toString();
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
@@ -554,22 +554,22 @@ function getFilterFormObject(filters: QueryFilters) {
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
         ) {
-            filterFormObject[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
+            filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterFormObject[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString()).join(' ');
+            filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString()).join(' ');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
-            filterFormObject[FILTER_KEYS.DATE_BEFORE] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
-            filterFormObject[FILTER_KEYS.DATE_AFTER] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
+            filtersForm[FILTER_KEYS.DATE_BEFORE] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
+            filtersForm[FILTER_KEYS.DATE_AFTER] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            filterFormObject[FILTER_KEYS.LESS_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
-            filterFormObject[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
+            filtersForm[FILTER_KEYS.LESS_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
+            filtersForm[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
         }
     }
 
-    return filterFormObject;
+    return filtersForm;
 }
 
 /**
@@ -630,7 +630,7 @@ export {
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
-    getFilterFormObject,
+    getFiltersForm,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSearchHeaderTitle,

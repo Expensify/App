@@ -102,7 +102,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
                 icon={Expensicons.Filters}
                 onPress={() => {
                     const filters = SearchUtils.getFilters(queryJSON);
-                    const form = SearchUtils.getFilterFormObject(filters);
+                    const form = SearchUtils.getFiltersForm(filters);
                     form.type = queryJSON.type;
                     form.status = queryJSON.status;
                     SearchActions.updateAdvancedFilters(form);
