@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -43,6 +44,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const selectMember = (assignee: ListItem) => {
+        Keyboard.dismiss();
         setSelectedMember(assignee.login ?? '');
         setShouldShowError(false);
     };
