@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
-import {OnboardingPurposeType} from './CONST';
+import type {OnboardingPurposeType} from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type Onboarding from './types/onyx/Onboarding';
