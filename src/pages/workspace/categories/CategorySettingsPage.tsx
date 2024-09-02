@@ -265,20 +265,9 @@ function CategorySettingsPage({
                                                 Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                             }}
                                             shouldShowRightIcon
+                                            disabled={!policy?.areWorkflowsEnabled}
                                         />
                                     </OfflineWithFeedback>
-                                    {policy?.tax?.trackingEnabled && (
-                                        <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.expenseRules}>
-                                            <MenuItemWithTopDescription
-                                                title={defaultTaxRateText}
-                                                description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
-                                                }}
-                                                shouldShowRightIcon
-                                            />
-                                        </OfflineWithFeedback>
-                                    )}
                                     {!policy?.areWorkflowsEnabled && (
                                         <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                             <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
@@ -291,6 +280,19 @@ function CategorySettingsPage({
                                             <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
                                         </Text>
                                     )}
+                                    {policy?.tax?.trackingEnabled && (
+                                        <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.expenseRules}>
+                                            <MenuItemWithTopDescription
+                                                title={defaultTaxRateText}
+                                                description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                                }}
+                                                shouldShowRightIcon
+                                            />
+                                        </OfflineWithFeedback>
+                                    )}
+
                                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
                                         <MenuItemWithTopDescription
                                             title={flagAmountsOverText}
