@@ -2,6 +2,7 @@ import React, {createContext, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
@@ -22,8 +23,9 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
 
     useEffect(() => {
         if (url) {
-            signInAfterTransitionFromOldDot(url, setSplashScreenState);
+            signInAfterTransitionFromOldDot(url);
             setInitialURL(url);
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             return;
         }
         Linking.getInitialURL().then((initURL) => {
