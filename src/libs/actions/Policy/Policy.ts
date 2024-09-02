@@ -4255,13 +4255,12 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
  */
 function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const policy = getPolicy(policyID);
+    const fallbackLimit = limit === '' ? '0' : limit;
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
     if (parsedLimit === policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS) {
         return;
     }
-
-    const fallbackLimit = limit === '' ? '0' : limit;
-    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
     const optimisticData: OnyxUpdate[] = [
         {
