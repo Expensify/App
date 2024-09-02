@@ -155,7 +155,7 @@ type MenuItemBaseProps = {
     shouldShowDescriptionOnTop?: boolean;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: string | ReactNode;
 
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;

@@ -5,7 +5,6 @@ import * as API from '@libs/API';
 import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -369,24 +368,20 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): string | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (
-            !isSyncInProgress &&
-            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
-        ) {
-            return syncError;
+        if (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false) {
+            return true;
         }
-        return;
+        return false;
     }
 
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful) {
-        return;
+    if (isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful) {
+        return false;
     }
-    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+    return true;
 }
 
 function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
@@ -453,9 +448,9 @@ export {
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-    getSynchronizationErrorMessage,
     isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
+    hasSynchronizationErrorMessage,
 };

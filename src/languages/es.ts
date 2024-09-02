@@ -2444,6 +2444,8 @@ export default {
             syncReimbursedReportsDescription:
                 'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
             paymentAccount: 'Cuenta de pago Sage Intacct',
+            authenticationError: 'No se puede conectar a Sage Intacct debido a un error de autenticación.',
+            learnMore: 'Más información',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
