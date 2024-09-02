@@ -581,6 +581,16 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
     return normalizeQuery(`type:${type} status:${status}`);
 }
 
+/**
+ * Returns whether a given search query is a Canned query.
+ *
+ * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
+ * For example: "type:trip status:all" is a canned query.
+ */
+function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
+    return !queryJSON.filters;
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -599,6 +609,7 @@ export {
     normalizeQuery,
     shouldShowYear,
     buildCannedSearchQuery,
+    isCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getChatFiltersTranslationKey,
 };
