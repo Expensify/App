@@ -2,7 +2,6 @@ import React, {memo, useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
@@ -14,7 +13,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const initUrl = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        if (!NativeModules.HybridAppModule || !initUrl) {
             return;
         }
 
