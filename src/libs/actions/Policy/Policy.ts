@@ -46,6 +46,7 @@ import type {
 import type SetPolicyRulesEnabledParams from '@libs/API/parameters/SetPolicyRulesEnabledParams';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -207,8 +208,8 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
  * Returns a primary policy for the user
  */
 // TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
@@ -224,11 +225,11 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(activePolicyID?: OnyxEntry<string>): Policy | undefined {
+function getInvoicePrimaryWorkspace(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
     }
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 }
 
@@ -2140,6 +2141,11 @@ function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[])
 }
 
 function openDraftWorkspaceRequest(policyID: string) {
+    if (policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+        Log.warn('openDraftWorkspaceRequest invalid params', {policyID});
+        return;
+    }
+
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
@@ -2589,6 +2595,26 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[movedReportAction.reportActionID]: null},
+    });
+
+    // We know that this new workspace has no BankAccount yet, so we can set
+    // the reimbursement account to be immediately in the setup state for a new bank account:
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        value: {
+            isLoading: false,
+            achData: {
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                policyID,
+                subStep: '',
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}`,
+        value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     });
 
     const params: CreateWorkspaceFromIOUPaymentParams = {
@@ -3428,12 +3454,376 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Call the API to set the receipt required amount for the given policy
+ * @param policyID - id of the policy to set the receipt required amount
+ * @param maxExpenseAmountNoReceipt - new value of the receipt required amount
+ */
+function setPolicyMaxExpenseAmountNoReceipt(policyID: string, maxExpenseAmountNoReceipt: string) {
+    const policy = getPolicy(policyID);
+    const parsedMaxExpenseAmountNoReceipt = maxExpenseAmountNoReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
+    const originalMaxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoReceipt: parsedMaxExpenseAmountNoReceipt,
+                    pendingFields: {
+                        maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {maxExpenseAmountNoReceipt: null},
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
+                    pendingFields: {maxExpenseAmountNoReceipt: null},
+                    errorFields: {maxExpenseAmountNoReceipt: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAmountNoReceipt: parsedMaxExpenseAmountNoReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT, parameters, onyxData);
+}
+
+/**
+ * Call the API to set the max expense amount for the given policy
+ * @param policyID - id of the policy to set the max expense amount
+ * @param maxExpenseAmount - new value of the max expense amount
+ */
+function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
+    const policy = getPolicy(policyID);
+    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
+    const originalMaxExpenseAmount = policy?.maxExpenseAmount;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmount: parsedMaxExpenseAmount,
+                    pendingFields: {
+                        maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {maxExpenseAmount: null},
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAmount: originalMaxExpenseAmount,
+                    pendingFields: {maxExpenseAmount: null},
+                    errorFields: {maxExpenseAmount: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAmount: parsedMaxExpenseAmount,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT, parameters, onyxData);
+}
+
+/**
+ * Call the API to set the max expense age for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param maxExpenseAge - the max expense age value given in days
+ */
+function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
+    const policy = getPolicy(policyID);
+    const parsedMaxExpenseAge = maxExpenseAge === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : parseInt(maxExpenseAge, 10);
+    const originalMaxExpenseAge = policy?.maxExpenseAge;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAge: parsedMaxExpenseAge,
+                    pendingFields: {
+                        maxExpenseAge: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    maxExpenseAge: originalMaxExpenseAge,
+                    pendingFields: {maxExpenseAge: null},
+                    errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        maxExpenseAge: parsedMaxExpenseAge,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);
+}
+
+/**
+ * Call the API to enable or disable the billable mode for the given policy
+ * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param defaultBillable - whether the billable mode is enabled in the given policy
+ */
+function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
+    const policy = getPolicy(policyID);
+
+    const originalDefaultBillable = policy?.defaultBillable;
+    const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    defaultBillable,
+                    disabledFields: {
+                        defaultBillable: false,
+                    },
+                    pendingFields: {
+                        defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        defaultBillable: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {defaultBillable: originalDefaultBillableDisabled},
+                    defaultBillable: originalDefaultBillable,
+                    pendingFields: {defaultBillable: null},
+                    errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        defaultBillable,
+        disabledFields: JSON.stringify({
+            defaultBillable: false,
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
+function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
+    const policy = getPolicy(policyID);
+
+    const originalEReceipts = policy?.eReceipts;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    eReceipts,
+                    pendingFields: {
+                        eReceipts: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        eReceipts: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    eReceipts: originalEReceipts,
+                    pendingFields: {defaultBillable: null},
+                    errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        eReceipts,
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
+}
+
 function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 }
 
 function getAdminPoliciesConnectedToNetSuite(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
+}
+
+function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: number, bankName: string, userDefinedName: string) {
+    const authToken = NetworkStore.getAuthToken();
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                value: {
+                    companyCardNicknames: {
+                        [bankName]: userDefinedName,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        authToken,
+        policyID,
+        bankName,
+        userDefinedName,
+    };
+
+    API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
+}
+
+function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, bankName: string, liabilityType: string) {
+    const authToken = NetworkStore.getAuthToken();
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                value: {
+                    companyCards: {
+                        [bankName]: {liabilityType},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        authToken,
+        bankName,
+        liabilityType,
+    };
+
+    API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
+}
+function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+                value: {
+                    companyCards: {
+                        [bankName]: null,
+                    },
+                    companyCardNicknames: {
+                        [bankName]: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        authToken,
+        policyID,
+        bankName,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, onyxData);
+}
+
+function clearAllPolicies() {
+    if (!allPolicies) {
+        return;
+    }
+    Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
 }
 
 export {
@@ -3513,7 +3903,16 @@ export {
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
+    clearAllPolicies,
     enablePolicyRules,
+    setPolicyMaxExpenseAmountNoReceipt,
+    setPolicyMaxExpenseAmount,
+    setPolicyMaxExpenseAge,
+    setPolicyBillableMode,
+    setWorkspaceEReceiptsEnabled,
+    setWorkspaceCompanyCardFeedName,
+    deleteWorkspaceCompanyCardFeed,
+    setWorkspaceCompanyCardTransactionLiability,
 };
 
 export type {NewCustomUnit};

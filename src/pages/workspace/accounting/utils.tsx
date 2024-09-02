@@ -12,7 +12,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import * as Localize from '@libs/Localize';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
-import {getTrackingCategories} from '@userActions/connections/ConnectToXero';
+import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';

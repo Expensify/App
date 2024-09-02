@@ -38,7 +38,6 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -94,7 +93,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       {
                           icon: Expensicons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => Modal.close(() => startIntegrationFlow({name: connectedIntegration})),
+                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
+                          shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
                           shouldShowRightIcon: connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
@@ -111,7 +111,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => Modal.close(() => setIsDisconnectModalOpen(true)),
+                onSelected: () => setIsDisconnectModalOpen(true),
+                shouldCallAfterModalHide: true,
             },
         ],
         [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],

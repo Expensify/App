@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
@@ -16,6 +17,7 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
+    CompanyCardFeedNameParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -136,6 +138,7 @@ export default {
         attachment: 'Archivo adjunto',
         from: 'De',
         to: 'A',
+        in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
         center: 'Centrar',
@@ -365,6 +368,9 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
+        outstanding: 'Pendiente',
+        days: 'días',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -846,6 +852,7 @@ export default {
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expensesOnHold: 'Todos los gastos quedaron bloqueados. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar el bloqueo.',
+        someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -1115,7 +1122,7 @@ export default {
         whatIsTwoFactorAuth:
             'La autenticación de dos factores (2FA) ayuda a mantener tu cuenta segura. Al iniciar sesión, deberás ingresar un código generado por tu aplicación de autenticación preferida.',
         disableTwoFactorAuth: 'Deshabilitar la autenticación de dos factores',
-        disableTwoFactorAuthConfirmation: 'La autenticación de dos factores mantiene tu cuenta más segura. ¿Estás seguro de que quieres desactivarla?',
+        explainProcessToRemove: 'Para deshabilitar la autenticación de dos factores (2FA), por favor introduce un código válido de tu aplicación de autenticación.',
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
@@ -1345,8 +1352,7 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
-        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong> en otro flujo de trabajo Si modificas esta relación de aprobación, se actualizarán todos los demás flujos de trabajo.`,
+        approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
     },
@@ -2133,6 +2139,7 @@ export default {
         viewTrip: 'Ver viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
+        trips: 'Viajes',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2141,9 +2148,9 @@ export default {
         common: {
             card: 'Tarjetas',
             expensifyCard: 'Tarjeta Expensify',
+            companyCards: 'Tarjetas de empresa',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
-            companyCards: 'Tarjetas de empresa',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -2156,7 +2163,7 @@ export default {
             reportFields: 'Campos de informe',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
-            invoices: 'Enviar facturas',
+            invoices: 'Facturas',
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
@@ -2792,6 +2799,10 @@ export default {
             control: 'Control',
             collect: 'Recolectar',
         },
+        companyCards: {
+            addCompanyCards: 'Agregar tarjetas de empresa',
+            selectCardFeed: 'Seleccionar feed de tarjetas',
+        },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
@@ -2926,9 +2937,38 @@ export default {
             companyCards: {
                 title: 'Tarjetas de empresa',
                 subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
+                feed: {
+                    title: 'Importar tarjetas de empresa',
+                    features: {
+                        support: 'Compatibilidad con los principales proveedores de tarjetas',
+                        assignCards: 'Asignar tarjetas a todo el equipo',
+                        automaticImport: 'Importación automática de transacciones',
+                    },
+                    ctaTitle: 'Añadir tarjetas de empresa',
+                },
                 disableCardTitle: 'Deshabilitar tarjetas de empresa',
                 disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
                 disableCardButton: 'Chatear con Concierge',
+                assignCard: 'Asignar tarjeta',
+                cardFeedName: 'Nombre del feed de tarjeta',
+                cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
+                cardFeedTransaction: 'Eliminar transacciones',
+                cardFeedTransactionDescription: 'Elige si los titulares de tarjetas pueden eliminar transacciones de tarjetas. Las nuevas transacciones seguirán estas reglas.',
+                cardFeedRestrictDeletingTransaction: 'Restringir eliminación de transacciones',
+                cardFeedAllowDeletingTransaction: 'Permitir eliminación de transacciones',
+                removeCardFeed: 'Quitar la alimentación de tarjetas',
+                removeCardFeedTitle: ({feedName}: CompanyCardFeedNameParams) => `Eliminar el feed de ${feedName}`,
+                removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
+                error: {
+                    feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta.',
+                },
+                corporate: 'Restringir eliminación de transacciones',
+                personal: 'Permitir eliminación de transacciones',
+                setFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
+                setTransactionLiabilityDescription:
+                    'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
+                emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
+                emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -3664,6 +3704,23 @@ export default {
             individualExpenseRules: {
                 title: 'Gastos',
                 subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+                receiptRequiredAmount: 'Cantidad requerida para los recibos',
+                receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                maxExpenseAmount: 'Importe máximo del gasto',
+                maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
+                maxAge: 'Antigüedad máxima',
+                maxExpenseAge: 'Antigüedad máxima de los gastos',
+                maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
+                maxExpenseAgeDays: (age: number) => `${age} ${Str.pluralize('día', 'días', age)}`,
+                billableDefault: 'Valor predeterminado facturable',
+                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
+                billable: 'Facturable',
+                billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
+                nonBillable: 'No facturable',
+                nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
+                eReceipts: 'Recibos electrónicos',
+                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
+                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
             },
             expenseReportRules: {
                 title: 'Informes de gastos',
@@ -3787,6 +3844,7 @@ export default {
     search: {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        resetFilters: 'Restablecer filtros',
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
@@ -3805,7 +3863,6 @@ export default {
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
-        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         filtersHeader: 'Filtros',
         filters: {
             date: {
@@ -3816,6 +3873,8 @@ export default {
             keyword: 'Palabra clave',
             hasKeywords: 'Tiene palabras clave',
             currency: 'Divisa',
+            has: 'Tiene',
+            link: 'Enlace',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
@@ -4982,5 +5041,19 @@ export default {
     roomChangeLog: {
         updateRoomDescription: 'establece la descripción de la sala a:',
         clearRoomDescription: 'la descripción de la habitación ha sido borrada',
+    },
+    delegate: {
+        switchAccount: 'Cambiar de cuenta:',
+        role: (role: DelegateRole): string => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Completo';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Limitado';
+                default:
+                    return '';
+            }
+        },
+        genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
     },
 } satisfies EnglishTranslation;
