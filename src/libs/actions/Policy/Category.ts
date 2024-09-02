@@ -1124,9 +1124,9 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                     rules: {
                         ...policy?.rules,
                         approvalRules: updatedApprovalRules,
-                    },
-                    pendingFields: {
-                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            approvalRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -1136,8 +1136,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        rules: null,
+                    rules: {
+                        pendingFields: {
+                            approvalRules: null,
+                        },
                     },
                 },
             },
@@ -1150,9 +1152,9 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                     rules: {
                         ...policy?.rules,
                         approvalRules,
-                    },
-                    pendingFields: {
-                        rules: null,
+                        pendingFields: {
+                            approvalRules: null,
+                        },
                     },
                 },
             },
@@ -1208,9 +1210,9 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                     rules: {
                         ...policy?.rules,
                         expenseRules: updatedExpenseRules,
-                    },
-                    pendingFields: {
-                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            expenseRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -1221,8 +1223,10 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
 
                 value: {
-                    pendingFields: {
-                        rules: null,
+                    rules: {
+                        pendingFields: {
+                            expenseRules: null,
+                        },
                     },
                 },
             },
@@ -1235,9 +1239,9 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                     rules: {
                         ...policy?.rules,
                         expenseRules,
-                    },
-                    pendingFields: {
-                        rules: null,
+                        pendingFields: {
+                            expenseRules: null,
+                        },
                     },
                 },
             },

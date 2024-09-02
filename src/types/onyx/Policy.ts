@@ -1523,13 +1523,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         taxRates?: TaxRatesWithDefault;
 
         /** A set of rules related to the workpsace */
-        rules?: {
+        rules?: OnyxCommon.OnyxValueWithOfflineFeedback<{
             /** A set of rules related to the workpsace approvals */
             approvalRules?: ApprovalRule[];
 
             /** A set of rules related to the workpsace expenses */
             expenseRules?: ExpenseRule[];
-        };
+        }>;
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
