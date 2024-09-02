@@ -123,7 +123,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new EnvironmentPlugin({JEST_WORKER_ID: ''}),
+        new EnvironmentPlugin({JEST_WORKER_ID: null}),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
