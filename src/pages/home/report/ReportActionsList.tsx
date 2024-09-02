@@ -133,6 +133,10 @@ function isMessageUnread(message: OnyxTypes.ReportAction, lastReadTime?: string)
 
 const onScrollToIndexFailed = () => {};
 
+// Declare a reference to store the setter function
+// eslint-disable-next-line import/no-mutable-exports
+let clearIsReportActionLinked: () => void = () => {};
+
 function ReportActionsList({
     report,
     transactionThreadReport,
@@ -187,7 +191,21 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID ?? '-1';
+
+    const [linkedReportActionID, setLinkedReportActionID] = useState(route?.params?.reportActionID ?? '-1');
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    clearIsReportActionLinked = useCallback(() => {
+        setLinkedReportActionID('-1');
+    }, []);
+
+    useEffect(() => {
+        if (route?.params?.reportActionID) {
+            setLinkedReportActionID(route.params.reportActionID);
+        } else {
+            setLinkedReportActionID('-1');
+        }
+    }, [route?.params?.reportActionID]);
 
     const sortedVisibleReportActions = useMemo(
         () =>
@@ -686,5 +704,5 @@ function ReportActionsList({
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default withCurrentUserPersonalDetails(memo(ReportActionsList));
-
+export {clearIsReportActionLinked};
 export type {LoadNewerChats, ReportActionsListProps};

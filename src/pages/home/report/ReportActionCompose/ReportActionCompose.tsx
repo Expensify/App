@@ -37,7 +37,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import {clearHighlightedReportActionItem} from '@pages/home/report/ReportActionItem';
+import {clearIsReportActionLinked} from '@pages/home/report/ReportActionsList';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import variables from '@styles/variables';
@@ -274,7 +274,7 @@ function ReportActionCompose({
     const onItemSelected = useCallback(() => {
         isKeyboardVisibleWhenShowingModalRef.current = false;
         // Clear the highlighted report item when an action from the + menu is taken
-        clearHighlightedReportActionItem();
+        clearIsReportActionLinked();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -322,7 +322,7 @@ function ReportActionCompose({
             }
 
             // Clear the highlighted report item when a new comment or attachment is sent
-            clearHighlightedReportActionItem();
+            clearIsReportActionLinked();
         },
         [onSubmit, reportID],
     );
