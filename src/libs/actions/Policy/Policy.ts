@@ -3760,6 +3760,10 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
 
     const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
 
+    if (enabled === policy?.shouldShowCustomReportTitleOption) {
+        return;
+    }
+    
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3830,6 +3834,10 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
     const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
+    if (customName === previousReportTitleField) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3895,6 +3903,10 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
     const policy = getPolicy(policyID);
     const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
+    if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3954,6 +3966,10 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
  */
 function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
     const policy = getPolicy(policyID);
+
+    if (preventSelfApproval === policy?.preventSelfApproval) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4019,6 +4035,10 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
     const policy = getPolicy(policyID);
 
+    if (parsedLimit === policy?.autoApproval?.limit) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4083,8 +4103,13 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
  * @param auditRate - percentage of the reports to be qualified for a random audit
  */
 function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
+    const policy = getPolicy(policyID);
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10);
+
+    if (parsedAuditRate === policy?.autoApproval?.auditRate) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4122,7 +4147,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoApproval: {
-                    auditRate: null,
+                    auditRate: policy?.autoApproval?.auditRate,
                     pendingFields: {
                         auditRate: null,
                     },
@@ -4152,9 +4177,14 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
  * @param enabled - whether auto-approve for the reports is enabled in the given policy
  */
 function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
+    const policy = getPolicy(policyID);
     const autoApprovalValues = !enabled ? {autoApproval: {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS}} : {};
     const autoApprovalCleanupValues = !enabled ? {autoApproval: null} : {};
     const autoApprovalPendingValues = !enabled ? {autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+
+    if (enabled === policy?.shouldShowAutoApprovalOptions) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4190,7 +4220,7 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                shouldShowAutoApprovalOptions: !enabled,
+                shouldShowAutoApprovalOptions: policy?.shouldShowAutoApprovalOptions,
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
                     ...autoApprovalCleanupValues,
@@ -4223,6 +4253,10 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const policy = getPolicy(policyID);
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
+
+    if (parsedLimit === policy?.autoReimbursement?.limit) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4286,9 +4320,15 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
  * @param enabled - whether auto-payment for the reports is enabled in the given policy
  */
 function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
+    const policy = getPolicy(policyID);
+
     const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
     const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
     const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+
+    if (enabled === policy?.shouldShowAutoReimbursementLimitOption) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
