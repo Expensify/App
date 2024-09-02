@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -38,6 +38,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const data = issueNewCard?.data;
+
+    const submitButton = useRef<View>(null);
+
+    useEffect(() => {
+        submitButton.current?.focus();
+    }, []);
 
     const submit = () => {
         Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
@@ -80,7 +86,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
+                    title={PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
@@ -110,6 +116,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
+                        ref={submitButton}
                         isDisabled={isOffline}
                         success
                         large

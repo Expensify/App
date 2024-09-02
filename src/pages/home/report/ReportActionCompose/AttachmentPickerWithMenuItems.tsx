@@ -7,7 +7,6 @@ import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -123,7 +122,6 @@ function AttachmentPickerWithMenuItems({
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const allPersonalDetails = usePersonalDetails();
 
     /**
      * Returns the list of IOU Options
@@ -169,8 +167,7 @@ function AttachmentPickerWithMenuItems({
         return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [translate, report, policy, reportParticipantIDs, allPersonalDetails]);
+    }, [translate, report, policy, reportParticipantIDs]);
 
     /**
      * Determines if we can show the task option

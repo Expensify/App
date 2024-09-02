@@ -78,6 +78,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
         ({item, index}: ListRenderItemInfo<Card>) => (
             <OfflineWithFeedback
                 key={`${item.nameValuePairs?.cardTitle}_${index}`}
+                pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
             >
