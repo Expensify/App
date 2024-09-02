@@ -56,7 +56,7 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
                 <View style={styles.mh5}>
                     <Text>
                         {headerText}
-                        <TextLink href={learnMoreLink ?? ''}>{` [${translate('common.learnMore')}]`}</TextLink>
+                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
                     </Text>
 
                     <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
