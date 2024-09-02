@@ -91,8 +91,8 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         <SelectionList
                             headerContent={
                                 <View style={[styles.mh4, styles.mt2]}>
-                                    <Text style={[styles.headerText]}>Default spend categories</Text>
-                                    <Text style={[styles.mt1, styles.lh20]}>Customize how merchant spend is categorized for credit card transactions and scanned receipts.</Text>
+                                    <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+                                    <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
                                 </View>
                             }
                             sections={sections}
