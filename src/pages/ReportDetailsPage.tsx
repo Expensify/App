@@ -127,7 +127,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
-
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -145,6 +144,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return [];
+        }
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
@@ -219,12 +222,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const leaveChat = useCallback(() => {
         Navigation.dismissModal();
-        if (isRootGroupChat) {
-            Report.leaveGroupChat(report.reportID);
-            return;
-        }
-        const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-        Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        Navigation.isNavigationReady().then(() => {
+            if (isRootGroupChat) {
+                Report.leaveGroupChat(report.reportID);
+                return;
+            }
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+        });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
@@ -714,10 +719,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
-                                shouldShowRightIcon={canEditReportDescription}
-                                interactive={canEditReportDescription}
+                                shouldShowRightIcon
+                                interactive
                                 title={report.description}
                                 shouldRenderAsHTML
+                                shouldTruncateTitle
+                                characterLimit={100}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={translate('reportDescriptionPage.roomDescription')}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}

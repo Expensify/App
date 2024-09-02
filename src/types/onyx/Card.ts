@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of Expensify card */
-type Card = {
+type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
     cardID: number;
 
@@ -41,7 +41,7 @@ type Card = {
     accountID?: number;
 
     /** Additional card data */
-    nameValuePairs?: {
+    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
@@ -74,8 +74,8 @@ type Card = {
 
         /** Card expiration date */
         expirationDate?: string;
-    };
-};
+    }>;
+}>;
 
 /** Model of Expensify card details */
 type ExpensifyCardDetails = {
@@ -95,6 +95,9 @@ type CardList = Record<string, Card>;
 /** Issue new card flow steps */
 type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
 
+/** Card spending limit type */
+type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
 /** Data required to be sent to issue a new card */
 type IssueNewCardData = {
     /** The email address of the cardholder */
@@ -104,7 +107,7 @@ type IssueNewCardData = {
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
-    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+    limitType: CardLimitType;
 
     /** Card spending limit */
     limit: number;
@@ -129,4 +132,4 @@ type IssueNewCard = {
 type WorkspaceCardsList = Record<string, Card>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

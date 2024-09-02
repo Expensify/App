@@ -33,6 +33,7 @@ import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
+import CaretUpDown from '@assets/images/caret-up-down.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
@@ -82,6 +83,7 @@ import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import Feed from '@assets/images/feed.svg';
 import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
 import Flag from '@assets/images/flag.svg';
@@ -386,4 +388,6 @@ export {
     Filters,
     CalendarSolid,
     Filter,
+    CaretUpDown,
+    Feed,
 };
