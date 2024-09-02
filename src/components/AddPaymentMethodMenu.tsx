@@ -109,7 +109,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  IOU.completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+                                  IOU.completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.PBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
@@ -121,7 +121,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
                               onSelected: () => {
-                                  IOU.completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA);
+                                  IOU.completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },
                           },
@@ -133,7 +133,7 @@ function AddPaymentMethodMenu({
                 //         text: translate('common.debitCard'),
                 //         icon: Expensicons.CreditCard,
                 //         onSelected: () => {
-                //              completeEngagement(CONST.PAYMENT_SELECTED.PBA);
+                //              completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.PBA);
                 //              onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD);
                 //         },
                 //     },

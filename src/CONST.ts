@@ -2061,6 +2061,10 @@ const CONST = {
         ACCESS_VARIANTS: {
             CREATE: 'create',
         },
+        PAYMENT_SELECTED: {
+            BBA: 'BBA',
+            PBA: 'PBA',
+        },
     },
 
     GROWL: {
