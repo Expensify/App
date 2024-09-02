@@ -1992,7 +1992,7 @@ function getOptions(
         }
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => attendee.login ?? attendee.displayName).forEach((a) => optionsToExclude.push({login: a.login ?? a.displayName}));
-        recentReportOptions = recentAttendees.map((attendee) => attendee as ReportUtils.OptionData);
+        recentReportOptions = recentAttendees as ReportUtils.OptionData[];
     }
 
     const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
