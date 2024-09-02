@@ -1,3 +1,4 @@
+import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1092,8 +1093,8 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const approvalRules = policy?.rules?.approvalRules ?? [];
-    const existingCategoryApproverRule = approvalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    let updatedApprovalRules: ApprovalRule[] = [...approvalRules];
+    let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+    const existingCategoryApproverRule = updatedApprovalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
     let newApprover = approver;
 
     if (!existingCategoryApproverRule) {
@@ -1171,8 +1172,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const expenseRules = policy?.rules?.expenseRules ?? [];
-    const existingCategoryExpenseRule = expenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    const updatedExpenseRules: ExpenseRule[] = [...expenseRules];
+    const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
+    const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
