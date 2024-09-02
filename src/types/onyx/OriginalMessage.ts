@@ -573,6 +573,7 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: never;
     /** */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
@@ -594,6 +595,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     /** */
