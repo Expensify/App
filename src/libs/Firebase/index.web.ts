@@ -1,4 +1,5 @@
 import {trace} from '@firebase/performance';
+import * as Environment from '@libs/Environment/Environment';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -9,10 +10,10 @@ const traceMap: TraceMap = {};
 
 const startTrace: StartTrace = (customEventName) => {
     const start = global.performance.now();
-    // TODO uncomment before merging
-    // if (Environment.isDevelopment()) {
-    //     return;
-    // }
+
+    if (Environment.isDevelopment()) {
+        return;
+    }
 
     if (traceMap[customEventName]) {
         return;
@@ -35,10 +36,9 @@ const startTrace: StartTrace = (customEventName) => {
 };
 
 const stopTrace: StopTrace = (customEventName) => {
-    // TODO uncomment before merging
-    // if (Environment.isDevelopment()) {
-    //     return;
-    // }
+    if (Environment.isDevelopment()) {
+        return;
+    }
 
     const perfTrace = traceMap[customEventName]?.trace;
 
