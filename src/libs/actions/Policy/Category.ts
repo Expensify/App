@@ -1093,7 +1093,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const existingCategoryApproverRule = approvalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    const updatedApprovalRules: ApprovalRule[] = [...approvalRules];
+    let updatedApprovalRules: ApprovalRule[] = [...approvalRules];
     let newApprover = approver;
 
     if (!existingCategoryApproverRule) {
@@ -1108,7 +1108,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
             ],
         });
     } else if (existingCategoryApproverRule?.approver === approver) {
-        updatedApprovalRules.filter((rule) => rule.approver === approver);
+        updatedApprovalRules = updatedApprovalRules.filter((rule) => rule.approver === approver);
         newApprover = '';
     } else {
         const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
@@ -1174,7 +1174,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const existingCategoryExpenseRule = expenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    const updatedExpenseRules: ExpenseRule[] = [...expenseRules];
+    let updatedExpenseRules: ExpenseRule[] = [...expenseRules];
     let newTaxID = taxID;
 
     if (!existingCategoryExpenseRule) {
@@ -1194,7 +1194,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             ],
         });
     } else if (existingCategoryExpenseRule?.tax?.field_id_TAX?.externalID === taxID) {
-        updatedExpenseRules.filter((rule) => rule.tax.field_id_TAX.externalID === taxID);
+        updatedExpenseRules = updatedExpenseRules.filter((rule) => rule.tax.field_id_TAX.externalID === taxID);
         newTaxID = '';
     } else {
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
