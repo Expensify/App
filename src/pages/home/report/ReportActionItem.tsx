@@ -1,4 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
+import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -135,6 +136,7 @@ type ReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** */
     linkedReportActionID?: string;
 
     /** Callback to be called on onPress */
@@ -151,6 +153,9 @@ type ReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 } & ReportActionItemOnyxProps;
+
+// eslint-disable-next-line import/no-mutable-exports
+let clearHighlightedReportActionItem = noop;
 
 function ReportActionItem({
     action,
@@ -207,17 +212,32 @@ function ReportActionItem({
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || -1}`);
-    const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const reportScrollManager = useReportScrollManager();
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
 
-    const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
-    );
+    const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
 
+    const [isHighlighted, setisHighlighted] = useState(false);
+
+    const clearIsHighlighted = useCallback(() => {
+        if (!isReportActionLinked) {
+            return;
+        }
+        setisHighlighted(false);
+    }, [isReportActionLinked]);
+
+    useEffect(() => {
+        if (!isReportActionLinked) {
+            return;
+        }
+        setisHighlighted(!!isReportActionLinked);
+    }, [isReportActionLinked, linkedReportActionID]);
+
+    const highlightedBackgroundColorIfNeeded = useMemo(() => {
+        return isHighlighted ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
+    }, [StyleUtils, isHighlighted, theme.messageHighlightBG]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
     const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
@@ -400,6 +420,9 @@ function ReportActionItem({
     );
 
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    clearHighlightedReportActionItem = clearIsHighlighted;
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
@@ -986,6 +1009,7 @@ function ReportActionItem({
     );
 }
 
+export {clearHighlightedReportActionItem};
 export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
