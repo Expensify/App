@@ -233,22 +233,8 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
-    const focus = () => {
-        if (composerRef.current === null) {
-            return;
-        }
-        composerRef.current?.focus(true);
-    };
-
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const isNextModalWillOpenRef = useRef(false);
-    const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current || isNextModalWillOpenRef.current) {
-            return;
-        }
-        focus();
-        isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, []);
 
     const containerRef = useRef<View>(null);
     const measureContainer = useCallback(
@@ -298,8 +284,7 @@ function ReportActionCompose({
     const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-        restoreKeyboardState();
-    }, [updateShouldShowSuggestionMenuToFalse, restoreKeyboardState]);
+    }, [updateShouldShowSuggestionMenuToFalse]);
 
     /**
      * Add a new comment to this chat
@@ -490,11 +475,18 @@ function ReportActionCompose({
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                            // TODO: Remove
                                             onCanceledAttachmentPicker={() => {
-                                                isNextModalWillOpenRef.current = false;
-                                                restoreKeyboardState();
+                                                // isNextModalWillOpenRef.current = false;
+                                                isNextModalWillOpenRef.current = true;
+                                                console.debug('[TEST] onCanceledAttachmentPicker');
+                                                // restoreKeyboardState();
                                             }}
-                                            onMenuClosed={restoreKeyboardState}
+                                            // TODO: Remove
+                                            onMenuClosed={() => {
+                                                console.debug('[TEST] onMenuClosed');
+                                                // restoreKeyboardState();
+                                            }}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
@@ -559,11 +551,13 @@ function ReportActionCompose({
                             {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
+                                    // TODO: Remove
                                     onModalHide={(isNavigating) => {
                                         if (isNavigating) {
                                             return;
                                         }
-                                        focus();
+                                        console.debug('[TEST] ReportActionCompose focus 3');
+                                        // focus();
                                     }}
                                     onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                     emojiPickerID={report?.reportID}
