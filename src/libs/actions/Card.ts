@@ -298,6 +298,13 @@ function updateSettlementAccount(workspaceAccountID: number, policyID: string, s
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
 }
 
+function getCardDefaultName(userName?: string) {
+    if (!userName) {
+        return '';
+    }
+    return `${userName}'s Card`;
+}
+
 function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
 }
@@ -708,5 +715,6 @@ export {
     updateExpensifyCardLimitType,
     updateSelectedFeed,
     deactivateCard,
+    getCardDefaultName,
 };
 export type {ReplacementReason};
