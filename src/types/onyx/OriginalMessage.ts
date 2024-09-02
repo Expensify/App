@@ -573,7 +573,6 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: never;
     /** */
-    /** */
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
