@@ -61,17 +61,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
                     />
                 </OfflineWithFeedback>,
-                <OfflineWithFeedback pendingAction={policy?.pendingFields?.fieldList}>
-                    <ToggleSettingOptionRow
-                        key="preventMembersFromChangingCustomNames"
-                        title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                        switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                        titleStyle={styles.pv2}
-                        isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
-                        onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
-                    />
-                </OfflineWithFeedback>,
+                <ToggleSettingOptionRow
+                    pendingAction={policy?.pendingFields?.fieldList}
+                    key="preventMembersFromChangingCustomNames"
+                    title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                    switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                    titleStyle={styles.pv2}
+                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable}
+                    onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
+                />,
             ],
         },
         {
