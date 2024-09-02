@@ -3838,10 +3838,11 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: customName},
-                },
-                pendingFields: {
-                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {
+                        ...previousReportTitleField,
+                        defaultValue: customName,
+                        pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
                 },
             },
         },
@@ -3852,8 +3853,8 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    fieldList: null,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {pendingFields: {defaultValue: null}},
                 },
                 errorFields: null,
             },
@@ -3866,10 +3867,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousReportTitleField,
-                },
-                pendingFields: {
-                    fieldList: null,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, pendingFields: {defaultValue: null}},
                 },
                 errorFields: {
                     fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -3905,10 +3903,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, deletable: !enforced},
-                },
-                pendingFields: {
-                    fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, deletable: !enforced, pendingFields: {deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
                 },
             },
         },
@@ -3919,8 +3914,8 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    fieldList: null,
+                fieldList: {
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {pendingFields: {deletable: null}},
                 },
                 errorFields: null,
             },
@@ -3933,10 +3928,7 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 fieldList: {
-                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: previousReportTitleField,
-                },
-                pendingFields: {
-                    fieldList: null,
+                    [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, pendingFields: {deletable: null}},
                 },
                 errorFields: {
                     fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
