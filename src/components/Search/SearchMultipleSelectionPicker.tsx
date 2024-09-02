@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
@@ -27,6 +27,10 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
+
+    useEffect(() => {
+        setSelectedItems(initiallySelectedItems ?? []);
+    }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
