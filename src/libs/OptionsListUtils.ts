@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {SelectedTagOption} from '@components/TagPicker';
 import type {IOUAction} from '@src/CONST';
@@ -57,7 +58,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-import { SetNonNullable } from 'type-fest';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;

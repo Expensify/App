@@ -7412,9 +7412,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     const session = SessionUtils.getSession();
 
-    const personalDetailsListValues = Object.values(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList),
-    );
+    const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
     const personalDetails = personalDetailsListValues[0] ?? {};
 
     let onboardingPurpose = introSelected.choice;
