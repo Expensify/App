@@ -1,7 +1,8 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -22,15 +23,20 @@ function CardTypeStep() {
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>>();
+    const [isError, setIsError] = useState(false);
 
     const submit = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({
-            step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
-            data: {
-                cardType: typeSelected,
-            },
-            isEditing: false,
-        });
+        if (!typeSelected) {
+            setIsError(true);
+        } else {
+            CompanyCards.setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
+                data: {
+                    cardType: typeSelected,
+                },
+                isEditing: false,
+            });
+        }
     };
 
     useEffect(() => {
@@ -104,21 +110,27 @@ function CardTypeStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.yourCardProvider')}</Text>
             <SelectionList
                 ListItem={RadioListItem}
-                onSelectRow={({value}) => setTypeSelected(value)}
+                onSelectRow={({value}) => {
+                    setTypeSelected(value);
+                    setIsError(false);
+                }}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={addNewCard?.data.cardType}
                 shouldUpdateFocusedIndex
-            />
-            <Button
-                success
-                isDisabled={!typeSelected}
-                large
-                pressOnEnter
-                text={translate('common.next')}
-                onPress={submit}
-                style={styles.m5}
-            />
+                showConfirmButton
+                confirmButtonText={translate('common.next')}
+                onConfirm={submit}
+            >
+                {isError && (
+                    <View style={[styles.ph5, styles.mb3]}>
+                        <FormHelpMessage
+                            isError={isError}
+                            message={translate('common.error.pleaseSelectProvider')}
+                        />
+                    </View>
+                )}
+            </SelectionList>
         </ScreenWrapper>
     );
 }
