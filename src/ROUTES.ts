@@ -703,7 +703,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+        getRoute: (policyID: string, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) =>
+            `settings/workspaces/${policyID}/accounting${
+                newConnectionName
+                    ? `?newConnectionName=${newConnectionName}&integrationToDisconnect=${integrationToDisconnect}&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`
+                    : ''
+            }` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',

@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -41,10 +42,17 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData} from './utils';
+
+type RouteParams = {
+    newConnectionName?: ConnectionName;
+    integrationToDisconnect?: ConnectionName;
+    shouldDisconnectIntegrationBeforeConnecting?: boolean;
+};
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
@@ -60,6 +68,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {canUseWorkspaceFeeds} = usePermissions();
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
+
+    const route = useRoute();
+    const params = route.params as RouteParams | undefined;
+    const newConnectionName = params?.newConnectionName;
+    const integrationToDisconnect = params?.integrationToDisconnect;
+    const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -121,6 +135,16 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ],
         [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
+
+    useEffect(() => {
+        if (!!newConnectionName) {
+            startIntegrationFlow({
+                name: newConnectionName,
+                integrationToDisconnect: integrationToDisconnect,
+                shouldDisconnectIntegrationBeforeConnecting: shouldDisconnectIntegrationBeforeConnecting,
+            });
+        }
+    }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, window.location.pathname]);
 
     useEffect(() => {
         if (successfulDate) {

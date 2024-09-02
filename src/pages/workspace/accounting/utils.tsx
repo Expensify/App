@@ -10,7 +10,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
 import type {AccountingIntegration} from './types';
 
 function getAccountingIntegrationData(
@@ -19,6 +19,8 @@ function getAccountingIntegrationData(
     translate: LocaleContextProps['translate'],
     policy?: Policy,
     key?: number,
+    integrationToDisconnect?: ConnectionName,
+    shouldDisconnectIntegrationBeforeConnecting?: boolean,
 ): AccountingIntegration | undefined {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -83,7 +85,9 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
-                    backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
+                    backToAfterWorkspaceUpgradeRoute: !!integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
                 },
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
@@ -126,7 +130,9 @@ function getAccountingIntegrationData(
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
-                    backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID),
+                    backToAfterWorkspaceUpgradeRoute: !!integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
                 },
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,
