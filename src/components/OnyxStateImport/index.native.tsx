@@ -2,8 +2,10 @@ import React, {useState} from 'react';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,6 +106,7 @@ function applyStateInChunks(state: Record<string, unknown>) {
 
 export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [, setError] = useState(null);
 
     const handleFileRead = (fileUri: string) => {
@@ -145,8 +148,10 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
         <AttachmentPicker>
             {({openPicker}) => {
                 return (
-                    <Button
-                        text={translate('initialSettingsPage.troubleshoot.importOnyxState')}
+                    <MenuItem
+                        icon={Expensicons.Upload}
+                        title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={() => {
                             // TODO should directly use 'react-native-document-picker'
                             openPicker({
