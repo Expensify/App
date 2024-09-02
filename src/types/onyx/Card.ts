@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of Expensify card */
-type Card = {
+type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
     cardID: number;
 
@@ -41,7 +41,7 @@ type Card = {
     accountID?: number;
 
     /** Additional card data */
-    nameValuePairs?: {
+    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
@@ -74,8 +74,8 @@ type Card = {
 
         /** Card expiration date */
         expirationDate?: string;
-    };
-};
+    }>;
+}>;
 
 /** Model of Expensify card details */
 type ExpensifyCardDetails = {
