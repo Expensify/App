@@ -2356,6 +2356,12 @@ const CONST = {
             PAYPERUSE: 'monthly2018',
         },
     },
+    COMPANY_CARDS: {
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -5244,6 +5250,7 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5286,6 +5293,10 @@ const CONST = {
                 APPROVED: 'approved',
                 PAID: 'paid',
             },
+        },
+        CHAT_TYPES: {
+            LINK: 'link',
+            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5333,6 +5344,8 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            IN: 'in',
+            HAS: 'has',
         },
     },
 
