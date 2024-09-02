@@ -26,10 +26,10 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     onSubmit: (item: ListItem) => void;
 
     /** Whether SectionList should be wrapped with ScrollView */
-    shouldWrapSectionList: boolean;
+    shouldWrapSectionList?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldWrapSectionList}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldWrapSectionList = false}: CategoryPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
