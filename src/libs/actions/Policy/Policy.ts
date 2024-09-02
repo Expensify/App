@@ -4026,9 +4026,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
             value: {
                 autoApproval: {
                     limit: parsedLimit,
-                },
-                pendingFields: {
-                    autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {limit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                 },
             },
         },
@@ -4039,8 +4037,10 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    autoApproval: null,
+                autoApproval: {
+                    pendingFields: {
+                        limit: null,
+                    },
                 },
                 errorFields: null,
             },
@@ -4054,9 +4054,9 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
             value: {
                 autoApproval: {
                     limit: policy?.autoApproval?.limit,
-                },
-                pendingFields: {
-                    autoApproval: null,
+                    pendingFields: {
+                        limit: null,
+                    },
                 },
                 errorFields: {
                     autoApproval: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -4093,9 +4093,9 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             value: {
                 autoApproval: {
                     auditRate: parsedAuditRate,
-                },
-                pendingFields: {
-                    autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {
+                        auditRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         },
@@ -4106,8 +4106,10 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    autoApproval: null,
+                autoApproval: {
+                    pendingFields: {
+                        auditRate: null,
+                    },
                 },
                 errorFields: null,
             },
@@ -4121,9 +4123,9 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             value: {
                 autoApproval: {
                     auditRate: null,
-                },
-                pendingFields: {
-                    autoApproval: null,
+                    pendingFields: {
+                        auditRate: null,
+                    },
                 },
                 errorFields: {
                     autoApproval: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -4229,9 +4231,9 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
             value: {
                 autoReimbursement: {
                     limit: parsedLimit,
-                },
-                pendingFields: {
-                    autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {
+                        limit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         },
@@ -4244,9 +4246,9 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
             value: {
                 autoReimbursement: {
                     limit: parsedLimit,
-                },
-                pendingFields: {
-                    autoReimbursement: null,
+                    pendingFields: {
+                        limit: null,
+                    },
                 },
                 errorFields: null,
             },
@@ -4258,10 +4260,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReimbursement: {limit: policy?.autoReimbursement?.limit},
-                pendingFields: {
-                    autoReimbursement: null,
-                },
+                autoReimbursement: {limit: policy?.autoReimbursement?.limit, pendingFields: {limit: null}},
                 errorFields: {
                     autoReimbursement: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },

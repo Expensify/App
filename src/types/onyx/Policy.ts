@@ -1420,12 +1420,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
         /** Detailed settings for the autoReimbursement */
-        autoReimbursement?: {
-            /**
-             * The maximum report total allowed to trigger auto reimbursement.
-             */
-            limit?: number;
-        };
+        autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<
+            {
+                /**
+                 * The maximum report total allowed to trigger auto reimbursement.
+                 */
+                limit?: number;
+            },
+            'limit'
+        >;
 
         /** The maximum report total allowed to trigger auto reimbursement */
         autoReimbursementLimit?: number;
@@ -1436,16 +1439,19 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         shouldShowAutoApprovalOptions?: boolean;
 
         /** Detailed settings for the autoApproval */
-        autoApproval?: {
-            /**
-             * The maximum report total allowed to trigger auto approval.
-             */
-            limit?: number;
-            /**
-             * Percentage of the reports that should be selected for a random audit
-             */
-            auditRate?: number;
-        };
+        autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
+            {
+                /**
+                 * The maximum report total allowed to trigger auto approval.
+                 */
+                limit?: number;
+                /**
+                 * Percentage of the reports that should be selected for a random audit
+                 */
+                auditRate?: number;
+            },
+            'limit' | 'auditRate'
+        >;
 
         /**
          * Whether the custom report name options are enabled in the policy rules
