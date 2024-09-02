@@ -133,7 +133,7 @@ function FeatureList({
                 )}
                 {ctaErrorMessage && (
                     <DotIndicatorMessage
-                        style={styles.mb2}
+                        style={styles.mb1}
                         messages={{error: ctaErrorMessage}}
                         type="error"
                     />
