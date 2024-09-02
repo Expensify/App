@@ -548,13 +548,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
                         const centralPaneName = screenName as CentralPaneName;
+                        const options = {...CentralPaneScreenOptions};
+
+                        if (centralPaneName === SCREENS.SETTINGS.WORKSPACES) {
+                            options.animationEnabled = false;
+                        }
+
                         return (
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
-                                options={CentralPaneScreenOptions}
+                                options={options}
                             />
                         );
                     })}
