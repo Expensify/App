@@ -102,4 +102,6 @@ export default {
         appId: get(Config, 'FB_APP_ID', ''),
         projectId: get(Config, 'FB_PROJECT_ID', ''),
     },
+    // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
+    USE_REACT_STRICT_MODE_IN_DEV: true,
 } as const;
