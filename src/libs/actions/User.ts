@@ -261,6 +261,16 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
 }
 
 /**
+ * Clears a contact method optimistically. this is used when the contact method fails to be added to the backend
+ */
+
+function clearContactMethod(contactMethod: string) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: null,
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -1236,6 +1246,7 @@ export {
     updateNewsletterSubscription,
     deleteContactMethod,
     clearContactMethodErrors,
+    clearContactMethod,
     addNewContactMethod,
     validateLogin,
     validateSecondaryLogin,
