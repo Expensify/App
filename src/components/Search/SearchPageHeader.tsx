@@ -316,10 +316,8 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 icon={Expensicons.Filters}
                 onPress={() => {
                     const filters = SearchUtils.getFilters(queryJSON);
-                    const form = SearchUtils.getFiltersForm(filters);
-                    form.type = queryJSON.type;
-                    form.status = queryJSON.status;
-                    SearchActions.updateAdvancedFilters(form);
+                    const values = SearchUtils.getFiltersFormValues(filters, queryJSON);
+                    SearchActions.updateAdvancedFilters(values);
                     Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
                 medium

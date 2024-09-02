@@ -21,8 +21,7 @@ import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
-type KeysOfRootKeysObject = keyof typeof CONST.SEARCH.SYNTAX_ROOT_KEYS;
+type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -444,25 +443,20 @@ function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPE
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
         if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
             }
         }
         if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${filterValue as string}`;
-            }
+            return `${filterValue as string}`;
         }
-
-        if ((filterKey === FILTER_KEYS.TYPE || filterKey === FILTER_KEYS.STATUS) && filterValue) {
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_ROOT_KEYS) as KeysOfRootKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_ROOT_KEYS[key] === filterKey);
-            if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS[keyInCorrectForm]}:${filterValue as string}`;
-            }
+        if (filterKey === FILTER_KEYS.TYPE && filterValue) {
+            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
         }
-
+        if (filterKey === FILTER_KEYS.STATUS && filterValue) {
+            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+        }
         if (
             (filterKey === FILTER_KEYS.CATEGORY ||
                 filterKey === FILTER_KEYS.CARD_ID ||
@@ -478,7 +472,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             filterValue.length > 0
         ) {
             const filterValueArray = Array.from(new Set<string>(filterValues[filterKey] ?? []));
-            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
             }
@@ -537,7 +531,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
-function getFiltersForm(filters: QueryFilters) {
+function getFiltersFormValues(filters: QueryFilters, queryJSON: SearchQueryJSON) {
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     for (const filterKey of filterKeys) {
@@ -568,6 +562,9 @@ function getFiltersForm(filters: QueryFilters) {
             filtersForm[FILTER_KEYS.GREATER_THAN] = filters[filterKey]?.find((filter) => filter.operator === 'gt')?.value.toString();
         }
     }
+
+    filtersForm[FILTER_KEYS.TYPE] = queryJSON.type;
+    filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
 
     return filtersForm;
 }
@@ -630,7 +627,7 @@ export {
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
-    getFiltersForm,
+    getFiltersFormValues,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSearchHeaderTitle,
