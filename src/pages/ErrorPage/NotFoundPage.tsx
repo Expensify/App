@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import ROUTES from '@src/ROUTES';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
