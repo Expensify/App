@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    CardDeactivateParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
@@ -18,6 +19,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
@@ -321,7 +323,10 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
                     availableSpend: newAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: newLimit,
+                        pendingFields: {unapprovedExpenseLimit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     isLoading: true,
                     errors: null,
                 },
@@ -335,6 +340,11 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    nameValuePairs: {
+                        pendingFields: {unapprovedExpenseLimit: null},
+                    },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                     isLoading: false,
                 },
             },
@@ -350,7 +360,10 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
                     availableSpend: oldAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: oldLimit,
+                        pendingFields: {unapprovedExpenseLimit: null},
                     },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -382,7 +395,9 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
                 [cardID]: {
                     nameValuePairs: {
                         cardTitle: newCardTitle,
+                        pendingFields: {cardTitle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     isLoading: true,
                     errors: null,
                 },
@@ -396,6 +411,10 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    nameValuePairs: {
+                        pendingFields: {cardTitle: null},
+                    },
+                    pendingAction: null,
                     isLoading: false,
                 },
             },
@@ -410,7 +429,9 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
                 [cardID]: {
                     nameValuePairs: {
                         cardTitle: oldCardTitle,
+                        pendingFields: {cardTitle: null},
                     },
+                    pendingAction: null,
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -442,7 +463,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
+                        pendingFields: {limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     isLoading: true,
                     errors: null,
                 },
@@ -457,6 +481,11 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
             value: {
                 [cardID]: {
                     isLoading: false,
+                    nameValuePairs: {
+                        pendingFields: {limitType: null},
+                    },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                 },
             },
         },
@@ -470,7 +499,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: oldLimitType,
+                        pendingFields: {limitType: null},
                     },
+                    pendingFields: {availableSpend: null},
+                    pendingAction: null,
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -485,6 +517,45 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
+}
+
+function deactivateCard(workspaceAccountID: number, card?: Card) {
+    const authToken = NetworkStore.getAuthToken();
+    const cardID = card?.cardID ?? -1;
+
+    if (!authToken) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: {
+                [cardID]: {
+                    ...card,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: CardDeactivateParams = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
 function startIssueNewCardFlow(policyID: string) {
@@ -634,5 +705,6 @@ export {
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
+    deactivateCard,
 };
 export type {ReplacementReason};

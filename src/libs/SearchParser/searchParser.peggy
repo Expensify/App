@@ -134,6 +134,7 @@ key
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
   / "policyID" { return "policyID"; }
+  / "has" { return "has"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
