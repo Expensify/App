@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
@@ -10,6 +10,7 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScrollView from '@components/ScrollView';
 import SectionList from '@components/SectionList';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
@@ -32,6 +33,15 @@ import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
+
+type SelectionListWrapperProps = {children: ReactNode; shouldWrapSectionList: boolean};
+function SelectionListWrapper({children, shouldWrapSectionList}: SelectionListWrapperProps) {
+    if (shouldWrapSectionList) {
+        return <ScrollView>{children}</ScrollView>;
+    }
+
+    return children;
+}
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -98,6 +108,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
         shouldShowListEmptyContent = true,
+        shouldWrapSectionList = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -697,7 +708,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     {flattenedSections.allOptions.length === 0 ? (
                         renderListEmptyContent()
                     ) : (
-                        <>
+                        <SelectionListWrapper shouldWrapSectionList={shouldWrapSectionList}>
                             {!listHeaderContent && header()}
                             <SectionList
                                 removeClippedSubviews={removeClippedSubviews}
@@ -734,7 +745,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
                             {children}
-                        </>
+                        </SelectionListWrapper>
                     )}
                     {showConfirmButton && (
                         <FixedFooter style={[styles.mtAuto]}>

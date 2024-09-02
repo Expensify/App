@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import CategorySelectorListItem from '@components/SelectionList/CategorySelectorListItem';
 import type {ListItem} from '@components/SelectionList/types';

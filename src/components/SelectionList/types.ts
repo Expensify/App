@@ -501,6 +501,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the empty list content */
     shouldShowListEmptyContent?: boolean;
+
+    /** Whether SectionList should be wrapped with ScrollView */
+    shouldWrapSectionList?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
