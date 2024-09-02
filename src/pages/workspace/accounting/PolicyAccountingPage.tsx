@@ -1,4 +1,3 @@
-import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isAuthenticationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -61,12 +60,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {canUseWorkspaceFeeds} = usePermissions();
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
 
-    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
-    const isSyncInProgress =
-        !!connectionSyncProgress?.stageInProgress &&
-        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy.connections?.[connectionSyncProgress.connectionName]) &&
-        isValid(lastSyncProgressDate) &&
-        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
@@ -287,9 +281,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
-                    : translate('workspace.accounting.lastSync', datetimeToRelative),
+                description:
+                    isSyncInProgress && connectionSyncProgress?.stageInProgress
+                        ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                        : translate('workspace.accounting.lastSync', datetimeToRelative),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
