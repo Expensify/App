@@ -34,6 +34,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as Modal from '@userActions/Modal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -576,27 +577,27 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
-                                    onPress={() => setShowConfirmDeleteModal(true)}
+                                    onPress={() => Modal.close(() => setShowConfirmDeleteModal(true))}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
                             </View>
                         )}
-                        <ConfirmModal
-                            isVisible={showConfirmDeleteModal}
-                            onConfirm={() => {
-                                deletePaymentMethod();
-                                hideDefaultDeleteMenu();
-                            }}
-                            onCancel={hideDefaultDeleteMenu}
-                            title={translate('walletPage.deleteAccount')}
-                            prompt={translate('walletPage.deleteConfirmation')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            shouldShowCancelButton
-                            danger
-                            onModalHide={resetSelectedPaymentMethodData}
-                        />
                     </Popover>
+                    <ConfirmModal
+                        isVisible={showConfirmDeleteModal}
+                        onConfirm={() => {
+                            deletePaymentMethod();
+                            hideDefaultDeleteMenu();
+                        }}
+                        onCancel={hideDefaultDeleteMenu}
+                        title={translate('walletPage.deleteAccount')}
+                        prompt={translate('walletPage.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        shouldShowCancelButton
+                        danger
+                        onModalHide={resetSelectedPaymentMethodData}
+                    />
                 </ScreenWrapper>
             )}
             <AddPaymentMethodMenu

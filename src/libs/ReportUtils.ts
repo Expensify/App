@@ -4049,7 +4049,8 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
 
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
+        // optimistic image will have its preview disabled until we receive the (compressed if too big) image from the BE
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} data-expensify-preview-modal-disabled="true" />`;
     }
     if (file.type?.startsWith('video')) {
         return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
@@ -6394,9 +6395,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter(
-        (accountID) => currentUserPersonalDetails?.accountID !== accountID && !PolicyUtils.isExpensifyTeam(allPersonalDetails?.[accountID]?.login),
-    );
+    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
