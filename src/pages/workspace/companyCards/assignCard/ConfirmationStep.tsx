@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,6 +23,7 @@ function ConfirmationStep() {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const data = assignCard?.data;
 
@@ -75,7 +77,7 @@ function ConfirmationStep() {
                         isDisabled={isOffline}
                         success
                         large
-                        style={[styles.w100]}
+                        style={[styles.w100, safePaddingBottomStyle]}
                         onPress={submit}
                         text={translate('workspace.companyCards.assignCard')}
                     />

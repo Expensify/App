@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -18,6 +19,7 @@ import TransactionStartDateSelectorModal from './TransactionStartDateSelectorMod
 function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
@@ -29,7 +31,10 @@ function TransactionStartDateStep() {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                isEditing: false,
+            });
             return;
         }
         CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
@@ -86,17 +91,17 @@ function TransactionStartDateStep() {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
-            <View style={[styles.flex1, styles.justifyContentStart]}>
-                <View>
-                    <SelectionList
-                        ListItem={RadioListItem}
-                        onSelectRow={({value}) => handleSelectDateOption(value)}
-                        sections={[{data: dateOptions}]}
-                        shouldSingleExecuteRowSelect
-                        initiallyFocusedOptionKey={dateOptionSelected}
-                        shouldUpdateFocusedIndex
-                    />
-                </View>
+            <View style={styles.flex1}>
+                <SelectionList
+                    ListItem={RadioListItem}
+                    onSelectRow={({value}) => handleSelectDateOption(value)}
+                    sections={[{data: dateOptions}]}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedOptionKey={dateOptionSelected}
+                    shouldUpdateFocusedIndex
+                    containerStyle={[styles.flex0, styles.flexShrink0, styles.flexBasisAuto, styles.pb0]}
+                    // containerStyle={[styles.flexReset, styles.pb0]}
+                />
                 {dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && (
                     <>
                         <MenuItemWithTopDescription
@@ -120,7 +125,7 @@ function TransactionStartDateStep() {
                 pressOnEnter
                 text={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onPress={submit}
-                style={styles.m5}
+                style={[styles.m5, safePaddingBottomStyle]}
             />
         </InteractiveStepWrapper>
     );
