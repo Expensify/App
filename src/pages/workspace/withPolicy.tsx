@@ -76,7 +76,7 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         const currentRoute = routes?.at(-1);
         const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
 
-        if (policyID.length > 0) {
+        if (policyID.length > 0 && props.policy) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
@@ -84,6 +84,7 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                policy={props.policy ?? {}}
                 ref={ref}
             />
         );
