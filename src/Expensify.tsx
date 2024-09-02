@@ -123,7 +123,7 @@ function Expensify({
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
         shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.OPENED);
+        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

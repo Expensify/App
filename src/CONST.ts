@@ -5489,7 +5489,7 @@ const CONST = {
     },
 
     BOOT_SPLASH_STATE: {
-        OPENED: 1,
+        VISIBLE: 1,
         READY_TO_BE_HIDDEN: 2,
         HIDDEN: 3,
     },

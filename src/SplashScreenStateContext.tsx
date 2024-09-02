@@ -9,12 +9,12 @@ type SplashScreenStateContextType = {
 };
 
 const SplashScreenStateContext = React.createContext<SplashScreenStateContextType>({
-    splashScreenState: CONST.BOOT_SPLASH_STATE.OPENED,
+    splashScreenState: CONST.BOOT_SPLASH_STATE.VISIBLE,
     setSplashScreenState: () => {},
 });
 
 function SplashScreenStateContextProvider({children}: ChildrenProps) {
-    const [splashScreenState, setSplashScreenState] = useState<ValueOf<typeof CONST.BOOT_SPLASH_STATE>>(CONST.BOOT_SPLASH_STATE.OPENED);
+    const [splashScreenState, setSplashScreenState] = useState<ValueOf<typeof CONST.BOOT_SPLASH_STATE>>(CONST.BOOT_SPLASH_STATE.VISIBLE);
     const splashScreenStateContext = useMemo(
         () => ({
             splashScreenState,

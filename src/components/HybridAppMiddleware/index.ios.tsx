@@ -63,7 +63,7 @@ function HybridAppMiddleware({children}: HybridAppMiddlewareProps) {
         const HybridAppEvents = new NativeEventEmitter(NativeModules.HybridAppModule as unknown as NativeModule);
         const listener = HybridAppEvents.addListener(CONST.EVENTS.ON_RETURN_TO_OLD_DOT, () => {
             Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
-            setSplashScreenState(CONST.BOOT_SPLASH_STATE.OPENED);
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.VISIBLE);
         });
 
         return () => {
