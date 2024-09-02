@@ -55,7 +55,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
 
     const memoized = function memoized(...args: IsomorphicParameters<Fn>): IsomorphicReturnType<Fn> {
         const statsEntry = stats.createEntry();
-        const retrievalTime = performance.now();
+        const retrievalTimeStart = performance.now();
 
         // Detect if memoized function was called with `new` keyword. If so we need to call the original function as constructor.
         const constructable = !!new.target;
@@ -65,11 +65,11 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
         const key = options.transformKey ? options.transformKey(truncatedArgs) : (truncatedArgs as Key);
 
         const cached = cache.getSet(key, () => {
-            const fnTime = performance.now();
+            const fnTimeStart = performance.now();
             const result = (constructable ? new (fn as Constructable)(...args) : (fn as Callable)(...args)) as IsomorphicReturnType<Fn>;
 
             // Track processing time
-            statsEntry.trackTime('processingTime', fnTime);
+            statsEntry.trackTime('processingTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
             return result;
@@ -77,7 +77,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
 
         // If processing time was not tracked inside getSet callback, track it as a cache retrieval
         if (statsEntry.get('processingTime') === undefined) {
-            statsEntry.trackTime('processingTime', retrievalTime);
+            statsEntry.trackTime('processingTime', retrievalTimeStart);
             statsEntry.track('didHit', true);
         }
 
