@@ -7729,6 +7729,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7924,6 +7928,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
+    isSubmittedExpenseReportManagerWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
