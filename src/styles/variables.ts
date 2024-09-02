@@ -129,10 +129,13 @@ export default {
     borderTopWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
+    emptySelectionListIconWidth: 120,
+    emptySelectionListIconHeight: 125,
     emptyListIconWidth: 136,
     emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    modalTopMediumIconHeight: 203,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
     modalWordmarkHeight: 37,

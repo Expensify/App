@@ -90,6 +90,9 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Callback to blur composer */
         onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
+        /** Callback when layout of composer changes */
+        onLayout?: (event: LayoutChangeEvent) => void;
+
         /** Callback to update the value of the composer */
         onValueChange: (value: string) => void;
 
@@ -242,6 +245,7 @@ function ComposerWithSuggestions(
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
         onCleared = () => {},
+        onLayout: onLayoutProps,
 
         // Refs
         suggestionsRef,
@@ -292,7 +296,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -562,7 +566,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            focus(false);
+            focus(true);
         }, true);
     }, [focus, isFocused]);
 
@@ -686,13 +690,14 @@ function ComposerWithSuggestions(
 
     const onLayout = useCallback(
         (e: LayoutChangeEvent) => {
+            onLayoutProps?.(e);
             const composerLayoutHeight = e.nativeEvent.layout.height;
             if (composerHeight === composerLayoutHeight) {
                 return;
             }
             setComposerHeight(composerLayoutHeight);
         },
-        [composerHeight],
+        [composerHeight, onLayoutProps],
     );
 
     const onClear = useCallback(

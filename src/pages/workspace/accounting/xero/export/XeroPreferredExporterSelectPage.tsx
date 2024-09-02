@@ -58,11 +58,11 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: config?.export?.exporter === exporter.email,
+                isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
-    }, [config?.export?.exporter, exporters, policyOwner, currentUserLogin]);
+    }, [policyOwner, exporters, currentUserLogin, config?.export?.exporter]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {

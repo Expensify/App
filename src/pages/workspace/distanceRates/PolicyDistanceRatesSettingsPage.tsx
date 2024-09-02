@@ -95,7 +95,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <FullPageBlockingView>
+                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <View>
                             {defaultUnit && (
@@ -138,7 +138,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                     <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                         <Switch
-                                            isOn={isDistanceTrackTaxEnabled}
+                                            isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
                                             disabled={!isPolicyTrackTaxEnabled}

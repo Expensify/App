@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
@@ -80,14 +81,14 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
             Navigation.goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
         }
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
-        Navigation.dismissModal(report?.reportID);
+        Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;

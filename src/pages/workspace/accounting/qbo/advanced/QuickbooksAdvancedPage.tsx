@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -99,7 +100,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: !!autoCreateVendor,
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
+            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(policyID, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),

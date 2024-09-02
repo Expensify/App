@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -194,7 +194,10 @@ function PopoverMenu({
         setFocusedIndex(-1);
     };
 
-    useEffect(() => {
+    // When the menu items are changed, we want to reset the sub-menu to make sure
+    // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
+    // We use useLayoutEffect so the reset happens before the repaint
+    useLayoutEffect(() => {
         if (menuItems.length === 0) {
             return;
         }
@@ -223,6 +226,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
@@ -266,6 +270,7 @@ function PopoverMenu({
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
+                            badgeText={item.badgeText}
                         />
                     ))}
                 </View>

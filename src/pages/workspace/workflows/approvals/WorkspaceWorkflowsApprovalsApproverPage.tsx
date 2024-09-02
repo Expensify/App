@@ -81,7 +81,9 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const approverIndex = route.params.approverIndex ?? 0;
+    const approverIndex = Number(route.params.approverIndex) ?? 0;
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
+    const defaultApprover = policy?.approver ?? policy?.owner;
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -102,6 +104,17 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                     const email = employee.email;
 
                     if (!email) {
+                        return null;
+                    }
+
+                    // Do not allow the same email to be added twice
+                    const isEmailAlreadyInApprovers = approvalWorkflow?.approvers.some((approver, index) => approver?.email === email && index !== approverIndex);
+                    if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
+                        return null;
+                    }
+
+                    // Do not allow the default approver to be added as the first approver
+                    if (!approvalWorkflow?.isDefault && approverIndex === 0 && defaultApprover === email) {
                         return null;
                     }
 
@@ -136,58 +149,67 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         return [
             {
                 title: undefined,
-                data: filteredApprovers,
+                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
                 shouldShow: true,
             },
         ];
-    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, selectedApproverEmail, translate]);
+    }, [
+        approvalWorkflow?.approvers,
+        approvalWorkflow?.isDefault,
+        approverIndex,
+        debouncedSearchTerm,
+        defaultApprover,
+        personalDetails,
+        policy?.employeeList,
+        selectedApproverEmail,
+        translate,
+    ]);
 
     const nextStep = useCallback(() => {
-        if (!selectedApproverEmail) {
-            return;
-        }
-
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
-        const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
-        const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-        Workflow.setApprovalWorkflowApprover(
-            {
-                email: selectedApproverEmail,
-                avatar,
-                displayName,
-                isInMultipleWorkflows: false,
-                isCircularReference: false,
-            },
-            approverIndex,
-        );
-
-        const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-        if (!approvalWorkflow?.isBeingEdited && firstApprover) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+        if (selectedApproverEmail) {
+            const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+            const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
+            const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
+            Workflow.setApprovalWorkflowApprover(
+                {
+                    email: selectedApproverEmail,
+                    avatar,
+                    displayName,
+                },
+                approverIndex,
+                route.params.policyID,
+            );
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+            Workflow.clearApprovalWorkflowApprover(approverIndex);
         }
-    }, [approvalWorkflow?.approvers, approvalWorkflow?.isBeingEdited, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
+
+        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+        } else {
+            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+        }
+    }, [approvalWorkflow, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
 
     const nextButton = useMemo(
         () => (
             <FormAlertWithSubmitButton
-                isDisabled={!selectedApproverEmail}
-                buttonText={translate('common.next')}
+                isDisabled={!selectedApproverEmail && isInitialCreationFlow}
+                buttonText={isInitialCreationFlow ? translate('common.next') : translate('common.save')}
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
         ),
-        [nextStep, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+        [isInitialCreationFlow, nextStep, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     const goBack = useCallback(() => {
-        if (!approvalWorkflow?.isBeingEdited) {
+        if (isInitialCreationFlow) {
             Workflow.clearApprovalWorkflowApprovers();
         }
         Navigation.goBack();
-    }, [approvalWorkflow?.isBeingEdited]);
+    }, [isInitialCreationFlow]);
 
     const toggleApprover = (approver: SelectionListApprover) => {
         if (selectedApproverEmail === approver.login) {
@@ -219,7 +241,9 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         title={translate('workflowsPage.approver')}
                         onBackButtonPress={goBack}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
+                    )}
                     <SelectionList
                         sections={sections}
                         ListItem={InviteMemberListItem}
