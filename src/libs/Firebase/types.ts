@@ -1,5 +1,5 @@
+import type {PerformanceTrace} from '@firebase/performance';
 import type {FirebasePerformanceTypes} from '@react-native-firebase/perf';
-import type {PerformanceTrace} from 'firebase/performance';
 
 type Trace = {
     trace: FirebasePerformanceTypes.Trace | PerformanceTrace;
