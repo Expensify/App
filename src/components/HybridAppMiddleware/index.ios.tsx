@@ -4,10 +4,10 @@ import {NativeEventEmitter, NativeModules} from 'react-native';
 import type {NativeModule} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import useSplashScreen from '@hooks/useSplashScreen';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type {TryNewDot} from '@src/types/onyx';
 
 type HybridAppMiddlewareProps = {
@@ -31,7 +31,7 @@ const onboardingStatusSelector = (tryNewDot: OnyxEntry<TryNewDot>) => {
  * The middleware assumes that the entry point for HybridApp is the /transition route.
  */
 function HybridAppMiddleware({children}: HybridAppMiddlewareProps) {
-    const {setIsSplashHidden} = useSplashScreen();
+    const {setSplashScreenState} = useSplashScreenStateContext();
     const [completedHybridAppOnboarding] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {selector: onboardingStatusSelector});
 
     /**
@@ -63,13 +63,13 @@ function HybridAppMiddleware({children}: HybridAppMiddlewareProps) {
         const HybridAppEvents = new NativeEventEmitter(NativeModules.HybridAppModule as unknown as NativeModule);
         const listener = HybridAppEvents.addListener(CONST.EVENTS.ON_RETURN_TO_OLD_DOT, () => {
             Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
-            setIsSplashHidden(false);
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.OPENED);
         });
 
         return () => {
             listener.remove();
         };
-    }, [setIsSplashHidden]);
+    }, [setSplashScreenState]);
 
     return children;
 }

@@ -5487,6 +5487,12 @@ const CONST = {
             REMOVE: 'remove',
         },
     },
+
+    BOOT_SPLASH_STATE: {
+        OPENED: 1,
+        READY_TO_BE_HIDDEN: 2,
+        HIDDEN: 3,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
