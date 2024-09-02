@@ -207,7 +207,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
         if (NativeModules.HybridAppModule && killHybridApp) {
-            Navigation.resetToHome();
             NativeModules.HybridAppModule.closeReactNativeApp(true, false);
             return;
         }
