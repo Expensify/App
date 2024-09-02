@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
@@ -29,6 +29,15 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
         e?.preventDefault();
     }, []);
 
+    // The overlay is a semi-transparent layer that covers the entire screen and is used to close a modal when clicked.
+    // The touch event passes through the transparent overlay to the elements underneath, so we need to prevent that by adding a nearly invisible background color to the overlay.
+    const overlay = useMemo(
+        () => ({
+            backgroundColor: 'rgba(0, 0, 0, 0.005)',
+        }),
+        [],
+    );
+
     return (
         <View
             onPointerDown={handlePointerDown}
@@ -36,7 +45,7 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
         >
             <PressableWithoutFeedback
                 onPress={onPress}
-                style={[styles.flex1, styles.cursorDefault]}
+                style={[styles.flex1, styles.cursorDefault, overlay]}
                 accessibilityLabel={translate('common.close')}
                 role={CONST.ROLE.BUTTON}
             />
