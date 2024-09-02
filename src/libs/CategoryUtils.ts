@@ -48,12 +48,12 @@ function getCategoryApprover(approvalRules: ApprovalRule[], categoryName: string
     return approvalRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.approver;
 }
 
-function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, policyTaxRates?: TaxRatesWithDefault) {
+function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
     const categoryDefaultTaxRate = expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
 
     // If the default taxRate is not found in expenseRules, use the default value for policy
     if (!categoryDefaultTaxRate) {
-        return policyTaxRates?.defaultExternalID;
+        return defaultTaxRate;
     }
 
     return categoryDefaultTaxRate;
