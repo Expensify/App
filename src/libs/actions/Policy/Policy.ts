@@ -3759,6 +3759,7 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
     const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4224,13 +4225,6 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
-            value: {
-                maxExpenseAutoPayAmount: limit,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReimbursement: {
@@ -4244,13 +4238,6 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     ];
 
     const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM,
-            value: {
-                maxExpenseAutoPayAmount: limit,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -4271,7 +4258,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReimbursement: policy?.autoReimbursement,
+                autoReimbursement: {limit: policy?.autoReimbursement?.limit},
                 pendingFields: {
                     autoReimbursement: null,
                 },
