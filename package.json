@@ -101,7 +101,7 @@
     "@react-navigation/stack": "6.3.29",
     "@react-ng/bounds-observer": "^0.2.1",
     "@rnmapbox/maps": "10.1.26",
-    "@shopify/flash-list": "1.6.3",
+    "@shopify/flash-list": "1.7.1",
     "@types/mime-db": "^1.43.5",
     "@ua/react-native-airship": "19.2.1",
     "@vue/preload-webpack-plugin": "^2.0.0",
