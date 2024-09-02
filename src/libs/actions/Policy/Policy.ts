@@ -3834,7 +3834,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
     const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
-    if (customName === previousReportTitleField) {
+    if (customName === policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]?.defaultValue) {
         return;
     }
 
@@ -4035,7 +4035,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
     const policy = getPolicy(policyID);
 
-    if (parsedLimit === policy?.autoApproval?.limit) {
+    if (parsedLimit === policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS) {
         return;
     }
 
@@ -4107,7 +4107,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10);
 
-    if (parsedAuditRate === policy?.autoApproval?.auditRate) {
+    if (parsedAuditRate === policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) {
         return;
     }
 
@@ -4254,7 +4254,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === policy?.autoReimbursement?.limit) {
+    if (parsedLimit === policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS) {
         return;
     }
 
