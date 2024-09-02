@@ -65,6 +65,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
             <SearchTypeMenuNarrow
                 typeMenuItems={typeMenuItems}
                 activeItemIndex={activeItemIndex}
+                queryJSON={queryJSON}
                 title={title}
             />
         );

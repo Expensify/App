@@ -4,23 +4,27 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import * as SearchUtils from '@src/libs/SearchUtils';
 import ROUTES from '@src/ROUTES';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
 
 type SearchTypeMenuNarrowProps = {
     typeMenuItems: SearchTypeMenuItem[];
     activeItemIndex: number;
+    queryJSON: SearchQueryJSON;
     title?: string;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -96,7 +100,14 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
             </PressableWithFeedback>
             <Button
                 icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                onPress={() => {
+                    const filters = SearchUtils.getFilters(queryJSON);
+                    const form = SearchUtils.getFilterFormObject(filters);
+                    form.type = queryJSON.type;
+                    form.status = queryJSON.status;
+                    SearchActions.updateAdvancedFilters(form);
+                    Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+                }}
             />
             <PopoverMenu
                 menuItems={popoverMenuItems}
