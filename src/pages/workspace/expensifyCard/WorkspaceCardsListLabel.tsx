@@ -55,10 +55,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const isConnectedWithPlaid = useMemo(
-        () => !!bankAccountList?.[cardSettings?.paymentBankAccountID ?? 0]?.accountData?.additionalData?.plaidAccountID,
-        [bankAccountList, cardSettings?.paymentBankAccountID],
-    );
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+
+    const isConnectedWithPlaid = useMemo(() => !!bankAccountList?.[paymentBankAccountID ?? 0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList, paymentBankAccountID]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
