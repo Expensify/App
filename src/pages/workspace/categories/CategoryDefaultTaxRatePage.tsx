@@ -29,7 +29,7 @@ function CategoryDefaultTaxRatePage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName);
+    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates);
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate) => CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates),
