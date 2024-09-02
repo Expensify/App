@@ -97,14 +97,9 @@ export default {
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     USE_REACT_STRICT_MODE: true,
-    // TODO add newly created Firebase web project details before merging
     FIREBASE_WEB_CONFIG: {
-        apiKey: 'YOUR_API_KEY',
-        authDomain: 'YOUR_AUTH_DOMAIN',
-        projectId: 'YOUR_PROJECT_ID',
-        storageBucket: 'YOUR_STORAGE_BUCKET',
-        messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-        appId: 'YOUR_APP_ID',
-        measurementId: 'YOUR_MEASUREMENT_ID',
+        apiKey: get(Config, 'FB_API_KEY', ''),
+        appId: get(Config, 'FB_APP_ID', ''),
+        projectId: get(Config, 'FB_PROJECT_ID', ''),
     },
 } as const;
