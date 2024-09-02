@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {State} from '@components/StateSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -192,7 +193,7 @@ function AddressForm({
                     <InputWrapper
                         InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
-                        defaultValue={state}
+                        value={state as State}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
                     />
