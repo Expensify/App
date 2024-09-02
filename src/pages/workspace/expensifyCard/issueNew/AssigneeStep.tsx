@@ -23,7 +23,7 @@ import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {IssueNewCardData} from '@src/types/onyx/Card';
+import type {IssueNewCardData} from '@src/types/onyx/Card';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
