@@ -20,6 +20,6 @@ export default function usePermissions(iouType: IOUType | undefined = undefined)
             }
         }
 
-        return {...permissions, canUseWorkspaceRules: true};
+        return permissions;
     }, [betas, iouType]);
 }
