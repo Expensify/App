@@ -3,7 +3,7 @@
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
         "module": "commonjs",
-        "types": ["react-native", "jest"],
+        "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
         "strict": true,

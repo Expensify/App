@@ -16,6 +16,7 @@ import UpdateAppModal from './components/UpdateAppModal';
 import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
+import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -41,7 +42,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
-import type {ScreenShareRequest, Session} from './types/onyx';
+import type {ScreenShareRequest} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -57,9 +58,6 @@ Onyx.registerLogger(({level, message}) => {
 type ExpensifyOnyxProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
 
     /** Whether a new update is available and ready to install. */
     updateAvailable: OnyxEntry<boolean>;
@@ -91,7 +89,6 @@ const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextT
 
 function Expensify({
     isCheckingPublicRoom = true,
-    session,
     updateAvailable,
     isSidebarLoaded = false,
     screenShareRequest,
@@ -106,6 +103,8 @@ function Expensify({
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -239,6 +238,16 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
+    useLayoutEffect(() => {
+        if (!isNavigationReady || !lastRoute) {
+            return;
+        }
+        updateLastRoute('');
+        Navigation.navigate(lastRoute as Route);
+        // Disabling this rule because we only want it to run on the first render.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isNavigationReady]);
+
     useEffect(() => {
         if (!isAuthenticated) {
             return;
@@ -259,6 +268,7 @@ function Expensify({
         <DeeplinkWrapper
             isAuthenticated={isAuthenticated}
             autoAuthState={autoAuthState}
+            initialUrl={initialUrl ?? ''}
         >
             {shouldInit && (
                 <>
@@ -316,9 +326,6 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {
         key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
         initWithStoredValues: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,

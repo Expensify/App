@@ -138,15 +138,17 @@ function FeatureTrainingModal({
                 ]}
             >
                 {videoStatus === 'video' ? (
-                    <VideoPlayer
-                        url={videoURL}
-                        videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                        onVideoLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
-                        shouldUseControlsBottomMargin={false}
-                        shouldPlay
-                        isLooping
-                    />
+                    <GestureHandlerRootView>
+                        <VideoPlayer
+                            url={videoURL}
+                            videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
+                            onVideoLoaded={setAspectRatio}
+                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
+                            shouldUseControlsBottomMargin={false}
+                            shouldPlay
+                            isLooping
+                        />
+                    </GestureHandlerRootView>
                 ) : (
                     <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
                         <Lottie
@@ -200,44 +202,42 @@ function FeatureTrainingModal({
                             : {}),
                     }}
                 >
-                    <GestureHandlerRootView>
-                        <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[styles.mt5, styles.mh5]}>
-                                {!!title && !!description && (
-                                    <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                        <Text style={[styles.textHeadlineH1]}>{title}</Text>
-                                        <Text style={styles.textSupporting}>{description}</Text>
-                                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                                    </View>
-                                )}
-                                {shouldShowDismissModalOption && (
-                                    <CheckboxWithLabel
-                                        label={translate('featureTraining.doNotShowAgain')}
-                                        accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                        style={[styles.mb5]}
-                                        isChecked={!willShowAgain}
-                                        onInputChange={toggleWillShowAgain}
-                                    />
-                                )}
-                                {!!helpText && (
-                                    <Button
-                                        large
-                                        style={[styles.mb3]}
-                                        onPress={onHelp}
-                                        text={helpText}
-                                    />
-                                )}
+                    <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                        <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[styles.mt5, styles.mh5]}>
+                            {!!title && !!description && (
+                                <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <Text style={[styles.textHeadlineH1]}>{title}</Text>
+                                    <Text style={styles.textSupporting}>{description}</Text>
+                                    {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                                </View>
+                            )}
+                            {shouldShowDismissModalOption && (
+                                <CheckboxWithLabel
+                                    label={translate('featureTraining.doNotShowAgain')}
+                                    accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                                    style={[styles.mb5]}
+                                    isChecked={!willShowAgain}
+                                    onInputChange={toggleWillShowAgain}
+                                />
+                            )}
+                            {!!helpText && (
                                 <Button
                                     large
-                                    success
-                                    pressOnEnter
-                                    onPress={closeAndConfirmModal}
-                                    text={confirmText}
+                                    style={[styles.mb3]}
+                                    onPress={onHelp}
+                                    text={helpText}
                                 />
-                            </View>
+                            )}
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                onPress={closeAndConfirmModal}
+                                text={confirmText}
+                            />
                         </View>
-                    </GestureHandlerRootView>
+                    </View>
                 </Modal>
             )}
         </SafeAreaConsumer>
