@@ -1122,7 +1122,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        ...policy?.rules,
                         approvalRules: updatedApprovalRules,
                         pendingFields: {
                             approvalRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1150,7 +1149,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        ...policy?.rules,
                         approvalRules,
                         pendingFields: {
                             approvalRules: null,
@@ -1174,8 +1172,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const existingCategoryExpenseRule = expenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
-    let updatedExpenseRules: ExpenseRule[] = [...expenseRules];
-    let newTaxID = taxID;
+    const updatedExpenseRules: ExpenseRule[] = [...expenseRules];
 
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
@@ -1193,9 +1190,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 },
             ],
         });
-    } else if (existingCategoryExpenseRule?.tax?.field_id_TAX?.externalID === taxID) {
-        updatedExpenseRules = updatedExpenseRules.filter((rule) => rule.tax.field_id_TAX.externalID === taxID);
-        newTaxID = '';
     } else {
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
         updatedExpenseRules[indexToUpdate].tax.field_id_TAX.externalID = taxID;
@@ -1208,7 +1202,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        ...policy?.rules,
                         expenseRules: updatedExpenseRules,
                         pendingFields: {
                             expenseRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1221,7 +1214,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-
                 value: {
                     rules: {
                         pendingFields: {
@@ -1237,7 +1229,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        ...policy?.rules,
                         expenseRules,
                         pendingFields: {
                             expenseRules: null,
@@ -1251,7 +1242,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     const parameters: SetPolicyCategoryTaxParams = {
         policyID,
         categoryName,
-        taxID: newTaxID,
+        taxID,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
