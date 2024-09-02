@@ -99,6 +99,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onLongPressRow,
         shouldShowListEmptyContent = true,
         scrollEventThrottle,
+        contentContainerStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -734,6 +735,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                                 scrollEventThrottle={scrollEventThrottle}
+                                contentContainerStyle={contentContainerStyle}
                             />
                             {children}
                         </>

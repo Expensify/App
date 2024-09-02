@@ -389,6 +389,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                     ) : undefined
                 }
                 scrollEventThrottle={16}
+                contentContainerStyle={styles.mt3}
             />
             <ConfirmModal
                 isVisible={deleteExpensesConfirmModalVisible}
