@@ -29,7 +29,7 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [url]);
+    }, [setSplashScreenState, url]);
     return <InitialURLContext.Provider value={initialURL}>{children}</InitialURLContext.Provider>;
 }
 

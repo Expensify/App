@@ -480,11 +480,11 @@ function signInAfterTransitionFromOldDot(transitionURL: string, setSplashScreenS
 
     if (shouldClearOnyxOnStart === 'true') {
         Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-			setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-			setSessionDataAndOpenApp();
-		});
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            setSessionDataAndOpenApp();
+        });
     } else {
-		setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+        setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
         setSessionDataAndOpenApp();
     }
 }
