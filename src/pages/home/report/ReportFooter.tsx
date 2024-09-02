@@ -238,5 +238,7 @@ export default memo(
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
+        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
 );
