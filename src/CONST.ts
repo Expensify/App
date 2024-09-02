@@ -2341,6 +2341,10 @@ const CONST = {
             MASTERCARD: 'mastercard',
         },
         CARD_TITLE_INPUT_LIMIT: 255,
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -2354,12 +2358,6 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
-        },
-    },
-    COMPANY_CARDS: {
-        DELETE_TRANSACTIONS: {
-            RESTRICT: 'corporate',
-            ALLOW: 'personal',
         },
     },
     REGEX: {
