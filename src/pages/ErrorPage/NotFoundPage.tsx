@@ -29,7 +29,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                     const report = ReportUtils.getReport(topmostReportId ?? '');
                     // detect the report is invalid
                     if (topmostReportId && (!report || report.errorFields?.notFound)) {
-                        Navigation.goBack(ROUTES.HOME, true, true);
+                        Navigation.dismissModal();
                         return;
                     }
                     onBackButtonPress();
