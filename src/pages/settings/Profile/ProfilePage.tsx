@@ -155,25 +155,27 @@ function ProfilePage({
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
-                                <AvatarWithImagePicker
-                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                    source={avatarURL}
-                                    avatarID={accountID}
-                                    onImageSelected={PersonalDetails.updateAvatar}
-                                    onImageRemoved={PersonalDetails.deleteAvatar}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    avatarStyle={styles.avatarXLarge}
-                                    pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                    errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                    errorRowStyles={styles.mt6}
-                                    onErrorClose={PersonalDetails.clearAvatarErrors}
-                                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                    originalFileName={currentUserPersonalDetails.originalFileName}
-                                    headerTitle={translate('profilePage.profileAvatar')}
-                                    fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                    editIconStyle={styles.profilePageAvatar}
-                                />
+                                <MenuItemGroup shouldUseSingleExecution={false}>
+                                    <AvatarWithImagePicker
+                                        isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                        source={avatarURL}
+                                        avatarID={accountID}
+                                        onImageSelected={PersonalDetails.updateAvatar}
+                                        onImageRemoved={PersonalDetails.deleteAvatar}
+                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        avatarStyle={styles.avatarXLarge}
+                                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                        errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                        errorRowStyles={styles.mt6}
+                                        onErrorClose={PersonalDetails.clearAvatarErrors}
+                                        onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                        previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                        originalFileName={currentUserPersonalDetails.originalFileName}
+                                        headerTitle={translate('profilePage.profileAvatar')}
+                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                        editIconStyle={styles.profilePageAvatar}
+                                    />
+                                </MenuItemGroup>
                             </View>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
