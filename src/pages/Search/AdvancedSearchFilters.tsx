@@ -1,6 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -16,13 +18,104 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+
+const baseFilterConfig = {
+    date: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.date' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+    },
+    currency: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.currency' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+    },
+    merchant: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.merchant' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+    },
+    description: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.description' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+    },
+    reportID: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.reportID' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+    },
+    amount: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.total' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+    },
+    category: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.category' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+    },
+    keyword: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.hasKeywords' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+    },
+    cardID: {
+        getTitle: getFilterCardDisplayTitle,
+        description: 'common.card' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+    },
+    taxRate: {
+        getTitle: getFilterTaxRateDisplayTitle,
+        description: 'workspace.taxes.taxRate' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+    },
+    expenseType: {
+        getTitle: getFilterExpenseDisplayTitle,
+        description: 'search.expenseType' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+    },
+    tag: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.tag' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+    },
+    from: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'common.from' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+    },
+    to: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'common.to' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+    },
+    has: {
+        getTitle: getFilterHasDisplayTitle,
+        description: 'search.filters.has' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+    },
+    in: {
+        getTitle: getFilterInDisplayTitle,
+        description: 'common.in' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+    },
+};
+
+const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in'],
+};
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
@@ -115,7 +208,7 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return result.join(', ');
 }
 
-function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
@@ -125,93 +218,114 @@ function getExpenseTypeDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>,
         : undefined;
 }
 
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+    return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
+}
+
+function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS];
+    return filterValue
+        ? Object.values(CONST.SEARCH.CHAT_TYPES)
+              .filter((hasFilter) => filterValue.includes(hasFilter))
+              .map((hasFilter) => translate(SearchUtils.getChatFiltersTranslationKey(hasFilter)))
+              .join(', ')
+        : undefined;
+}
+
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
-    const advancedFilters = useMemo(
-        () => [
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
-                description: 'common.date' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
-                description: 'common.currency' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
-                description: 'common.merchant' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
-                description: 'common.description' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
-                description: 'common.reportID' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
-                description: 'common.total' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
-                description: 'common.category' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
-                description: 'search.filters.hasKeywords' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
-            },
-            {
-                title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
-                description: 'common.card' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
-                shouldHide: Object.keys(cardList).length === 0,
-            },
-            {
-                title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
-                description: 'workspace.taxes.taxRate' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
-            },
-            {
-                title: getExpenseTypeDisplayTitle(searchAdvancedFilters, translate),
-                description: 'search.expenseType' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
-            },
-            {
-                title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
-                description: 'common.tag' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
-            },
-            {
-                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
-                description: 'common.from' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
-            },
-            {
-                title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
-                description: 'common.to' as const,
-                route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
-            },
-        ],
-        [searchAdvancedFilters, translate, cardList, taxRates, personalDetails],
-    );
+    // const advancedFilters = useMemo(
+    //     () => [
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
+    //             description: 'common.date' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
+    //             description: 'common.currency' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
+    //             description: 'common.merchant' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
+    //             description: 'common.description' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
+    //             description: 'common.reportID' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
+    //             description: 'common.total' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
+    //             description: 'common.category' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
+    //             description: 'search.filters.hasKeywords' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+    //         },
+    //         {
+    //             title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
+    //             description: 'common.card' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+    //             shouldHide: Object.keys(cardList).length === 0,
+    //         },
+    //         {
+    //             title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
+    //             description: 'workspace.taxes.taxRate' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+    //         },
+    //         {
+    //             title: getFilterExpenseDisplayTitle(searchAdvancedFilters, translate),
+    //             description: 'search.expenseType' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+    //         },
+    //         {
+    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
+    //             description: 'common.tag' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+    //         },
+    //         {
+    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
+    //             description: 'common.from' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+    //         },
+    //         {
+    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
+    //             description: 'common.to' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+    //         },
+    //         {
+    //             title: getFilterInDisplayTitle(searchAdvancedFilters, translate, reports),
+    //             description: 'common.in' as const,
+    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+    //         },
+    //     ],
+    //     [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
+    // );
+    const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
@@ -225,22 +339,58 @@ function AdvancedSearchFilters() {
         );
     };
 
+    const filters = typeFiltersKeys[currentType].map((key) => {
+        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
+        let filterTitle;
+        if (
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
+            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
+        ) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            if (Object.keys(cardList).length === 0) {
+                return undefined;
+            }
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+        }
+        return {
+            key,
+            title: filterTitle,
+            description: translate(baseFilterConfig[key].description),
+            onPress,
+        };
+    });
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
-                    {advancedFilters.map((item) => {
-                        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(item.route)));
-                        if (item.shouldHide) {
+                    {filters.map((filter) => {
+                        if (filter === undefined) {
                             return undefined;
                         }
                         return (
                             <MenuItemWithTopDescription
-                                key={item.description}
-                                title={item.title}
-                                description={translate(item.description)}
+                                key={filter.description}
+                                title={filter.title}
+                                description={filter.description}
                                 shouldShowRightIcon
-                                onPress={onPress}
+                                onPress={filter.onPress}
                             />
                         );
                     })}
