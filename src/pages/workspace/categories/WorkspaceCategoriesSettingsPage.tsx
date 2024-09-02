@@ -1,17 +1,18 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
+import CategorySelectorListItem from '@components/SelectionList/CategorySelectorListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import CategorySelector from '@pages/workspace/distanceRates/CategorySelector';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -37,20 +38,28 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         setWorkspaceRequiresCategory(policyID, value);
     };
 
-    const {data} = useMemo(() => {
+    const {sections} = useMemo(() => {
         if (!(currentPolicy && currentPolicy.mccGroup)) {
-            return {data: []};
+            return {sections: [{data: []}]};
         }
 
         return {
-            data: Object.keys(currentPolicy.mccGroup).map((mccKey) => ({
-                mcc: mccKey[0].toUpperCase() + mccKey.slice(1),
-                category: currentPolicy.mccGroup?.[mccKey].category,
-                keyForList: mccKey,
-                groupID: mccKey,
-            })),
+            sections: [
+                {
+                    data: Object.keys(currentPolicy.mccGroup).map(
+                        (mccKey) =>
+                            ({
+                                categoryID: currentPolicy.mccGroup?.[mccKey].category,
+                                keyForList: mccKey,
+                                groupID: mccKey,
+                                policyID,
+                                tabIndex: -1,
+                            } as ListItem),
+                    ),
+                },
+            ],
         };
-    }, [currentPolicy]);
+    }, [currentPolicy, policyID]);
 
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
     return (
@@ -65,46 +74,34 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 testID={WorkspaceCategoriesSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('common.settings')} />
-                <ScrollView style={styles.flexGrow1}>
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.categories.requiresCategory')}
-                        subtitle={toggleSubtitle}
-                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
-                        isActive={policy?.requiresCategory ?? false}
-                        onToggle={updateWorkspaceRequiresCategory}
-                        pendingAction={policy?.pendingFields?.requiresCategory}
-                        disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
-                        wrapperStyle={[styles.pv2, styles.mh4]}
-                        errors={policy?.errorFields?.requiresCategory ?? undefined}
-                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    {!!currentPolicy && data?.length > 0 && (
-                        <>
-                            <View style={[styles.mh4, styles.mt2]}>
-                                <Text style={[styles.headerText]}>Default spend categories</Text>
-                                <Text style={[styles.mt1, styles.lh20]}>Customize how merchant spend is categorized for credit card transactions and scanned receipts.</Text>
-                            </View>
-                            <FlatList
-                                data={data}
-                                renderItem={({item}) => (
-                                    <CategorySelector
-                                        policyID={policyID}
-                                        label={item.mcc}
-                                        defaultValue={item.category}
-                                        wrapperStyle={[styles.ph5, styles.mt2]}
-                                        setNewCategory={(selectedCategory) => {
-                                            if (!selectedCategory.text) {
-                                                return;
-                                            }
-                                            Policy.setWorkspaceDefaultSpendCategory(policyID, item.groupID, selectedCategory.text);
-                                        }}
-                                    />
-                                )}
-                            />
-                        </>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.categories.requiresCategory')}
+                    subtitle={toggleSubtitle}
+                    switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
+                    isActive={policy?.requiresCategory ?? false}
+                    onToggle={updateWorkspaceRequiresCategory}
+                    pendingAction={policy?.pendingFields?.requiresCategory}
+                    disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
+                    wrapperStyle={[styles.pv2, styles.mh4]}
+                    errors={policy?.errorFields?.requiresCategory ?? undefined}
+                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
+                    shouldPlaceSubtitleBelowSwitch
+                />
+                <View style={[styles.containerWithSpaceBetween]}>
+                    {!!currentPolicy && sections?.length > 0 && (
+                        <SelectionList
+                            headerContent={
+                                <View style={[styles.mh4, styles.mt2]}>
+                                    <Text style={[styles.headerText]}>Default spend categories</Text>
+                                    <Text style={[styles.mt1, styles.lh20]}>Customize how merchant spend is categorized for credit card transactions and scanned receipts.</Text>
+                                </View>
+                            }
+                            sections={sections}
+                            ListItem={CategorySelectorListItem}
+                            onSelectRow={() => {}}
+                        />
                     )}
-                </ScrollView>
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

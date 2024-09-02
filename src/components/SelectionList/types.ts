@@ -125,6 +125,15 @@ type ListItem = {
     /** ID of the report */
     reportID?: string;
 
+    /** ID of the policy */
+    policyID?: string;
+
+    /** ID of the group */
+    groupID?: string;
+
+    /** ID of the category */
+    categoryID?: string;
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
