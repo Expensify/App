@@ -29,7 +29,7 @@ function CategoryDefaultTaxRatePage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates);
+    const selectedTaxRate = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate) => CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates),
@@ -74,6 +74,12 @@ function CategoryDefaultTaxRatePage({
                         if (!item.keyForList) {
                             return;
                         }
+
+                        if (item.keyForList === selectedTaxRate) {
+                            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName));
+                            return;
+                        }
+
                         Category.setPolicyCategoryTax(policyID, categoryName, item.keyForList);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
