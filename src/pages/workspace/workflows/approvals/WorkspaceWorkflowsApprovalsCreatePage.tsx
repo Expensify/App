@@ -19,9 +19,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -30,7 +28,7 @@ type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoading
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const formRef = useRef<ScrollView>(null);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -41,12 +39,12 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        if (!isEmptyObject(Workflow.validateApprovalWorkflow(approvalWorkflow))) {
+        if (!Workflow.validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 
-        Workflow.createApprovalWorkflow(route.params.policyID, {...approvalWorkflow, approvers: approvalWorkflow.approvers as Approver[]});
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        Workflow.createApprovalWorkflow(route.params.policyID, approvalWorkflow);
+        Navigation.dismissModal();
     }, [approvalWorkflow, route.params.policyID]);
 
     return (
@@ -68,26 +66,28 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                         title={translate('workflowsCreateApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {approvalWorkflowMetadata.status === 'loading' && <FullScreenLoadingIndicator />}
                     {approvalWorkflow && (
-                        <ApprovalWorkflowEditor
-                            approvalWorkflow={approvalWorkflow}
-                            policyID={route.params.policyID}
-                            ref={formRef}
-                        />
+                        <>
+                            <ApprovalWorkflowEditor
+                                approvalWorkflow={approvalWorkflow}
+                                policy={policy}
+                                policyID={route.params.policyID}
+                                ref={formRef}
+                            />
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                                onSubmit={createApprovalWorkflow}
+                                onFixTheErrorsLinkPressed={() => {
+                                    formRef.current?.scrollTo({y: 0, animated: true});
+                                }}
+                                isLoading={approvalWorkflow?.isLoading}
+                                buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
+                                containerStyles={[styles.mb5, styles.mh5]}
+                                enabledWhenOffline
+                            />
+                        </>
                     )}
-
-                    <FormAlertWithSubmitButton
-                        isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                        onSubmit={createApprovalWorkflow}
-                        onFixTheErrorsLinkPressed={() => {
-                            formRef.current?.scrollTo({y: 0, animated: true});
-                        }}
-                        isLoading={approvalWorkflow?.isLoading}
-                        buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
-                        containerStyles={[styles.mb5, styles.mh5]}
-                        enabledWhenOffline
-                    />
+                    {!approvalWorkflow && <FullScreenLoadingIndicator />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

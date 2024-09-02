@@ -1519,6 +1519,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
+        /** Whether the rules feature is enabled */
+        areRulesEnabled?: boolean;
+
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
@@ -1528,8 +1531,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
+        /** Whether the Company Cards feature is enabled */
+        areCompanyCardsEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
+
+        /** Whether the eReceipts are enabled */
+        eReceipts?: boolean;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
@@ -1564,7 +1573,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */
