@@ -272,6 +272,7 @@ export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsT
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
+export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
 export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApproval';
@@ -293,7 +294,11 @@ export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyC
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
+export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
+export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
+export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
