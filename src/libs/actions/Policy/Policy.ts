@@ -3756,13 +3756,13 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
  */
 function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
-
-    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
 
     if (enabled === policy?.shouldShowCustomReportTitleOption) {
         return;
     }
+
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
+    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3832,11 +3832,12 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
  */
 function setPolicyDefaultReportTitle(policyID: string, customName: string) {
     const policy = getPolicy(policyID);
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     if (customName === policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]?.defaultValue) {
         return;
     }
+
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3901,11 +3902,12 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
  */
 function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean) {
     const policy = getPolicy(policyID);
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     if (!enforced === policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].deletable) {
         return;
     }
+
+    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID] ?? {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4031,9 +4033,10 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
  * @param limit - max amount for auto-approval of the reports in the given policy
  */
 function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
+    const policy = getPolicy(policyID);
+
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
-    const policy = getPolicy(policyID);
 
     if (parsedLimit === policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS) {
         return;
@@ -4178,13 +4181,14 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
  */
 function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
-    const autoApprovalValues = !enabled ? {autoApproval: {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS}} : {};
-    const autoApprovalCleanupValues = !enabled ? {autoApproval: null} : {};
-    const autoApprovalPendingValues = !enabled ? {autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
 
     if (enabled === policy?.shouldShowAutoApprovalOptions) {
         return;
     }
+
+    const autoApprovalValues = !enabled ? {autoApproval: {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS}} : {};
+    const autoApprovalCleanupValues = !enabled ? {autoApproval: null} : {};
+    const autoApprovalPendingValues = !enabled ? {autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4251,12 +4255,13 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
  */
 function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const policy = getPolicy(policyID);
-    const fallbackLimit = limit === '' ? '0' : limit;
-    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
     if (parsedLimit === policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS) {
         return;
     }
+
+    const fallbackLimit = limit === '' ? '0' : limit;
+    const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4322,13 +4327,13 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
 function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) {
     const policy = getPolicy(policyID);
 
-    const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
-    const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
-    const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
-
     if (enabled === policy?.shouldShowAutoReimbursementLimitOption) {
         return;
     }
+
+    const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
+    const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
+    const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
