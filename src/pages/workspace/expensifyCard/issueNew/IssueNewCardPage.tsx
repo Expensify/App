@@ -23,9 +23,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const {currentStep} = issueNewCard ?? {};
 
     const policyID = policy?.id ?? '-1';
-    const backTo = route.params.backTo;
+    const backTo = route?.params?.backTo;
 
-    // TODO: add logic to skip Assignee step when the flow is started from the member's profile page
     useEffect(() => {
         Card.startIssueNewCardFlow(policyID);
     }, [policyID]);
