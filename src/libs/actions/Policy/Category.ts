@@ -1109,7 +1109,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
             ],
         });
     } else if (existingCategoryApproverRule?.approver === approver) {
-        updatedApprovalRules = updatedApprovalRules.filter((rule) => rule.approver === approver);
+        updatedApprovalRules = updatedApprovalRules.filter((rule) => rule.approver !== approver);
         newApprover = '';
     } else {
         const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
