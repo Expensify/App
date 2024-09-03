@@ -191,7 +191,6 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-
     const [linkedReportActionID, setLinkedReportActionID] = useState(route?.params?.reportActionID ?? '-1');
 
     // eslint-disable-next-line react-compiler/react-compiler
@@ -205,7 +204,7 @@ function ReportActionsList({
         } else {
             setLinkedReportActionID('-1');
         }
-    }, [route?.params?.reportActionID]);
+    }, [route?.params?.reportActionID, route]);
 
     const sortedVisibleReportActions = useMemo(
         () =>
