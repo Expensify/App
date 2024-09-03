@@ -1,7 +1,6 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
