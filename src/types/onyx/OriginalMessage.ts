@@ -510,6 +510,14 @@ type OriginalMessageIntegrationSyncFailed = {
     errorMessage: string;
 };
 
+/**
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ */
+type OriginalMessageExpensifyCard = {
+    /** The id of the user the card was assigned to */
+    assigneeAccountID: number;
+};
+
 /** The map type of original message */
 type OriginalMessageMap = {
     /** */
@@ -633,11 +641,11 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageExpensifyCard;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageExpensifyCard;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageExpensifyCard;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
 } & OldDotOriginalMessageMap & {
