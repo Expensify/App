@@ -45,10 +45,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         return {
             sections: [
                 {
-                    data: Object.keys(currentPolicy.mccGroup).map(
-                        (mccKey) =>
+                    data: Object.entries(currentPolicy.mccGroup).map(
+                        ([mccKey, mccGroup]) =>
                             ({
-                                categoryID: currentPolicy.mccGroup?.[mccKey].category,
+                                categoryID: mccGroup.category,
                                 keyForList: mccKey,
                                 groupID: mccKey,
                                 policyID,
@@ -61,6 +61,8 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     }, [currentPolicy, policyID]);
 
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
+    const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -80,7 +82,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     isActive={policy?.requiresCategory ?? false}
                     onToggle={updateWorkspaceRequiresCategory}
                     pendingAction={policy?.pendingFields?.requiresCategory}
-                    disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
+                    disabled={isToggleDisabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     errors={policy?.errorFields?.requiresCategory ?? undefined}
                     onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
