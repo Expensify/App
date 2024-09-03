@@ -8,7 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addDelegate} from '@libs/actions/Delegate';
+import {requestValidationCode} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -35,6 +35,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
+                requestValidationCode();
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(accountID, role));
             }}
         />

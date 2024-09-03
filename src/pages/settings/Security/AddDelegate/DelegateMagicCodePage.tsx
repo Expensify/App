@@ -1,57 +1,65 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
-import HeaderPageLayout from '@components/HeaderPageLayout';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addDelegate} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ValidateCodeForm from './ValidateCodeForm';
+import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
-    const {translate} = useLocalize();
-
-    const styles = useThemeStyles();
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const [validateCode, setValidateCode] = useState('');
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
+    const {translate} = useLocalize();
 
-    const submitButton = (
-        <Button
-            success
-            large
-            text={translate('common.verify')}
-            style={styles.mt6}
-            pressOnEnter
-            onPress={() => {
-                addDelegate(personalDetails.login ?? '', role, validateCode);
-                Navigation.dismissModal();
-            }}
-        />
-    );
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const themeStyles = useThemeStyles();
+    const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+
+    const onBackButtonPress = () => {
+        Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(accountID, role));
+    };
 
     return (
-        <HeaderPageLayout
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(accountID, role))}
-            title={translate('delegate.addCopilot')}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
             testID={DelegateMagicCodePage.displayName}
-            footer={submitButton}
-            childrenContainerStyles={[styles.pt3, styles.gap6]}
+            offlineIndicatorStyle={themeStyles.mtAuto}
         >
-            <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
-        </HeaderPageLayout>
+            <HeaderWithBackButton
+                title={account?.primaryLogin ?? ''}
+                onBackButtonPress={onBackButtonPress}
+            />
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
+                <DotIndicatorMessage
+                    type="success"
+                    style={[themeStyles.mb3]}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    messages={{0: translate('contacts.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}}
+                />
+                <ValidateCodeForm
+                    ref={validateCodeFormRef}
+                    delegate={personalDetails?.login ?? ''}
+                    role={role}
+                />
+            </View>
+        </ScreenWrapper>
     );
 }
 

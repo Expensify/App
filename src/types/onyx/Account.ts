@@ -20,6 +20,9 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Authentication failure errors */
     error?: TranslationPaths;
+
+    /** Whether the magic code has been sent for adding this user */
+    validateCodeSent?: boolean;
 }>;
 
 /** Model of delegated access data */
