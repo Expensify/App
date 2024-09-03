@@ -71,17 +71,17 @@ const selectableOnboardingChoices = {
     EMPLOYER: 'newDotEmployer',
     CHAT_SPLIT: 'newDotSplitChat',
     LOOKING_AROUND: 'newDotLookingAround',
-};
+} as const;
 
 const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
-};
+} as const;
 
 const onboardingChoices = {
     ...selectableOnboardingChoices,
     ...backendOnboardingChoices,
-};
+} as const;
 
 const onboardingEmployerOrSubmitMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
@@ -133,7 +133,7 @@ const onboardingInviteTypes = {
     IOU: 'iou',
     INVOICE: 'invoice',
     CHAT: 'chat',
-};
+} as const;
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 
@@ -4318,8 +4318,8 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
-        [onboardingChoices.EMPLOYER]: {...onboardingEmployerOrSubmitMessage},
-        [onboardingChoices.SUBMIT]: {...onboardingEmployerOrSubmitMessage},
+        [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
+        [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
