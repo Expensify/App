@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
@@ -10,7 +10,6 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
 import SectionList from '@components/SectionList';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
