@@ -343,9 +343,8 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-function hasPaidPolicy(policies: OnyxCollection<Policy> | null, currentUserAccountID: number): boolean {
-    const ownerPaidPolicy = Object.values(policies ?? {}).some((policy) => isPolicyOwner(policy, currentUserAccountID ?? -1) && isPaidGroupPolicy(policy));
-    return ownerPaidPolicy;
+function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number): Policy[] {
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? -1) && isPaidGroupPolicy(policy));
 }
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -1015,7 +1014,6 @@ export {
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
-    hasPaidPolicy,
     hasTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
@@ -1034,6 +1032,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSendInvoice,
     hasDependentTags,

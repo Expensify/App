@@ -1,6 +1,7 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
@@ -372,7 +373,8 @@ function calculateRemainingFreeTrialDays(): number {
 }
 
 function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
-    if (!PolicyUtils.hasPaidPolicy(policies, currentUserAccountID)) {
+    const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
+    if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
