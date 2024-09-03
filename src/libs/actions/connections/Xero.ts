@@ -437,7 +437,7 @@ function updateXeroExportBillStatus(
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_STATUS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroExportBillExporter(
+function updateXeroExportExporter(
     policyID: string,
     exporter: Partial<Connections['xero']['config']['export']['exporter']>,
     oldExporter?: Partial<Connections['xero']['config']['export']['exporter']>,
@@ -554,7 +554,7 @@ export {
     updateXeroEnableNewCategories,
     updateXeroAutoSync,
     updateXeroExportBillStatus,
-    updateXeroExportBillExporter,
+    updateXeroExportExporter,
     updateXeroExportBillDate,
     updateXeroExportNonReimbursableAccount,
     updateXeroSyncInvoiceCollectionsAccountID,
