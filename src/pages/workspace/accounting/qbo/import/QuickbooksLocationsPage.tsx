@@ -9,7 +9,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -52,10 +52,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                     accessibilityLabel={translate('workspace.qbo.locations')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
-                                        Connections.updatePolicyConnectionConfig(
+                                        QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
                                             policyID,
-                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                            CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS,
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }
