@@ -133,14 +133,16 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            if (newConnectionName && isControlPolicy(policy)) {
-                startIntegrationFlow({
-                    name: newConnectionName,
-                    integrationToDisconnect,
-                    shouldDisconnectIntegrationBeforeConnecting,
-                });
+            if (!newConnectionName || !isControlPolicy(policy)) {
+                return;
             }
-        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, isControlPolicy(policy), startIntegrationFlow]),
+
+            startIntegrationFlow({
+                name: newConnectionName,
+                integrationToDisconnect,
+                shouldDisconnectIntegrationBeforeConnecting,
+            });
+        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow]),
     );
 
     useEffect(() => {
