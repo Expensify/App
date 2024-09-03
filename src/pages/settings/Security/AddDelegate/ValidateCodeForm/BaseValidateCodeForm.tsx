@@ -4,6 +4,7 @@ import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -137,46 +138,50 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     }, [delegate, role, validateCode]);
 
     return (
-        <>
-            <MagicCodeInput
-                autoComplete={autoComplete}
-                ref={inputValidateCodeRef}
-                name="validateCode"
-                value={validateCode}
-                onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
-                onFulfill={validateAndSubmitForm}
-                autoFocus={false}
-            />
-            <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                </View>
-            </OfflineWithFeedback>
-            <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    pressOnEnter
-                    large
-                    isLoading={account?.isLoading}
+        <View style={[styles.flex1, styles.justifyContentBetween]}>
+            <View style={[styles.ph5, styles.mt3]}>
+                <MagicCodeInput
+                    autoComplete={autoComplete}
+                    ref={inputValidateCodeRef}
+                    name="validateCode"
+                    value={validateCode}
+                    onChangeText={onTextInput}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                    onFulfill={validateAndSubmitForm}
+                    autoFocus={false}
                 />
-            </OfflineWithFeedback>
-        </>
+                <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
+                    <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                </OfflineWithFeedback>
+            </View>
+            <FixedFooter>
+                <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        pressOnEnter
+                        large
+                        isLoading={account?.isLoading}
+                    />
+                </OfflineWithFeedback>
+            </FixedFooter>
+        </View>
     );
 }
 
