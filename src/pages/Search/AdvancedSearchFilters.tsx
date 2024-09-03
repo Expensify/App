@@ -340,7 +340,7 @@ function AdvancedSearchFilters() {
     //     ],
     //     [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
     // );
-    const currentType = 'chat';
+    const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
