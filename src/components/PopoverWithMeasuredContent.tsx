@@ -103,7 +103,7 @@ function PopoverWithMeasuredContent({
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
                 payload: {
-                    popoverHeight: Math.floor(popoverHeight),
+                    popoverHeight: Math.floor(height),
                 },
             });
         }
