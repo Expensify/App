@@ -139,6 +139,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const navigateToIssueNewCard = useCallback(() => {
+        const activeRoute = Navigation.getActiveRoute();
+
         Card.setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
@@ -146,7 +148,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             },
             isEditing: false,
         });
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     }, [memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
