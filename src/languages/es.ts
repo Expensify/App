@@ -3787,7 +3787,7 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
-        removedFromApprovalWorkflow: ({submitterName}) => `te ha eliminado del flujo de trabajo de aprobación de ${submitterName} y del chat del área de trabajo. Los informes enviados anteriormente seguirán disponibles para su aprobación en su bandeja de entrada.`,
+        removedFromApprovalWorkflow: ({submitterName}) => `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${submitterName}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón invitar que está más arriba.',
