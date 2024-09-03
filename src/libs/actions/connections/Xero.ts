@@ -62,6 +62,21 @@ function createXeroExportPendingFields<TSettingName extends keyof Connections['x
     }, {});
 }
 
+function createXeroSyncPendingFields<TSettingName extends keyof Connections['xero']['config']['sync']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
+    pendingValue: OnyxCommon.PendingAction,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: pendingValue};
+    }
+
+    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
+        acc[setting] = pendingValue;
+        return acc;
+    }, {});
+}
+
 function createXeroErrorFields<TSettingName extends keyof Connections['xero']['config']>(
     settingName: TSettingName,
     settingValue: Partial<Connections['xero']['config'][TSettingName]>,
@@ -80,6 +95,21 @@ function createXeroErrorFields<TSettingName extends keyof Connections['xero']['c
 function createXeroExportErrorFields<TSettingName extends keyof Connections['xero']['config']['export']>(
     settingName: TSettingName,
     settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
+    errorValue: OnyxCommon.Errors | null,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: errorValue};
+    }
+
+    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
+        acc[setting] = errorValue;
+        return acc;
+    }, {});
+}
+
+function createXeroSyncErrorFields<TSettingName extends keyof Connections['xero']['config']['sync']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -210,6 +240,72 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
                         config: {
                             pendingFields: createXeroExportPendingFields(settingName, settingValue, null),
                             errorFields: createXeroExportErrorFields(settingName, settingValue, null),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
+function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['xero']['config']['sync']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['xero']['config']['sync'][TSettingName]> | null,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: createXeroSyncPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createXeroSyncErrorFields(settingName, settingValue, null),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            sync: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: createXeroSyncPendingFields(settingName, settingValue, null),
+                            errorFields: createXeroSyncErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            pendingFields: createXeroSyncPendingFields(settingName, settingValue, null),
+                            errorFields: createXeroSyncErrorFields(settingName, settingValue, null),
                         },
                     },
                 },
@@ -384,9 +480,67 @@ function updateXeroExportNonReimbursableAccount(
         idempotencyKey: String(CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT),
     };
 
-    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount, oldNonReimbursableAccount);
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(
+        policyID,
+        CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+        nonReimbursableAccount,
+        oldNonReimbursableAccount,
+    );
 
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroSyncInvoiceCollectionsAccountID(
+    policyID: string,
+    invoiceCollectionsAccountID: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
+    oldInvoiceCollectionsAccountID?: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(invoiceCollectionsAccountID),
+        idempotencyKey: String(CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroSyncOptimisticData(
+        policyID,
+        CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
+        invoiceCollectionsAccountID,
+        oldInvoiceCollectionsAccountID,
+    );
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroSyncReimbursementAccountID(
+    policyID: string,
+    reimbursementAccountID: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
+    oldReimbursementAccountID?: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(reimbursementAccountID),
+        idempotencyKey: String(CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroSyncOptimisticData(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID, reimbursementAccountID, oldReimbursementAccountID);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroSyncSyncReimbursedReports(
+    policyID: string,
+    syncReimbursedReports: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
+    oldSyncReimbursedReports?: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(syncReimbursedReports),
+        idempotencyKey: String(CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroSyncOptimisticData(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, syncReimbursedReports, oldSyncReimbursedReports);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
 export {
@@ -402,5 +556,8 @@ export {
     updateXeroExportBillStatus,
     updateXeroExportBillExporter,
     updateXeroExportBillDate,
-    updateXeroExportNonReimbursableAccount
+    updateXeroExportNonReimbursableAccount,
+    updateXeroSyncInvoiceCollectionsAccountID,
+    updateXeroSyncSyncReimbursedReports,
+    updateXeroSyncReimbursementAccountID,
 };
