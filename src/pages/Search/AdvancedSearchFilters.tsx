@@ -109,7 +109,7 @@ const baseFilterConfig = {
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
     is: {
-        getTitle: getChatIsDisplayTitle,
+        getTitle: getFilterIsDisplayTitle,
         description: 'search.filters.is' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
     },
@@ -119,7 +119,7 @@ const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_F
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in', 'is'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -237,7 +237,7 @@ function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, t
         : undefined;
 }
 
-function getChatIsDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+function getFilterIsDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.IS];
     return filterValue
         ? Object.values(CONST.SEARCH.CHAT_STATUS)
@@ -337,15 +337,10 @@ function AdvancedSearchFilters() {
     //             description: 'common.in' as const,
     //             route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     //         },
-    //         {
-    //             title: getChatIsDisplayTitle(searchAdvancedFilters, translate),
-    //             description: 'search.filters.is' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
-    //         },
     //     ],
     //     [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
     // );
-    const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const currentType = 'chat';
 
     const onFormSubmit = () => {
         const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
@@ -381,7 +376,7 @@ function AdvancedSearchFilters() {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
             filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
