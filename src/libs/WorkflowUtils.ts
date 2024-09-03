@@ -170,7 +170,7 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
 
     /**
-     * The previous employee list before the approval workflow was created *
+     * The previous employee list before the approval workflow was created
      */
     previousEmployeeList: PolicyEmployeeList;
 
