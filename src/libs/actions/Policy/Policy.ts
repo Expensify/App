@@ -3686,7 +3686,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
 }
 
 /**
- * Call the API to enable or disable the billable mode for the given policy
+ * Call the API to disable the billable mode for the given policy
  * @param policyID - id of the policy to enable or disable the bilable mode
  */
 function disableWorkspaceBillableExpenses(policyID: string) {
