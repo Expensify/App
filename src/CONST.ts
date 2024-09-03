@@ -127,6 +127,9 @@ const CONST = {
         ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
+    // Allowed extensions for spreadsheets import
+    ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
@@ -741,6 +744,7 @@ const CONST = {
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
+                REJECTED: 'REJECTED',
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -2341,6 +2345,12 @@ const CONST = {
             PAYPERUSE: 'monthly2018',
         },
     },
+    COMPANY_CARDS: {
+        DELETE_TRANSACTIONS: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -2501,6 +2511,10 @@ const CONST = {
     // Account IDs that profile view is prohibited
     get RESTRICTED_ACCOUNT_IDS() {
         return [this.ACCOUNT_ID.NOTIFICATIONS];
+    },
+    // Account IDs that can't be added as a group member
+    get NON_ADDABLE_ACCOUNT_IDS() {
+        return [this.ACCOUNT_ID.NOTIFICATIONS, this.ACCOUNT_ID.CHRONOS];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
@@ -3877,6 +3891,7 @@ const CONST = {
         SUCCESS: 'SUCCESS',
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
+        GETCODE: 'GETCODE',
     },
     DELEGATE_ROLE: {
         SUBMITTER: 'submitter',
@@ -3904,6 +3919,7 @@ const CONST = {
     DROPDOWN_BUTTON_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
+        SMALL: 'small',
     },
 
     SF_COORDINATES: [-122.4194, 37.7749],
@@ -5225,6 +5241,7 @@ const CONST = {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
             TRIP: 'trip',
+            CHAT: 'chat',
         },
         ACTION_TYPES: {
             VIEW: 'view',
@@ -5267,6 +5284,10 @@ const CONST = {
                 APPROVED: 'approved',
                 PAID: 'paid',
             },
+        },
+        CHAT_TYPES: {
+            LINK: 'link',
+            ATTACHMENT: 'attachment',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -5314,6 +5335,8 @@ const CONST = {
             CARD_ID: 'cardID',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
+            IN: 'in',
+            HAS: 'has',
         },
     },
 
@@ -5469,6 +5492,32 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+    },
+
+    CSV_IMPORT_COLUMNS: {
+        EMAIL: 'email',
+        NAME: 'name',
+        GL_CODE: 'glCode',
+        SUBMIT_TO: 'submitTo',
+        APPROVE_TO: 'approveTo',
+        CUSTOM_FIELD_1: 'customField1',
+        CUSTOM_FIELD_2: 'customField2',
+        ROLE: 'role',
+        REPORT_THRESHHOLD: 'reportThreshold',
+        APPROVE_TO_ALTERNATE: 'approveToAlternate',
+        SUBRATE: 'subRate',
+        AMOUNT: 'amount',
+        CURRENCY: 'currency',
+        RATE_ID: 'rateID',
+        ENABLED: 'enabled',
+        IGNORE: 'ignore',
+    },
+
+    IMPORT_SPREADSHEET: {
+        ICON_WIDTH: 180,
+        ICON_HEIGHT: 160,
+
+        CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
     },
 } as const;
 

@@ -17,6 +17,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
@@ -253,10 +254,11 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: number, domainName: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
+function updateSettlementAccount(workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
+    const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -296,6 +298,13 @@ function updateSettlementAccount(workspaceAccountID: number, domainName: string,
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
 }
 
+function getCardDefaultName(userName?: string) {
+    if (!userName) {
+        return '';
+    }
+    return `${userName}'s Card`;
+}
+
 function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step});
 }
@@ -323,7 +332,10 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
                     availableSpend: newAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: newLimit,
+                        pendingFields: {unapprovedExpenseLimit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     isLoading: true,
                     errors: null,
                 },
@@ -337,6 +349,11 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    nameValuePairs: {
+                        pendingFields: {unapprovedExpenseLimit: null},
+                    },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                     isLoading: false,
                 },
             },
@@ -352,7 +369,10 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
                     availableSpend: oldAvailableSpend,
                     nameValuePairs: {
                         unapprovedExpenseLimit: oldLimit,
+                        pendingFields: {unapprovedExpenseLimit: null},
                     },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -384,7 +404,9 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
                 [cardID]: {
                     nameValuePairs: {
                         cardTitle: newCardTitle,
+                        pendingFields: {cardTitle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     isLoading: true,
                     errors: null,
                 },
@@ -398,6 +420,10 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
             value: {
                 [cardID]: {
+                    nameValuePairs: {
+                        pendingFields: {cardTitle: null},
+                    },
+                    pendingAction: null,
                     isLoading: false,
                 },
             },
@@ -412,7 +438,9 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
                 [cardID]: {
                     nameValuePairs: {
                         cardTitle: oldCardTitle,
+                        pendingFields: {cardTitle: null},
                     },
+                    pendingAction: null,
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -444,7 +472,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
+                        pendingFields: {limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     isLoading: true,
                     errors: null,
                 },
@@ -459,6 +490,11 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
             value: {
                 [cardID]: {
                     isLoading: false,
+                    nameValuePairs: {
+                        pendingFields: {limitType: null},
+                    },
+                    pendingAction: null,
+                    pendingFields: {availableSpend: null},
                 },
             },
         },
@@ -472,7 +508,10 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
                 [cardID]: {
                     nameValuePairs: {
                         limitType: oldLimitType,
+                        pendingFields: {limitType: null},
                     },
+                    pendingFields: {availableSpend: null},
+                    pendingAction: null,
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -676,5 +715,6 @@ export {
     updateExpensifyCardLimitType,
     updateSelectedFeed,
     deactivateCard,
+    getCardDefaultName,
 };
 export type {ReplacementReason};
