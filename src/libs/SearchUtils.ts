@@ -471,7 +471,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
-            const filterValueArray = Array.from(new Set<string>(filterValues[filterKey] ?? []));
+            const filterValueArray = [...new Set<string>(filterValues[filterKey] ?? [])];
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
                 return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;

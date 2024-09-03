@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
@@ -186,8 +185,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filters[fieldName];
     }
 
-    const filterValue = filters[fieldName] as string;
-    return filterValue ? Str.recapitalize(filterValue) : undefined;
+    const filterValue = filters[fieldName];
+    return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
