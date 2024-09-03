@@ -2,11 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,6 +35,9 @@ type BankAccountStepOnyxProps = {
 
     /** If the plaid button has been disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
+    personalBankAccount: OnyxEntry<OnyxTypes.PersonalBankAccount>;
 };
 
 type BankAccountStepProps = BankAccountStepOnyxProps & {
@@ -69,6 +71,7 @@ function BankAccountStep({
     reimbursementAccount,
     onBackButtonPress,
     isPlaidDisabled = false,
+    personalBankAccount = {},
 }: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -119,34 +122,50 @@ function BankAccountStep({
                 />
                 <ScrollView style={styles.flex1}>
                     <Section
-                        icon={Illustrations.MoneyWings}
                         title={translate('workspace.bankAccount.streamlinePayments')}
+                        illustration={LottieAnimations.FastMoney}
+                        subtitle={translate('bankAccount.toGetStarted')}
+                        subtitleMuted
+                        illustrationBackgroundColor={theme.fallbackIconColor}
+                        isCentralPane
                     >
-                        <View style={styles.mv3}>
-                            <Text>{translate('bankAccount.toGetStarted')}</Text>
-                        </View>
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
-                        <Button
-                            icon={Expensicons.Bank}
-                            iconStyles={[styles.customMarginButtonWithMenuItem]}
-                            text={translate('bankAccount.connectOnlineWithPlaid')}
-                            onPress={() => {
-                                if (!!isPlaidDisabled || !user?.validated) {
-                                    return;
-                                }
-                                removeExistingBankAccountDetails();
-                                BankAccounts.openPlaidView();
-                            }}
-                            isDisabled={!!isPlaidDisabled || !user?.validated}
-                            style={[styles.mt4]}
-                            shouldShowRightIcon
-                            success
-                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
-                        />
+                        {!personalBankAccount.plaidAccountID && (
+                            <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
+                                <Icon
+                                    src={Expensicons.Lightbulb}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.mr2}
+                                    medium
+                                />
+                                <Text
+                                    style={[styles.textLabelSupportingNormal]}
+                                    suppressHighlighting
+                                >
+                                    {translate('workspace.bankAccount.connectBankAccountNote')}
+                                </Text>
+                            </View>
+                        )}
+                        <View style={styles.mt3}>
+                            <MenuItem
+                                icon={Expensicons.Bank}
+                                title={translate('bankAccount.connectOnlineWithPlaid')}
+                                disabled={!!isPlaidDisabled || !user?.validated}
+                                onPress={() => {
+                                    if (!!isPlaidDisabled || !user?.validated) {
+                                        return;
+                                    }
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.openPlaidView();
+                                }}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.cardMenuItem]}
+                            />
+                        </View>
                         <View style={styles.mv3}>
                             <MenuItem
                                 icon={Expensicons.Connect}
@@ -194,5 +213,9 @@ export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
     },
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
+    },
+    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
 })(BankAccountStep);

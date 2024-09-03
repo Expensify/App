@@ -3548,6 +3548,7 @@ export default {
             continueWithSetup: 'Continuar con la configuración',
             youreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas.',
             streamlinePayments: 'Optimiza pagos',
+            connectBankAccountNote: 'Nota: No se pueden usar cuentas bancarias personales para realizar pagos en los espacios de trabajo.',
             oneMoreThing: '¡Una cosa más!',
             allSet: '¡Todo listo!',
             accountDescriptionNoCards:
