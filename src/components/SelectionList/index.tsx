@@ -5,7 +5,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseSelectionList from './BaseSelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
 
-function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
@@ -33,8 +33,8 @@ function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TIt
             {...props}
             ref={ref}
             onScroll={(event) => {
-                if (props.onScroll) {
-                    props.onScroll(event);
+                if (onScroll) {
+                    onScroll(event);
                 }
                 // Only dismiss the keyboard whenever the user scrolls the screen
                 if (!isScreenTouched) {

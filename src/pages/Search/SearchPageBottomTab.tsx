@@ -4,27 +4,28 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
-import CONST from '@src/CONST';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import SearchSelectionModeHeader from './SearchSelectedModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
+
+const TOO_CLOSE_TO_TOP_DISTANCE = 20;
+const TOO_CLOSE_TO_BOTTOM_DISTNACE = 10;
+const ANIMATION_DURATION_IN_MS = 300;
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -32,12 +33,11 @@ function SearchPageBottomTab() {
     const {windowHeight} = useWindowDimensions();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const styles = useThemeStyles();
-    const {clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue(0);
-    const headerHeight = useSharedValue(CONST.SEARCH.SEARCH_HEADER_HEIGHT + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT);
+    const headerHeight = useSharedValue(variables.searchHeaderHeight + variables.typeAndStatusBarHeight);
     const animatedTopBarStyle = useAnimatedStyle(() => ({
         transform: [{translateY: topBarOffset.value}],
         zIndex: -1,
@@ -54,14 +54,14 @@ function SearchPageBottomTab() {
 
         const currentOffset = contentOffset.y;
         const isScrollingDown = currentOffset > scrollOffset.value;
-        if (isScrollingDown && contentOffset.y > 20) {
+        if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
             const distanceScrolled = currentOffset - scrollOffset.value;
             // eslint-disable-next-line react-compiler/react-compiler
-            topBarOffset.value = Math.max(-CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT, topBarOffset.value - distanceScrolled);
-            headerHeight.value = Math.max(CONST.SEARCH.SEARCH_HEADER_HEIGHT, headerHeight.value - distanceScrolled);
-        } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - 10) {
-            topBarOffset.value = withTiming(0, {duration: 300});
-            headerHeight.value = withTiming(CONST.SEARCH.SEARCH_HEADER_HEIGHT + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT, {duration: 300});
+            topBarOffset.value = Math.max(-variables.typeAndStatusBarHeight, topBarOffset.value - distanceScrolled);
+            headerHeight.value = Math.max(variables.searchHeaderHeight, headerHeight.value - distanceScrolled);
+        } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
+            topBarOffset.value = withTiming(0, {duration: ANIMATION_DURATION_IN_MS});
+            headerHeight.value = withTiming(variables.searchHeaderHeight + variables.typeAndStatusBarHeight, {duration: ANIMATION_DURATION_IN_MS});
         }
 
         scrollOffset.value = currentOffset;
@@ -84,66 +84,63 @@ function SearchPageBottomTab() {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
+    if (!queryJSON) {
+        return (
+            <ScreenWrapper
+                testID={SearchPageBottomTab.displayName}
+                style={styles.pv0}
+                offlineIndicatorStyle={styles.mtAuto}
+            >
+                <FullPageNotFoundView
+                    shouldShow={!queryJSON}
+                    onBackButtonPress={handleOnBackButtonPress}
+                    shouldShowLink={false}
+                />
+            </ScreenWrapper>
+        );
+    }
+
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <FullPageNotFoundView
-                shouldShow={!queryJSON}
-                onBackButtonPress={handleOnBackButtonPress}
-                shouldShowLink={false}
-            >
-                {!selectionMode?.isEnabled && queryJSON ? (
-                    <Animated.View style={animatedHeaderStyle}>
-                        <View style={styles.appBG}>
-                            <TopBar
-                                activeWorkspaceID={policyID}
-                                breadcrumbLabel={translate('common.search')}
-                                shouldDisplaySearch={false}
-                            />
-                        </View>
-                        <Animated.View style={animatedTopBarStyle}>
-                            <SearchTypeMenu
-                                isCustomQuery={isCustomQuery}
-                                queryJSON={queryJSON}
-                            />
-                            {shouldUseNarrowLayout && (
-                                <SearchStatusBar
-                                    type={queryJSON.type}
-                                    status={queryJSON.status}
-                                />
-                            )}
-                        </Animated.View>
-                    </Animated.View>
-                ) : (
-                    <>
-                        <HeaderWithBackButton
-                            title={translate('common.selectMultiple')}
-                            onBackButtonPress={() => {
-                                clearSelectedTransactions();
-                                turnOffMobileSelectionMode();
-                            }}
+            {!selectionMode?.isEnabled ? (
+                <Animated.View style={animatedHeaderStyle}>
+                    <View style={styles.appBG}>
+                        <TopBar
+                            activeWorkspaceID={policyID}
+                            breadcrumbLabel={translate('common.search')}
+                            shouldDisplaySearch={false}
                         />
-
-                        {queryJSON && (
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                hash={queryJSON.hash}
-                                isCustomQuery={isCustomQuery}
+                    </View>
+                    <Animated.View style={animatedTopBarStyle}>
+                        <SearchTypeMenu
+                            isCustomQuery={isCustomQuery}
+                            queryJSON={queryJSON}
+                        />
+                        {shouldUseNarrowLayout && (
+                            <SearchStatusBar
+                                type={queryJSON.type}
+                                status={queryJSON.status}
                             />
                         )}
-                    </>
-                )}
-                {shouldUseNarrowLayout && queryJSON && (
-                    <Search
-                        queryJSON={queryJSON}
-                        onSearchListScroll={handleScroll}
-                        contentContainerStyle={!selectionMode?.isEnabled ? styles.mt3 : undefined}
-                    />
-                )}
-            </FullPageNotFoundView>
+                    </Animated.View>
+                </Animated.View>
+            ) : (
+                <SearchSelectionModeHeader
+                    queryJSON={queryJSON}
+                    isCustomQuery={isCustomQuery}
+                />
+            )}
+            {shouldUseNarrowLayout && (
+                <Search
+                    queryJSON={queryJSON}
+                    onSearchListScroll={handleScroll}
+                    contentContainerStyle={!selectionMode?.isEnabled ? styles.mt3 : undefined}
+                />
+            )}
         </ScreenWrapper>
     );
 }

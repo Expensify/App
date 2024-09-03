@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -78,7 +77,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setSelectedReports, setShouldShowStatusBarLoading} = useSearchContext();
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
@@ -160,6 +159,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
+        /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
     }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
@@ -171,12 +171,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     if (shouldShowLoadingState) {
-        return (
-            <>
-                <View style={styles.mt3} />
-                <SearchRowSkeleton shouldAnimate />
-            </>
-        );
+        return <SearchRowSkeleton shouldAnimate />;
     }
 
     if (searchResults === undefined) {
@@ -192,12 +187,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
     if (shouldShowEmptyState) {
-        return (
-            <>
-                <View style={styles.mt3} />
-                <EmptySearchView type={type} />
-            </>
-        );
+        return <EmptySearchView type={type} />;
     }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
@@ -206,9 +196,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                 return;
             }
 
-            const transactionList = prepareTransactionsList(item, selectedTransactions);
-            setSelectedTransactions(transactionList);
-            setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, transactionList));
+            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
             return;
         }
 
@@ -219,17 +207,17 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
 
-            setSelectedTransactions(reducedSelectedTransactions);
-            setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, reducedSelectedTransactions));
+            setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }
 
-        const newSelectedTransactions = {
-            ...selectedTransactions,
-            ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
-        };
-        setSelectedTransactions(newSelectedTransactions);
-        setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, newSelectedTransactions));
+        setSelectedTransactions(
+            {
+                ...selectedTransactions,
+                ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+            },
+            data,
+        );
     };
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
@@ -266,14 +254,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         }
 
         if (areItemsOfReportType) {
-            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
+            setSelectedTransactions(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))), data);
 
             return;
         }
 
-        const allSelectedTransactions = Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry));
-        setSelectedTransactions(allSelectedTransactions);
-        setSelectedReports(SearchUtils.getReportsFromSelectedTransactions(data, allSelectedTransactions));
+        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {

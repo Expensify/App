@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import {isTransactionListItemType} from '@libs/SearchUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
@@ -10,7 +11,6 @@ const defaultSearchContext = {
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
     clearSelectedTransactions: () => {},
-    setSelectedReports: () => {},
     shouldShowStatusBarLoading: false,
     setShouldShowStatusBarLoading: () => {},
 };
@@ -31,10 +31,21 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions) => {
+    const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[]) => {
+        // When selecting transaction we also have to manage reports to which these transactions belong toString. We do this for sake of properly exporting to CSV
+        const selectedReports = (data ?? [])
+            .filter(
+                (item) =>
+                    !isTransactionListItemType(item) &&
+                    item.reportID &&
+                    item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+            )
+            .map((item) => item.reportID);
+
         setSearchContextData((prevState) => ({
             ...prevState,
             selectedTransactions,
+            selectedReports,
         }));
     }, []);
 
@@ -46,17 +57,11 @@ function SearchContextProvider({children}: ChildrenProps) {
             setSearchContextData((prevState) => ({
                 ...prevState,
                 selectedTransactions: {},
+                selectedReports: [],
             }));
         },
         [searchContextData.currentSearchHash],
     );
-
-    const setSelectedReports = useCallback((selectedReports: Array<SearchReport['reportID']>) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            selectedReports,
-        }));
-    }, []);
 
     const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
 
@@ -66,11 +71,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            setSelectedReports,
             shouldShowStatusBarLoading,
             setShouldShowStatusBarLoading,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, setSelectedReports, shouldShowStatusBarLoading],
+        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

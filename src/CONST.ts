@@ -5332,8 +5332,6 @@ const CONST = {
             IN: 'in',
             HAS: 'has',
         },
-        TYPE_AND_STATUS_BAR_HEIGHT: 106,
-        SEARCH_HEADER_HEIGHT: 80,
     },
 
     REFERRER: {

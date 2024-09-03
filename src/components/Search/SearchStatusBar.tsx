@@ -130,7 +130,6 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
     const options = getOptions(type);
     const {shouldShowStatusBarLoading} = useSearchContext();
 
-    /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
     if (shouldShowStatusBarLoading) {
         return <SearchStatusSkeleton shouldAnimate />;
     }
