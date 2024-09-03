@@ -798,6 +798,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
+        rejectedThisReport: 'rejected this report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -1349,6 +1350,11 @@ export default {
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
+        emptyContent: {
+            title: 'No members to display',
+            expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
+            approverSubtitle: 'All approvers belong to an existing workflow.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",

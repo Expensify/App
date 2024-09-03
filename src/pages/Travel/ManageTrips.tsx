@@ -61,7 +61,7 @@ function ManageTrips() {
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
                         if (!hasPolicyAddress) {
-                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1'));
+                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
                             return;
                         }
                         if (!hasAcceptedTravelTerms) {

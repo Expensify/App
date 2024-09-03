@@ -303,7 +303,7 @@ index 9a02b82..06442b4 100644
  @property (nonatomic, assign) NSInteger mostRecentEventCount;
  @property (nonatomic, assign, readonly) NSInteger nativeEventCount;
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-index 826ff3a..04ea28f 100644
+index e3ed34e..88c8d36 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 @@ -551,6 +551,26 @@ - (void)textInputDidChangeSelection
@@ -406,7 +406,7 @@ index 0318671..bb165d7 100644
  
  #pragma mark - Layout
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index 29f733a..79bd345 100644
+index 8bbe925..db7cba4 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 @@ -421,6 +421,13 @@ - (void)textInputDidChangeSelection
@@ -528,13 +528,13 @@ index 014e0b4..119219b 100644
     * Attempt to set a selection or fail silently. Intentionally meant to handle bad inputs.
     * EventCounter is the same one used as with text.
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
-index a8c5d94..dd7969f 100644
+index a8c5d94..2cceb14 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
-@@ -246,6 +246,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
-                 MapBuilder.of(
-                     "phasedRegistrationNames",
-                     MapBuilder.of("bubbled", "onKeyPress", "captured", "onKeyPressCapture")))
+@@ -265,6 +265,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+             .put(
+                 ReactTextClearEvent.EVENT_NAME,
+                 MapBuilder.of("registrationName", "onClear"))
 +            .put(
 +                "topPaste",
 +                MapBuilder.of("registrationName", "onPaste"))

@@ -791,6 +791,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
+        rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
@@ -1355,6 +1356,11 @@ export default {
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
+        emptyContent: {
+            title: 'No hay miembros para mostrar',
+            expensesFromSubtitle: 'Todos los miembros del espacio de trabajo ya pertenecen a un flujo de aprobación existente.',
+            approverSubtitle: 'Todos los aprobadores pertenecen a un flujo de trabajo existente.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
