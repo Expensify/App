@@ -33,7 +33,7 @@ function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.COMPANYCARD_FEEDS) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
 }
 
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
