@@ -227,10 +227,6 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, previousEmp
     });
 
     membersToRemove?.forEach(({email}) => {
-        if (previousEmployeeList[email]?.submitsTo === undefined || previousEmployeeList[email]?.submitsTo === '') {
-            return;
-        }
-
         if (updatedEmployeeList[email]) {
             updatedEmployeeList[email].submitsTo = '';
             return;
