@@ -9,7 +9,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
@@ -3678,7 +3678,10 @@ function getReportName(
         return getIOUSubmittedMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-        return getIOUForwardedMessage(parentReportAction);
+        return getIOUForwardedMessage(parentReportAction, report);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+        return getRejectedReportMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         return getIOUApprovedMessage(parentReportAction);
@@ -4049,8 +4052,7 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
 
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        // optimistic image will have its preview disabled until we receive the (compressed if too big) image from the BE
-        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} data-expensify-preview-modal-disabled="true" />`;
+        return `<img src="${file.uri}" alt="${file.name}" ${dataAttributes} />`;
     }
     if (file.type?.startsWith('video')) {
         return `<video src="${file.uri}" ${dataAttributes}>${file.name}</video>`;
@@ -4404,8 +4406,27 @@ function getIOUApprovedMessage(reportAction: ReportAction) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUForwardedMessage(reportAction: ReportAction) {
-    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportAction)});
+/**
+ * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
+ * so we retrieve the amount from the report instead
+ */
+function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInputOrEntry<Report> | string) {
+    const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
+    let formattedAmount;
+
+    // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
+    if (originalMessage?.amount) {
+        formattedAmount = getFormattedAmount(reportAction);
+    } else {
+        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+    }
+
+    return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
+}
+
+function getRejectedReportMessage() {
+    return Localize.translateLocal('iou.rejectedThisReport');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -7729,6 +7750,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7825,6 +7850,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
@@ -7924,6 +7950,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
+    isSubmittedExpenseReportManagerWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
