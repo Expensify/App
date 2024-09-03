@@ -80,8 +80,7 @@ function WorkspaceTransferInvoiceBalance({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!selectedAccount}
-            // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceTransferInvoiceBalance.displayName}
