@@ -125,4 +125,3 @@ function goBack() {
 }
 
 export {getOnboardingInitialPath, startOnboardingFlow, clearInitialPath, goBack};
-// export default adaptOnboardingRouteState;

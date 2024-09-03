@@ -3,26 +3,19 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import linkingConfig from '@libs/Navigation/linkingConfig';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
-import getStateFromPath from '@navigation/getStateFromPath';
-import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFromPath';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import * as OnboardingFlow from './OnboardingFlow';
 
 type OnboardingData = Onboarding | [] | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
-let onboardingInitialPath = '';
 let onboarding: OnboardingData;
 
 type HasCompletedOnboardingFlowProps = {
