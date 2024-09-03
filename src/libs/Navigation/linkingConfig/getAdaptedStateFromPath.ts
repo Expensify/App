@@ -69,6 +69,28 @@ function getParamsFromRoute(screenName: string): string[] {
     return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
 }
 
+function createSplitNavigator(splitNavigatorLHNScreen: SplitNavigatorLHNScreen, route?: NavigationPartialRoute<SplitNavigatorScreenName>): NavigationPartialRoute<SplitNavigator> {
+    const routes = [];
+
+    const policyID = route?.params && 'policyID' in route.params ? route.params.policyID : undefined;
+
+    // Both routes in WorkspaceNavigator should store a policyID in params, so here this param is also passed to the screen displayed in LHN in WorkspaceNavigator
+    routes.push({
+        name: splitNavigatorLHNScreen,
+        params: {
+            policyID,
+        },
+    });
+
+    if (route) {
+        routes.push(route);
+    }
+    return {
+        name: mapLhnToSplitNavigatorName[splitNavigatorLHNScreen],
+        state: getRoutesWithIndex(routes),
+    };
+}
+
 // This function will return CentralPaneNavigator route or WorkspaceNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<SplitNavigator> | NavigationPartialRoute<'Search_Central_Pane'> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
