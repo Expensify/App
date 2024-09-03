@@ -74,3 +74,4 @@ export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountF
 export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
 export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
+export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';

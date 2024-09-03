@@ -194,6 +194,18 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+function getCardDetailsImage(cardFeed: string): IconAsset {
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)) {
+        return Illustrations.MasterCardCompanyCardDetail;
+    }
+
+    if (cardFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)) {
+        return Illustrations.VisaCompanyCardDetail;
+    }
+
+    return Illustrations.AmexCardCompanyCardDetail;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -210,4 +222,5 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    getCardDetailsImage,
 };
