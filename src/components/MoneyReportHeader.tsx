@@ -17,6 +17,8 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import useCurrentUserPersonalDetails from '@src/hooks/useCurrentUserPersonalDetails';
+import AccountUtils from '@src/libs/AccountUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -37,6 +39,8 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -90,7 +94,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
-
+    const currentUserDeatils = useCurrentUserPersonalDetails();
+    console.log('useCurrentUserPersonalDetails:::::::::', currentUserDeatils);
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -142,6 +147,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const isDelegatorAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
 
     const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type || !chatReport) {
@@ -151,6 +159,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
+        } else if (isDelegatorAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
             IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
         } else {
@@ -158,10 +168,26 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
     };
 
+    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
+    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
+    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
+
+    const noDelegateAccessPromp = (
+        <>
+            <Text>
+                {basicnoDelegateAccessPromptStart}
+                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
+                {basicnoDelegateAccessPromptEnd}
+            </Text>
+        </>
+    );
+
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
+        } else if (isDelegatorAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(moneyRequestReport, true);
         }
@@ -402,6 +428,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     transactionCount={transactionIDs.length}
                 />
             )}
+            <ConfirmModal
+                isVisible={isNoDelegateAccessMenuVisible}
+                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                title={translate('delegate.notAllowed')}
+                prompt={noDelegateAccessPromp}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}

@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,10 +15,13 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -191,6 +195,24 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
+    const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const isDelegatorAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
+    const currentUserDeatils = useCurrentUserPersonalDetails();
+    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
+    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
+    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
+
+    const noDelegateAccessPromp = (
+        <>
+            <Text>
+                {basicnoDelegateAccessPromptStart}
+                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
+                {basicnoDelegateAccessPromptEnd}
+            </Text>
+        </>
+    );
+
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
@@ -199,6 +221,8 @@ function ReportPreview({
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
+        } else if (isDelegatorAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
         } else if (chatReport && iouReport) {
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
@@ -212,6 +236,8 @@ function ReportPreview({
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
+        } else if (isDelegatorAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(iouReport, true);
         }
@@ -516,6 +542,15 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
+            <ConfirmModal
+                isVisible={isNoDelegateAccessMenuVisible}
+                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                title={translate('delegate.notAllowed')}
+                prompt={noDelegateAccessPromp}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}

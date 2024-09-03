@@ -5,6 +5,7 @@ import type {Country} from '@src/CONST';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AccountOwnerParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -4570,5 +4571,9 @@ export default {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+        notAllowed: 'Not so fast...',
+        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        notAllowedMessageHyperLinked: ' limited access',
+        notAllowedMessageEnd: ' copilot',
     },
 } satisfies TranslationBase;
