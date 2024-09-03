@@ -371,6 +371,10 @@ function calculateRemainingFreeTrialDays(): number {
     return diffInDays < 0 ? 0 : diffInDays;
 }
 
+/**
+ * @param policies - The policies collection.
+ * @returns The free trial badge text .
+ */
 function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
     const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
@@ -466,7 +470,6 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
     return false;
 }
-
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
