@@ -56,7 +56,7 @@ function CardTypeStep() {
                 isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
                 leftElement: (
                     <Icon
-                        src={Illustrations.AmexCompanyCards}
+                        src={Illustrations.AmexBlueCompanyCards}
                         height={variables.iconSizeExtraLarge}
                         width={variables.iconSizeExtraLarge}
                         additionalStyles={styles.mr3}
