@@ -47,9 +47,39 @@ function createXeroPendingFields<TSettingName extends keyof Connections['xero'][
     }, {});
 }
 
+function createXeroExportPendingFields<TSettingName extends keyof Connections['xero']['config']['export']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
+    pendingValue: OnyxCommon.PendingAction,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: pendingValue};
+    }
+
+    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
+        acc[setting] = pendingValue;
+        return acc;
+    }, {});
+}
+
 function createXeroErrorFields<TSettingName extends keyof Connections['xero']['config']>(
     settingName: TSettingName,
     settingValue: Partial<Connections['xero']['config'][TSettingName]>,
+    errorValue: OnyxCommon.Errors | null,
+) {
+    if (!isObject(settingValue)) {
+        return {[settingName]: errorValue};
+    }
+
+    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
+        acc[setting] = errorValue;
+        return acc;
+    }, {});
+}
+
+function createXeroExportErrorFields<TSettingName extends keyof Connections['xero']['config']['export']>(
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
     errorValue: OnyxCommon.Errors | null,
 ) {
     if (!isObject(settingValue)) {
@@ -114,6 +144,72 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
                         config: {
                             pendingFields: createXeroPendingFields(settingName, settingValue, null),
                             errorFields: createXeroErrorFields(settingName, settingValue, null),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
+function prepareXeroExportOptimisticData<TSettingName extends keyof Connections['xero']['config']['export']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['xero']['config']['export'][TSettingName]> | null,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            export: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: createXeroExportPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+                            errorFields: createXeroExportErrorFields(settingName, settingValue, null),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            export: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: createXeroExportPendingFields(settingName, settingValue, null),
+                            errorFields: createXeroExportErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    xero: {
+                        config: {
+                            pendingFields: createXeroExportPendingFields(settingName, settingValue, null),
+                            errorFields: createXeroExportErrorFields(settingName, settingValue, null),
                         },
                     },
                 },
@@ -229,6 +325,70 @@ function updateXeroAutoSync(policyID: string, autoSync: Partial<Connections['xer
     API.write(WRITE_COMMANDS.UPDATE_XERO_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
+function updateXeroExportBillStatus(
+    policyID: string,
+    billStatus: Partial<Connections['xero']['config']['export']['billStatus']>,
+    oldBillStatus?: Partial<Connections['xero']['config']['export']['billStatus']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(billStatus),
+        idempotencyKey: String(CONST.XERO_CONFIG.BILL_STATUS),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.BILL_STATUS, billStatus, oldBillStatus);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_STATUS, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroExportBillExporter(
+    policyID: string,
+    exporter: Partial<Connections['xero']['config']['export']['exporter']>,
+    oldExporter?: Partial<Connections['xero']['config']['export']['exporter']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(exporter),
+        idempotencyKey: String(CONST.XERO_CONFIG.EXPORTER),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.EXPORTER, exporter, oldExporter);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_EXPORTER, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroExportBillDate(
+    policyID: string,
+    billDate: Partial<Connections['xero']['config']['export']['billDate']>,
+    oldBillDate?: Partial<Connections['xero']['config']['export']['billDate']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(billDate),
+        idempotencyKey: String(CONST.XERO_CONFIG.BILL_DATE),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.BILL_DATE, billDate, oldBillDate);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_DATE, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroExportNonReimbursableAccount(
+    policyID: string,
+    nonReimbursableAccount: Partial<Connections['xero']['config']['export']['nonReimbursableAccount']>,
+    oldNonReimbursableAccount?: Partial<Connections['xero']['config']['export']['nonReimbursableAccount']>,
+) {
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(nonReimbursableAccount),
+        idempotencyKey: String(CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount, oldNonReimbursableAccount);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     getXeroSetupLink,
     getTrackingCategories,
@@ -238,4 +398,9 @@ export {
     updateXeroMappings,
     updateXeroImportCustomers,
     updateXeroEnableNewCategories,
+    updateXeroAutoSync,
+    updateXeroExportBillStatus,
+    updateXeroExportBillExporter,
+    updateXeroExportBillDate,
+    updateXeroExportNonReimbursableAccount
 };
