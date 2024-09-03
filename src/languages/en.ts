@@ -3736,6 +3736,7 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        removedFromApprovalWorkflow: ({submitterName}) => `removed you from ${submitterName}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
