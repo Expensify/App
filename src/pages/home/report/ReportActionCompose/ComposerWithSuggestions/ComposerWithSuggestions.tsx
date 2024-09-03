@@ -661,9 +661,7 @@ function ComposerWithSuggestions(
 
         if (editFocused) {
             InputFocus.inputFocusChange(false);
-            return;
         }
-        focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
