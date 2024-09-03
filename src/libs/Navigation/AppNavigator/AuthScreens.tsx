@@ -266,13 +266,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-        }).then(() => {
-            initializePusher();
-        });
+        initializePusher();
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
