@@ -136,8 +136,8 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            onItemSelected(selectedItem, index);
             Modal.close(() => {
-                onItemSelected(selectedItem, index);
                 selectedItem.onSelected?.();
             });
         } else {
