@@ -20,6 +20,7 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import SearchPageBottomTab from './SearchPageBottomTab';
 import SearchTypeMenu from './SearchTypeMenu';
 
 type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
@@ -29,7 +30,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const {q} = route.params;
+    const {q, name} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = SearchUtils.buildSearchQueryJSON(q);
@@ -44,7 +45,13 @@ function SearchPage({route}: SearchPageProps) {
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
-        return null;
+        return (
+            <SearchPageBottomTab
+                queryJSON={queryJSON}
+                policyID={policyID}
+                searchName={name}
+            />
+        );
     }
 
     return (

@@ -6,19 +6,17 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
-import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -26,11 +24,17 @@ const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
-function SearchPageBottomTab() {
+type SearchPageBottomTabProps = {
+    queryJSON?: SearchQueryJSON;
+    policyID?: string;
+    searchName?: string;
+};
+
+function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const activeCentralPaneRoute = useActiveCentralPaneRoute();
+
     const styles = useThemeStyles();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
@@ -58,14 +62,6 @@ function SearchPageBottomTab() {
             scrollOffset.value = currentOffset;
         },
     });
-
-    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-    const searchName = searchParams?.name;
-    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
-    const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
-    const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
-    const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
 
