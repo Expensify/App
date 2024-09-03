@@ -9,7 +9,7 @@ index fb4260f..9d08d39 100644
 +        IOS_FROM_RIGHT,
 +        IOS_FROM_LEFT,
      }
-
+ 
      enum class ReplaceAnimation {
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
 index 4b520d1..b303b0e 100644
@@ -272,7 +272,7 @@ index ce96e8e..a7d07c7 100644
 +- `"ios_from_right"` - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
 +- `"ios_from_left"` - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
  - `none` - the screen appears/disappears without an animation.
-
+ 
  Defaults to `default`.
 diff --git a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
 index 71c2251..4e39336 100644
@@ -286,9 +286,9 @@ index 71c2251..4e39336 100644
 +  | 'ios'
 +  | 'ios_from_right'
 +  | 'ios_from_left';
-
+ 
  type SwipeDirection = 'vertical' | 'horizontal';
-
+ 
 diff --git a/node_modules/react-native-screens/src/native-stack/types.tsx b/node_modules/react-native-screens/src/native-stack/types.tsx
 index 5ad3184..78989e7 100644
 --- a/node_modules/react-native-screens/src/native-stack/types.tsx
@@ -343,5 +343,5 @@ index fd02641..564b173 100644
 +  IOS_FROM_RIGHT,
 +  IOS_FROM_LEFT
  };
-
+ 
  enum class ReplaceAnimation { PUSH, POP };
