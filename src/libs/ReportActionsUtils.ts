@@ -1648,10 +1648,18 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
-    const initialMessage = getOriginalMessage(reportAction);
+    const originalMessage = getOriginalMessage(reportAction);
     return Localize.translateLocal('newRoomPage.renamedRoomAction', {
-        oldName: initialMessage?.oldName ?? '',
-        newName: initialMessage?.newName ?? '',
+        oldName: originalMessage?.oldName ?? '',
+        newName: originalMessage?.newName ?? '',
+    });
+}
+
+function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    const submitterDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([originalMessage?.submitterAccountID ?? 0], currentUserAccountID ?? -1)[0];
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {
+        submitterName: submitterDetails?.displayName ?? submitterDetails?.login ?? 'Unknown Submitter',
     });
 }
 
@@ -1681,6 +1689,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getParentReportAction,
+    getRemovedFromApprovalChainMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
