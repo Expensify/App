@@ -2967,6 +2967,8 @@ export default {
                     'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
                 emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
+                pendingNoFeedTitle: `Estamos revisando tu solicitud...`,
+                pendingNoFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de Concierge.`,
             },
             distanceRates: {
                 title: 'Tasas de distancia',
