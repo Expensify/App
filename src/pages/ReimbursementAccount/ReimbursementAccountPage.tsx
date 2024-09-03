@@ -31,7 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ACHData, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
@@ -144,7 +144,7 @@ function ReimbursementAccountPage({
     */
     const achData = reimbursementAccount?.achData;
 
-    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHData, T> {
+    function getBankAccountFields<T extends InputID>(fieldNames: T[]): Pick<ACHDataReimbursementAccount, T> {
         return {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
@@ -199,14 +199,20 @@ function ReimbursementAccountPage({
     /**
         When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
         Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-        it relies on complete data. Thus, we should wait to calculate it until we have received
+        it relies on incomplete data. Thus, we should wait to calculate it until we have received
         the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
-    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(true);
+    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(() => {
+        // By default return true (loading), if there are already loaded data we can skip the loading state
+        if (hasACHDataBeenLoaded && typeof reimbursementAccount?.isLoading === 'boolean' && !reimbursementAccount?.isLoading) {
+            return false;
+        }
+        return true;
+    });
 
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
@@ -238,6 +244,10 @@ function ReimbursementAccountPage({
     }
 
     useEffect(() => {
+        if (!isReimbursementAccountLoading) {
+            return;
+        }
+
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
         if (isStepToOpenEmpty) {

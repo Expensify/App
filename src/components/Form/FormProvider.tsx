@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -215,6 +216,19 @@ function FormProvider(
         onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
+    // Keep track of the focus state of the current screen.
+    // This is used to prevent validating the form on blur before it has been interacted with.
+    const isFocusedRef = useRef(true);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
+
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
             Object.keys(inputValues).forEach((inputID) => {
@@ -332,7 +346,8 @@ function FormProvider(
                                 return;
                             }
                             setTouchedInput(inputID);
-                            if (shouldValidateOnBlur) {
+                            // We don't validate the form on blur in case the current screen is not focused
+                            if (shouldValidateOnBlur && isFocusedRef.current) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);

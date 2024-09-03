@@ -227,7 +227,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
-            if (item.isSelfDM) {
+            if (!!item.isSelfDM || (item.accountID && CONST.NON_ADDABLE_ACCOUNT_IDS.includes(item.accountID))) {
                 return null;
             }
             /**
@@ -255,8 +255,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     <PressableWithFeedback
                         onPress={() => toggleOption(item)}
                         disabled={item.isDisabled}
-                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                     >
                         <SelectCircle isChecked={item.isSelected} />

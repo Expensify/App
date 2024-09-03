@@ -9,7 +9,9 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,12 +33,12 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeader from './SearchPageHeader';
+import SearchStatusBar from './SearchStatusBar';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
-    policyIDs?: string;
 };
 
 const transactionItemMobileHeight = 100;
@@ -73,7 +75,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
+function Search({queryJSON, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -81,14 +83,14 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
     const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const {status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
@@ -117,7 +119,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
             return;
         }
 
-        SearchActions.search({queryJSON, offset, policyIDs});
+        SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 
@@ -160,7 +162,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+    const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
@@ -176,11 +178,12 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
-    const isDataLoaded = searchResults?.data !== undefined;
+    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
+    // we also need to check that the searchResults matches the type and status of the current search
+    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === type && searchResults?.search?.status === status;
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-
-    const isSearchResultsEmpty = !searchResults || SearchUtils.isSearchResultsEmpty(searchResults);
+    const isSearchResultsEmpty = !searchResults?.data || SearchUtils.isSearchResultsEmpty(searchResults);
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
@@ -198,21 +201,29 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+
+                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
+                {searchResults?.search?.type === type ? (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                ) : (
+                    <SearchStatusSkeleton shouldAnimate />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
     }
 
-    const type = SearchUtils.getSearchType(searchResults?.search);
-
-    if (searchResults === undefined || type === undefined) {
+    if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         return null;
     }
 
-    const ListItem = SearchUtils.getListItem(type, status);
-    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
-    const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
+    const ListItem = SearchUtils.getListItem(status);
+    const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
@@ -224,6 +235,10 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
+                />
+                <SearchStatusBar
+                    type={type}
+                    status={status}
                 />
                 <EmptySearchView type={type} />
             </>
@@ -281,7 +296,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     };
 
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = searchResults?.search.type === CONST.SEARCH.DATA_TYPES.REPORT;
+        const areItemsOfReportType = status !== CONST.SEARCH.STATUS.EXPENSE.ALL;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -318,7 +333,10 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                 setOfflineModalOpen={() => setOfflineModalVisible(true)}
                 setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)}
             />
-
+            <SearchStatusBar
+                type={type}
+                status={status}
+            />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
                 turnOnSelectionModeOnLongPress
@@ -383,7 +401,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
             />
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
-                prompt={translate('search.offlinePrompt')}
+                prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}

@@ -131,7 +131,7 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
         IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 

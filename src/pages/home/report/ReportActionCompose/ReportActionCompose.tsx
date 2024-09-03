@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
@@ -31,6 +32,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -116,6 +118,9 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// eslint-disable-next-line import/no-mutable-exports
+let onSubmitAction = noop;
+
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails,
@@ -136,7 +141,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -303,6 +308,7 @@ function ReportActionCompose({
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
+                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
                 onSubmit(newCommentTrimmed);
             }
         },
@@ -383,6 +389,9 @@ function ReportActionCompose({
         // This will cause onCleared to be triggered where we actually send the message
         clearComposer();
     }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    onSubmitAction = handleSendMessage;
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -531,8 +540,11 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
-                                                const data = event.dataTransfer?.items[0];
-                                                displayFileInModal(data as unknown as FileObject);
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
                                             }}
                                         />
                                     </>
@@ -563,7 +575,7 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
@@ -588,5 +600,5 @@ export default withCurrentUserPersonalDetails(
         },
     })(memo(ReportActionCompose)),
 );
-
+export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};
