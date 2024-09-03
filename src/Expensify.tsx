@@ -20,6 +20,7 @@ import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
+import {handleHybridAppOnboarding} from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import BootSplash from './libs/BootSplash';
 import FS from './libs/Fullstory';
@@ -99,6 +100,7 @@ function Expensify({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
 
     useEffect(() => {
@@ -116,6 +118,14 @@ function Expensify({
         }
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
+
+    useEffect(() => {
+        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined) {
+            return;
+        }
+
+        handleHybridAppOnboarding();
+    }, [splashScreenState, tryNewDotData]);
 
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
