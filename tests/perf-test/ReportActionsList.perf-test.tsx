@@ -88,7 +88,7 @@ function ReportActionsListWrapper() {
         ...LHNTestUtilsModule.getFakeReport(),
         lastVisibleActionCreated,
         lastReadTime: lastVisibleActionCreated,
-    }
+    };
 
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, WindowDimensionsProvider, ReportAttachmentsProvider]}>
