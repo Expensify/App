@@ -122,7 +122,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     }
 
-    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
     if (canUseCompanyCardFeeds) {
         spendItems.push({
             icon: Illustrations.CompanyCard,
