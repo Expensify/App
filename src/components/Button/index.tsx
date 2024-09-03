@@ -289,8 +289,9 @@ function Button(
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
-                                    small={medium}
-                                    medium={large}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             ) : (
                                 <Icon

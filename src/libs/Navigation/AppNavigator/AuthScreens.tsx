@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import {SearchContextProvider} from '@components/Search/SearchContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import usePermissions from '@hooks/usePermissions';
@@ -337,7 +339,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
+                Modal.close(
+                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
+                    true,
+                    true,
+                );
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -387,7 +393,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     };
 
     return (
-        <OptionsListContextProvider>
+        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}
@@ -554,7 +560,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     })}
                 </RootStack.Navigator>
             </View>
-        </OptionsListContextProvider>
+        </ComposeProviders>
     );
 }
 
