@@ -34,7 +34,6 @@ function numberToColumn(index: number): string {
 
 /**
  * Generates an array of Excel-style column names with a specified length.
- *
  */
 function generateColumnNames(length: number) {
     return Array.from({length}, (_, i) => numberToColumn(i));
