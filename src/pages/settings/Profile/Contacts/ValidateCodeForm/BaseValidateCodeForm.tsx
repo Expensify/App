@@ -229,7 +229,7 @@ function BaseValidateCodeForm({
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {(hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && (
+                    {(hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && isInitialCodeSent.current && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
