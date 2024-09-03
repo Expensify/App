@@ -53,7 +53,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
-    const [additionalRecents, setAdditionalRecents] = useState<OptionData[] | []>([]);
+    const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session.accountID);
+    const currentUserOptionData = OptionsListUtils.getParticipantsOption(session, personalDetails) as OptionData;
+    const [additionalRecents, setAdditionalRecents] = useState<OptionData[] | []>(isCurrentUserAttendee ? [] : [currentUserOptionData]);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -222,6 +224,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 }
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
+                if (session.accountID === option.accountID) {
+                    setAdditionalRecents(additionalRecents.filter((recent) => recent.accountID !== option.accountID));
+                }
                 newSelectedOptions = [
                     ...attendees,
                     {
