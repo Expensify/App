@@ -20,6 +20,8 @@ const FILTER_KEYS = {
     KEYWORD: 'keyword',
     FROM: 'from',
     TO: 'to',
+    IN: 'in',
+    HAS: 'has',
     IS: 'is',
 } as const;
 
@@ -46,6 +48,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
+        [FILTER_KEYS.IN]: string[];
+        [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.IS]: string[];
     }
 >;

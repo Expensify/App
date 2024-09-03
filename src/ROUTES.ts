@@ -52,6 +52,8 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
+    SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
+    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
     SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
 
     SEARCH_REPORT: {
@@ -196,6 +198,7 @@ const ROUTES = {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
     },
+    SETINGS_CONTACT_METHOD_VALIDATE_ACTION: 'settings/profile/contact-methods/validate-action',
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
@@ -918,7 +921,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/issue-new`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
@@ -935,6 +938,14 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS: {
+        route: 'settings/workspaces/:policyID/company-cards/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME: {
+        route: 'settings/workspaces/:policyID/company-cards/settings/feed-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name` as const,
     },
     WORKSPACE_RULES: {
         route: 'settings/workspaces/:policyID/rules',

@@ -427,6 +427,16 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
 function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (chatStatus) {
@@ -463,7 +473,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.TAG ||
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO) &&
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -598,5 +610,6 @@ export {
     shouldShowYear,
     buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
     getChatStatusTranslationKey,
 };
