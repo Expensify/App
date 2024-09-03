@@ -3,8 +3,8 @@
  */
 import {AppRegistry} from 'react-native';
 import App from './src/App';
-import Config from './src/CONFIG';
-import additionalAppSetup from './src/setup';
 
-AppRegistry.registerComponent(Config.APP_NAME, () => App);
-additionalAppSetup();
+AppRegistry.registerComponent('Config.APP_NAME', () => App);
+AppRegistry.runApplication('Config.APP_NAME', {
+    rootTag: document.getElementById('root'),
+});
