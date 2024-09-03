@@ -160,7 +160,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     useEffect(() => {
-        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type === type);
+        setShouldShowStatusBarLoading(shouldShowLoadingState && searchResults?.search?.type !== type);
     }, [searchResults?.search?.type, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
     useEffect(() => {
