@@ -170,6 +170,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         if (greaterThan) {
             return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
         }
+        // Will never happen
+        return;
     }
 
     if (
@@ -184,9 +186,6 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fiel
         return filters[fieldName];
     }
 
-    // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
-    // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
-    // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
     const filterValue = filters[fieldName] as string;
     return filterValue ? Str.recapitalize(filterValue) : undefined;
 }
