@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchPageHeader from '@components/Search/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +48,7 @@ function SearchPageBottomTab() {
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
-        if (windowHeight + CONST.SEARCH.TYPE_AND_STATUS_BAR_HEIGHT > contentSize.height) {
+        if (windowHeight > contentSize.height) {
             return;
         }
 
@@ -117,19 +118,29 @@ function SearchPageBottomTab() {
                         </Animated.View>
                     </Animated.View>
                 ) : (
-                    <HeaderWithBackButton
-                        title={translate('common.selectMultiple')}
-                        onBackButtonPress={() => {
-                            clearSelectedTransactions();
-                            turnOffMobileSelectionMode();
-                        }}
-                    />
+                    <>
+                        <HeaderWithBackButton
+                            title={translate('common.selectMultiple')}
+                            onBackButtonPress={() => {
+                                clearSelectedTransactions();
+                                turnOffMobileSelectionMode();
+                            }}
+                        />
+
+                        {queryJSON && (
+                            <SearchPageHeader
+                                queryJSON={queryJSON}
+                                hash={queryJSON.hash}
+                                isCustomQuery={isCustomQuery}
+                            />
+                        )}
+                    </>
                 )}
                 {shouldUseNarrowLayout && queryJSON && (
                     <Search
                         queryJSON={queryJSON}
-                        isCustomQuery={isCustomQuery}
                         onSearchListScroll={handleScroll}
+                        contentContainerStyle={!selectionMode?.isEnabled ? styles.mt3 : undefined}
                     />
                 )}
             </FullPageNotFoundView>

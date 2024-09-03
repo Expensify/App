@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -29,13 +29,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
-import SearchPageHeader from './SearchPageHeader';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
-    isCustomQuery: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 const transactionItemMobileHeight = 100;
@@ -72,7 +71,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -275,67 +274,60 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const shouldShowSorting = sortableSearchStatuses.includes(status);
 
     return (
-        <>
-            <SearchPageHeader
-                isCustomQuery={isCustomQuery}
-                queryJSON={queryJSON}
-                hash={hash}
-            />
-            <SelectionListWithModal<ReportListItemType | TransactionListItemType>
-                sections={[{data: sortedSelectedData, isDisabled: false}]}
-                turnOnSelectionModeOnLongPress
-                onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
-                onCheckboxPress={toggleTransaction}
-                onSelectAll={toggleAllTransactions}
-                customListHeader={
-                    !isLargeScreenWidth ? null : (
-                        <SearchTableHeader
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            shouldShowSorting={shouldShowSorting}
-                        />
-                    )
-                }
-                onScroll={onSearchListScroll}
-                canSelectMultiple={canSelectMultiple}
-                customListHeaderHeight={searchHeaderHeight}
-                // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-                // we have configured a larger windowSize and a longer delay between batch renders.
-                // The windowSize determines the number of items rendered before and after the currently visible items.
-                // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-                // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-                // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-                // For more information, refer to the React Native documentation:
-                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-                windowSize={111}
-                updateCellsBatchingPeriod={200}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                getItemHeight={getItemHeightMemoized}
-                shouldSingleExecuteRowSelect
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
-                containerStyle={[styles.pv0]}
-                showScrollIndicator={false}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                listFooterContent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                scrollEventThrottle={16}
-                contentContainerStyle={styles.mt3}
-            />
-        </>
+        <SelectionListWithModal<ReportListItemType | TransactionListItemType>
+            sections={[{data: sortedSelectedData, isDisabled: false}]}
+            turnOnSelectionModeOnLongPress
+            onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+            onCheckboxPress={toggleTransaction}
+            onSelectAll={toggleAllTransactions}
+            customListHeader={
+                !isLargeScreenWidth ? null : (
+                    <SearchTableHeader
+                        data={searchResults?.data}
+                        metadata={searchResults?.search}
+                        onSortPress={onSortPress}
+                        sortOrder={sortOrder}
+                        sortBy={sortBy}
+                        shouldShowYear={shouldShowYear}
+                        shouldShowSorting={shouldShowSorting}
+                    />
+                )
+            }
+            onScroll={onSearchListScroll}
+            canSelectMultiple={canSelectMultiple}
+            customListHeaderHeight={searchHeaderHeight}
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
+            ListItem={ListItem}
+            onSelectRow={openReport}
+            getItemHeight={getItemHeightMemoized}
+            shouldSingleExecuteRowSelect
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            listHeaderWrapperStyle={[styles.ph8, styles.pv3, styles.pb5]}
+            containerStyle={[styles.pv0]}
+            showScrollIndicator={false}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
+            listFooterContent={
+                shouldShowLoadingMoreItems ? (
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        fixedNumItems={5}
+                    />
+                ) : undefined
+            }
+            scrollEventThrottle={16}
+            contentContainerStyle={contentContainerStyle}
+        />
     );
 }
 
