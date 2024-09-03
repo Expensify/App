@@ -477,7 +477,7 @@ index b01e9d2..d954717 100644
    @ReactMethod(isBlockingSynchronousMethod = true)
 -  public int getApiLevelSync() { return Build.VERSION.SDK_INT; }
 +  public double getApiLevelSync() { return Build.VERSION.SDK_INT; }
-   @ReactMethod
+   hod
    public void getApiLevel(Promise p) { p.resolve(getApiLevelSync()); }
  
 @@ -858,11 +897,11 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
@@ -566,7 +566,7 @@ index 0000000..5aad02a
 +  @DoNotStrip
 +  public abstract void getSupported32BitAbis(Promise promise);
 +
-+  @ReactMethod(isBlockingSynchronousMethod = true)
++  hod(isBlockingSynchronousMethod = true)
 +  @DoNotStrip
 +  public abstract WritableArray getSupported32BitAbisSync();
 +

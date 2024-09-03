@@ -37,6 +37,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
 import com.expensify.chat.R;
+import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -211,24 +212,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
             String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
-            // create the Person object who sent the latest report comment
+            // Create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
             builder.setLargeIcon(personIcon);
-            Intent intent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("new-expensify://r/" + reportID));
 
             Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
-            ShortcutInfoCompat shortcutInfo = new ShortcutInfoCompat.Builder(context, accountID)
-                    .setShortLabel(name)
-                    .setLongLabel(name)
-                    .setCategories(Collections.singleton(CATEGORY_MESSAGE))
-                    .setIntent(intent)
-                    .setLongLived(true)
-                    .setPerson(person)
-                    .setIcon(IconCompat.createWithBitmap(personIcon))
-                    .build();
 
-            ShortcutManagerCompat.pushDynamicShortcut(context, shortcutInfo);
+            ShortcutManagerUtils.addDynamicShortcut(context, reportId, name, accountID, personIcon, person);
 
             // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
