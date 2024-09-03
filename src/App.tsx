@@ -20,7 +20,6 @@ import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
-import {SearchContextProvider} from './components/Search/SearchContext';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -50,11 +49,14 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    // We silence this warning for now and will address all the places where it happens separately.
+    // Then we can remove this line so the problem does not occur in the future.
+    '[Reanimated] Tried to modify key `current`',
 ]);
 
 const fill = {flex: 1};
 
-const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
@@ -92,7 +94,6 @@ function App({url}: AppProps) {
                             VolumeContextProvider,
                             VideoPopoverMenuContextProvider,
                             KeyboardProvider,
-                            SearchContextProvider,
                         ]}
                     >
                         <CustomStatusBarAndBackground />

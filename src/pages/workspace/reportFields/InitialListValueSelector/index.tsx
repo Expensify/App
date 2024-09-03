@@ -33,7 +33,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
     };
 
     const updateValueInput = (initialValue: string) => {
-        onInputChange?.(initialValue);
+        onInputChange?.(value === initialValue ? '' : initialValue);
         hidePickerModal();
     };
 

@@ -1,3 +1,4 @@
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -9,8 +10,9 @@ import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -372,17 +374,29 @@ function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
     const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        if (!isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate) {
+        if (
+            !isSyncInProgress &&
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
+        ) {
             return syncError;
         }
         return;
     }
 
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || connection?.lastSync?.isSuccessful) {
+
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
         return;
     }
     return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+}
+
+function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return false;
+    }
+    const connection = policy?.connections?.[connectionName];
+    return connection?.lastSync?.isAuthenticationError === true;
 }
 
 function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
@@ -392,6 +406,12 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
     }
+
+    // If the connection has no lastSync property, we'll consider it unverified
+    if (isEmptyObject(policy?.connections?.[connectionName]?.lastSync)) {
+        return true;
+    }
+
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
@@ -430,13 +450,29 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
+function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean {
+    if (!policy || !connectionSyncProgress) {
+        return false;
+    }
+
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    return (
+        !!connectionSyncProgress?.stageInProgress &&
+        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
+    );
+}
+
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
     getSynchronizationErrorMessage,
+    isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
+    isConnectionInProgress,
 };
