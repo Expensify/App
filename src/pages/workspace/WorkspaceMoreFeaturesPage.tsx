@@ -61,7 +61,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -120,6 +120,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
         });
+    }
+
+    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
+    if (canUseCompanyCardFeeds) {
         spendItems.push({
             icon: Illustrations.CompanyCard,
             titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
