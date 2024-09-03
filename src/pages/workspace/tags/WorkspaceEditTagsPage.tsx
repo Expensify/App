@@ -45,6 +45,11 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
             if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
             }
+
+            if (values[INPUT_IDS.POLICY_TAGS_NAME] === '0') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
+            }
+
             return errors;
         },
         [translate, policyTags, route.params.orderWeight],
