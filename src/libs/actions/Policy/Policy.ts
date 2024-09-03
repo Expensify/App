@@ -2073,6 +2073,47 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
+function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: OpenPolicyExpensifyCardsPageParams = {
+        policyID,
+        authToken,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
+}
+
 function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: number) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -3913,6 +3954,7 @@ export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
+    openPolicyCompanyCardsPage,
 };
 
 export type {NewCustomUnit};
