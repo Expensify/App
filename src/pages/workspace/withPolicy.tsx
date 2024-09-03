@@ -84,7 +84,6 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                policy={props.policy ?? {}}
                 ref={ref}
             />
         );
