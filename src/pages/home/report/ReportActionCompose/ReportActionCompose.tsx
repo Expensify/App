@@ -475,18 +475,6 @@ function ReportActionCompose({
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                                            // TODO: Remove
-                                            onCanceledAttachmentPicker={() => {
-                                                // isNextModalWillOpenRef.current = false;
-                                                isNextModalWillOpenRef.current = true;
-                                                console.debug('[TEST] onCanceledAttachmentPicker');
-                                                // restoreKeyboardState();
-                                            }}
-                                            // TODO: Remove
-                                            onMenuClosed={() => {
-                                                console.debug('[TEST] onMenuClosed');
-                                                // restoreKeyboardState();
-                                            }}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             actionButtonRef={actionButtonRef}
@@ -551,14 +539,6 @@ function ReportActionCompose({
                             {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
-                                    // TODO: Remove
-                                    onModalHide={(isNavigating) => {
-                                        if (isNavigating) {
-                                            return;
-                                        }
-                                        console.debug('[TEST] ReportActionCompose focus 3');
-                                        // focus();
-                                    }}
                                     onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
