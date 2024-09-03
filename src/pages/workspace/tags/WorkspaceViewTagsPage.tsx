@@ -231,9 +231,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             />
         );
     };
-    if (!Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        Tag.setPolicyTagsRequired(policyID, false, route.params.orderWeight)
+
+    if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
+        Tag.setPolicyTagsRequired(policyID, false, route.params.orderWeight);
     }
+
     const navigateToEditTag = () => {
         Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));
     };
