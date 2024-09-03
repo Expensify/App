@@ -33,6 +33,11 @@ type WorkspaceTagsSettingsPageOnyxProps = {
 };
 type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
 
+/**
+ * pending state of this component can be achieved using setPolicyBillableMode or disableWorkspaceBillableExpenses functions;
+ * setPolicyBillableMode changes both disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set
+ * otherwise disableWorkspaceBillableExpenses is used and it changes only disabledFields
+ * */
 function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
         return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
