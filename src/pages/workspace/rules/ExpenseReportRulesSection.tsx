@@ -52,7 +52,13 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             pendingAction: policy?.pendingFields?.shouldShowCustomReportTitleOption,
             onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
             subMenuItems: [
-                <OfflineWithFeedback pendingAction={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue}>
+                <OfflineWithFeedback
+                    pendingAction={
+                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
+                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.defaultValue
+                            : null
+                    }
+                >
                     <MenuItemWithTopDescription
                         key="customName"
                         description={translate('workspace.rules.expenseReportRules.customNameTitle')}
@@ -63,7 +69,11 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     />
                 </OfflineWithFeedback>,
                 <ToggleSettingOptionRow
-                    pendingAction={policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable}
+                    pendingAction={
+                        !policy?.pendingFields?.shouldShowCustomReportTitleOption && policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
+                            ? policy?.fieldList?.[CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID].pendingFields?.deletable
+                            : null
+                    }
                     key="preventMembersFromChangingCustomNames"
                     title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
                     switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
@@ -100,7 +110,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 PolicyActions.enableAutoApprovalOptions(policyID, isEnabled);
             },
             subMenuItems: [
-                <OfflineWithFeedback pendingAction={policy?.autoApproval?.pendingFields?.limit}>
+                <OfflineWithFeedback
+                    pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
+                >
                     <MenuItemWithTopDescription
                         key="autoApproveReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -113,7 +125,11 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
                     />
                 </OfflineWithFeedback>,
-                <OfflineWithFeedback pendingAction={policy?.autoApproval?.pendingFields?.auditRate}>
+                <OfflineWithFeedback
+                    pendingAction={
+                        !policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.auditRate ? policy?.autoApproval?.pendingFields?.auditRate : null
+                    }
+                >
                     <MenuItemWithTopDescription
                         key="randomReportAuditTitle"
                         description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -139,7 +155,13 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption,
             subMenuItems: [
-                <OfflineWithFeedback pendingAction={policy?.autoReimbursement?.pendingFields?.limit}>
+                <OfflineWithFeedback
+                    pendingAction={
+                        !policy?.pendingFields?.shouldShowAutoReimbursementLimitOption && policy?.autoReimbursement?.pendingFields?.limit
+                            ? policy?.autoReimbursement?.pendingFields?.limit
+                            : null
+                    }
+                >
                     <MenuItemWithTopDescription
                         key="autoPayReportsUnder"
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
