@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -10,7 +10,7 @@ function useSubscriptionPlan() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Filter workspaces in which user is the owner and the type is either corporate (control) or team (collect)
-    const ownerPolicies = useMemo(() => PolicyUtils.getOwnedPaidPolicies(policies, session?.accountID ?? -1), [policies, session?.accountID]);
+    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, session?.accountID ?? -1), [policies, session?.accountID]);
 
     if (isEmptyObject(ownerPolicies)) {
         return null;
