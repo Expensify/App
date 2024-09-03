@@ -1,11 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import type {OnboardingPurposeType} from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type Onboarding from './types/onyx/Onboarding';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
-import { OnboardingPurposeType } from './CONST';
 
 /**
  * This is a file containing constants for all the top level keys in our store
