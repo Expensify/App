@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,22 +11,24 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
 };
 
+type IssueNewCardOriginalMessage = OriginalMessage<
+    typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+>;
+
 function IssueCardMessage({action}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    // TODO: now mocking accountID with current user accountID instead of action.message.assigneeAccountID
-    const personalData = useCurrentUserPersonalDetails();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    // TODO: now mocking accountID with current user accountID instead of action.message.assigneeAccountID
-    const assignee = `<mention-user accountID=${personalData.accountID}></mention-user>`;
+    const assignee = `<mention-user accountID=${(action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
     const noMailingAddress = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address);

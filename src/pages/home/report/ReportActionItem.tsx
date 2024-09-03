@@ -641,7 +641,9 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUForwardedMessage(action, report)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {

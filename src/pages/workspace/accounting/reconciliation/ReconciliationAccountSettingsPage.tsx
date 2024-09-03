@@ -10,13 +10,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as AccountingUtils from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReconciliationAccountSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS>;
 
@@ -38,18 +41,23 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
 
     const sections = useMemo(() => {
-        const data = Object.values(bankAccountList ?? {}).map((bankAccount) => ({
+        if (!bankAccountList || isEmptyObject(bankAccountList)) {
+            return [];
+        }
+        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList);
+
+        const data = eligibleBankAccounts.map((bankAccount) => ({
             text: bankAccount.title,
             value: bankAccount.accountData?.bankAccountID,
             keyForList: bankAccount.accountData?.bankAccountID?.toString(),
-            isSelected: bankAccount.accountData?.bankAccountID === selectedBankAccount?.accountData?.bankAccountID,
+            isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
         }));
         return [{data}];
-    }, [bankAccountList, selectedBankAccount]);
+    }, [bankAccountList, paymentBankAccountID]);
 
-    const selectBankAccount = () => {
-        // TODO: add API call when it's implemented https://github.com/Expensify/Expensify/issues/407836
-        // Navigation.goBack();
+    const selectBankAccount = (newBankAccountID?: number) => {
+        Card.updateSettlementAccount(workspaceAccountID, policyID, newBankAccountID, paymentBankAccountID);
+        Navigation.goBack();
     };
 
     return (
@@ -74,9 +82,9 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
             <SelectionList
                 sections={sections}
-                onSelectRow={selectBankAccount}
+                onSelectRow={({value}) => selectBankAccount(value)}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={selectedBankAccount?.accountData?.bankAccountID?.toString()}
+                initiallyFocusedOptionKey={paymentBankAccountID.toString()}
             />
         </ConnectionLayout>
     );
