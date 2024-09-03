@@ -34,15 +34,6 @@ import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsRet
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
-type SelectionListWrapperProps = {children: ReactNode; shouldWrapSectionList: boolean};
-function SelectionListWrapper({children, shouldWrapSectionList}: SelectionListWrapperProps) {
-    if (shouldWrapSectionList) {
-        return <ScrollView>{children}</ScrollView>;
-    }
-
-    return children;
-}
-
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
@@ -108,7 +99,6 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
         shouldShowListEmptyContent = true,
-        shouldWrapSectionList = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -708,7 +698,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     {flattenedSections.allOptions.length === 0 ? (
                         renderListEmptyContent()
                     ) : (
-                        <SelectionListWrapper shouldWrapSectionList={shouldWrapSectionList}>
+                        <>
                             {!listHeaderContent && header()}
                             <SectionList
                                 removeClippedSubviews={removeClippedSubviews}
@@ -745,7 +735,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
                             {children}
-                        </SelectionListWrapper>
+                        </>
                     )}
                     {showConfirmButton && (
                         <FixedFooter style={[styles.mtAuto]}>

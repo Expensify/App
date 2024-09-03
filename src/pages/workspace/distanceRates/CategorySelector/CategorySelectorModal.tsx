@@ -26,11 +26,11 @@ type CategorySelectorModalProps = {
     /** Label to display on field */
     label: string;
 
-    /** Whether SectionList should be wrapped with ScrollView */
-    shouldWrapSectionList: boolean;
+    /** Whether SectionList should have overflow: "auto" enabled */
+    shouldAddOverflow: boolean;
 };
 
-function CategorySelectorModal({policyID, isVisible, currentCategory, onCategorySelected, onClose, label, shouldWrapSectionList}: CategorySelectorModalProps) {
+function CategorySelectorModal({policyID, isVisible, currentCategory, onCategorySelected, onClose, label, shouldAddOverflow}: CategorySelectorModalProps) {
     const styles = useThemeStyles();
 
     return (
@@ -57,7 +57,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
-                    shouldWrapSectionList={shouldWrapSectionList}
+                    shouldAddOverflow={shouldAddOverflow}
                 />
             </ScreenWrapper>
         </Modal>

@@ -81,7 +81,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     onToggle={updateWorkspaceRequiresCategory}
                     pendingAction={policy?.pendingFields?.requiresCategory}
                     disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
-                    wrapperStyle={[styles.pv2, styles.mh4]}
+                    wrapperStyle={[styles.pv2, styles.mh5]}
                     errors={policy?.errorFields?.requiresCategory ?? undefined}
                     onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                     shouldPlaceSubtitleBelowSwitch
@@ -90,7 +90,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     {!!currentPolicy && sections?.length > 0 && (
                         <SelectionList
                             headerContent={
-                                <View style={[styles.mh4, styles.mt2]}>
+                                <View style={[styles.mh5, styles.mt2]}>
                                     <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
                                     <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
                                 </View>

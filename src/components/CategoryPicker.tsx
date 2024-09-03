@@ -3,6 +3,8 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,11 +27,13 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
 
-    /** Whether SectionList should be wrapped with ScrollView */
-    shouldWrapSectionList?: boolean;
+    /** Whether SectionList should have overflow: "auto" enabled */
+    shouldAddOverflow?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldWrapSectionList = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldAddOverflow = false}: CategoryPickerProps) {
+    const styles = useThemeStyles();
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -87,7 +91,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
-            shouldWrapSectionList={shouldWrapSectionList}
+            sectionListStyle={isWeb && shouldAddOverflow && [styles.overflowAuto, styles.flex1]}
         />
     );
 }

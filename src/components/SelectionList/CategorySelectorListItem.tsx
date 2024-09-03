@@ -46,7 +46,7 @@ function CategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, is
                 isPickerVisible={isCategoryPickerVisible}
                 showPickerModal={() => setIsCategoryPickerVisible(true)}
                 hidePickerModal={() => setIsCategoryPickerVisible(false)}
-                shouldWrapSectionList
+                shouldAddOverflow
             />
         </BaseListItem>
     );
