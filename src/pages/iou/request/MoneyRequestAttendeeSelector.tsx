@@ -1,12 +1,12 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -51,6 +52,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const session = useSession();
+    const [additionalRecents, setAdditionalRecents] = useState<OptionData[] | []>([]);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -132,6 +135,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
+        const allRecents = [...chatOptions.recentReports, ...additionalRecents];
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
@@ -145,7 +149,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         newSections.push({
             title: translate('common.recents'),
-            data: chatOptions.recentReports,
+            data: allRecents,
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
@@ -188,6 +192,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         cleanSearchTerm,
+        additionalRecents,
     ]);
 
     const addAttendeeToSelection = useCallback(
@@ -203,6 +208,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             let newSelectedOptions: Attendee[];
 
             if (isOptionInList) {
+                if (session.accountID === option.accountID) {
+                    if (!additionalRecents.some((recent) => recent.accountID === option.accountID)) {
+                        setAdditionalRecents([
+                            {
+                                ...option,
+                                selected: false,
+                                isSelected: false,
+                            } as OptionData,
+                            ...additionalRecents,
+                        ]);
+                    }
+                }
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
                 newSelectedOptions = [
@@ -221,7 +238,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
             onAttendeesAdded(newSelectedOptions);
         },
-        [attendees, iouType, onAttendeesAdded],
+        [additionalRecents, attendees, iouType, onAttendeesAdded, session.accountID],
     );
 
     const shouldShowErrorMessage = attendees.length < 1;

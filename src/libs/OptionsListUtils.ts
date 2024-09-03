@@ -2200,7 +2200,7 @@ function getAttendeeOptions(
             selectedOptions: attendees,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             includeOwnedWorkspaceChats,
-            includeRecentReports: true,
+            includeRecentReports: false,
             includeP2P,
             includeCategories: false,
             categories: {},
