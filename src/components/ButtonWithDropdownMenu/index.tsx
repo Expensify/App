@@ -11,7 +11,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
-import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -65,7 +64,7 @@ function ButtonWithDropdownMenu<IValueType>({
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
-                    horizontal: x + w + h,
+                    horizontal: x + w,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
@@ -178,11 +177,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => Modal.close(() => item.onSelected?.())
+                            ? () => item.onSelected?.()
                             : () => {
                                   onOptionSelected?.(item);
                                   setSelectedItemIndex(index);
                               },
+                        shouldCallAfterModalHide: true,
                     }))}
                 />
             )}

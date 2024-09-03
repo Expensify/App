@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,12 +21,12 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -96,7 +96,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
-    const hasSyncError = PolicyUtils.hasSyncError(policy);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
@@ -139,18 +140,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
-
-    useEffect(() => {
-        const policyDraftId = policyDraft?.id;
-
-        if (!policyDraftId) {
-            return;
-        }
-
-        App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
-        // We only care when the component renders the first time
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
