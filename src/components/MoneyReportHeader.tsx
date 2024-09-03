@@ -95,7 +95,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
     const currentUserDeatils = useCurrentUserPersonalDetails();
-    console.log('useCurrentUserPersonalDetails:::::::::', currentUserDeatils);
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;

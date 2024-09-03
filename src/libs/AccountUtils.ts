@@ -10,7 +10,6 @@ const isAccountIDOddNumber = (accountID: number) => accountID % 2 === 1;
 
 function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
     const [delegate] = account?.delegatedAccess?.delegates ?? [];
-    console.log('account::::::', account);
     if (!delegate) {
         return false;
     }
