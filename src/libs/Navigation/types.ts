@@ -235,6 +235,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
     };
