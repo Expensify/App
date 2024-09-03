@@ -3785,7 +3785,6 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
             value: {
                 pendingFields: {
                     shouldShowCustomReportTitleOption: null,
-                    fieldList: null,
                 },
                 errorFields: null,
             },
@@ -3803,11 +3802,9 @@ function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
                 },
                 pendingFields: {
                     shouldShowCustomReportTitleOption: null,
-                    fieldList: null,
                 },
                 errorFields: {
                     shouldShowCustomReportTitleOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
@@ -3846,7 +3843,6 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             value: {
                 fieldList: {
                     [CONST.POLICY.FIELD_LIST_TITLE_FIELD_ID]: {
-                        ...previousReportTitleField,
                         defaultValue: customName,
                         pendingFields: {defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
@@ -4076,7 +4072,7 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoApproval: {
-                    limit: policy?.autoApproval?.limit,
+                    limit: policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
                     pendingFields: {
                         limit: null,
                     },
@@ -4150,7 +4146,7 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoApproval: {
-                    auditRate: policy?.autoApproval?.auditRate,
+                    auditRate: policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE,
                     pendingFields: {
                         auditRate: null,
                     },
@@ -4186,20 +4182,32 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
         return;
     }
 
-    const autoApprovalValues = !enabled ? {autoApproval: {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS}} : {};
-    const autoApprovalCleanupValues = !enabled ? {autoApproval: null} : {};
-    const autoApprovalPendingValues = !enabled ? {autoApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const autoApprovalCleanupValues = !enabled
+        ? {
+              pendingFields: {
+                  limit: null,
+                  auditRate: null,
+              },
+          }
+        : {};
+    const autoApprovalValues = !enabled ? {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS} : {};
+    const autoApprovalFailureValues = !enabled ? {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, ...autoApprovalCleanupValues}} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                autoApproval: {
+                    ...autoApprovalValues,
+                    pendingFields: {
+                        limit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        auditRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
                 shouldShowAutoApprovalOptions: enabled,
-                ...autoApprovalValues,
                 pendingFields: {
                     shouldShowAutoApprovalOptions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    ...autoApprovalPendingValues,
                 },
             },
         },
@@ -4210,11 +4218,10 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                autoApproval: {...autoApprovalCleanupValues},
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
-                    ...autoApprovalCleanupValues,
                 },
-                errorFields: null,
             },
         },
     ];
@@ -4224,13 +4231,10 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...autoApprovalFailureValues,
                 shouldShowAutoApprovalOptions: policy?.shouldShowAutoApprovalOptions,
                 pendingFields: {
                     shouldShowAutoApprovalOptions: null,
-                    ...autoApprovalCleanupValues,
-                },
-                errorFields: {
-                    shouldShowAutoApprovalOptions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
@@ -4330,20 +4334,30 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
         return;
     }
 
-    const autoReimbursementValues = !enabled ? {autoReimbursement: {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS}} : {};
-    const autoReimbursementCleanupValues = !enabled ? {autoReimbursement: null} : {};
-    const autoReimbursementPendingValues = !enabled ? {autoReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const autoReimbursementCleanupValues = !enabled
+        ? {
+              pendingFields: {
+                  limit: null,
+              },
+          }
+        : {};
+    const autoReimbursementFailureValues = !enabled ? {autoReimbursement: {limit: policy?.autoReimbursement?.limit, ...autoReimbursementCleanupValues}} : {};
+    const autoReimbursementValues = !enabled ? {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                autoReimbursement: {
+                    ...autoReimbursementValues,
+                    pendingFields: {
+                        limit: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
                 shouldShowAutoReimbursementLimitOption: enabled,
-                ...autoReimbursementValues,
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    ...autoReimbursementPendingValues,
                 },
             },
         },
@@ -4354,11 +4368,9 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                shouldShowAutoReimbursementLimitOption: enabled,
-                ...autoReimbursementValues,
+                autoReimbursement: {...autoReimbursementCleanupValues},
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: null,
-                    ...autoReimbursementCleanupValues,
                 },
                 errorFields: null,
             },
@@ -4370,15 +4382,10 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                shouldShowAutoReimbursementLimitOption: !enabled,
-                ...autoReimbursementValues,
+                ...autoReimbursementFailureValues,
+                shouldShowAutoReimbursementLimitOption: policy?.shouldShowAutoReimbursementLimitOption,
                 pendingFields: {
                     shouldShowAutoReimbursementLimitOption: null,
-                    ...autoReimbursementCleanupValues,
-                },
-                errorFields: {
-                    shouldShowAutoReimbursementLimitOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    autoReimbursement: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
