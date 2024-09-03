@@ -8,6 +8,7 @@ import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscap
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,6 +20,7 @@ import OnboardingWork from '@pages/OnboardingWork';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -30,6 +32,7 @@ function OnboardingModalNavigator() {
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     useDisableModalDismissOnEscape();
 
@@ -38,12 +41,18 @@ function OnboardingModalNavigator() {
             return;
         }
         Navigation.isNavigationReady().then(() => {
-            // Need to go back to previous route and then redirect to Concierge,
+            // On small screens, pop all navigation states and go back to HOME.
+            // On large screens, need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
+            if (isSmallScreenWidth) {
+                Navigation.setShouldPopAllStateOnUP(true);
+                Navigation.goBack(ROUTES.HOME, true, true);
+            } else {
+                Navigation.goBack();
+                Report.navigateToConciergeChat();
+            }
         });
-    }, [hasCompletedGuidedSetupFlow]);
+    }, [hasCompletedGuidedSetupFlow, isSmallScreenWidth]);
 
     const outerViewRef = React.useRef<View>(null);
 

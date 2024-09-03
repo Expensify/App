@@ -162,8 +162,8 @@ function buildOptimisticTransaction(
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
-        filename,
+        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
+        filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
         category,
         tag,
         taxCode,
@@ -393,7 +393,7 @@ function getOriginalAmount(transaction: Transaction): number {
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -753,7 +753,9 @@ function calculateAmountForUpdatedWaypointOrRate(
     policy: OnyxInputOrEntry<Policy>,
     isFromExpenseReport: boolean,
 ) {
-    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
+    const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
+    const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
+    if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
@@ -801,6 +803,13 @@ function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): b
 
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
+/**
+ * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
+ */
+function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
 }
 
 /**
@@ -949,7 +958,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
     // Helper function to check if all comments exist
     function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => !!item?.comment.comment === !!firstTransaction?.comment.comment);
+        return items.every((item) => !!item?.comment?.comment === !!firstTransaction?.comment?.comment);
     }
 
     // Helper function to check if all fields are equal for a given key
@@ -970,7 +979,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions[0];
-            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
@@ -978,7 +987,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
                 if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
@@ -1112,6 +1121,7 @@ export {
     buildNewTransactionAfterReviewingDuplicates,
     buildTransactionsMergeParams,
     getReimbursable,
+    isPayAtEndExpense,
 };
 
 export type {TransactionChanges};

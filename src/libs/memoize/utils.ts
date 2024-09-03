@@ -1,9 +1,9 @@
 import {deepEqual, shallowEqual} from 'fast-equals';
 import type {TakeFirst} from '@src/types/utils/TupleOperations';
 import DEFAULT_OPTIONS from './const';
-import type {ClientOptions, KeyComparator, MemoizeFnPredicate, Options} from './types';
+import type {ClientOptions, IsomorphicFn, KeyComparator, Options} from './types';
 
-function getEqualityComparator<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key>(opts: Options<Fn, MaxArgs, Key>): KeyComparator<Key> {
+function getEqualityComparator<Fn extends IsomorphicFn, MaxArgs extends number, Key>(opts: Options<Fn, MaxArgs, Key>): KeyComparator<Key> {
     // Use the custom equality comparator if it is provided
     if (typeof opts.equality === 'function') {
         return opts.equality;
@@ -16,13 +16,13 @@ function getEqualityComparator<Fn extends MemoizeFnPredicate, MaxArgs extends nu
     return deepEqual;
 }
 
-function mergeOptions<Fn extends MemoizeFnPredicate, MaxArgs extends number, Key>(options?: ClientOptions<Fn, MaxArgs, Key>): Options<Fn, MaxArgs, Key> {
+function mergeOptions<Fn extends IsomorphicFn, MaxArgs extends number, Key>(options?: ClientOptions<Fn, MaxArgs, Key>): Options<Fn, MaxArgs, Key> {
     if (!options) {
         return DEFAULT_OPTIONS;
     }
     return {...DEFAULT_OPTIONS, ...options};
 }
-function truncateArgs<T extends readonly unknown[], MaxArgs extends number = T['length']>(args: T, maxArgs?: MaxArgs): TakeFirst<T, MaxArgs> {
+function truncateArgs<T extends unknown[], MaxArgs extends number = T['length']>(args: T, maxArgs?: MaxArgs): TakeFirst<T, MaxArgs> {
     // Hot paths are declared explicitly to avoid the overhead of the slice method
 
     if (maxArgs === undefined) {
@@ -34,11 +34,11 @@ function truncateArgs<T extends readonly unknown[], MaxArgs extends number = T['
     }
 
     if (maxArgs === 0) {
-        return [];
+        return [] as unknown as TakeFirst<T, MaxArgs>;
     }
 
     if (maxArgs === 1) {
-        return [args[0]];
+        return [args[0]] as unknown as TakeFirst<T, MaxArgs>;
     }
 
     if (maxArgs === 2) {

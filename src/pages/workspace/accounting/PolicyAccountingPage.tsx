@@ -25,11 +25,12 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getSynchronizationErrorMessage, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -82,6 +83,7 @@ type AccountingIntegration = {
     pendingFields?: PendingFields<string>;
     errorFields?: ErrorFields;
 };
+
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
@@ -214,6 +216,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const {canUseWorkspaceFeeds} = usePermissions();
 
     const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
     const isSyncInProgress =
@@ -346,10 +349,57 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
+        const synchronizationError = getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+        const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, undefined, undefined, policy);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+
+        const configurationOptions = [
+            {
+                icon: Expensicons.Pencil,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.import'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onImportPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+            },
+            {
+                icon: Expensicons.Send,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.export'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onExportPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
+            },
+            {
+                icon: Expensicons.ExpensifyCard,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.cardReconciliation'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onCardReconciliationPagePress,
+            },
+            {
+                icon: Expensicons.Gear,
+                iconRight: Expensicons.ArrowRight,
+                shouldShowRightIcon: true,
+                title: translate('workspace.accounting.advanced'),
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: integrationData?.onAdvancedPagePress,
+                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+            },
+        ];
+
+        if (!canUseWorkspaceFeeds || !policy?.areExpensifyCardsEnabled) {
+            configurationOptions.splice(2, 1);
+        }
+
         return [
             {
                 ...iconProps,
@@ -357,7 +407,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: isSyncInProgress
@@ -387,55 +437,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions
-                ? []
-                : [
-                      {
-                          icon: Expensicons.Pencil,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.import'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onImportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
-                      },
-                      {
-                          icon: Expensicons.Send,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.export'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onExportPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
-                      },
-                      {
-                          icon: Expensicons.ExpensifyCard,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.cardReconciliation'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onCardReconciliationPagePress,
-                      },
-
-                      {
-                          icon: Expensicons.Gear,
-                          iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.advanced'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: integrationData?.onAdvancedPagePress,
-                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                          pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                      },
-                  ]),
+            ...(isEmptyObject(policy?.connections) || shouldHideConfigurationOptions ? [] : configurationOptions),
         ];
     }, [
         policy,
@@ -447,6 +449,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
+        canUseWorkspaceFeeds,
         connectionSyncProgress?.stageInProgress,
         datetimeToRelative,
         theme.spinner,

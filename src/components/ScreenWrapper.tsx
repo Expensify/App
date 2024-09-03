@@ -20,6 +20,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
+import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
@@ -99,6 +100,9 @@ type ScreenWrapperProps = {
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+    /** Overrides the focus trap default settings */
+    focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
 type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
@@ -126,6 +130,7 @@ function ScreenWrapper(
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
+        focusTrapSettings,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -242,7 +247,7 @@ function ScreenWrapper(
                 }
 
                 return (
-                    <FocusTrapForScreens>
+                    <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
                         <View
                             ref={ref}
                             style={[styles.flex1, {minHeight}]}

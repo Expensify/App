@@ -7,6 +7,7 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -265,6 +266,7 @@ export default {
             enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
+            pleaseSelectOne: 'Please select an option above.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -457,6 +459,26 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Submit an expense',
+            subtitleText1: 'Submit to someone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Split an expense',
+            subtitleText1: 'Split with a friend and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Pay someone',
+            subtitleText1: 'Pay anyone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Book a call',
     },
@@ -519,6 +541,10 @@ export default {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -600,6 +626,7 @@ export default {
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
     },
     writeCapabilityPage: {
         label: 'Who can post',
@@ -621,7 +648,7 @@ export default {
     },
     allSettingsScreen: {
         subscription: 'Subscription',
-        cardsAndDomains: 'Cards & Domains',
+        domains: 'Domains',
     },
     tabSelector: {
         chat: 'Chat',
@@ -732,6 +759,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -849,6 +877,10 @@ export default {
             `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
+        bookingPending: 'This booking is pending',
+        bookingPendingDescription: "This booking is pending because it hasn't been paid yet.",
+        bookingArchived: 'This booking is archived',
+        bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1300,6 +1332,10 @@ export default {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
+        approverInMultipleWorkflows: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong> in a separate workflow. If you change this approval relationship, all other workflows will be updated.`,
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
@@ -1307,10 +1343,15 @@ export default {
         monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {
-        title: 'Add approval workflow',
+        title: 'Confirm',
+        header: 'Add more approvers and confirm.',
+        additionalApprover: 'Additional approver',
+        submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {
         title: 'Edit approval workflow',
+        deleteTitle: 'Delete approval workflow',
+        deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -2244,6 +2285,7 @@ export default {
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
+            notConfigured: 'Not configured',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
                 tag: 'Tags',
@@ -2711,8 +2753,8 @@ export default {
             requestLimitIncrease: 'Request limit increase',
             remainingLimitDescription:
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
-            cashBack: 'Cash back',
-            cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            earnedCashback: 'Cash back',
+            earnedCashbackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
             issueNewCard: 'Issue new card',
             finishSetup: 'Finish setup',
             chooseBankAccount: 'Choose bank account',
@@ -3308,6 +3350,10 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            invoicingDetails: 'Invoicing details',
+            invoicingDetailsDescription: 'This info will appear on your invoices.',
+            companyName: 'Company name',
+            companyWebsite: 'Company website',
             paymentMethods: {
                 personal: 'Personal',
                 business: 'Business',
@@ -3471,6 +3517,11 @@ export default {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Sage Intacct integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
                 onlyAvailableOnPlan: 'Our Sage Intacct integration is only available on the Control plan, starting at ',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
+                title: 'Advanced Approvals',
+                description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
+                onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
+            },
             glCodes: {
                 title: 'GL codes',
                 description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
@@ -3584,9 +3635,8 @@ export default {
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination.',
         descriptionOptional: 'Description (optional)',
-        shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        pleaseEnterTaskDestination: 'Please select with whom you want to share.',
+        pleaseEnterTaskDestination: 'Please select where you want to share this task.',
     },
     task: {
         task: 'Task',
@@ -3636,6 +3686,11 @@ export default {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyTripResults: {
+                title: 'No trips to display',
+                subtitle: 'Get started by booking your first trip below.',
+                buttonText: 'Book a trip',
+            },
         },
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -3652,8 +3707,11 @@ export default {
                 after: (date?: string) => `After ${date ?? ''}`,
             },
             status: 'Status',
+            keyword: 'Keyword',
+            hasKeywords: 'Has keywords',
             currency: 'Currency',
         },
+        expenseType: 'Expense type',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

@@ -244,6 +244,9 @@ type OriginalMessageChangeLog = {
 
     /** ID of the report */
     reportID?: number;
+
+    /** When was it last modified */
+    lastModified?: string;
 };
 
 /** Model of `join policy changelog` report action */

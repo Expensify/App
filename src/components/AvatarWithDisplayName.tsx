@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -58,12 +58,16 @@ function AvatarWithDisplayName({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const title = ReportUtils.getReportName(report);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : -1}`,
+    );
+    const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport =
         ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
-    const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
+    const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);

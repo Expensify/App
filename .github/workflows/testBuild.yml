@@ -184,7 +184,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && bundle exec pod install --verbose
+          command: scripts/pod-install.sh
 
       - name: Decrypt AdHoc profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg

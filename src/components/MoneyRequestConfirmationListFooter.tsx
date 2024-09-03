@@ -116,10 +116,10 @@ type MoneyRequestConfirmationListFooterProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The policy tag lists */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 
     /** The policy tag lists */
-    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
 
     /** The rate of the transaction */
     rate: number | undefined;

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
@@ -12,13 +12,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
+    account,
+    credentials,
     route: {
         params: {accountID, validateCode, exitTo},
     },
+    session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -87,4 +87,8 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default ValidateLoginPage;
+export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxProps>, ValidateLoginPageOnyxProps>({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateLoginPage);

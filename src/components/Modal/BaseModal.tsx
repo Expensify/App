@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -256,6 +257,7 @@ function BaseModal(
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
                     <ModalContent onDismiss={handleDismissModal}>
+                        <PortalHost name="modal" />
                         <FocusTrapForModal
                             active={isVisible}
                             initialFocus={initialFocus}

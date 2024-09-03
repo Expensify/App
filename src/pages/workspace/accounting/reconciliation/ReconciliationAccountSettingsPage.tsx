@@ -8,6 +8,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -19,16 +21,19 @@ type ReconciliationAccountSettingsPageProps = StackScreenProps<SettingsNavigator
 
 function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSettingsPageProps) {
     const {policyID, connection} = route.params;
-    const settlementAccountEnding = '1234'; // TODO: use correct settlement account ending value https://github.com/Expensify/App/issues/44313
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? '';
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID], [paymentBankAccountID, bankAccountList]);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+
+    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID.toString()], [paymentBankAccountID, bankAccountList]);
+    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount]);
+    const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
 
     const sections = useMemo(() => {
         const data = Object.values(bankAccountList ?? {}).map((bankAccount) => ({

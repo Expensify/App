@@ -8,21 +8,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type TransparentOverlayProps = {
-    resetSuggestions: () => void;
+    onPress: () => void;
 };
 
 type OnPressHandler = PressableProps['onPress'];
 
-function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
+function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const onResetSuggestions = useCallback<NonNullable<OnPressHandler>>(
+    const onPress = useCallback<NonNullable<OnPressHandler>>(
         (event) => {
             event?.preventDefault();
-            resetSuggestions();
+            onPressProp();
         },
-        [resetSuggestions],
+        [onPressProp],
     );
 
     const handlePointerDown = useCallback((e: PointerEvent) => {
@@ -35,7 +35,7 @@ function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
             style={styles.fullScreen}
         >
             <PressableWithoutFeedback
-                onPress={onResetSuggestions}
+                onPress={onPress}
                 style={[styles.flex1, styles.cursorDefault]}
                 accessibilityLabel={translate('common.close')}
                 role={CONST.ROLE.BUTTON}

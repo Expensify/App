@@ -16,6 +16,12 @@ type Card = {
     /** Available amount to spend */
     availableSpend?: number;
 
+    /** Spend that is unapproved on the card (comes as a negative number) */
+    unapprovedSpend?: number;
+
+    /** Total spend on the card (comes as a negative number) */
+    totalSpend?: number;
+
     /** Domain name */
     domainName: string;
 
@@ -38,9 +44,6 @@ type Card = {
     nameValuePairs?: {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
-
-        /** Card spending limit */
-        limit?: number;
 
         /** User-defined nickname for the card */
         cardTitle?: string;
