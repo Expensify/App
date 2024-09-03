@@ -9,7 +9,8 @@ import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
-    initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
+    // initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
+    initialRouteName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -29,49 +30,49 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-        [SCREENS.SETTINGS.PROFILE.ROOT]: {
-            path: ROUTES.SETTINGS_PROFILE,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            path: ROUTES.SETTINGS_PREFERENCES,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.SECURITY]: {
-            path: ROUTES.SETTINGS_SECURITY,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WALLET.ROOT]: {
-            path: ROUTES.SETTINGS_WALLET,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.ABOUT]: {
-            path: ROUTES.SETTINGS_ABOUT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.TROUBLESHOOT]: {
-            path: ROUTES.SETTINGS_TROUBLESHOOT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+        // [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+        // [SCREENS.SETTINGS.PROFILE.ROOT]: {
+        //     path: ROUTES.SETTINGS_PROFILE,
+        //     exact: true,
+        // },
+        // [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+        //     path: ROUTES.SETTINGS_PREFERENCES,
+        //     // exact: true,
+        // },
+        // [SCREENS.SETTINGS.SECURITY]: {
+        //     path: ROUTES.SETTINGS_SECURITY,
+        //     exact: true,
+        // },
+        // [SCREENS.SETTINGS.WALLET.ROOT]: {
+        //     path: ROUTES.SETTINGS_WALLET,
+        //     exact: true,
+        // },
+        // [SCREENS.SETTINGS.ABOUT]: {
+        //     path: ROUTES.SETTINGS_ABOUT,
+        //     exact: true,
+        // },
+        // [SCREENS.SETTINGS.TROUBLESHOOT]: {
+        //     path: ROUTES.SETTINGS_TROUBLESHOOT,
+        //     exact: true,
+        // },
+        // [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
         [SCREENS.SEARCH.CENTRAL_PANE]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
         },
-        [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-        [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
+        // [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+        // [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
         // Sidebar
-        [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-            path: ROUTES.ROOT,
-            initialRouteName: SCREENS.HOME,
-            screens: {
-                [SCREENS.HOME]: ROUTES.HOME,
-                [SCREENS.SETTINGS.ROOT]: {
-                    path: ROUTES.SETTINGS,
-                },
-            },
-        },
+        // [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
+        //     path: ROUTES.ROOT,
+        //     initialRouteName: SCREENS.HOME,
+        //     screens: {
+        //         [SCREENS.HOME]: ROUTES.HOME,
+        //         // [SCREENS.SETTINGS.ROOT]: {
+        //         //     path: ROUTES.SETTINGS,
+        //         // },
+        //     },
+        // },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
@@ -1241,7 +1242,57 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: {
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
+            path: ROUTES.ROOT,
+            screens: {
+                [SCREENS.HOME]: {
+                    path: ROUTES.HOME,
+                    exact: true,
+                },
+                [SCREENS.REPORT]: {
+                    path: ROUTES.REPORT_WITH_ID.route,
+                    exact: true,
+                },
+            },
+        },
+
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
+                [SCREENS.SETTINGS.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                    path: ROUTES.SETTINGS_PROFILE,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SECURITY]: {
+                    path: ROUTES.SETTINGS_SECURITY,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.WALLET.ROOT]: {
+                    path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.ABOUT]: {
+                    path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                    path: ROUTES.SETTINGS_TROUBLESHOOT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
+                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                    path: ROUTES.SETTINGS_PREFERENCES,
+                    // exact: true,
+                },
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
             screens: {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,

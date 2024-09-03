@@ -1,9 +1,8 @@
-import type {BottomTabName, CentralPaneName} from '@navigation/types';
+import type {BottomTabName, CentralPaneName, SplitNavigatorScreenName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
+const TAB_TO_CENTRAL_PANE_MAPPING: Record<SplitNavigatorScreenName, SplitNavigatorScreenName[]> = {
     [SCREENS.HOME]: [SCREENS.REPORT],
-    [SCREENS.SEARCH.BOTTOM_TAB]: [SCREENS.SEARCH.CENTRAL_PANE],
     [SCREENS.SETTINGS.ROOT]: [
         SCREENS.SETTINGS.PROFILE.ROOT,
         SCREENS.SETTINGS.PREFERENCES.ROOT,
@@ -15,19 +14,33 @@ const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
         SCREENS.SETTINGS.TROUBLESHOOT,
         SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
     ],
+    [SCREENS.WORKSPACE.INITIAL]: [
+        SCREENS.WORKSPACE.PROFILE,
+        SCREENS.WORKSPACE.REIMBURSE,
+        SCREENS.WORKSPACE.MEMBERS,
+        SCREENS.WORKSPACE.WORKFLOWS,
+        SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        SCREENS.WORKSPACE.TAXES,
+        SCREENS.WORKSPACE.TAGS,
+        SCREENS.WORKSPACE.CATEGORIES,
+        SCREENS.WORKSPACE.DISTANCE_RATES,
+        SCREENS.WORKSPACE.REPORT_FIELDS,
+        SCREENS.WORKSPACE.INVOICES,
+        SCREENS.WORKSPACE.EXPENSIFY_CARD,
+    ],
 };
 
-const generateCentralPaneToTabMapping = (): Record<CentralPaneName, BottomTabName> => {
-    const mapping: Record<CentralPaneName, BottomTabName> = {} as Record<CentralPaneName, BottomTabName>;
+const generateCentralPaneToTabMapping = (): Record<SplitNavigatorScreenName, SplitNavigatorScreenName> => {
+    const mapping: Record<SplitNavigatorScreenName, SplitNavigatorScreenName> = {} as Record<SplitNavigatorScreenName, SplitNavigatorScreenName>;
     for (const [tabName, CentralPaneNames] of Object.entries(TAB_TO_CENTRAL_PANE_MAPPING)) {
         for (const CentralPaneName of CentralPaneNames) {
-            mapping[CentralPaneName] = tabName as BottomTabName;
+            mapping[CentralPaneName] = tabName as SplitNavigatorScreenName;
         }
     }
     return mapping;
 };
 
-const CENTRAL_PANE_TO_TAB_MAPPING: Record<CentralPaneName, BottomTabName> = generateCentralPaneToTabMapping();
+const CENTRAL_PANE_TO_TAB_MAPPING: Record<SplitNavigatorScreenName, SplitNavigatorScreenName> = generateCentralPaneToTabMapping();
 
 export {CENTRAL_PANE_TO_TAB_MAPPING};
 export default TAB_TO_CENTRAL_PANE_MAPPING;

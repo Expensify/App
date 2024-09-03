@@ -757,6 +757,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
+    // TODO: Check if this breaks something
     resetHomeRouteParams();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);

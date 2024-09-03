@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
+import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -14,6 +15,7 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 /**
  * Function called when a pinned chat is selected.
@@ -63,6 +65,7 @@ function BaseSidebarScreen() {
                             insets={insets}
                         />
                     </View>
+                    <BottomTabBar selectedTab={SCREENS.HOME} />
                 </>
             )}
         </ScreenWrapper>

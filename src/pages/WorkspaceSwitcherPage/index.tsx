@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -90,10 +90,11 @@ function WorkspaceSwitcherPage() {
 
             const {policyID} = option;
 
-            setActiveWorkspaceID(policyID);
+            // setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID});
+                // Navigation.navigateWithSwitchPolicyID({policyID});
+                navigationRef.dispatch({type: 'SWITCH_POLICY_ID', payload: {policyID}});
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],

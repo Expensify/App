@@ -5,11 +5,9 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
-
-const RootStack = createSplitStackNavigator<WorkspaceNavigatorParamList>();
-
 type Screens = Partial<Record<keyof WorkspaceNavigatorParamList, () => React.ComponentType>>;
+
+const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
 
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfilePage').default,
@@ -28,25 +26,27 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
+const Stack = createSplitStackNavigator<WorkspaceNavigatorParamList>();
+
 function WorkspaceNavigator() {
     return (
         <FocusTrapForScreens>
-            <RootStack.Navigator
+            <Stack.Navigator
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
             >
-                <RootStack.Screen
+                <Stack.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     getComponent={loadWorkspaceInitialPage}
                 />
                 {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
-                    <RootStack.Screen
+                    <Stack.Screen
                         key={screenName}
                         name={screenName as keyof Screens}
                         getComponent={componentGetter}
                     />
                 ))}
-            </RootStack.Navigator>
+            </Stack.Navigator>
         </FocusTrapForScreens>
     );
 }

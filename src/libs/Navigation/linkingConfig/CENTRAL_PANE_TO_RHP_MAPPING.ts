@@ -1,7 +1,8 @@
-import type {CentralPaneName} from '@libs/Navigation/types';
+import type {SplitNavigatorScreenName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
+import WORKSPACE_SCREEN_TO_RHP_MAPPING from './WORKSPACE_SCREEN_TO_RHP_MAPPING';
 
-const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<CentralPaneName, string[]>> = {
+const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<SplitNavigatorScreenName, string[]>> = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: [
         SCREENS.SETTINGS.PROFILE.DISPLAY_NAME,
         SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
@@ -80,6 +81,7 @@ const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<CentralPaneName, string[]>> = 
         SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
         SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY,
     ],
+    ...WORKSPACE_SCREEN_TO_RHP_MAPPING,
 };
 
 export default CENTRAL_PANE_TO_RHP_MAPPING;

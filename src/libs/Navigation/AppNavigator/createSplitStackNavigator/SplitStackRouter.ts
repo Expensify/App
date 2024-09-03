@@ -1,4 +1,4 @@
-import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {SplitStackNavigatorRouterOptions} from './types';
@@ -47,10 +47,29 @@ function adaptStateIfNecessary(state: StackState, sidebarScreen: string, default
     }
 }
 
+function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitStackNavigatorRouterOptions) {
+    if (action.type === 'PUSH' && action.payload.name === options.sidebarScreen && state.routes.length > 1) {
+        return true;
+    }
+    return false;
+}
+
 function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     return {
         ...stackRouter,
+        getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
+            if (isPushingSidebarOnCentralPane(state, action, options)) {
+                if (getIsNarrowLayout()) {
+                    // TODO: It's possible that it's better to push whole new SplitNavigator in such case. Not sure yet.
+                    // Pop to top on narrow layout.
+                    return {...state, routes: [state.routes.at(0)], index: 0};
+                }
+                // On wide screen do nothing as we want to keep the central pane screen and the sidebar is visible.
+                return state;
+            }
+            return stackRouter.getStateForAction(state, action, configOptions);
+        },
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
             const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
             adaptStateIfNecessary(initialState, options.sidebarScreen, options.defaultCentralScreen);

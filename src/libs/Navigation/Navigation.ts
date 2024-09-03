@@ -23,8 +23,8 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
-import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import linkTo from './newLinkTo';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
 import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
@@ -194,6 +194,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         pendingRoute = route;
         return;
     }
+    // linkTo(navigationRef.current, route, type, isActiveRoute(route));
     linkTo(navigationRef.current, route, type, isActiveRoute(route));
 }
 
