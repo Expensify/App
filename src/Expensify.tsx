@@ -22,7 +22,6 @@ import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import {handleHybridAppOnboarding} from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import BootSplash from './libs/BootSplash';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
@@ -175,24 +174,22 @@ function Expensify({
 
     useEffect(() => {
         setTimeout(() => {
-            BootSplash.getVisibilityStatus().then((status) => {
-                const appState = AppState.currentState;
-                Log.info('[BootSplash] splash screen status', false, {appState, status});
+            const appState = AppState.currentState;
+            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
 
-                if (status === 'visible') {
-                    const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
-                        isCheckingPublicRoom,
-                        updateRequired,
-                        updateAvailable,
-                        isSidebarLoaded,
-                        screenShareRequest,
-                        focusModeNotification,
-                        isAuthenticated,
-                        lastVisitedPath,
-                    };
-                    Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-                }
-            });
+            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
+                    isCheckingPublicRoom,
+                    updateRequired,
+                    updateAvailable,
+                    isSidebarLoaded,
+                    screenShareRequest,
+                    focusModeNotification,
+                    isAuthenticated,
+                    lastVisitedPath,
+                };
+                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
+            }
         }, 30 * 1000);
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
