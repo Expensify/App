@@ -71,7 +71,7 @@ type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean; isSmall
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
-type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
+type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
 
@@ -3449,6 +3449,9 @@ const styles = (theme: ThemeColors) =>
             },
             pending: {
                 opacity: 0.5,
+            },
+            default: {
+                opacity: 0.99,
             },
             error: {
                 flexDirection: 'row',
