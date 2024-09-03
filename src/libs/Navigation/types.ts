@@ -83,12 +83,6 @@ type BackToAndForwardToParms = {
     forwardTo?: Routes;
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
-    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
-    [SCREENS.SEARCH.REPORT_RHP]: undefined;
-};
-
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
@@ -184,6 +178,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
         country?: Country | '';
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
@@ -233,6 +228,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
@@ -1249,7 +1250,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -1397,7 +1398,6 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
-    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,
