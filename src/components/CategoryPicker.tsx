@@ -36,6 +36,8 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    // Ensure scrolling works for the SectionList in a nested lists structure involving a Modal on the web.
+    const sectionListStyles = isWeb && shouldAddOverflow && [styles.overflowAuto, styles.flex1];
 
     const selectedOptions = useMemo(() => {
         if (!selectedCategory) {
@@ -91,7 +93,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
-            sectionListStyle={isWeb && shouldAddOverflow && [styles.overflowAuto, styles.flex1]}
+            sectionListStyle={sectionListStyles}
         />
     );
 }
