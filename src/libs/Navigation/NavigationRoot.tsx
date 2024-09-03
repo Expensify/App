@@ -15,7 +15,7 @@ import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
-import * as Welcome from '@userActions/Welcome';
+import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -103,7 +103,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
         if (!hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(Welcome.getOnboardingInitialPath(), linkingConfig.config);
+            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
             return adaptedState;
         }
 

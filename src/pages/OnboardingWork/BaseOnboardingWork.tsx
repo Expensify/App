@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,7 +82,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 <HeaderWithBackButton
                     shouldShowBackButton
                     progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={OnboardingFlow.goBack}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
@@ -111,7 +112,6 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                             shouldSaveDraft
                             maxLength={CONST.TITLE_CHARACTER_LIMIT}
                             spellCheck={false}
-                            autoFocus
                         />
                     </View>
                 </FormProvider>

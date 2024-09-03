@@ -23,9 +23,9 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -74,9 +74,7 @@ function BaseOnboardingPersonalDetails({
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID();
 
-            // Navigate to HOME instead of dismissModal, because there is bug in small screen
-            // where the onboarding puropose page will be disaplayed briefly
-            Navigation.navigate(ROUTES.HOME);
+            Navigation.dismissModal();
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
@@ -136,7 +134,7 @@ function BaseOnboardingPersonalDetails({
                 <HeaderWithBackButton
                     shouldShowBackButton
                     progressBarPercentage={75}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={OnboardingFlow.goBack}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}

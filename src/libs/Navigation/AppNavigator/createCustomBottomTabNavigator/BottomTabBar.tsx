@@ -24,6 +24,7 @@ import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +94,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         }
 
         Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => Welcome.startOnboardingFlow(),
+            onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
         });
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

@@ -110,8 +110,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
+            // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
-            initialRouteName: SCREENS.ONBOARDING.PURPOSE,
             screens: {
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
