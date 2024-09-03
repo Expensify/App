@@ -271,7 +271,10 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
 }
 
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName];
+    const originalAreCommentsRequired = policyCategoryToUpdate?.areCommentsRequired;
+    const originalCommentHint = policyCategoryToUpdate?.commentHint;
+
     // When areCommentsRequired is set to false, commentHint has to be reset
     const updatedCommentHint = areCommentsRequired ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.commentHint : '';
 
@@ -282,7 +285,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -299,7 +301,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
                             areCommentsRequired: null,
@@ -316,12 +317,13 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
                             areCommentsRequired: null,
                         },
+                        areCommentsRequired: originalAreCommentsRequired,
+                        commentHint: originalCommentHint,
                     },
                 },
             },
@@ -338,7 +340,7 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
 }
 
 function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxExpenseAmountNoReceipt: number) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -347,7 +349,6 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -363,7 +364,6 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: null,
@@ -379,12 +379,12 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: null,
                         },
+                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
                     },
                 },
             },
@@ -401,7 +401,7 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
 }
 
 function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: string) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -410,7 +410,6 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -426,7 +425,6 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: null,
@@ -442,12 +440,12 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmountNoReceipt: null,
                         },
+                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
                     },
                 },
             },
@@ -957,7 +955,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const originalCommentHint = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.commentHint;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -966,7 +964,6 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             commentHint: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -982,12 +979,10 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
                             commentHint: null,
                         },
-
                         commentHint,
                     },
                 },
@@ -999,12 +994,12 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
                             commentHint: null,
                         },
+                        commentHint: originalCommentHint,
                     },
                 },
             },
@@ -1021,7 +1016,9 @@ function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: str
 }
 
 function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxExpenseAmount: string, expenseLimitType: PolicyCategoryExpenseLimitType) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName];
+    const originalMaxExpenseAmount = policyCategoryToUpdate?.maxExpenseAmount;
+    const originalExpenseLimitType = policyCategoryToUpdate?.expenseLimitType;
     const parsedMaxExpenseAmount = maxExpenseAmount === '' ? null : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
 
     const onyxData: OnyxData = {
@@ -1031,7 +1028,6 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1049,7 +1045,6 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmount: null,
@@ -1067,13 +1062,14 @@ function setPolicyCategoryMaxAmount(policyID: string, categoryName: string, maxE
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
                     [categoryName]: {
-                        ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
                             maxExpenseAmount: null,
                             expenseLimitType: null,
                         },
+                        maxExpenseAmount: originalMaxExpenseAmount,
+                        expenseLimitType: originalExpenseLimitType,
                     },
                 },
             },
