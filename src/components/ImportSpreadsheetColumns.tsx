@@ -104,4 +104,6 @@ function ImportSpreeadsheetColumns({spreadsheetColumns, columnNames, columnRoles
     );
 }
 
+ImportSpreeadsheetColumns.displayName = 'ImportSpreeadsheetColumns';
+
 export default ImportSpreeadsheetColumns;

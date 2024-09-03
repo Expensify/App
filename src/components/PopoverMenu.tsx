@@ -259,6 +259,7 @@ function PopoverMenu({
                             iconRight={item.iconRight}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
+                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                             isLabelHoverable={item.isLabelHoverable}
                             floatRightAvatars={item.floatRightAvatars}
                             floatRightAvatarSize={item.floatRightAvatarSize}
