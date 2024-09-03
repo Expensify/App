@@ -4,6 +4,7 @@ import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -19,7 +20,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; q?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -84,7 +85,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL});
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()});
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
@@ -108,12 +109,19 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
-
-        if (isOpeningSearchFromBottomTab) {
+        if (isOpeningSearchFromBottomTab && params.q) {
             if (policyID) {
-                params.policyIDs = policyID;
+                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+                if (queryJSON) {
+                    queryJSON.policyID = policyID;
+                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                }
             } else {
-                delete params.policyIDs;
+                const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+                if (queryJSON) {
+                    delete queryJSON.policyID;
+                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                }
             }
         }
 

@@ -244,6 +244,27 @@ type OriginalMessageChangeLog = {
 
     /** ID of the report */
     reportID?: number;
+
+    /** Old name of the workspace */
+    oldName?: string;
+
+    /** New name of the workspace */
+    newName?: string;
+
+    /** Email of user */
+    email?: string;
+
+    /** Role of user */
+    role?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
+
+    /** New role of user */
+    newValue?: string;
+
+    /** Old role of user */
+    oldValue?: string;
 };
 
 /** Model of `join policy changelog` report action */
@@ -475,6 +496,28 @@ type OriginalMessageUnapproved = {
  */
 type OriginalMessageAddPaymentCard = Record<string, never>;
 
+/**
+ * Original message for INTEGRATIONSYNCFAILED actions
+ */
+type OriginalMessageIntegrationSyncFailed = {
+    /** The user friendly connection name */
+    label: string;
+
+    /** The source of the connection sync */
+    source: string;
+
+    /** The error message from Integration Server */
+    errorMessage: string;
+};
+
+/**
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ */
+type OriginalMessageExpensifyCard = {
+    /** The id of the user the card was assigned to */
+    assigneeAccountID: number;
+};
+
 /** The map type of original message */
 type OriginalMessageMap = {
     /** */
@@ -598,11 +641,13 @@ type OriginalMessageMap = {
     /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageExpensifyCard;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageExpensifyCard;
     /** */
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageExpensifyCard;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {

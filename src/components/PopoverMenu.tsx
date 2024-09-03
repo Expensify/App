@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -8,6 +8,8 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -35,6 +37,11 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
+
+    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+     */
+    shouldCallAfterModalHide?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -128,6 +135,11 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            Modal.close(() => {
+                onItemSelected(selectedItem, index);
+                selectedItem.onSelected?.();
+            });
         } else {
             onItemSelected(selectedItem, index);
             selectedItem.onSelected?.();
@@ -194,7 +206,10 @@ function PopoverMenu({
         setFocusedIndex(-1);
     };
 
-    useEffect(() => {
+    // When the menu items are changed, we want to reset the sub-menu to make sure
+    // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
+    // We use useLayoutEffect so the reset happens before the repaint
+    useLayoutEffect(() => {
         if (menuItems.length === 0) {
             return;
         }
@@ -223,6 +238,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
             restoreFocusType={restoreFocusType}
         >
             <FocusTrapForModal active={isVisible}>
@@ -266,6 +282,7 @@ function PopoverMenu({
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
+                            badgeText={item.badgeText}
                         />
                     ))}
                 </View>

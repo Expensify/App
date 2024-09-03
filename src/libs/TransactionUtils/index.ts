@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionMergeParams} from '@libs/API/parameters';
-import {isCorporateCard, isExpensifyCard} from '@libs/CardUtils';
 import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -17,6 +16,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -393,7 +393,7 @@ function getOriginalAmount(transaction: Transaction): number {
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -507,18 +507,18 @@ function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFor
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction?.cardID) {
-        return false;
-    }
-    return isExpensifyCard(transaction.cardID);
+    return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? -1;
-    return isCorporateCard(cardID);
+    return !!transaction?.managedCard;
+}
+
+function getCardName(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.cardName ?? '';
 }
 
 /**
@@ -735,6 +735,15 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
 }
 
 /**
+ * Checks if any violations for the provided transaction are of modifiedAmount or modifiedDate
+ */
+function hasModifiedAmountOrDateViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT || violation.name === CONST.VIOLATIONS.MODIFIED_DATE,
+    );
+}
+
+/**
  * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number, currency: string) {
@@ -753,7 +762,9 @@ function calculateAmountForUpdatedWaypointOrRate(
     policy: OnyxInputOrEntry<Policy>,
     isFromExpenseReport: boolean,
 ) {
-    if (isEmptyObject(transactionChanges?.routes?.route0?.geometry) && isEmptyObject(transactionChanges.customUnitRateID)) {
+    const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
+    const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
+    if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
@@ -894,6 +905,14 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
+function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
+    return transactionIDs.filter(
+        (transactionID) =>
+            !ReportUtils.isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
+            !ReportUtils.isReportApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
+    );
+}
+
 /**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
  *
@@ -915,7 +934,7 @@ type FieldsToChange = {
 function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -954,11 +973,6 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         return items.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
     }
 
-    // Helper function to check if all comments exist
-    function doAllCommentsExist(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => !!item?.comment?.comment === !!firstTransaction?.comment?.comment);
-    }
-
     // Helper function to check if all fields are equal for a given key
     function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
         const firstTransaction = transactions[0];
@@ -981,10 +995,9 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsExist = doAllCommentsExist(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
-                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
@@ -1035,7 +1048,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID ?? '',
-        transactionIDList: reviewDuplicates?.duplicates ?? [],
+        transactionIDList: removeSettledAndApprovedTransactions(reviewDuplicates?.duplicates ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -1111,6 +1124,7 @@ export {
     hasViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
+    hasModifiedAmountOrDateViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
@@ -1120,6 +1134,8 @@ export {
     buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
+    removeSettledAndApprovedTransactions,
+    getCardName,
 };
 
 export type {TransactionChanges};
