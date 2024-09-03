@@ -2935,6 +2935,7 @@ export default {
             importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
+            subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
             spendSection: {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
