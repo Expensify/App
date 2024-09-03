@@ -64,7 +64,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
-    const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report).slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
@@ -129,7 +128,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-    const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
+    const shouldUseGroupTitle = ReportUtils.isGroupChat(report) && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report.reportID || !title;
 
     return (
