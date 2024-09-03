@@ -208,7 +208,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  * @param contactMethod - the contact method being deleted
  * @param loginList
  */
-function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
     const oldLoginData = loginList[contactMethod];
 
     const optimisticData: OnyxUpdate[] = [
@@ -257,7 +257,17 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+}
+
+/**
+ * Clears a contact method optimistically. this is used when the contact method fails to be added to the backend
+ */
+
+function clearContactMethod(contactMethod: string) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: null,
+    });
 }
 
 /**
@@ -290,9 +300,90 @@ function resetContactMethodValidateCodeSentState(contactMethod: string) {
 }
 
 /**
+ * Clears unvalidated new contact method action
+ */
+function clearUnvalidatedNewContactMethodAction() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        validateCodeSent: null,
+        pendingFields: null,
+        errorFields: null,
+    });
+}
+
+/**
+ * Validates the action to add secondary contact method
+ */
+function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                contactMethod,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateCodeSent: true,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateCodeSent: null,
+                errorFields: {
+                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+}
+
+/**
  * Adds a secondary login to a user's account
  */
-function addNewContactMethodAndNavigate(contactMethod: string) {
+function addNewContactMethod(contactMethod: string, validateCode = '') {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -310,6 +401,11 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: true},
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -322,6 +418,24 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateCodeSent: null,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -339,12 +453,21 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {validateCodeSent: null},
+        },
     ];
 
-    const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
+    const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod, validateCode};
 
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -552,10 +675,10 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connectionId = Onyx.connect({
+        const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connectionId);
+                Onyx.disconnect(connection);
 
                 resolve(
                     !report?.notificationPreference ||
@@ -836,7 +959,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -986,7 +1109,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
@@ -1123,7 +1246,8 @@ export {
     updateNewsletterSubscription,
     deleteContactMethod,
     clearContactMethodErrors,
-    addNewContactMethodAndNavigate,
+    clearContactMethod,
+    addNewContactMethod,
     validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
@@ -1144,4 +1268,6 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    saveNewContactMethodAndRequestValidationCode,
+    clearUnvalidatedNewContactMethodAction,
 };
