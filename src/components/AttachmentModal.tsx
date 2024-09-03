@@ -449,6 +449,7 @@ function AttachmentModal({
                 onSelected: () => {
                     setIsDeleteReceiptConfirmModalVisible(true);
                 },
+                shouldCallAfterModalHide: true,
             });
         }
         return menuItems;
