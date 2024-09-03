@@ -134,7 +134,7 @@ function BankAccountStep({
                                 <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
-                        {!personalBankAccount.plaidAccountID && (
+                        {personalBankAccount.plaidAccountID && (
                             <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                                 <Icon
                                     src={Expensicons.Lightbulb}
