@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -16,14 +16,15 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ConfirmDelegatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
+type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
-function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
+function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
+    const [validateCode, setValidateCode] = useState('');
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
 
@@ -31,43 +32,29 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         <Button
             success
             large
-            text={translate('delegate.addCopilot')}
+            text={translate('common.verify')}
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(accountID, role));
+                addDelegate(personalDetails.login ?? '', role, validateCode);
+                Navigation.dismissModal();
             }}
         />
     );
 
     return (
         <HeaderPageLayout
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, role))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(accountID, role))}
             title={translate('delegate.addCopilot')}
-            testID={ConfirmDelegatePage.displayName}
+            testID={DelegateMagicCodePage.displayName}
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
         >
             <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
-            <MenuItem
-                avatarID={route.params.accountID}
-                icon={personalDetails.avatar ?? ''}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                title={personalDetails.displayName ?? personalDetails.login}
-                description={personalDetails.login}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                title={translate('delegate.role', role)}
-                description={translate('delegate.accessLevel')}
-                helperText={translate('delegate.roleDescription', role)}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID, role))}
-                shouldShowRightIcon
-            />
         </HeaderPageLayout>
     );
 }
 
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
+DelegateMagicCodePage.displayName = 'DelegateMagicCodePage';
 
-export default ConfirmDelegatePage;
+export default DelegateMagicCodePage;

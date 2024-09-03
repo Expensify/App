@@ -642,6 +642,10 @@ type SettingsNavigatorParamList = {
         accountID: string;
         role: string;
     };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_MAGIC_CODE]: {
+        accountID: string;
+        role: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;

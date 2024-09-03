@@ -130,6 +130,7 @@ const SCREENS = {
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
+            DELEGATE_MAGIC_CODE: 'Settings_Delegate_Magic_Code',
         },
     },
     SAVE_THE_WORLD: {

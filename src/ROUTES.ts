@@ -135,6 +135,10 @@ const ROUTES = {
         route: 'settings/security/delegate/:accountID/role/:role/confirm',
         getRoute: (accountID: number, role: string) => `settings/security/delegate/${accountID}/role/${role}/confirm` as const,
     },
+    SETTINGS_DELEGATE_MAGIC_CODE: {
+        route: 'settings/security/delegate/:accountID/role/:role/magic-code',
+        getRoute: (accountID: number, role: string) => `settings/security/delegate/${accountID}/role/${role}/magic-code` as const,
+    },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',

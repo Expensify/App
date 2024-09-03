@@ -158,7 +158,7 @@ function clearDelegatorErrors() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, error: undefined}))}});
 }
 
-function addDelegate(email: string, role: DelegateRole) {
+function addDelegate(email: string, role: DelegateRole, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -198,7 +198,7 @@ function addDelegate(email: string, role: DelegateRole) {
         },
     ];
 
-    const parameters: AddDelegateParams = {delegate: email, role};
+    const parameters: AddDelegateParams = {delegate: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
