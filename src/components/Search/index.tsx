@@ -9,7 +9,9 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +39,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     isCustomQuery: boolean;
-    policyIDs?: string;
 };
 
 const transactionItemMobileHeight = 100;
@@ -74,7 +75,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
+function Search({queryJSON, isCustomQuery}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -82,7 +83,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
@@ -118,7 +119,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
             return;
         }
 
-        SearchActions.search({queryJSON, offset, policyIDs});
+        SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
 
@@ -161,7 +162,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+    const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
@@ -200,6 +201,16 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
                     queryJSON={queryJSON}
                     hash={hash}
                 />
+
+                {/* We only want to display the skeleton for the status filters the first time we load them for a specific data type */}
+                {searchResults?.search?.type === type ? (
+                    <SearchStatusBar
+                        type={type}
+                        status={status}
+                    />
+                ) : (
+                    <SearchStatusSkeleton shouldAnimate />
+                )}
                 <SearchRowSkeleton shouldAnimate />
             </>
         );
@@ -390,7 +401,7 @@ function Search({queryJSON, policyIDs, isCustomQuery}: SearchProps) {
             />
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
-                prompt={translate('search.offlinePrompt')}
+                prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={() => setOfflineModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
