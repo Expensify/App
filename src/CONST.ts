@@ -389,7 +389,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
-        COMPANYCARD_FEEDS: 'companyCardFeeds',
+        COMPANY_CARD_FEEDS: 'companyCardFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
