@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.27-1",
+  "version": "9.0.28-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -190,7 +190,8 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
-    "semver": "^7.5.2"
+    "semver": "^7.5.2",
+    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
