@@ -12,11 +12,11 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -117,8 +117,6 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
-    const ownerName = ownerDetails ? PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails) : '';
-    const processedOwnerName = EmojiUtils.splitTextWithEmojis(ownerName);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
@@ -220,20 +218,10 @@ function WorkspacesListRow({
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
                             <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                                >
-                                    {processedOwnerName.length !== 0
-                                        ? processedOwnerName.map(({text, isEmoji}) =>
-                                              isEmoji ? (
-                                                  <Text style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}, styles.emojisWithTextFontFamily]}>{text}</Text>
-                                              ) : (
-                                                  text
-                                              ),
-                                          )
-                                        : ownerName}
-                                </Text>
+                                <WorkspacesListRowDisplayName
+                                    isDeleted={isDeleted}
+                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                />
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
