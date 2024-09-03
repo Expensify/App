@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -33,6 +33,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    isControlPolicy,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -42,7 +43,7 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
@@ -136,15 +137,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
     );
 
-    useEffect(() => {
-        if (!!newConnectionName) {
-            startIntegrationFlow({
-                name: newConnectionName,
-                integrationToDisconnect: integrationToDisconnect,
-                shouldDisconnectIntegrationBeforeConnecting: shouldDisconnectIntegrationBeforeConnecting,
-            });
-        }
-    }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, window.location.pathname]);
+    useFocusEffect(
+        useCallback(() => {
+            if (newConnectionName && isControlPolicy(policy)) {
+                startIntegrationFlow({
+                    name: newConnectionName,
+                    integrationToDisconnect,
+                    shouldDisconnectIntegrationBeforeConnecting,
+                });
+            }
+        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, isControlPolicy(policy), startIntegrationFlow]),
+    );
 
     useEffect(() => {
         if (successfulDate) {
