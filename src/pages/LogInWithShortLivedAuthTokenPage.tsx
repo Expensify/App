@@ -22,6 +22,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -76,41 +77,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         return <FullScreenLoadingIndicator />;
     }
 
-    return (
-        <View style={styles.deeplinkWrapperContainer}>
-            <View style={styles.deeplinkWrapperMessage}>
-                <View style={styles.mb2}>
-                    <Icon
-                        width={200}
-                        height={164}
-                        src={Illustrations.RocketBlue}
-                    />
-                </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
-                <View style={styles.mt2}>
-                    <Text style={styles.textAlignCenter}>
-                        {translate('deeplinkWrapper.expired')}{' '}
-                        <TextLink
-                            onPress={() => {
-                                Session.clearSignInData();
-                                Navigation.navigate();
-                            }}
-                        >
-                            {translate('deeplinkWrapper.signIn')}
-                        </TextLink>
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.deeplinkWrapperFooter}>
-                <Icon
-                    width={154}
-                    height={34}
-                    fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
-                />
-            </View>
-        </View>
-    );
+    return <SessionExpiredPage />;
 }
 
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
