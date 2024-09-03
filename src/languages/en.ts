@@ -4587,5 +4587,7 @@ export default {
                     return '';
             }
         },
+        makeSureItIsYou: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot.`,
     },
 } satisfies TranslationBase;

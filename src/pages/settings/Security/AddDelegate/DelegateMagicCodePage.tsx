@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,11 +25,11 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
+    const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
     const {translate} = useLocalize();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const themeStyles = useThemeStyles();
+    const styles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
     const onBackButtonPress = () => {
@@ -40,22 +41,17 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={DelegateMagicCodePage.displayName}
-            offlineIndicatorStyle={themeStyles.mtAuto}
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                title={account?.primaryLogin ?? ''}
+                title={translate('delegate.makeSureItIsYou')}
                 onBackButtonPress={onBackButtonPress}
             />
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
-                <DotIndicatorMessage
-                    type="success"
-                    style={[themeStyles.mb3]}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('contacts.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}}
-                />
+            <View style={[styles.ph5, styles.mt3, styles.mb7]}>
+                <Text style={styles.mb3}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
                 <ValidateCodeForm
                     ref={validateCodeFormRef}
-                    delegate={personalDetails?.login ?? ''}
+                    delegate={delegatePersonalDetails?.login ?? ''}
                     role={role}
                 />
             </View>
