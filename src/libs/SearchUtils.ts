@@ -245,11 +245,6 @@ function getSortedSections(status: SearchStatus, data: ListItemDataType<typeof s
     return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
-function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
-    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
-}
-
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -432,6 +427,16 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -458,7 +463,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.TAG ||
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO) &&
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -582,7 +589,6 @@ export {
     getFilters,
     getPolicyIDFromSearchQuery,
     getListItem,
-    getQueryHash,
     getSearchHeaderTitle,
     getSections,
     getShouldShowMerchant,
@@ -594,4 +600,5 @@ export {
     shouldShowYear,
     buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
 };
