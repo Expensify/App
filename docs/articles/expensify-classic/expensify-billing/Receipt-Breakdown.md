@@ -34,8 +34,6 @@ Your receipt will have a detailed breakdown of activity and discounts across all
   - Any members included in your annual subscription on the Collect plan. 
 - [Number of] Pay-per-use Collect members @ $20.00
   - Any members above your annual subscription size on the Collect plan. These members are billed at the pay-per-use rate.
-- [Number of] Free members @ $0.00
-  - All members across any of your Free workspaces.
 - X% Expensify Card discount with $Y spend
   - The % discount you're getting based on total settled US purchases across your Expensify Cards.
 - X% Expensify Card cash back credit for $Y spend
