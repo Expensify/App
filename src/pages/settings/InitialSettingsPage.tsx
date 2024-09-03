@@ -103,6 +103,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const {translate} = useLocalize();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -195,7 +196,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -225,7 +226,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, allConnectionSyncProgresses]);
 
     /**
      * Retuns a list of menu items data for general section

@@ -566,8 +566,8 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
                             additionalStyles={[styles.pb5]}
                         />
-                        <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                         <Button
                             medium
                             success
@@ -601,7 +601,7 @@ function IOURequestStepScan({
                 <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityLabel={translate('receipt.chooseFile')}
+                            accessibilityLabel={translate('common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
@@ -658,12 +658,12 @@ function IOURequestStepScan({
             </View>
 
             <View
-                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
+                style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-                <Text style={[styles.subTextReceiptUpload]}>
+                <Text style={[styles.textFileUpload]}>{translate('receipt.upload')}</Text>
+                <Text style={[styles.subTextFileUpload]}>
                     {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
@@ -678,8 +678,8 @@ function IOURequestStepScan({
                     <Button
                         medium
                         success
-                        text={translate('receipt.chooseFile')}
-                        accessibilityLabel={translate('receipt.chooseFile')}
+                        text={translate('common.chooseFile')}
+                        accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
@@ -702,7 +702,7 @@ function IOURequestStepScan({
             {(isDraggingOverWrapper) => (
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                    <View style={[styles.flex1, !Browser.isMobile() && styles.uploadFileView(isSmallScreenWidth)]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                         <ReceiptDropUI
                             onDrop={(e) => {
