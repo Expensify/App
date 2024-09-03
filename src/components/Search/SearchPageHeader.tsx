@@ -1,10 +1,12 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
@@ -91,10 +93,7 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
     hash: number;
-    onSelectDeleteOption?: (itemsToDelete: string[]) => void;
     isCustomQuery: boolean;
-    setOfflineModalOpen?: () => void;
-    setDownloadErrorModalOpen?: () => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -116,7 +115,7 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
     }
 }
 
-function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash, isCustomQuery}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,6 +124,9 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -132,8 +134,17 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
     const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
     const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
-
     const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
+
+    const handleDeleteExpenses = () => {
+        if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+
+        clearSelectedTransactions();
+        setDeleteExpensesConfirmModalVisible(false);
+        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+    };
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -149,7 +160,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 if (isOffline) {
-                    setOfflineModalOpen?.();
+                    setOfflineModalVisible(true);
                     return;
                 }
 
@@ -157,7 +168,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {
-                        setDownloadErrorModalOpen?.();
+                        setDownloadErrorModalVisible(true);
                     },
                 );
             },
@@ -173,7 +184,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalOpen?.();
+                        setOfflineModalVisible(true);
                         return;
                     }
 
@@ -195,7 +206,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalOpen?.();
+                        setOfflineModalVisible(true);
                         return;
                     }
 
@@ -218,11 +229,11 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setOfflineModalOpen?.();
+                        setOfflineModalVisible(true);
                         return;
                     }
 
-                    onSelectDeleteOption?.(selectedTransactionsKeys);
+                    setDeleteExpensesConfirmModalVisible(true);
                 },
             });
         }
@@ -252,15 +263,12 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
-        onSelectDeleteOption,
         clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         isOffline,
-        setOfflineModalOpen,
-        setDownloadErrorModalOpen,
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
@@ -280,30 +288,62 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     }
 
     return (
-        <HeaderWrapper
-            title={headerTitle}
-            subtitle={headerSubtitle}
-            icon={headerIcon}
-            subtitleStyles={subtitleStyles}
-        >
-            {headerButtonsOptions.length > 0 && (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
-                    options={headerButtonsOptions}
-                    isSplitButton={false}
+        <>
+            <HeaderWrapper
+                title={headerTitle}
+                subtitle={headerSubtitle}
+                icon={headerIcon}
+                subtitleStyles={subtitleStyles}
+            >
+                {headerButtonsOptions.length > 0 && (
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        pressOnEnter
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                    />
+                )}
+                <Button
+                    text={translate('search.filtersHeader')}
+                    icon={Expensicons.Filters}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+                    medium
                 />
-            )}
-            <Button
-                text={translate('search.filtersHeader')}
-                icon={Expensicons.Filters}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
-                medium
+            </HeaderWrapper>
+            <ConfirmModal
+                isVisible={deleteExpensesConfirmModalVisible}
+                onConfirm={handleDeleteExpenses}
+                onCancel={() => {
+                    setDeleteExpensesConfirmModalVisible(false);
+                }}
+                title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
             />
-        </HeaderWrapper>
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
+            />
+        </>
     );
 }
 

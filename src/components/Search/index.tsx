@@ -4,13 +4,10 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -77,7 +74,6 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
 
 function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
@@ -85,15 +81,7 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setSelectedReports, setShouldShowStatusBarLoading} = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    console.log('%%%%%\n', 'i render');
 
-    // DO PRZENIESIENIA
-    const [selectedTransactionsToDelete, setSelectedTransactionsToDelete] = useState<string[]>([]);
-    // DO PRZENIESIENIA
-    const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
-    // DO PRZENIESIENIA
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -126,25 +114,6 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
         SearchActions.search({queryJSON, offset});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline, offset, queryJSON]);
-    // DO PRZENIESIENIA
-    const handleOnCancelConfirmModal = () => {
-        setDeleteExpensesConfirmModalVisible(false);
-    };
-    // DO PRZENIESIENIA
-    const handleDeleteExpenses = () => {
-        if (selectedTransactionsToDelete.length === 0) {
-            return;
-        }
-
-        clearSelectedTransactions();
-        setDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsToDelete);
-    };
-    // DO PRZENIESIENIA
-    const handleOnSelectDeleteOption = (itemsToDelete: string[]) => {
-        setSelectedTransactionsToDelete(itemsToDelete);
-        setDeleteExpensesConfirmModalVisible(true);
-    };
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -311,9 +280,6 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 isCustomQuery={isCustomQuery}
                 queryJSON={queryJSON}
                 hash={hash}
-                onSelectDeleteOption={handleOnSelectDeleteOption} // NIE POTRZEBNE
-                setOfflineModalOpen={() => setOfflineModalVisible(true)} // NIE POTRZEBNE
-                setDownloadErrorModalOpen={() => setDownloadErrorModalVisible(true)} // NIE POTRZEBNE
             />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
@@ -368,38 +334,6 @@ function Search({queryJSON, isCustomQuery, onSearchListScroll}: SearchProps) {
                 }
                 scrollEventThrottle={16}
                 contentContainerStyle={styles.mt3}
-            />
-            {/* DO PRZENIESIENIA */}
-            <ConfirmModal
-                isVisible={deleteExpensesConfirmModalVisible}
-                onConfirm={handleDeleteExpenses}
-                onCancel={handleOnCancelConfirmModal}
-                onModalHide={() => setSelectedTransactionsToDelete([])}
-                title={translate('iou.deleteExpense', {count: selectedTransactionsToDelete.length})}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsToDelete.length})}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-            {/* DO PRZENIESIENIA */}
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
-            {/* DO PRZENIESIENIA */}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
             />
         </>
     );
