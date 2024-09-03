@@ -29,6 +29,9 @@ type CardFeeds = {
 
     /** User-friendly feed nicknames */
     companyCardNicknames: Record<string, string>;
+
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
 };
 
 export default CardFeeds;
