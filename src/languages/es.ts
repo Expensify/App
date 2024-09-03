@@ -2964,7 +2964,7 @@ export default {
             },
             tags: {
                 title: 'Etiquetas',
-                subtitle: 'Clasificar costes y rastrear gastos facturables.',
+                subtitle: 'Clasifica costes y rastrea gastos facturables.',
             },
             taxes: {
                 title: 'Impuestos',
