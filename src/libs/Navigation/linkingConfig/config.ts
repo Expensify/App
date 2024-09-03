@@ -251,6 +251,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                         },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VALIDATE_ACTION]: {
+                            path: ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION,
+                        },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
