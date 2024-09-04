@@ -119,7 +119,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                         removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
                         closeConfirmationModal();
                     }}
-                    integrationToConnect={activeIntegration?.integrationToDisconnect}
+                    integrationToConnect={activeIntegration?.name}
                     onCancel={() => {
                         setActiveIntegration(undefined);
                     }}
