@@ -15,7 +15,7 @@ class ArrayError extends SyntaxError {
     constructor(arrayType: string | Record<string, unknown>) {
         super('debug.invalidValue', {
             cause: {
-                expectedValues: `[${typeof arrayType === 'object' ? convertToJSON(arrayType) : arrayType}]`,
+                expectedValues: `[${typeof arrayType === 'object' ? stringifyJSON(arrayType) : arrayType}]`,
             },
         });
     }
@@ -25,7 +25,7 @@ class ObjectError extends SyntaxError {
     constructor(type: Record<string, unknown>) {
         super('debug.invalidValue', {
             cause: {
-                expectedValues: `${convertToJSON(type)} | undefined`,
+                expectedValues: `${stringifyJSON(type)} | undefined`,
             },
         });
     }
@@ -113,7 +113,7 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
 
-function convertToJSON(data: Record<string | number, unknown>) {
+function stringifyJSON(data: Record<string, unknown>) {
     return JSON.stringify(data, null, 6);
 }
 
@@ -122,7 +122,7 @@ function parseJSON(json: string) {
 }
 
 /**
- * Converts onyx data into string representation
+ * Converts onyx data into string representation.
  *
  * @param data - data to be converted into string
  * @returns converted data
@@ -133,17 +133,18 @@ function onyxDataToString(data: OnyxEntry<unknown>) {
     }
 
     if (typeof data === 'object') {
-        return convertToJSON(data as Record<string | number, unknown>);
+        return stringifyJSON(data as Record<string, unknown>);
     }
 
     return String(data);
 }
-type OnyxDataType = 'number' | 'bigint' | 'object' | 'string' | 'boolean' | 'symbol' | 'function' | 'undefined';
+
+type OnyxDataType = 'number' | 'object' | 'string' | 'boolean' | 'undefined';
 
 type OnyxData<T extends OnyxDataType> = (T extends 'number' ? number : T extends 'object' ? Record<string, unknown> : T extends 'boolean' ? boolean : string) | null;
 
 /**
- * Converted strings into the expected onyx data type
+ * Converted strings into the expected onyx data type.
  *
  * @param data - string representation of the data is going to be converted
  * @param type - expected type
@@ -156,9 +157,6 @@ function stringToOnyxData<T extends OnyxDataType = 'string'>(data: string, type?
     switch (type) {
         case 'number':
             onyxData = Number(data);
-            break;
-        case 'bigint':
-            onyxData = BigInt(data);
             break;
         case 'object':
             onyxData = parseJSON(data) as Record<string, unknown>;
@@ -189,14 +187,14 @@ function compareStringWithOnyxData(text: string, data: OnyxEntry<unknown>) {
     }
 
     if (typeof data === 'object') {
-        return text === convertToJSON(data as Record<string | number, unknown>);
+        return text === stringifyJSON(data as Record<string, unknown>);
     }
 
     return text === String(data);
 }
 
 /**
- * Determines the number of lines needed to display the data
+ * Determines the number of lines needed to display the data.
  *
  * @param data - string representation
  * @returns number of lines needed to display the data
@@ -206,7 +204,7 @@ function getNumberOfLinesFromString(data: string) {
 }
 
 /**
- * Converts every value from an onyx data object into it's string representation, to be used as draft data
+ * Converts every value from an onyx data object into it's string representation, to be used as draft data.
  *
  * @param data - onyx data object
  * @returns converted data object
@@ -216,48 +214,41 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 }
 
 /**
- * Validates if a string is a valid representation of a number
- *
- * @param value - string
+ * Validates if a string is a valid representation of a number.
  */
-// eslint-disable-next-line rulesdir/prefer-early-return
 function validateNumber(value: string) {
-    if (value !== 'undefined' && (value.includes(' ') || value === '' || Number.isNaN(Number(value)))) {
-        throw new NumberError();
+    if (value === 'undefined' || (!value.includes(' ') && value !== '' && !Number.isNaN(Number(value)))) {
+        return;
     }
+
+    throw new NumberError();
 }
 
 /**
- * Validates if a string is a valid representation of a boolean
- *
- * @param value - string
+ * Validates if a string is a valid representation of a boolean.
  */
-// eslint-disable-next-line rulesdir/prefer-early-return
 function validateBoolean(value: string) {
-    if (!OPTIONAL_BOOLEAN_STRINGS.includes(value)) {
-        throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')}});
+    if (OPTIONAL_BOOLEAN_STRINGS.includes(value)) {
+        return;
     }
+
+    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: OPTIONAL_BOOLEAN_STRINGS.join(' | ')}});
 }
 
 /**
- * Validates if a string is a valid representation of a date
- *
- * @param value - string
+ * Validates if a string is a valid representation of a date.
  */
-// eslint-disable-next-line rulesdir/prefer-early-return
 function validateDate(value: string) {
-    if (value !== 'undefined' && (!isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || !isValid(new Date(value)))) {
-        throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING}});
+    if (value === 'undefined' || (isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) && isValid(new Date(value)))) {
+        return;
     }
+
+    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: CONST.DATE.FNS_DB_FORMAT_STRING}});
 }
 
 /**
- * Validates if a string is a valid representation of an enum value
- *
- * @param value - string
- * @param constEnum - enum
+ * Validates if a string is a valid representation of an enum value.
  */
-// eslint-disable-next-line rulesdir/prefer-early-return
 function validateConstantEnum(value: string, constEnum: ConstantEnum) {
     const enumValues = Object.values(constEnum).flatMap((val) => {
         if (val && typeof val === 'object') {
@@ -265,16 +256,16 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         }
         return String(val);
     });
-    if (value !== 'undefined' && (value === '' || !enumValues.includes(value))) {
-        throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: `${enumValues.join(' | ')} | undefined`}});
+
+    if (value === 'undefined' || (value !== '' && enumValues.includes(value))) {
+        return;
     }
+
+    throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: `${enumValues.join(' | ')} | undefined`}});
 }
 
 /**
- * Validates if a string is a valid representation of an array
- *
- * @param value - string
- * @param arrayType - type of array element
+ * Validates if a string is a valid representation of an array.
  */
 function validateArray(
     value: string,
@@ -307,11 +298,9 @@ function validateArray(
         throw new ArrayError(arrayType);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     array.forEach((element) => {
         // Element is an object
         if (element && typeof element === 'object' && typeof arrayType === 'object') {
-            // eslint-disable-next-line rulesdir/prefer-early-return
             Object.entries(arrayType).forEach(([key, val]) => {
                 const property = element[key as keyof typeof element];
                 // Property is a constant enum, so we apply validateConstantEnum
@@ -349,11 +338,7 @@ function validateArray(
 }
 
 /**
- * Validates if a string is a valid representation of an object
- *
- * @param value - string
- * @param type - expected object type
- * @param collectionIndexType - type of collection index
+ * Validates if a string is a valid representation of an object.
  */
 function validateObject(value: string, type: ObjectType, collectionIndexType?: 'string' | 'number') {
     if (value === 'undefined') {
@@ -391,7 +376,6 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
             throw new ObjectError(expectedType);
         }
 
-        // eslint-disable-next-line rulesdir/prefer-early-return
         Object.entries(type).forEach(([key, val]) => {
             // test[key] is a constant enum
             if (typeof val === 'object') {
@@ -405,7 +389,7 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
 }
 
 /**
- * Validates if a string is a valid representation of a string
+ * Validates if a string is a valid representation of a string.
  */
 function validateString(value: string) {
     if (value === 'undefined') {
@@ -553,11 +537,12 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
 
 function validateReportActionJSON(json: string) {
     const parsedReportAction = parseJSON(json) as ReportAction;
-    // eslint-disable-next-line rulesdir/prefer-early-return
     REPORT_ACTION_REQUIRED_PROPERTIES.forEach((key) => {
-        if (parsedReportAction[key] === undefined) {
-            throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+        if (parsedReportAction[key] !== undefined) {
+            return;
         }
+
+        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
     });
     Object.entries(parsedReportAction).forEach(([key, val]) => {
         try {
@@ -592,6 +577,6 @@ const DebugUtils = {
     REPORT_REQUIRED_PROPERTIES,
 };
 
-export type {ObjectType};
+export type {ObjectType, OnyxDataType};
 
 export default DebugUtils;

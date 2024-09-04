@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
@@ -81,7 +82,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
                 if (typeof value === 'boolean') {
                     acc[key] = value;
                 } else {
-                    acc[key] = DebugUtils.stringToOnyxData(value as string, typeof data[key]);
+                    acc[key] = DebugUtils.stringToOnyxData(value as string, typeof data[key] as OnyxDataType);
                 }
                 return acc;
             }, {} as Record<string, unknown>);
