@@ -4,10 +4,12 @@ import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -30,6 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
@@ -74,9 +77,8 @@ function WorkspaceWorkflowsApprovalsApproverPageWrapper(props: WorkspaceWorkflow
 function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -165,6 +167,8 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         translate,
     ]);
 
+    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections[0].data.length;
+
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
             const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -191,18 +195,23 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
         }
     }, [approvalWorkflow, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
 
-    const nextButton = useMemo(
-        () => (
+    const button = useMemo(() => {
+        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+
+        if (shouldShowListEmptyContent) {
+            buttonText = translate('common.buttonConfirm');
+        }
+
+        return (
             <FormAlertWithSubmitButton
-                isDisabled={!selectedApproverEmail && isInitialCreationFlow}
-                buttonText={isInitialCreationFlow ? translate('common.next') : translate('common.save')}
+                isDisabled={!shouldShowListEmptyContent && !selectedApproverEmail && isInitialCreationFlow}
+                buttonText={buttonText}
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
-        ),
-        [isInitialCreationFlow, nextStep, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
-    );
+        );
+    }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const goBack = useCallback(() => {
         if (isInitialCreationFlow) {
@@ -221,6 +230,21 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
 
     const headerMessage = useMemo(() => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TurtleInShell}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workflowsPage.emptyContent.title')}
+                subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
+                subtitleStyle={styles.textSupporting}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.textSupporting, styles.pb10],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -229,7 +253,6 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceWorkflowsApprovalsApproverPageWrapper.displayName}
-                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -241,21 +264,22 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                         title={translate('workflowsPage.approver')}
                         onBackButtonPress={goBack}
                     />
-                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
+                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !shouldShowListEmptyContent && (
                         <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
                     )}
                     <SelectionList
                         sections={sections}
                         ListItem={InviteMemberListItem}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         onSelectRow={toggleApprover}
                         showScrollIndicator
-                        showLoadingPlaceholder={!didScreenTransitionEnd || approvalWorkflowMetadata.status === 'loading'}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        footerContent={nextButton}
+                        footerContent={button}
+                        listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

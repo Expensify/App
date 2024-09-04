@@ -57,6 +57,9 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
     /** Whether we can dismiss the error message */
     canDismissError?: boolean;
+
+    /** Whether we should render the error message above the children */
+    shouldDisplayErrorAbove?: boolean;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -74,6 +77,7 @@ function OfflineWithFeedback({
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
     style,
+    shouldDisplayErrorAbove = false,
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
@@ -124,6 +128,14 @@ function OfflineWithFeedback({
     }
     return (
         <View style={style}>
+            {shouldShowErrorMessages && shouldDisplayErrorAbove && (
+                <ErrorMessageRow
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
+                    onClose={onClose}
+                    canDismissError={canDismissError}
+                />
+            )}
             {!hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
@@ -132,7 +144,7 @@ function OfflineWithFeedback({
                     <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
-            {shouldShowErrorMessages && (
+            {shouldShowErrorMessages && !shouldDisplayErrorAbove && (
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
