@@ -89,7 +89,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
 
             onSave(dataPreparedToSave);
         },
-        [dropdownsState, onSave],
+        [dropdownsState, data, onSave],
     );
 
     const onDropdownOptionSelected = (inputId: string, value: string) => {
