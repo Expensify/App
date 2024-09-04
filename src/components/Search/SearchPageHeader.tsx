@@ -95,7 +95,6 @@ type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
     hash: number;
     onSelectDeleteOption?: (itemsToDelete: string[]) => void;
-    isCustomQuery: boolean;
     setOfflineModalOpen?: () => void;
     setDownloadErrorModalOpen?: () => void;
     data?: TransactionListItemType[] | ReportListItemType[];
@@ -120,7 +119,7 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
     }
 }
 
-function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -149,11 +148,14 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
         [data, selectedTransactions],
     );
     const {status, type} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates) : translate(getHeaderContent(type).titleText);
-    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
 
-    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
+    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+
+    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
+    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
+    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
+
+    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {

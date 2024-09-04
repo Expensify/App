@@ -23,7 +23,6 @@ import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-    isCustomQuery: boolean;
 };
 
 type SearchTypeMenuItem = {
@@ -33,7 +32,7 @@ type SearchTypeMenuItem = {
     route?: Route;
 };
 
-function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {type} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -64,10 +63,12 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL)}),
         },
     ];
-    const activeItemIndex = isCustomQuery ? -1 : typeMenuItems.findIndex((item) => item.type === type);
+
+    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates) : undefined;
+        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON, personalDetails, cardList, reports, taxRates);
 
         return (
             <SearchTypeMenuNarrow

@@ -21,8 +21,6 @@ To pay an invoice,
 4. Click **Add Bank Account** or **Add debit or credit card** to issue payment. 
 {% include end-option.html %}
 
-You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
-
 {% include option.html value="mobile" %}
 1. Tap the link in the email or text notification they receive from Expensify.
 2. Tap **Pay**.
@@ -31,6 +29,8 @@ You can also view all unpaid invoices by searching for the sender’s email or p
 {% include end-option.html %}
 
 {% include end-selector.html %}
+
+You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
 # FAQ
 
