@@ -94,7 +94,7 @@ function shouldOpenOnAdminRoom() {
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString(), isCustomQuery: false};
+        return {q: buildSearchQueryString()};
     }
 
     if (screenName === SCREENS.REPORT) {
@@ -105,6 +105,16 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialR
     }
 
     return undefined;
+}
+
+function initializePusher() {
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+    }).then(() => {
+        User.subscribeToUserEvents();
+    });
 }
 
 let timezone: Timezone | null;
@@ -125,7 +135,7 @@ Onyx.connect({
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
-            User.subscribeToUserEvents();
+            initializePusher();
         }
     },
 });
@@ -256,13 +266,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-        }).then(() => {
-            User.subscribeToUserEvents();
-        });
+        initializePusher();
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
@@ -339,7 +343,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
+                Modal.close(
+                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
+                    true,
+                    true,
+                );
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,

@@ -56,9 +56,8 @@ runs:
         distribution: "oracle"
         java-version: "17"
 
-    - uses: ruby/setup-ruby@v1.187.0
+    - uses: ruby/setup-ruby@v1.190.0
       with:
-        ruby-version: "2.7"
         bundler-cache: true
 
     - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef

@@ -16,6 +16,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage() {
             SkeletonComponent={TableListItemSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={Illustrations.CompanyCardsEmptyState}
+            containerStyles={styles.mt4}
             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
             headerContentStyles={styles.emptyStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
