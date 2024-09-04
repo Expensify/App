@@ -227,6 +227,8 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                                       validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                                   },
                                   isLoading: false,
+                                  pendingFields: {email: null, role: null},
+                                  pendingAction: null,
                               },
                     ),
                 },

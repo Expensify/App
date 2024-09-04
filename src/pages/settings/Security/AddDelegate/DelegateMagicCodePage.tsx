@@ -1,9 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useRef} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -31,6 +29,17 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const styles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+
+    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegatePersonalDetails?.login);
+
+    useEffect(() => {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email) {
+            return;
+        }
+
+        // Dismiss modal on successful magic code verification
+        Navigation.dismissModal();
+    }, [accountID, currentDelegate, role]);
 
     const onBackButtonPress = () => {
         Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(accountID, role));
