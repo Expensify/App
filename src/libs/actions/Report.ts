@@ -773,7 +773,7 @@ function getInviteOnboardingDetails() {
             data: CONST.ONBOARDING_MESSAGES[choice],
             personalDetails: {
                 firstName,
-                lastName
+                lastName,
             },
         };
     }
