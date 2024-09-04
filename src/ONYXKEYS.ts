@@ -403,6 +403,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the information about the saved searches */
+    SAVED_SEARCHES: 'nvp_savedSearches',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -630,6 +633,7 @@ const ONYXKEYS = {
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
+        SEARCH_SAVED_SEARCH_RENAME_FORM: 'searchSavedSearchRenameForm',
         TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
         TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
         RULES_REQUIRED_RECEIPT_AMOUNT_FORM: 'rulesRequiredReceiptAmountForm',
@@ -912,6 +916,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch[];
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
