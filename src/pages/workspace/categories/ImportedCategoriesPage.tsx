@@ -95,8 +95,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : '',
         }));
 
-        console.log(categories, typeof categoriesGLCode[3]);
-
         if (categories) {
             setIsImportingCategories(true);
             importPolicyCategories(policyID, categories);
