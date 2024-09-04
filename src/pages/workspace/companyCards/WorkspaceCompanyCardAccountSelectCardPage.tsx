@@ -29,6 +29,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const policy = usePolicy(policyID);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy);
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const listEmptyContent = useMemo(
         () => (
@@ -36,12 +37,12 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+                title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
+                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, currentConnectionName],
     );
 
     const updateExportAccount = useCallback(

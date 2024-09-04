@@ -3024,6 +3024,8 @@ export default {
                 emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
                 giveItNameInstruction: 'Dale a la tarjeta un nombre que la distinga de las demás.',
                 updating: 'Actualizando...',
+                noAccountsFound: 'No se han encontrado cuentas',
+                noAccountsFoundDescription: (connection: string) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
             },
             distanceRates: {
                 title: 'Tasas de distancia',

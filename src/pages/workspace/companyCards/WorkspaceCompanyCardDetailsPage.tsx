@@ -73,7 +73,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const card = cardsList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    // const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy);
 
     const unassignCard = () => {
@@ -105,7 +104,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <View style={[styles.walletCard, styles.mb3]}>
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={CardUtils.getCardDetailsImage(selectedFeed)}
+                                    src={CardUtils.getCardDetailsImage(card?.bank ?? '')}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}
@@ -154,7 +153,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                                title={card?.startDate ? format(card.startDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : ''}
+                                title={card?.startDate ? format(card.startDate, CONST.DATE.FNS_FORMAT_STRING) : ''}
                                 interactive={false}
                             />
                             <MenuItem
