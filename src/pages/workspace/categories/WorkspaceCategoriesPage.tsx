@@ -394,6 +394,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
+                        shouldAutoTurnSelectionModeOffWhenHasNoActiveOption
                     />
                 )}
 
