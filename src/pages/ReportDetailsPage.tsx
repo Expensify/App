@@ -248,7 +248,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [isMoneyRequestExported, moneyRequestReport]);
+    }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
