@@ -5187,7 +5187,7 @@ const styles = (theme: ThemeColors) =>
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
-        }
+        },
 
         importColumnCard: {
             backgroundColor: theme.cardBG,
