@@ -1,4 +1,5 @@
-type SetPolicyBillableMode = {
+type SetPolicyBillableModeParams = {
+    policyID: string;
     defaultBillable: boolean;
     /**
      * Stringified JSON object with type of following structure:
@@ -9,4 +10,4 @@ type SetPolicyBillableMode = {
     disabledFields: string;
 };
 
-export default SetPolicyBillableMode;
+export default SetPolicyBillableModeParams;
