@@ -144,7 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, currentUserDeatils, delegateNoAccessPrompt} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -163,18 +163,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
-
-    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
-    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
-
-    const noDelegateAccessPromp = (
-        <Text>
-            {basicnoDelegateAccessPromptStart}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-            {basicnoDelegateAccessPromptEnd}
-        </Text>
-    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -426,7 +414,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isNoDelegateAccessMenuVisible}
                 onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
                 title={translate('delegate.notAllowed')}
-                prompt={noDelegateAccessPromp}
+                prompt={delegateNoAccessPrompt}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />

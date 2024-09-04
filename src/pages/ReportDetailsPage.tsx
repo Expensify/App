@@ -236,7 +236,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, currentUserDeatils, delegateNoAccessPrompt} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
@@ -249,18 +249,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
     }, [isMoneyRequestExported, moneyRequestReport]);
-
-    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
-    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
-
-    const noDelegateAccessPromp = (
-        <Text>
-            {basicnoDelegateAccessPromptStart}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-            {basicnoDelegateAccessPromptEnd}
-        </Text>
-    );
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
@@ -835,7 +823,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isNoDelegateAccessMenuVisible}
                     onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
                     title={translate('delegate.notAllowed')}
-                    prompt={noDelegateAccessPromp}
+                    prompt={delegateNoAccessPrompt}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />

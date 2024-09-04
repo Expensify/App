@@ -194,7 +194,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, currentUserDeatils, delegateNoAccessPrompt} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -215,20 +215,6 @@ function ReportPreview({
             }
         }
     };
-
-    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
-    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
-
-    const noDelegateAccessPromp = (
-        <>
-            <Text>
-                {basicnoDelegateAccessPromptStart}
-                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-                {basicnoDelegateAccessPromptEnd}
-            </Text>
-        </>
-    );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -544,7 +530,7 @@ function ReportPreview({
                 isVisible={isNoDelegateAccessMenuVisible}
                 onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
                 title={translate('delegate.notAllowed')}
-                prompt={noDelegateAccessPromp}
+                prompt={delegateNoAccessPrompt}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
