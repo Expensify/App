@@ -48,9 +48,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
                 isSelected={isSelected}
             />
         );
-    }
-
-    if (emojiStatus) {
+    } else if (emojiStatus) {
         children = (
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
