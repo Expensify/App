@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -23,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList} from '@src/types/onyx';
-import Button from '@components/Button';
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
@@ -216,6 +216,16 @@ function AdvancedSearchFilters() {
 
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters), [searchAdvancedFilters]);
 
+    const applyFiltersAndNavigate = () => {
+        SearchActions.clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                query: queryString,
+                isCustomQuery: true,
+            }),
+        );
+    };
+
     const onSaveSearch = () => {
         const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || DEFAULT_SAVE_SEARCH_QUERY_STRING);
         if (!queryJSON) {
@@ -227,16 +237,6 @@ function AdvancedSearchFilters() {
         });
 
         applyFiltersAndNavigate();
-    };
-
-    const applyFiltersAndNavigate = () => {
-        SearchActions.clearAdvancedFilters();
-        Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: queryString,
-                isCustomQuery: true,
-            }),
-        )
     };
 
     return (
