@@ -107,7 +107,7 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5, {borderWidth: 1, borderColor: 'yellow'}]}
+                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
             >
                 {children}
                 {isSubmitButtonVisible && (
