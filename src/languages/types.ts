@@ -103,6 +103,7 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -118,6 +119,8 @@ type UserSplitParams = {amount: string};
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
+
+type CompanyCardFeedNameParams = {feedName: string};
 
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
@@ -371,6 +374,7 @@ export type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
