@@ -17,6 +17,7 @@ type SharedProps<T> = {
     buttonText?: string;
     buttonAction?: () => void;
     pressOnEnter?: boolean;
+    containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
