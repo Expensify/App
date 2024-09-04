@@ -2,7 +2,6 @@ import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {translateLocal} from './Localize';
@@ -481,7 +480,6 @@ export {
     getCardForSubscriptionBilling,
     getFreeTrialText,
     getOverdueGracePeriodDate,
-    shouldShowPreTrialBillingBanner,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasRetryBillingError,
@@ -491,4 +489,5 @@ export {
     isUserOnFreeTrial,
     PAYMENT_STATUS,
     shouldRestrictUserBillableActions,
+    shouldShowPreTrialBillingBanner,
 };
