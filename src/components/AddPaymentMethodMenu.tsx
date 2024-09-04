@@ -1,12 +1,11 @@
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
@@ -75,24 +74,14 @@ function AddPaymentMethodMenu({
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
-    const onPaymentItemSelected = useCallback(
-        (paymentMethod: PaymentMethod) => {
-            const paymentSelected = paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-
-            IOU.completePaymentOnboarding(paymentSelected);
-            onItemSelected(paymentMethod);
-        },
-        [onItemSelected],
-    );
-
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
         if (!isVisible || !isPersonalOnlyOption) {
             return;
         }
 
-        onPaymentItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [isPersonalOnlyOption, isVisible, onPaymentItemSelected]);
+        onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -119,7 +108,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  onPaymentItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                                  onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
                       ]
@@ -130,7 +119,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
                               onSelected: () => {
-                                  onPaymentItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                                  onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },
                           },
                       ]
@@ -140,9 +129,7 @@ function AddPaymentMethodMenu({
                 //     {
                 //         text: translate('common.debitCard'),
                 //         icon: Expensicons.CreditCard,
-                //         onSelected: () => {
-                //              onPaymentItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD);
-                //         },
+                //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
                 //     },
                 // ],
             ]}
