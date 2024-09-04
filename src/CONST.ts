@@ -2408,6 +2408,7 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
+        EMPTY_COMMENT: /^(\s)*$/,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
         FIRST_SPACE: /.+?(?=\s)/,
