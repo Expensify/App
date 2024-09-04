@@ -3,8 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,17 +25,13 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
 
-    /** Whether SectionList should have overflow: "auto" enabled */
-    shouldAddOverflow?: boolean;
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldAddOverflow = false}: CategoryPickerProps) {
-    const styles = useThemeStyles();
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldUseCustomScrollView = false}: CategoryPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    // Ensure scrolling works for the SectionList in a nested lists structure involving a Modal on the web.
-    const sectionListStyles = isWeb && shouldAddOverflow && [styles.overflowAuto, styles.flex1];
 
     const selectedOptions = useMemo(() => {
         if (!selectedCategory) {
@@ -93,7 +87,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
-            sectionListStyle={sectionListStyles}
+            shouldUseCustomScrollView={shouldUseCustomScrollView}
         />
     );
 }

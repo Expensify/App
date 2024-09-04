@@ -46,7 +46,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
                 isPickerVisible={isCategoryPickerVisible}
                 showPickerModal={() => setIsCategoryPickerVisible(true)}
                 hidePickerModal={() => setIsCategoryPickerVisible(false)}
-                shouldAddOverflow
+                shouldUseCustomScrollView
             />
         </BaseListItem>
     );

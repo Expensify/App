@@ -34,8 +34,8 @@ type CategorySelectorProps = {
     /** Callback to hide category picker */
     hidePickerModal: () => void;
 
-    /** Whether SectionList should have overflow: "auto" enabled */
-    shouldAddOverflow?: boolean;
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView?: boolean;
 };
 
 function CategorySelector({
@@ -48,7 +48,7 @@ function CategorySelector({
     isPickerVisible,
     showPickerModal,
     hidePickerModal,
-    shouldAddOverflow = false,
+    shouldUseCustomScrollView = false,
 }: CategorySelectorProps) {
     const styles = useThemeStyles();
 
@@ -78,7 +78,7 @@ function CategorySelector({
                 onClose={hidePickerModal}
                 onCategorySelected={updateCategoryInput}
                 label={label}
-                shouldAddOverflow={shouldAddOverflow}
+                shouldUseCustomScrollView={shouldUseCustomScrollView}
             />
         </View>
     );

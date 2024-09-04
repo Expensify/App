@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SpendCategorySelectorListItem from '@components/SelectionList/SpendCategorySelectorListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +18,7 @@ import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps;
 
