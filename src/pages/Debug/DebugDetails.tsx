@@ -29,7 +29,7 @@ type DebugDetailsProps = {
     /** A unique Onyx key identifying the form */
     formId: typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM;
     reportID: string;
-    onSave: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM> | FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => void;
+    onSave: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => void;
     onDelete: () => void;
     validate: (key: never, value: string) => void;
 };
@@ -47,7 +47,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
     const [dropdownsState, setDropdownsState] = useState<Record<string, string>>({});
 
     const validator = useCallback(
-        (values: Record<string, unknown>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM> => {
+        (values: Record<string, unknown>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM> => {
             const newErrors: Record<string, string | undefined> = {};
             Object.entries(values).forEach(([key, value]) => {
                 try {
@@ -73,7 +73,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
     }, [formId]);
 
     const handleSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => {
             onSave({...values, ...dropdownsState});
         },
         [dropdownsState, onSave],
