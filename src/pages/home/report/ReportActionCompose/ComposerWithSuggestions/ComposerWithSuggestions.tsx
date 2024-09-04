@@ -481,14 +481,14 @@ function ComposerWithSuggestions(
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            const valueLength = valueRef.current.length;
+            const isEmptyComment = !valueRef.current || valueRef.current.match(/^(\s)*$/);
             if (
                 'key' in event &&
                 event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
                 textInputRef.current &&
                 'selectionStart' in textInputRef.current &&
                 textInputRef.current?.selectionStart === 0 &&
-                valueLength === 0 &&
+                isEmptyComment &&
                 !includeChronos
             ) {
                 event.preventDefault();
