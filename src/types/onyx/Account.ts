@@ -18,11 +18,14 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The role of the delegate */
     role?: DelegateRole;
 
-    /** Authentication failure errors */
-    error?: TranslationPaths;
-
-    /** Whether the magic code has been sent for adding this user */
+    /** Whether the user validation code was sent */
     validateCodeSent?: boolean;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Whether the user is loading */
+    isLoading?: boolean;
 }>;
 
 /** Model of delegated access data */

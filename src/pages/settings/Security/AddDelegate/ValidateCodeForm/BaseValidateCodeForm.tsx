@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DelegateRole} from '@src/types/onyx/Account';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
     focus: () => void;
@@ -58,8 +59,12 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const login = account?.primaryLogin;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
-    const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
+    const validateLoginError = ErrorUtils.getEarliestErrorField(currentDelegate, 'addDelegate');
+
+    const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -113,10 +118,16 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     /**
      * Handle text input and clear formError upon text change
      */
-    const onTextInput = useCallback((text: string) => {
-        setValidateCode(text);
-        setFormError({});
-    }, []);
+    const onTextInput = useCallback(
+        (text: string) => {
+            setValidateCode(text);
+            setFormError({});
+            if (validateLoginError) {
+                Delegate.clearDelegatorErrors();
+            }
+        },
+        [validateLoginError],
+    );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -146,7 +157,8 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                     name="validateCode"
                     value={validateCode}
                     onChangeText={onTextInput}
-                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(validateLoginError)}
+                    hasError={!isEmptyObject(validateLoginError)}
                     onFulfill={validateAndSubmitForm}
                     autoFocus={false}
                 />
@@ -168,7 +180,11 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                 </OfflineWithFeedback>
             </View>
             <FixedFooter>
-                <OfflineWithFeedback errorRowStyles={[styles.mt2]}>
+                <OfflineWithFeedback
+                    errorRowStyles={[styles.mt2]}
+                    errors={validateLoginError}
+                    onClose={() => Delegate.clearAddDelegateErrors(delegate, 'validateLogin')}
+                >
                     <Button
                         isDisabled={isOffline}
                         text={translate('common.verify')}
@@ -177,7 +193,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                         success
                         pressOnEnter
                         large
-                        isLoading={account?.isLoading}
+                        isLoading={currentDelegate?.isLoading}
                     />
                 </OfflineWithFeedback>
             </FixedFooter>

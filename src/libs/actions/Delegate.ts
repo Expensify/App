@@ -3,6 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -171,7 +172,16 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 delegatedAccess: {
                     delegates: [
                         ...(delegatedAccess.delegates ?? []),
-                        {email, role, pendingAction: 'add', pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+                        {
+                            email,
+                            role,
+                            pendingAction: 'add',
+                            errorFields: {
+                                validateLogin: null,
+                            },
+                            isLoading: true,
+                            pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        },
                     ],
                 },
             },
@@ -184,7 +194,19 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: [...(delegatedAccess.delegates ?? []), {email, role, error: undefined, pendingAction: null, pendingFields: {email: null, role: null}}],
+                    delegates: [
+                        ...(delegatedAccess.delegates ?? []),
+                        {
+                            email,
+                            role,
+                            errorFields: {
+                                validateLogin: null,
+                            },
+                            isLoading: false,
+                            pendingAction: null,
+                            pendingFields: {email: null, role: null},
+                        },
+                    ],
                 },
             },
         },
@@ -196,7 +218,17 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.map((delegate) => (delegate.email !== email ? delegate : {...delegate, error: 'delegate.genericError'})),
+                    delegates: delegatedAccess.delegates?.map((delegate) =>
+                        delegate.email !== email
+                            ? delegate
+                            : {
+                                  ...delegate,
+                                  errorFields: {
+                                      validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
+                                  },
+                                  isLoading: false,
+                              },
+                    ),
                 },
             },
         },
@@ -207,4 +239,16 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode};
+function clearAddDelegateErrors(email: string, fieldName: string) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        delegatedAccess: {
+            delegates: delegatedAccess.delegates.map((delegate) => (delegate.email !== email ? delegate : {...delegate, errorFields: {...delegate.errorFields, [fieldName]: null}})),
+        },
+    });
+}
+
+export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors};
