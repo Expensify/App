@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/extensions
 import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
