@@ -575,15 +575,18 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
 
     let assigneeChatReportOnyxData;
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '-1';
+    const parentReport = getParentReport(report);
+    const taskOwnerAccountID = getTaskOwnerAccountID(report);
     const optimisticReport: OptimisticReport = {
         reportName,
         managerID: assigneeAccountID ?? report.managerID,
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
-        notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
-            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
-            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        notificationPreference:
+            [assigneeAccountID, taskOwnerAccountID].includes(currentUserAccountID) && !parentReport
+                ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+                : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     };
     const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
@@ -627,7 +630,6 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
     ];
 
     if (currentUserAccountID === assigneeAccountID) {
-        const parentReport = getParentReport(report);
         if (!isEmptyObject(parentReport)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -644,7 +646,6 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
 
     if (report.managerID === currentUserAccountID) {
         const hasOutstandingChildTask = getOutstandingChildTask(report);
-        const parentReport = getParentReport(report);
         if (!isEmptyObject(parentReport)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
