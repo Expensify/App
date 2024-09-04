@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
@@ -20,9 +21,6 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Full amount of expense report to pay */
     fullAmount: string;
 
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
-
     /** Whether modal is visible */
     isVisible: boolean;
 
@@ -40,21 +38,25 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Type of action handled */
     requestType?: ActionHandledType;
+
+    /** Number of transaction of a money request */
+    transactionCount: number;
 };
 
 function ProcessMoneyReportHoldMenu({
     requestType,
     nonHeldAmount,
     fullAmount,
-    isSmallScreenWidth = false,
     onClose,
     isVisible,
     paymentType,
     chatReport,
     moneyRequestReport,
+    transactionCount,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
@@ -68,12 +70,19 @@ function ProcessMoneyReportHoldMenu({
         onClose();
     };
 
+    const promptText = useMemo(() => {
+        if (nonHeldAmount) {
+            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
+        }
+        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
+    }, [nonHeldAmount, transactionCount, translate, isApprove]);
+
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
             onClose={onClose}
             isVisible={isVisible}
-            prompt={translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')}
+            prompt={promptText}
             firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}

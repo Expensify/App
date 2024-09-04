@@ -114,7 +114,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         }
 
         PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '-1');
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {

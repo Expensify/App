@@ -19,6 +19,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.value}));
     // This sets the opacity animation for the background image once it has loaded.
     function setOpacityAnimation() {
+        // eslint-disable-next-line react-compiler/react-compiler
         opacity.value = withTiming(1, {
             duration: CONST.MICROSECONDS_PER_MS,
             easing: Easing.ease,

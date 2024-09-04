@@ -55,6 +55,9 @@ type MentionSuggestionsProps = {
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
+
+    /** Reset the emoji suggestions */
+    resetSuggestions: () => void;
 };
 
 /**
@@ -62,7 +65,15 @@ type MentionSuggestionsProps = {
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
-function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainerAndReportCursor = () => {}}: MentionSuggestionsProps) {
+function MentionSuggestions({
+    prefix,
+    mentions,
+    highlightedMentionIndex = 0,
+    onSelect,
+    isMentionPickerLarge,
+    measureParentContainerAndReportCursor = () => {},
+    resetSuggestions,
+}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -149,6 +160,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             isSuggestionPickerLarge={isMentionPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }

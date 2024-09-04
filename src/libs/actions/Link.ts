@@ -21,9 +21,21 @@ Onyx.connect({
 });
 
 let currentUserEmail = '';
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (value) => (currentUserEmail = value?.email ?? ''),
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
+        currentUserAccountID = value?.accountID ?? -1;
+    },
+});
+
+let isTravelTestAccount = false;
+Onyx.connect({
+    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+    callback: (value) => {
+        isTravelTestAccount = value?.testAccount ?? false;
+    },
 });
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
@@ -66,17 +78,18 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
-    return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
-        const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
-        const tmcIDParam = `tmcId=${tmcID}`;
+function buildTravelDotURL(spotnanaToken: string, postLoginPath?: string): string {
+    const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
+    const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
-        const paramsArray = [authCode, tmcIDParam, redirectURL];
-        const params = paramsArray.filter(Boolean).join('&');
-        const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?${params}`;
-    });
+    const authCode = `authCode=${spotnanaToken}`;
+    const tmcIDParam = `tmcId=${tmcID}`;
+    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+
+    const paramsArray = [authCode, tmcIDParam, redirectURL];
+    const params = paramsArray.filter(Boolean).join('&');
+    const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+    return `${travelDotDomain}auth/code?${params}`;
 }
 
 /**
@@ -91,13 +104,26 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
         policyID,
     };
 
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginPath) : buildTravelDotURL()))
-            .catch(() => buildTravelDotURL()),
-        (travelDotURL) => travelDotURL,
-    );
+    return new Promise((_, reject) => {
+        const error = new Error('Failed to generate spotnana token.');
+
+        asyncOpenURL(
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
+                .then((response) => {
+                    if (!response?.spotnanaToken) {
+                        reject(error);
+                        throw error;
+                    }
+                    return buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                })
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
+            (travelDotURL) => travelDotURL ?? '',
+        );
+    });
 }
 
 function getInternalNewExpensifyPath(href: string) {
@@ -157,4 +183,29 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL};
+function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
+    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
+    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+    const exitTo = `exitTo=${url}`;
+    const accountID = `accountID=${currentUserAccountID}`;
+    const paramsArray = [accountID, emailParam, authTokenParam, exitTo];
+    const params = paramsArray.filter(Boolean).join('&');
+
+    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
+}
+
+/**
+ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ */
+function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
+    asyncOpenURL(
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
+            .catch(() => buildURLWithAuthToken(url)),
+        (link) => link,
+        shouldSkipCustomSafariLogic,
+    );
+}
+
+export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken};

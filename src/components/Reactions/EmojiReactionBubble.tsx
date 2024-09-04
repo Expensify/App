@@ -7,7 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
-import getEmojiReactionBubbleTextOffsetStyle from './getEmojiReactionBubbleTextOffsetStyle';
 
 type EmojiReactionBubbleProps = {
     /**
@@ -83,7 +82,7 @@ function EmojiReactionBubble(
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu), getEmojiReactionBubbleTextOffsetStyle()]}>{emojiCodes.join('')}</Text>
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
         </PressableWithSecondaryInteraction>
     );

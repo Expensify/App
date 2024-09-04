@@ -29,7 +29,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         }
         // We need to separately reset state of this navigator to trigger getRehydratedState.
         navigation.reset(navigation.getState());
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
     return (

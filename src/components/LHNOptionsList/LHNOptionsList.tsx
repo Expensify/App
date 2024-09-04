@@ -12,12 +12,12 @@ import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -42,7 +42,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {canUseViolations} = usePermissions();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
@@ -115,9 +114,23 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID ?? '-1'}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
+
+            let invoiceReceiverPolicyID = '-1';
+            if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
+                invoiceReceiverPolicyID = itemFullReport.invoiceReceiver.policyID;
+            }
+            if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
+                invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
+            }
+            const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
+
+            const iouReportIDOfLastAction = OptionsListUtils.getIOUReportIDOfLastAction(itemFullReport);
+            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
+
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
             const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
                 ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? '-1'
@@ -141,7 +154,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
+                    iouReportReportActions={itemIouReportReportActions}
                     policy={itemPolicy}
+                    invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
                     lastReportActionTransaction={lastReportActionTransaction}
@@ -152,7 +167,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
-                    canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
                 />
             );
@@ -169,14 +183,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
-            canUseViolations,
             onLayoutItem,
         ],
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
-        [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
+        () => [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
     );
 
     const previousOptionMode = usePrevious(optionMode);

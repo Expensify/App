@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, ReportActions, Session, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -49,7 +49,7 @@ type IOURequestStepCategoryOnyxProps = {
     policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<ReportActions>;
@@ -115,7 +115,7 @@ function IOURequestStepCategory({
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -145,7 +145,7 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
+            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
             return;
         }
 

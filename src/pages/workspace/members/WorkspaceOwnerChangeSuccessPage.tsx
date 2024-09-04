@@ -40,7 +40,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
                     onBackButtonPress={closePage}
                 />
                 <ConfirmationPage
-                    animation={LottieAnimations.Fireworks}
+                    illustration={LottieAnimations.Fireworks}
                     heading={translate('workspace.changeOwner.successTitle')}
                     description={translate('workspace.changeOwner.successDescription')}
                     descriptionStyle={styles.textSupporting}

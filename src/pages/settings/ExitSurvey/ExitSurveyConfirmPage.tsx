@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MushroomTopHat} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,14 +28,12 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageOnyxProps = {
     exitReason?: ExitReason | null;
-    isLoading: OnyxEntry<boolean>;
 };
 
 type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
-function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitSurveyConfirmPageProps) {
+function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
-    const {showSplashScreenOnNextStart} = useHybridAppMiddleware();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -86,17 +83,10 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     large
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={() => {
-                        ExitSurvey.switchToOldDot().then(() => {
-                            if (NativeModules.HybridAppModule) {
-                                Navigation.resetToHome();
-                                showSplashScreenOnNextStart();
-                                NativeModules.HybridAppModule.closeReactNativeApp();
-                                return;
-                            }
-                            Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                        });
+                        ExitSurvey.switchToOldDot();
+                        Navigation.dismissModal();
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     }}
-                    isLoading={isLoading ?? false}
                     isDisabled={isOffline}
                 />
             </FixedFooter>
@@ -110,8 +100,5 @@ export default withOnyx<ExitSurveyConfirmPageProps, ExitSurveyConfirmPageOnyxPro
     exitReason: {
         key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
         selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
-    },
-    isLoading: {
-        key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
     },
 })(ExitSurveyConfirmPage);

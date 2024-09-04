@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +34,6 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {navigateToExitUrl} = useHybridAppMiddleware();
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
@@ -64,14 +62,14 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             Session.setAccountError(error);
         }
 
-        if (exitTo) {
+        // For HybridApp we have separate logic to handle transitions.
+        if (!NativeModules.HybridAppModule && exitTo) {
             Navigation.isNavigationReady().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
-                navigateToExitUrl(url);
+                Navigation.navigate(exitTo as Route);
             });
         }
         // The only dependencies of the effect are based on props.route
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
     if (account?.isLoading) {

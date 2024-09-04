@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -50,6 +51,7 @@ function BaseModal(
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
+        initialFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -118,7 +120,7 @@ function BaseModal(
             }
             hideModal(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -242,7 +244,9 @@ function BaseModal(
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationOut={animationOut ?? modalStyleAnimationOut}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriver={useNativeDriverProp && useNativeDriver}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}
@@ -252,8 +256,15 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <ModalContent onDismiss={handleDismissModal}>
-                        <FocusTrapForModal active={isVisible}>
+                    <ModalContent
+                        onModalWillShow={saveFocusState}
+                        onDismiss={handleDismissModal}
+                    >
+                        <PortalHost name="modal" />
+                        <FocusTrapForModal
+                            active={isVisible}
+                            initialFocus={initialFocus}
+                        >
                             <View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}

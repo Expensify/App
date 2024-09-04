@@ -13,7 +13,7 @@ type PlaybackContext = {
     currentlyPlayingURLReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
-    videoResumeTryNumber: MutableRefObject<number>;
+    videoResumeTryNumberRef: MutableRefObject<number>;
     currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
     playVideo: () => void;
@@ -30,6 +30,7 @@ type VolumeContext = {
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
     videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
     setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };

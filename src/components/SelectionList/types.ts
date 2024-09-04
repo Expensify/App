@@ -1,9 +1,11 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+// eslint-disable-next-line no-restricted-imports
+import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -16,7 +18,7 @@ import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -56,8 +58,14 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
 
 type ListItem = {
@@ -79,6 +87,9 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether this item should be interactive at all */
+    isInteractive?: boolean;
+
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 
@@ -87,6 +98,9 @@ type ListItem = {
 
     /** User login */
     login?: string | null;
+
+    /** Element to show on the left side of the item */
+    leftElement?: ReactNode;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -117,6 +131,9 @@ type ListItem = {
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
+
     /** The search value from the selection list */
     searchText?: string | null;
 
@@ -131,15 +148,18 @@ type ListItem = {
 
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
+
+    /** The style to override the cursor appearance */
+    cursorStyle?: CursorStyles[keyof CursorStyles];
 };
 
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -172,10 +192,19 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Key used internally by React */
+        keyForList: string;
     };
 
 type ReportListItemType = ListItem &
     SearchReport & {
+        /** The personal details of the user requesting money */
+        from: SearchPersonalDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchPersonalDetails;
+
         transactions: TransactionListItemType[];
     };
 
@@ -279,8 +308,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Whether to debounce `onRowSelect` */
-    shouldDebounceRowSelect?: boolean;
+    /** Whether to single execution `onRowSelect` - workaround for unintentional multiple navigation calls https://github.com/Expensify/App/issues/44443 */
+    shouldSingleExecuteRowSelect?: boolean;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
 
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
@@ -378,7 +410,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
-    /** Content to display if the list is empty */
+    /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
@@ -389,6 +421,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply to SectionList component */
+    sectionListStyle?: StyleProp<ViewStyle>;
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
@@ -410,6 +445,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Whether to wrap the alternate text up to 2 lines */
+    isAlternateTextMultilineSupported?: boolean;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
@@ -448,6 +486,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether to show the empty list content */
+    shouldShowListEmptyContent?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

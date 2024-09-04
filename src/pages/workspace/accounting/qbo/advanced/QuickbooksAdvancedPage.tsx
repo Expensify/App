@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,8 +29,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
-    const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-
+    const {bankAccounts, creditCards, otherCurrentAssetAccounts, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === nonReimbursableBillDefaultVendor);
     const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
     const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
 
@@ -70,7 +72,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
-            title: translate('workspace.qbo.advancedConfig.autoSync'),
+            title: translate('workspace.accounting.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: !!autoSync?.enabled,
@@ -99,14 +101,31 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: !!autoCreateVendor,
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
+            onToggle: (isOn) => {
+                const nonReimbursableVendorUpdateValue = isOn
+                    ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+                const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+
+                QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
+                    policyID,
+                    {
+                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
+                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorUpdateValue,
+                    },
+                    {
+                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: !!autoCreateVendor,
+                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableVendorCurrentValue,
+                    },
+                );
+            },
             pendingAction: pendingFields?.autoCreateVendor,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             wrapperStyle: styles.mv3,
         },
         {
-            title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
+            title: translate('workspace.accounting.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
@@ -136,7 +155,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksAdvancedPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.advanced')} />
 
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                     {qboToggleSettingItems.map((item) => (

@@ -31,7 +31,7 @@ type TestToolsModalOnyxProps = {
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}: TestToolsModalProps) {
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -44,7 +44,6 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
             onClose={toggleTestToolsModal}
         >
             <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
-                {isDevelopment && <TestToolMenu />}
                 <Text
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
                     numberOfLines={1}
@@ -65,6 +64,7 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
                         />
                     </TestToolRow>
                 )}
+                {!isProduction && <TestToolMenu />}
             </View>
         </Modal>
     );

@@ -1,10 +1,41 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
+
+/** The role of the delegate */
+type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
+
+/** Model of delegate */
+type Delegate = {
+    /** The email of the delegate */
+    email: string;
+
+    /** The role of the delegate */
+    role: DelegateRole;
+
+    /** Authentication failure errors */
+    error?: TranslationPaths;
+};
+
+/** Model of delegated access data */
+type DelegatedAccess = {
+    /** The users that can access your account as a delegate */
+    delegates?: Delegate[];
+
+    /** The the users you can access as a delegate */
+    delegators?: Delegate[];
+
+    /** The email of original user when they are acting as a delegate for another account */
+    delegate?: string;
+
+    /** Authentication failure errors when disconnecting as a copilot */
+    error?: TranslationPaths;
+};
 
 /** Model of user account */
 type Account = {
@@ -28,6 +59,9 @@ type Account = {
 
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
+
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
 
     /** Whether the account is validated */
     validated?: boolean;
@@ -80,9 +114,15 @@ type Account = {
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
 
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
+
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
+
+    /** The users you can access as delegate and the users who can access your account as a delegate */
+    delegatedAccess?: DelegatedAccess;
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess};

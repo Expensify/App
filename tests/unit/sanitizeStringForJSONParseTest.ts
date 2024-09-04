@@ -41,16 +41,15 @@ describe('santizeStringForJSONParse', () => {
     describe.each(invalidJSONData)('canHandleInvalidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
             const badJSON = `{"key": "${input}"}`;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- it's supposed to throw an error
-            expect(() => JSON.parse(badJSON)).toThrow();
-            const goodJSON: ParsedJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            expect(() => JSON.parse(badJSON) as unknown).toThrow();
+            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`) as ParsedJSON;
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });
 
     describe.each(validJSONData)('canHandleValidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
-            const goodJSON: ParsedJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`) as ParsedJSON;
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });

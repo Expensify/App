@@ -1,11 +1,11 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import type {NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, ViewStyle} from 'react-native';
+import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
@@ -19,6 +19,7 @@ import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
@@ -59,7 +60,6 @@ function Composer(
         maxLines = -1,
         onKeyPress = () => {},
         style,
-        shouldClear = false,
         autoFocus = false,
         shouldCalculateCaretPosition = false,
         isDisabled = false,
@@ -74,7 +74,7 @@ function Composer(
         },
         isReportActionCompose = false,
         isComposerFullSize = false,
-        shouldContainScroll = false,
+        shouldContainScroll = true,
         isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
@@ -101,26 +101,18 @@ function Composer(
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
-    const [textInputWidth, setTextInputWidth] = useState('');
+    const [textInputWidth, setTextInputWidth] = useState<ViewStyle['width']>('');
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
-        if (!shouldClear) {
+        if (!!selection && selectionProp.start === selection.start && selectionProp.end === selection.end) {
             return;
         }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
-
-    useEffect(() => {
-        setSelection((prevSelection) => {
-            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
-                return;
-            }
-            return selectionProp;
-        });
+        setSelection(selectionProp);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -250,19 +242,40 @@ function Composer(
     }, []);
 
     useEffect(() => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
+            isReportFlatListScrolling.current = scrolling;
+        });
+
+        return () => scrollingListener.remove();
+    }, []);
+
+    useEffect(() => {
+        const handleWheel = (e: MouseEvent) => {
+            if (isReportFlatListScrolling.current) {
+                e.preventDefault();
+                return;
+            }
+            e.stopPropagation();
+        };
+        textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
+
+        return () => {
+            textInput.current?.removeEventListener('wheel', handleWheel);
+        };
+    }, []);
+
+    useEffect(() => {
         if (!textInput.current || prevScroll === undefined) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current.scrollTop = prevScroll;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
-        if (typeof ref === 'function') {
-            ref(textInput.current);
-        }
         setIsRendered(true);
 
         return () => {
@@ -271,8 +284,54 @@ function Composer(
             }
             ReportActionComposeFocusManager.clear();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    const clear = useCallback(() => {
+        if (!textInput.current) {
+            return;
+        }
+
+        const currentText = textInput.current.value;
+        textInput.current.clear();
+
+        // We need to reset the selection to 0,0 manually after clearing the text input on web
+        const selectionEvent = {
+            nativeEvent: {
+                selection: {
+                    start: 0,
+                    end: 0,
+                },
+            },
+        } as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+        onSelectionChange(selectionEvent);
+        setSelection({start: 0, end: 0});
+
+        onClear(currentText);
+    }, [onClear, onSelectionChange]);
+
+    useImperativeHandle(
+        ref,
+        () => {
+            const textInputRef = textInput.current;
+            if (!textInputRef) {
+                throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
+            }
+
+            return {
+                ...textInputRef,
+                // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
+                clear,
+                // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
+                blur: () => textInputRef.blur(),
+                focus: () => textInputRef.focus(),
+                get scrollTop() {
+                    return textInputRef.scrollTop;
+                },
+            };
+        },
+        [clear],
+    );
 
     const handleKeyPress = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -294,7 +353,7 @@ function Composer(
                 opacity: 0,
             }}
         >
-            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth as DimensionValue}]}>
+            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth}]}>
                 {`${valueBeforeCaret} `}
                 <Text
                     numberOfLines={1}
@@ -320,7 +379,7 @@ function Composer(
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
-            isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
             textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
@@ -355,7 +414,7 @@ function Composer(
                             return;
                         }
 
-                        textInput.current.focus();
+                        focusComposerWithDelay(textInput.current)(true);
                     });
 
                     props.onFocus?.(e);

@@ -18,9 +18,9 @@ import PaymentCardCurrencyHeader from './PaymentCardCurrencyHeader';
 import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
 
 type PaymentCardFormProps = {
-    initialCurrency?: ValueOf<typeof CONST.CURRENCY>;
+    initialCurrency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     isSecurityCodeRequired?: boolean;
-    changeBillingCurrency: (currency?: ValueOf<typeof CONST.CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => void;
+    changeBillingCurrency: (currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => void;
 };
 
 const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
@@ -30,7 +30,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const {translate} = useLocalize();
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
-    const [currency, setCurrency] = useState<ValueOf<typeof CONST.CURRENCY>>(initialCurrency ?? CONST.CURRENCY.USD);
+    const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
@@ -46,7 +46,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         () => ({
             sections: [
                 {
-                    data: (Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>).map((currencyItem) => ({
+                    data: (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>).map((currencyItem) => ({
                         text: currencyItem,
                         value: currencyItem,
                         keyForList: currencyItem,
@@ -62,13 +62,13 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         setIsCurrencyModalVisible(true);
     }, []);
 
-    const changeCurrency = useCallback((selectedCurrency: ValueOf<typeof CONST.CURRENCY>) => {
+    const changeCurrency = useCallback((selectedCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => {
         setCurrency(selectedCurrency);
         setIsCurrencyModalVisible(false);
     }, []);
 
     const selectCurrency = useCallback(
-        (selectedCurrency: ValueOf<typeof CONST.CURRENCY>) => {
+        (selectedCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => {
             setCurrency(selectedCurrency);
             changeBillingCurrency(selectedCurrency);
         },
@@ -109,7 +109,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 </>
                 <PaymentCardCurrencyModal
                     isVisible={isCurrencyModalVisible}
-                    currencies={Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>}
+                    currencies={Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>}
                     currentCurrency={currency}
                     onCurrencyChange={changeCurrency}
                     onClose={() => setIsCurrencyModalVisible(false)}

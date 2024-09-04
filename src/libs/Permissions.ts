@@ -7,20 +7,8 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
-}
-
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
-}
-
-function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
@@ -32,24 +20,37 @@ function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | 
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
 }
 
-function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
+function canUseWorkflowsAdvancedApproval(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKFLOWS_ADVANCED_APPROVAL) || canUseAllBetas(betas);
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
-}
-
-function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
-}
-
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
+}
+
+function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
+}
+
+function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+}
+
+function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
+}
+
+function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKSPACE_RULES) || canUseAllBetas(betas);
+}
+
+function canUseCombinedTrackSubmit(betas: OnyxEntry<Beta[]>): boolean {
+    // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
+    return !!betas?.includes(CONST.BETAS.COMBINED_TRACK_SUBMIT);
 }
 
 /**
@@ -60,16 +61,16 @@ function canUseLinkPreviews(): boolean {
 }
 
 export default {
-    canUseChronos,
     canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseViolations,
     canUseDupeDetection,
-    canUseReportFields,
     canUseP2PDistanceRequests,
-    canUseWorkflowsDelayedSubmission,
+    canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
-    canUseNetSuiteIntegration,
-    canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
+    canUseCompanyCardFeeds,
+    canUseNetSuiteUSATax,
+    canUseNewDotCopilot,
+    canUseWorkspaceRules,
+    canUseCombinedTrackSubmit,
 };

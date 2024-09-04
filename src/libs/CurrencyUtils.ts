@@ -87,8 +87,9 @@ function convertToBackendAmount(amountAsFloat: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number): number {
-    return Math.trunc(amountAsInt) / 100.0;
+function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
+    const decimals = getCurrencyDecimals(currency);
+    return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
 /**
@@ -96,11 +97,12 @@ function convertToFrontendAmountAsInteger(amountAsInt: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(2);
+    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
+    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 
 /**
@@ -111,7 +113,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
@@ -123,9 +125,11 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         style: 'currency',
         currency: currencyWithFallback,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     });
 }
 
@@ -137,7 +141,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
 
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
@@ -168,14 +172,16 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+        minimumFractionDigits: getCurrencyDecimals(currency),
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
     })
         .filter((x) => x.type !== 'currency')
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)

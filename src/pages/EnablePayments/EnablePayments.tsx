@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,13 +39,17 @@ function EnablePaymentsPage() {
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
         return (
-            <>
+            <ScreenWrapper
+                testID={EnablePaymentsPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithBackButton
-                    title={translate('additionalDetailsStep.headerTitle')}
+                    title={translate('personalInfoStep.personalInfo')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                 />
                 <FailedKYC />
-            </>
+            </ScreenWrapper>
         );
     }
 

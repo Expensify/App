@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
+import usePolicy from '@hooks/usePolicy';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -18,7 +19,7 @@ function WorkspaceRestrictedActionPage({
     },
 }: WorkspaceRestrictedActionPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
 
     // Workspace Owner
     if (PolicyUtils.isPolicyOwner(policy, session?.accountID ?? -1)) {

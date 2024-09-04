@@ -10,6 +10,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {CountryData} from '@libs/searchCountryOptions';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
+import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
@@ -49,10 +50,10 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 Navigation.goBack();
             } else if (!!backTo && navigation.getState().routes.length === 1) {
                 // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(`${route.params.backTo}?country=${option.value}` as Route);
+                Navigation.goBack(appendParam(backTo, 'country', option.value));
             } else {
                 // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(`${route.params.backTo}?country=${option.value}` as Route);
+                Navigation.navigate(appendParam(backTo, 'country', option.value));
             }
         },
         [route, navigation],
@@ -80,7 +81,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 sections={[{data: searchResults}]}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch

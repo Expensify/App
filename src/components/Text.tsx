@@ -36,7 +36,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         color: color ?? theme.text,
         fontSize,
         textAlign,
-        fontFamily: FontUtils.fontFamily.platform[family],
+        ...FontUtils.fontFamily.platform[family],
         ...StyleSheet.flatten(style),
         ...StyleSheet.flatten(customStyle),
     };

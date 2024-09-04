@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -34,6 +35,7 @@ import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
+import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type SignInPageInnerOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -51,6 +53,10 @@ type SignInPageInnerOnyxProps = {
 
 type SignInPageInnerProps = SignInPageInnerOnyxProps & {
     shouldEnableMaxHeight?: boolean;
+};
+
+type SignInPageRef = {
+    navigateBack: () => void;
 };
 
 type RenderOption = {
@@ -141,7 +147,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
+function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -149,6 +155,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
+    const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
+
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -160,6 +168,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
+
+    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
     const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
@@ -260,12 +270,32 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         loginFormRef.current?.clearDataAndFocus();
     };
 
+    const navigateBack = () => {
+        if (
+            shouldShouldSignUpWelcomeForm ||
+            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+        ) {
+            Session.clearSignInData();
+            return;
+        }
+
+        if (shouldShowValidateCodeForm) {
+            validateCodeFormRef.current?.clearSignInData();
+            return;
+        }
+
+        Navigation.goBack();
+    };
+    useImperativeHandle(ref, () => ({
+        navigateBack,
+    }));
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
+            shouldUseCachedViewportHeight
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageThemeWrapper.displayName}
         >
@@ -282,6 +312,8 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
+                    login={login}
+                    onLoginChanged={setLogin}
                     blurOnSubmit={account?.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
@@ -291,6 +323,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                        ref={validateCodeFormRef}
                     />
                 )}
                 {!shouldShowAnotherLoginPageOpenedMessage && (
@@ -307,14 +340,16 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
 
 type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
+const SignInPageWithRef = forwardRef(SignInPage);
 
-function SignInPageThemeWrapper(props: SignInPageProps) {
+function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPage
+                    <SignInPageWithRef
+                        ref={ref}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
@@ -326,7 +361,7 @@ function SignInPageThemeWrapper(props: SignInPageProps) {
 
 SignInPageThemeWrapper.displayName = 'SignInPage';
 
-export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
+export default withOnyx<SignInPageProps & RefAttributes<SignInPageRef>, SignInPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     /**
@@ -340,4 +375,6 @@ export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
-})(SignInPageThemeWrapper);
+})(forwardRef(SignInPageThemeWrapper));
+
+export type {SignInPageRef};

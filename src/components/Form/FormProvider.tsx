@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -73,6 +74,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
+
+        /** Whether button is disabled */
+        isSubmitDisabled?: boolean;
     };
 
 function FormProvider(
@@ -176,7 +180,7 @@ function FormProvider(
         onValidate(trimmedStringValues, !hasServerError);
 
         // Only run when locales change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [preferredLocale]);
 
     /** @param inputID - The inputID of the input being touched */
@@ -212,6 +216,19 @@ function FormProvider(
         onSubmit(trimmedStringValues);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
+    // Keep track of the focus state of the current screen.
+    // This is used to prevent validating the form on blur before it has been interacted with.
+    const isFocusedRef = useRef(true);
+
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
+
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
             Object.keys(inputValues).forEach((inputID) => {
@@ -239,6 +256,7 @@ function FormProvider(
                 inputRefs.current[inputID] = newRef;
             }
             if (inputProps.value !== undefined) {
+                // eslint-disable-next-line react-compiler/react-compiler
                 inputValues[inputID] = inputProps.value;
             } else if (inputProps.shouldSaveDraft && draftValues?.[inputID] !== undefined && inputValues[inputID] === undefined) {
                 inputValues[inputID] = draftValues[inputID];
@@ -328,7 +346,8 @@ function FormProvider(
                                 return;
                             }
                             setTouchedInput(inputID);
-                            if (shouldValidateOnBlur) {
+                            // We don't validate the form on blur in case the current screen is not focused
+                            if (shouldValidateOnBlur && isFocusedRef.current) {
                                 onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);

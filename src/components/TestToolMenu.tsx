@@ -13,6 +13,7 @@ import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
+import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
@@ -88,6 +89,8 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
+
+            <TestCrash />
         </>
     );
 }

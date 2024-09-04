@@ -4,7 +4,7 @@ import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIconForAction from '@libs/getIconForAction';
@@ -23,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy/Policy';
@@ -40,13 +42,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
 const useIsFocused = () => {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocusedOriginal();
     const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
+    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && shouldUseNarrowLayout);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -95,6 +97,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
@@ -174,15 +177,17 @@ function FloatingActionButtonAndPopover(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${quickActionReport?.reportID ?? -1}`);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
     const {canUseSpotnanaTravel} = usePermissions();
-    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
+    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -191,7 +196,7 @@ function FloatingActionButtonAndPopover(
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const renderQuickActionTooltip = useCallback(
@@ -210,7 +215,7 @@ function FloatingActionButtonAndPopover(
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? -1), true) ?? '';
-            return translate('quickAction.paySomeone', {name});
+            return translate('quickAction.paySomeone', name);
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
@@ -228,41 +233,51 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const navigateToQuickAction = () => {
-        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport));
+        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+            if (shouldRestrictAction && quickActionReport?.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(quickActionReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReport.policyID));
+                return;
+            }
+
+            onSelected();
+        };
+
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
+
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? -1, true);
+                selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), false);
                 break;
             default:
         }
@@ -284,14 +299,14 @@ function FloatingActionButtonAndPopover(
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!isFocused && isSmallScreenWidth) {
+            if (!isFocused && shouldUseNarrowLayout) {
                 return;
             }
             setIsCreateMenuActive(true);
             onShowCreateMenu?.();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isFocused, isSmallScreenWidth],
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [isFocused, shouldUseNarrowLayout],
     );
 
     /**
@@ -307,7 +322,7 @@ function FloatingActionButtonAndPopover(
             setIsCreateMenuActive(false);
             onHideCreateMenu?.();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isCreateMenuActive],
     );
 
@@ -333,17 +348,17 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!isSmallScreenWidth || isFocused)}
+                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!isSmallScreenWidth}
+                fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
@@ -387,32 +402,6 @@ function FloatingActionButtonAndPopover(
                                 ),
                             ),
                     },
-                    {
-                        icon: Expensicons.Transfer,
-                        text: translate('iou.splitExpense'),
-                        onSelected: () =>
-                            interceptAnonymousUser(() =>
-                                IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.SPLIT,
-                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                    // for all of the routes in the creation flow.
-                                    ReportUtils.generateReportID(),
-                                ),
-                            ),
-                    },
-                    {
-                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                        text: translate('iou.paySomeone', {}),
-                        onSelected: () =>
-                            interceptAnonymousUser(() =>
-                                IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.PAY,
-                                    // When starting to pay someone from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                    // for all of the routes in the creation flow.
-                                    ReportUtils.generateReportID(),
-                                ),
-                            ),
-                    },
                     ...(canSendInvoice
                         ? [
                               {
@@ -430,11 +419,6 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
-                    {
-                        icon: Expensicons.Task,
-                        text: translate('newTaskPage.assignTask'),
-                        onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                    },
                     ...(canUseSpotnanaTravel
                         ? [
                               {
@@ -471,8 +455,13 @@ function FloatingActionButtonAndPopover(
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                                  shouldRenderTooltip: quickAction?.isFirstQuickAction,
-                                  shouldForceRenderingTooltipLeft: true,
+                                  shouldRenderTooltip: quickAction.isFirstQuickAction,
+                                  tooltipAnchorAlignment: {
+                                      vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                      horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                  },
+                                  tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+                                  tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
                                   renderTooltipContent: renderQuickActionTooltip,
                                   tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },

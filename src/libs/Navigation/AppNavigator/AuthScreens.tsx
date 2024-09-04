@@ -3,9 +3,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
-import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
+import {SearchContextProvider} from '@components/Search/SearchContext';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -18,8 +21,11 @@ import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModal
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import * as ReportUtils from '@libs/ReportUtils';
+import {buildSearchQueryString} from '@libs/SearchUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -72,6 +78,8 @@ const loadReportAttachments = () => require<ReactComponentModule>('../../../page
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
+const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
 const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
 const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
@@ -83,15 +91,16 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAccessedReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
+        // Generate default query string with buildSearchQueryString without argument.
+        return {q: buildSearchQueryString(), isCustomQuery: false};
     }
 
     if (screenName === SCREENS.REPORT) {
         return {
             openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
-            reportID: lastAccessedReportID,
+            reportID: initialReportID,
         };
     }
 
@@ -176,6 +185,9 @@ const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true);
     },
+    blur: () => {
+        Modal.setModalVisibility(false);
+    },
     beforeRemove: () => {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
@@ -197,18 +209,32 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const lastAccessedReportID = useLastAccessedReportID(shouldOpenOnAdminRoom());
+    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
-    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumOrLargerScreenWidth), [screenOptions, isMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
-        [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
+        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumOrLargerScreenWidth),
+        [StyleUtils, isSmallScreenWidth, isMediumOrLargerScreenWidth, styles],
     );
-    const isInitialRender = useRef(true);
+    const modal = useRef<OnyxTypes.Modal>({});
 
+    let initialReportID: string | undefined;
+    const isInitialRender = useRef(true);
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
+
+        const currentURL = getCurrentUrl();
+        if (currentURL) {
+            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        }
+
+        if (!initialReportID) {
+            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+            initialReportID = initialReport?.reportID ?? '';
+        }
+
         isInitialRender.current = false;
     }
 
@@ -261,6 +287,36 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        const unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                if (modalArg === null || typeof modalArg !== 'object') {
+                    return;
+                }
+                modal.current = modalArg;
+            },
+        });
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (modal.current.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                if (modal.current.disableDismissOnEscape) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
         // Listen to keyboard shortcuts for opening certain pages
         const unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
             shortcutsOverviewShortcutConfig.shortcutKey,
@@ -283,7 +339,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
+                Modal.close(
+                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
+                    true,
+                    true,
+                );
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -311,6 +371,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         );
 
         return () => {
+            unsubscribeEscapeKey();
+            unsubscribeOnyxModal();
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
@@ -319,7 +381,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const CentralPaneScreenOptions = {
@@ -331,7 +393,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     };
 
     return (
-        <OptionsListContextProvider>
+        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}
@@ -360,6 +422,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.CONCIERGE}
                         options={defaultScreenOptions}
                         getComponent={loadConciergePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.TRACK_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadTrackExpensePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SUBMIT_EXPENSE}
+                        options={defaultScreenOptions}
+                        getComponent={loadSubmitExpensePage}
                     />
                     <RootStack.Screen
                         name={SCREENS.ATTACHMENTS}
@@ -444,6 +516,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                         options={onboardingScreenOptions}
                         component={OnboardingModalNavigator}
+                        listeners={{
+                            focus: () => {
+                                Modal.setDisableDismissOnEscape(true);
+                            },
+                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                        }}
                     />
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
@@ -474,7 +552,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, lastAccessedReportID)}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />
@@ -482,7 +560,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     })}
                 </RootStack.Navigator>
             </View>
-        </OptionsListContextProvider>
+        </ComposeProviders>
     );
 }
 

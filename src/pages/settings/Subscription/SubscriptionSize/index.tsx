@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +8,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import * as FormActions from '@userActions/FormActions';
 import * as Subscription from '@userActions/Subscription';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,6 +42,13 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
 
         Navigation.goBack();
     };
+
+    useEffect(
+        () => () => {
+            FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
+        },
+        [],
+    );
 
     return (
         <ScreenWrapper

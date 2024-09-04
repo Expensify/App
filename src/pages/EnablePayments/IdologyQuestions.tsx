@@ -3,11 +3,14 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -34,6 +37,7 @@ type Answer = {
 
 function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -103,13 +107,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     return (
         <View style={styles.flex1}>
             <View style={styles.ph5}>
-                <Text style={styles.mb3}>{translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
-                <TextLink
-                    style={styles.mb3}
-                    href={CONST.HELP_LINK_URL}
-                >
-                    {translate('additionalDetailsStep.helpLink')}
-                </TextLink>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
             </View>
             <FormProvider
                 formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
@@ -121,17 +119,33 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 submitButtonText={translate('common.saveAndContinue')}
                 shouldHideFixErrorsAlert
             >
-                <InputWrapper
-                    InputComponent={SingleChoiceQuestion}
-                    inputID="answer"
-                    prompt={currentQuestion.prompt}
-                    possibleAnswers={possibleAnswers}
-                    currentQuestionIndex={currentQuestionIndex}
-                    onValueChange={(value) => {
-                        chooseAnswer(String(value));
-                    }}
-                    onInputChange={() => {}}
-                />
+                <>
+                    <InputWrapper
+                        InputComponent={SingleChoiceQuestion}
+                        inputID="answer"
+                        prompt={currentQuestion.prompt}
+                        possibleAnswers={possibleAnswers}
+                        currentQuestionIndex={currentQuestionIndex}
+                        onValueChange={(value) => {
+                            chooseAnswer(String(value));
+                        }}
+                        onInputChange={() => {}}
+                    />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+                        <Icon
+                            src={Expensicons.QuestionMark}
+                            width={12}
+                            height={12}
+                            fill={theme.icon}
+                        />
+                        <TextLink
+                            style={[styles.textMicro, styles.ml2]}
+                            href={CONST.HELP_LINK_URL}
+                        >
+                            {translate('additionalDetailsStep.helpLink')}
+                        </TextLink>
+                    </View>
+                </>
             </FormProvider>
         </View>
     );

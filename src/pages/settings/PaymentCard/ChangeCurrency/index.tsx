@@ -17,7 +17,7 @@ function ChangeCurrency() {
     const {translate} = useLocalize();
     const [debitCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
-    const changeCurrency = useCallback((currency?: ValueOf<typeof CONST.CURRENCY>) => {
+    const changeCurrency = useCallback((currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => {
         if (currency) {
             PaymentMethods.setPaymentMethodCurrency(currency);
         }

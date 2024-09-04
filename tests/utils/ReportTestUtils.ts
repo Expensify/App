@@ -11,7 +11,7 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
         automatic: false,
         avatar: '',
         created: '2023-09-12 16:27:35.124',
-        isAttachment: true,
+        isAttachmentOnly: true,
         isFirstItem: false,
         lastModified: '2021-07-14T15:00:00Z',
         message: [
@@ -42,7 +42,6 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
             },
         ],
         reportActionID: index.toString(),
-        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         sequenceNumber: 0,
         shouldShow: true,
     } as ReportAction);
@@ -63,7 +62,6 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
             originalMessage: {
                 linkedReportID: reportID.toString(),
             },
-            previousReportActionID: index.toString(),
         } as ReportAction;
 
         return {[reportID]: reportAction};

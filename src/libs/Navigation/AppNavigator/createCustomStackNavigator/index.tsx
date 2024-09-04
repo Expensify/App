@@ -9,7 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';

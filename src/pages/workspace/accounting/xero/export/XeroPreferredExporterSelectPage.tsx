@@ -9,10 +9,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,7 +24,7 @@ type CardListItem = ListItem & {
 };
 
 function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
+    const {config} = policy?.connections?.xero ?? {};
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -55,27 +58,33 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: exportConfiguration?.exporter === exporter.email,
+                isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [policyOwner, exporters, currentUserLogin, config?.export?.exporter]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+            if (row.value !== config?.export?.exporter) {
+                Connections.updatePolicyXeroConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {exporter: row.value},
+                    {exporter: config?.export?.exporter ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
-        [policyID, exportConfiguration],
+        [policyID, config?.export?.exporter],
     );
 
     const headerContent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterSubNote')}</Text>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -93,8 +102,12 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
-            title="workspace.xero.preferredExporter"
+            title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.EXPORTER], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.EXPORTER)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.EXPORTER)}
         />
     );
 }

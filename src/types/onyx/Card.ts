@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of Expensify card */
-type Card = {
+type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
     cardID: number;
 
@@ -14,13 +14,22 @@ type Card = {
     bank: string;
 
     /** Available amount to spend */
-    availableSpend: number;
+    availableSpend?: number;
+
+    /** Spend that is unapproved on the card (comes as a negative number) */
+    unapprovedSpend?: number;
+
+    /** Total spend on the card (comes as a negative number) */
+    totalSpend?: number;
 
     /** Domain name */
     domainName: string;
 
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
+
+    /** Card number */
+    cardNumber?: string;
 
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
@@ -31,12 +40,15 @@ type Card = {
     /** Is card data loading */
     isLoading?: boolean;
 
+    /** Cardholder account ID */
+    accountID?: number;
+
     /** Additional card data */
-    nameValuePairs?: {
+    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** User-defined nickname for a virtual card */
+        /** User-defined nickname for the card */
         cardTitle?: string;
 
         /** Account ID of user that issued the card */
@@ -65,8 +77,8 @@ type Card = {
 
         /** Card expiration date */
         expirationDate?: string;
-    };
-};
+    }>;
+}>;
 
 /** Model of Expensify card details */
 type ExpensifyCardDetails = {
@@ -83,5 +95,44 @@ type ExpensifyCardDetails = {
 /** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
+/** Issue new card flow steps */
+type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
+
+/** Card spending limit type */
+type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+
+/** Data required to be sent to issue a new card */
+type IssueNewCardData = {
+    /** The email address of the cardholder */
+    assigneeEmail: string;
+
+    /** Card type */
+    cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
+
+    /** Card spending limit type */
+    limitType: CardLimitType;
+
+    /** Card spending limit */
+    limit: number;
+
+    /** Name of the card */
+    cardTitle: string;
+};
+
+/** Model of Issue new card flow */
+type IssueNewCard = {
+    /** The current step of the flow */
+    currentStep: IssueNewCardStep;
+
+    /** Data required to be sent to issue a new card */
+    data: IssueNewCardData;
+
+    /** Whether the user is editing step */
+    isEditing: boolean;
+};
+
+/** List of Expensify cards */
+type WorkspaceCardsList = Record<string, Card>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

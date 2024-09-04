@@ -27,30 +27,51 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList();
 
-    const searchOptions = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {
                 recentReports: [],
                 personalDetails: [],
-                userToInvite: undefined,
+                userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
                 headerMessage: '',
             };
         }
-        const {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, '', betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, !!localUserToInvite, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(
+            (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
+            !!shareLogOptions.userToInvite,
+            '',
+        );
 
         return {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
+            ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+    }, [areOptionsInitialized, options, betas]);
+
+    const searchOptions = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
+            return defaultOptions;
+        }
+
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue, {
+            preferChatroomsOverThreads: true,
+            sortByReportTypeInSearch: true,
+        });
+
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
+            !!filteredOptions.userToInvite,
+            debouncedSearchValue.trim(),
+        );
+
+        return {...filteredOptions, headerMessage};
+    }, [debouncedSearchValue, defaultOptions]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -105,7 +126,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         ListItem={UserListItem}
                         sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
                         onSelectRow={attachLogToReport}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={searchOptions.headerMessage}

@@ -1,8 +1,14 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {SearchParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
+import fileDownload from '@libs/fileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -15,7 +21,7 @@ Onyx.connect({
     },
 });
 
-function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
+function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -40,7 +46,19 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
         },
     ];
 
-    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
+    return {optimisticData, finallyData};
+}
+
+function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+
+    const queryWithOffset = {
+        ...queryJSON,
+        offset,
+    };
+    const jsonQuery = JSON.stringify(queryWithOffset);
+
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -57,8 +75,70 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
             },
         },
     };
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-export {search, createTransactionThread};
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+}
+
+function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+type Params = Record<string, ExportSearchItemsToCSVParams>;
+
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+        query,
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        policyIDs,
+    }) as Params;
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
+/**
+ * Updates the form values for the advanced filters search form.
+ */
+function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
+    Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+/**
+ * Clears all values for the advanced filters search form.
+ */
+function clearAdvancedFilters() {
+    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
+}
+
+export {
+    search,
+    createTransactionThread,
+    deleteMoneyRequestOnSearch,
+    holdMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+    exportSearchItemsToCSV,
+    updateAdvancedFilters,
+    clearAdvancedFilters,
+};
