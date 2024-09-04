@@ -2176,6 +2176,7 @@ export default {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
     },
     workspace: {
         common: {
@@ -2833,6 +2834,9 @@ export default {
         companyCards: {
             addCompanyCards: 'Agregar tarjetas de empresa',
             selectCardFeed: 'Seleccionar feed de tarjetas',
+            assignCard: 'Asignar tarjeta',
+            cardNumber: 'Número de la tarjeta',
+            customFeed: 'Fuente personalizada',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -2930,6 +2934,7 @@ export default {
             importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
+            subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
             spendSection: {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
@@ -3021,7 +3026,7 @@ export default {
             },
             tags: {
                 title: 'Etiquetas',
-                subtitle: 'Añade formas adicionales de clasificar los gastos.',
+                subtitle: 'Clasifica costes y rastrea gastos facturables.',
             },
             taxes: {
                 title: 'Impuestos',
@@ -3097,6 +3102,7 @@ export default {
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            trackBillable: 'Permitir marcar gastos como facturables',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             enableTags: 'Habilitar etiquetas',

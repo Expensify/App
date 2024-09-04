@@ -65,10 +65,8 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 
-    // Param types of the search central pane are also used for the search bottom tab screen.
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
-        isCustomQuery: boolean;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -81,12 +79,6 @@ type BackToParams = {
 type BackToAndForwardToParms = {
     backTo?: Routes;
     forwardTo?: Routes;
-};
-
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
-    [SCREENS.SEARCH.CENTRAL_PANE]: undefined;
-    [SCREENS.SEARCH.REPORT_RHP]: undefined;
 };
 
 type SettingsNavigatorParamList = {
@@ -1269,7 +1261,7 @@ type ExplanationModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: CentralPaneScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -1417,7 +1409,6 @@ export type {
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
-    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     FeatureTrainingNavigatorParamList,

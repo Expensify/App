@@ -94,7 +94,7 @@ function shouldOpenOnAdminRoom() {
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString(), isCustomQuery: false};
+        return {q: buildSearchQueryString()};
     }
 
     if (screenName === SCREENS.REPORT) {

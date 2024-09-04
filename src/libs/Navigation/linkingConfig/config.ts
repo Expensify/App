@@ -57,9 +57,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
         [SCREENS.SEARCH.CENTRAL_PANE]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
-            parse: {
-                isCustomQuery: (isCustomQuery) => isCustomQuery.toLowerCase() === 'true',
-            },
         },
         [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
