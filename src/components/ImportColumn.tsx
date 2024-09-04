@@ -176,7 +176,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
-            <Text style={styles.textSupporting}>{columnHeader}</Text>
+            <Text style={[styles.textSupporting, styles.mw100]}>{columnHeader}</Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <Text
                     numberOfLines={2}
