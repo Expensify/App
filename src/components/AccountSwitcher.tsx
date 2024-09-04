@@ -47,6 +47,7 @@ function AccountSwitcher() {
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
     const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, errors?: Errors, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
+        const error = Object.values(errors ?? {})[0] ?? '';
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: personalDetails?.login,
@@ -55,8 +56,8 @@ function AccountSwitcher() {
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
             numberOfLinesDescription: 1,
-            errorText: errors?.connect ?? '',
-            shouldShowRedDotIndicator: !!errors?.connect,
+            errorText: error ?? '',
+            shouldShowRedDotIndicator: !!error,
             errorTextStyle: styles.mt2,
             ...additionalProps,
         };
@@ -81,7 +82,7 @@ function AccountSwitcher() {
             }
 
             const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
-            const error = ErrorUtils.getLatestErrorField(account?.delegatedAccess?.errorFields, 'connect');
+            const error = ErrorUtils.getLatestErrorField(account?.delegatedAccess, 'connect');
 
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
@@ -101,7 +102,7 @@ function AccountSwitcher() {
         const delegatorMenuItems: MenuItemProps[] = delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
             .map(({email, role, errorFields}, index) => {
-                const error = ErrorUtils.getLatestErrorField(errorFields, 'connect');
+                const error = ErrorUtils.getLatestErrorField({errorFields}, 'connect');
                 const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
