@@ -818,6 +818,7 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
