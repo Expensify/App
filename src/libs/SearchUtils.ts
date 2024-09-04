@@ -3,9 +3,11 @@ import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJS
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -15,6 +17,7 @@ import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDeta
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
+import Navigation from './Navigation/Navigation';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
@@ -22,6 +25,8 @@ import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
 type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+
+const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -552,6 +557,25 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
     return normalizeQuery(`type:${type} status:${status}`);
 }
 
+function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void) {
+    return [
+        {
+            text: translateLocal('common.rename'),
+            onSelected: () => Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery})),
+            icon: Expensicons.Pencil,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+        },
+        {
+            text: translateLocal('common.delete'),
+            onSelected: () => showDeleteModal(hash),
+            icon: Expensicons.Trashcan,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+        },
+    ];
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -571,4 +595,6 @@ export {
     shouldShowYear,
     buildCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getOverflowMenu,
+    DEFAULT_SAVE_SEARCH_QUERY_STRING,
 };
