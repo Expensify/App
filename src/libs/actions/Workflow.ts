@@ -1,6 +1,6 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import lodashMapKeys from 'lodash/mapKeys';
-import type {OnyxCollection, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
@@ -54,7 +54,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const previousEmployeeList = {...policy.employeeList};
     const previousApprovalMode = policy.approvalMode;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -111,7 +111,7 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
-function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[]) {
+function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     if (!authToken || !policy) {
@@ -121,7 +121,13 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const previousDefaultApprover = policy.approver ?? policy.owner;
     const newDefaultApprover = approvalWorkflow.isDefault ? approvalWorkflow.approvers[0].email : undefined;
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE, membersToRemove});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+        previousEmployeeList,
+        approvalWorkflow,
+        type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
+        membersToRemove,
+        approversToRemove,
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -191,7 +197,7 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     }
 
     const previousEmployeeList = {...policy.employeeList};
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
     const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
 
     const defaultApprover = policy.approver ?? policy.owner;
@@ -282,10 +288,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
-        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail}).map((additionalApprover) => ({
-            ...additionalApprover,
-            isInMultipleWorkflows: true,
-        }));
+        const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
     }
 
@@ -327,7 +330,7 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
-function setApprovalWorkflow(approvalWorkflow: OnyxMergeInput<typeof ONYXKEYS.APPROVAL_WORKFLOW>) {
+function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
