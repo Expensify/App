@@ -56,6 +56,8 @@ import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
+const {ShortcutManager} = NativeModules;
+
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 Onyx.connect({
@@ -204,6 +206,7 @@ function hasAuthToken(): boolean {
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
+    ShortcutManager.removeAllDynamicShortcuts();
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
         if (NativeModules.HybridAppModule && killHybridApp) {
