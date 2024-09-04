@@ -2292,6 +2292,17 @@ const CONST = {
             VISA: 'vcf',
             AMEX: 'gl1025',
         },
+        STEP_NAMES: ['1', '2', '3', '4'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD: 'Card',
+            TRANSACTION_START_DATE: 'TransactionStartDate',
+            CONFIRMATION: 'Confirmation',
+        },
+        TRANSACTION_START_DATE_OPTIONS: {
+            FROM_BEGINNING: 'fromBeginning',
+            CUSTOM: 'custom',
+        },
     },
     EXPENSIFY_CARD: {
         BANK: 'Expensify Card',
