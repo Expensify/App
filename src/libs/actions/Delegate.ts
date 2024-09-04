@@ -158,7 +158,7 @@ function clearDelegatorErrors() {
     if (!delegatedAccess?.delegators) {
         return;
     }
-    Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, error: undefined}))}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, errorFields: undefined}))}});
 }
 
 function requestValidationCode() {
