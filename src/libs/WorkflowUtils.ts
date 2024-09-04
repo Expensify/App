@@ -245,7 +245,6 @@ function convertApprovalWorkflowToPolicyEmployees({
         }
 
         updatedEmployeeList[email] = {
-            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             email,
             submitsTo,
             pendingAction,
