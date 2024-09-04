@@ -210,7 +210,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
             // Create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
@@ -243,11 +243,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!conversationName.isEmpty()) {
+            if (!roomName.isEmpty()) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
                 messagingStyle
                         .setGroupConversation(true)
-                        .setConversationTitle(conversationName);
+                        .setConversationTitle(roomName);
             }
             builder.setStyle(messagingStyle);
             builder.setShortcutId(accountID);
