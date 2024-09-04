@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -197,6 +197,7 @@ const ROUTES = {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
     },
+    SETINGS_CONTACT_METHOD_VALIDATE_ACTION: 'settings/profile/contact-methods/validate-action',
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
@@ -546,7 +547,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -743,6 +744,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        route: 'settings/workspaces/:policyID/categories/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        route: 'settings/workspaces/:policyID/categories/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
+    },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
@@ -919,7 +928,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/issue-new`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
