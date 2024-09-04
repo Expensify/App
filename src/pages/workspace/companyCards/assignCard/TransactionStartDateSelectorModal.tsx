@@ -63,15 +63,18 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     formID={ONYXKEYS.FORMS.ASSIGN_CARD_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
-                    style={[styles.flex1, styles.mh5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    submitButtonStyles={[styles.mb0, styles.pb0, {borderWidth: 1, borderColor: 'red'}]}
+                    shouldUseScrollView={false}
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.START_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={new Date()}
+                        style={styles.flexGrow1}
                         defaultValue={date}
                     />
                 </FormProvider>

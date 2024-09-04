@@ -93,25 +93,25 @@ function DatePicker(
 
     return (
         <View style={styles.datePickerRoot}>
-            <View style={[shouldUseNarrowLayout ? styles.flex2 : {}, styles.pointerEventsNone]}>
-                <TextInput
-                    ref={ref}
-                    inputID={inputID}
-                    forceActiveLabel
-                    icon={Expensicons.Calendar}
-                    label={label}
-                    accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
-                    value={selectedDate}
-                    placeholder={placeholder ?? translate('common.dateFormat')}
-                    errorText={errorText}
-                    containerStyles={containerStyles}
-                    textInputContainerStyles={[styles.borderColorFocus]}
-                    inputStyle={[styles.pointerEventsNone]}
-                    disabled={disabled}
-                    readOnly
-                />
-            </View>
+            {/*<View style={[shouldUseNarrowLayout ? styles.flex2 : {}, styles.pointerEventsNone]}>*/}
+            <TextInput
+                ref={ref}
+                inputID={inputID}
+                forceActiveLabel
+                icon={Expensicons.Calendar}
+                label={label}
+                accessibilityLabel={label}
+                role={CONST.ROLE.PRESENTATION}
+                value={selectedDate}
+                placeholder={placeholder ?? translate('common.dateFormat')}
+                errorText={errorText}
+                containerStyles={containerStyles}
+                textInputContainerStyles={[styles.borderColorFocus]}
+                inputStyle={[styles.pointerEventsNone]}
+                disabled={disabled}
+                readOnly
+            />
+            {/*</View>*/}
             <View
                 style={[styles.datePickerPopover, styles.border]}
                 collapsable={false}

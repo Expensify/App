@@ -2840,7 +2840,6 @@ export default {
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             customFeed: 'Fuente personalizada',
-            assignCard: 'Asignar tarjeta',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Elige una tarjeta para ${assignee} del feed de tarjetas ${feed}.`,

@@ -2793,7 +2793,6 @@ export default {
             assignCard: 'Assign card',
             cardNumber: 'Card number',
             customFeed: 'Custom feed',
-            assignCard: 'Assign card',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseCard: 'Choose a card',
             chooseCardFor: ({assignee, feed}: AssignCardParams) => `Choose a card for ${assignee} from the ${feed} cards feed.`,
