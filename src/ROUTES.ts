@@ -906,6 +906,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
+    WORKSPACE_VALIDATE_CARD_ACTION: {
+        route: 'settings/workspaces/:policyID/expensify-card/validate-action',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/validate-action` as const,
+    },
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,

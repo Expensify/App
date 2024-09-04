@@ -3203,6 +3203,8 @@ export default {
                 deactivateCard: 'Deactivate card',
                 deactivateConfirmation: 'Deactivating this card will decline all future transactions and can’t be undone.',
             },
+            validateCardTitle: "Let's make sure it's you",
+            enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details`,
         },
         reimburse: {
             captureReceipts: 'Capture receipts',

@@ -3465,6 +3465,8 @@ export default {
                 deactivateCard: 'Desactivar tarjeta',
                 deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
             },
+            validateCardTitle: 'Asegurémonos de que eres tú',
+            enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
         },
         reimburse: {
             captureReceipts: 'Captura recibos',

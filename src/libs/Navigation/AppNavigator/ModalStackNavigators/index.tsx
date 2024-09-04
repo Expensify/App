@@ -1,41 +1,14 @@
-import type {ParamListBase} from '@react-navigation/routers';
-import type {StackNavigationOptions} from '@react-navigation/stack';
-import {createStackNavigator} from '@react-navigation/stack';
+import type { ParamListBase } from '@react-navigation/routers';
+import type { StackNavigationOptions } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import type {
-    AddPersonalBankAccountNavigatorParamList,
-    EditRequestNavigatorParamList,
-    EnablePaymentsNavigatorParamList,
-    FlagCommentNavigatorParamList,
-    MoneyRequestNavigatorParamList,
-    NewChatNavigatorParamList,
-    NewTaskNavigatorParamList,
-    ParticipantsNavigatorParamList,
-    PrivateNotesNavigatorParamList,
-    ProfileNavigatorParamList,
-    ReferralDetailsNavigatorParamList,
-    ReimbursementAccountNavigatorParamList,
-    ReportDescriptionNavigatorParamList,
-    ReportDetailsNavigatorParamList,
-    ReportSettingsNavigatorParamList,
-    RoomInviteNavigatorParamList,
-    RoomMembersNavigatorParamList,
-    SearchAdvancedFiltersParamList,
-    SearchReportParamList,
-    SettingsNavigatorParamList,
-    SignInNavigatorParamList,
-    SplitDetailsNavigatorParamList,
-    TaskDetailsNavigatorParamList,
-    TeachersUniteNavigatorParamList,
-    TransactionDuplicateNavigatorParamList,
-    TravelNavigatorParamList,
-    WalletStatementNavigatorParamList,
-} from '@navigation/types';
-import type {ThemeStyles} from '@styles/index';
-import type {Screen} from '@src/SCREENS';
+import type { AddPersonalBankAccountNavigatorParamList, EditRequestNavigatorParamList, EnablePaymentsNavigatorParamList, FlagCommentNavigatorParamList, MoneyRequestNavigatorParamList, NewChatNavigatorParamList, NewTaskNavigatorParamList, ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ProfileNavigatorParamList, ReferralDetailsNavigatorParamList, ReimbursementAccountNavigatorParamList, ReportDescriptionNavigatorParamList, ReportDetailsNavigatorParamList, ReportSettingsNavigatorParamList, RoomInviteNavigatorParamList, RoomMembersNavigatorParamList, SearchAdvancedFiltersParamList, SearchReportParamList, SettingsNavigatorParamList, SignInNavigatorParamList, SplitDetailsNavigatorParamList, TaskDetailsNavigatorParamList, TeachersUniteNavigatorParamList, TransactionDuplicateNavigatorParamList, TravelNavigatorParamList, WalletStatementNavigatorParamList } from '@navigation/types';
+import type { ThemeStyles } from '@styles/index';
+import type { Screen } from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import useModalScreenOptions from './useModalScreenOptions';
+
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -427,6 +400,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceCardSettingsPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_VALIDATE_ACTION]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceValidateCardActionPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,
