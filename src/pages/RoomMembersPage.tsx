@@ -310,7 +310,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
+                    <Text style={[styles.searchInputStyle, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
             </View>
         );
