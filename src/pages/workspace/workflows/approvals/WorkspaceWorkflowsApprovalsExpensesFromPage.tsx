@@ -188,7 +188,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
                 subtitleStyle={styles.textSupporting}
                 containerStyle={styles.pb10}
-                contentFitImage='contain'
+                contentFitImage="contain"
             />
         ),
         [translate, styles.textSupporting, styles.pb10],
