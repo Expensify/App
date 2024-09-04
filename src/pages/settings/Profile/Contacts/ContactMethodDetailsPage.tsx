@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -202,10 +203,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 />
 
                 {isFailedAddContactMethod && (
-                    <DotIndicatorMessage
-                        style={[themeStyles.mh5, themeStyles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
-                        type="error"
+                    <ErrorMessageRow
+                        errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
+                        errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
+                        onClose={() => {
+                            User.clearContactMethod(contactMethod);
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
+                        canDismissError
                     />
                 )}
 
