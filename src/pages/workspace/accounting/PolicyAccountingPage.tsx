@@ -51,6 +51,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseNetSuiteUSATax} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -223,7 +224,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         const configurationOptions = [
@@ -334,6 +335,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
+        canUseNetSuiteUSATax,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -421,6 +423,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <OfflineWithFeedback
                                     pendingAction={menuItem.pendingAction}
                                     key={menuItem.title}
+                                    shouldDisableStrikeThrough
                                 >
                                     <MenuItem
                                         brickRoadIndicator={menuItem.brickRoadIndicator}
