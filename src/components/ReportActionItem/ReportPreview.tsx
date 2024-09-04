@@ -193,7 +193,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const {isDelegateAccessRestricted, currentUserDeatils, delegateNoAccessPrompt} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, delegateNoAccessPrompt} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {

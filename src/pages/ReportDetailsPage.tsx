@@ -235,7 +235,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-    const {isDelegateAccessRestricted, currentUserDeatils, delegateNoAccessPrompt} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, delegateNoAccessPrompt} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {

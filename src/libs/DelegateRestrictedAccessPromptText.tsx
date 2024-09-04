@@ -3,7 +3,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 
-export default function delegateRestrictedAccessPromptText(email: string) {
+export default function DelegateRestrictedAccessPromptText(email: string) {
     const {translate} = useLocalize();
     const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: email});
     const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
