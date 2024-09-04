@@ -2597,6 +2597,18 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
+    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
+        return true;
+    }
+
+    if (isInvoiceRoom(optionOrReport)) {
+        const invoiceRoomReportActions = ReportActionsUtils.getAllReportActions(optionOrReport.reportID);
+
+        return Object.values(invoiceRoomReportActions).some(
+            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && hasMissingInvoiceBankAccount(reportAction.childReportID),
+        );
+    }
+
     return false;
 }
 
@@ -6921,7 +6933,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = 'iou.paidElsewhereWithAmount';
+                translationKey = hasMissingInvoiceBankAccount(IOUReportID ?? '-1') ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhereWithAmount';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
@@ -7751,6 +7763,19 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+/**
+ * Checks if the user has missing bank account for the invoice room.
+ */
+function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
+    const invoiceReport = getReport(iouReportID);
+
+    if (!isInvoiceReport(invoiceReport)) {
+        return false;
+    }
+
+    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+}
+
 function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
 }
@@ -8061,6 +8086,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    hasMissingInvoiceBankAccount,
 };
 
 export type {

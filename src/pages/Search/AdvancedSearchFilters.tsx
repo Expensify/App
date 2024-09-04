@@ -252,7 +252,6 @@ function AdvancedSearchFilters() {
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query,
-                isCustomQuery: true,
             }),
         );
     };
