@@ -8,6 +8,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -55,6 +56,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onModalHide={onClose}
             hideModalContentWhileAnimating
             innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
+            onBackdropPress={Navigation.dismissModal}
             useNativeDriver
         >
             <ScreenWrapper
