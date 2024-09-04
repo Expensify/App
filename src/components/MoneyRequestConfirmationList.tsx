@@ -483,7 +483,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction?.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
             setFormError('iou.error.invalidSplitYourself');
             return;
         }
