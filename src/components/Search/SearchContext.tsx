@@ -32,7 +32,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     }, []);
 
     const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[]) => {
-        // When selecting transaction we also have to manage reports to which these transactions belong toString. We do this for sake of properly exporting to CSV
+        // When selecting transaction we also have to manage reports to which these transactions belong to. We do this for sake of properly exporting to CSV.
         const selectedReports = (data ?? [])
             .filter(
                 (item) =>
