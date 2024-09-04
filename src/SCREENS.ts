@@ -436,6 +436,8 @@ const SCREENS = {
         CATEGORY_GL_CODE: 'Category_GL_Code',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        CATEGORIES_IMPORT: 'Categories_Import',
+        CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
