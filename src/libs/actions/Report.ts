@@ -2164,17 +2164,6 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-/**
- * Navigates to the 1:1 system chat
- */
-function navigateToSystemChat() {
-    const systemChatReport = ReportUtils.getSystemChat();
-
-    if (systemChatReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(systemChatReport.reportID));
-    }
-}
-
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -3329,13 +3318,7 @@ function completeOnboarding(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
-    const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
-    const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
-
-    // If the target report isn't opened, the permission field will not exist. So we should add the fallback permission for task report
-    const fallbackPermission = isAccountIDOdd ? [CONST.REPORT.PERMISSIONS.READ] : [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE];
-
-    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
@@ -3386,7 +3369,7 @@ function completeOnboarding(
             targetChatPolicyID,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
-        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(targetEmail);
+        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
         const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
             currentTask.reportID,
             task.title,
@@ -3450,7 +3433,6 @@ function completeOnboarding(
                     },
                     isOptimisticReport: true,
                     managerID: currentUserAccountID,
-                    permissions: targetChatReport?.permissions ?? fallbackPermission,
                 },
             },
             {
@@ -4109,7 +4091,6 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     navigateToConciergeChat,
-    navigateToSystemChat,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
