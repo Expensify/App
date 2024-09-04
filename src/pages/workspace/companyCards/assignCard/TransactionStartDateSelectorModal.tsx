@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ type TransactionStartDateSelectorModalProps = {
 function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, onClose}: TransactionStartDateSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const safeAreaInsets = useSafeAreaInsets();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM> =>
         ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.START_DATE]);
@@ -66,6 +68,7 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    submitButtonStyles={[styles.mb0, styles.pb0, styles.mh0]}
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
