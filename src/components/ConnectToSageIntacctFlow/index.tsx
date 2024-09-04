@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +21,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     const {translate} = useLocalize();
 
     const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const {popoverAnchorRefs} = useAccountingContext();
@@ -63,7 +63,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     }, []);
 
     if (threeDotsMenuContainerRef) {
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
                 setReuseConnectionPopoverPosition({
                     horizontal: x + width,
