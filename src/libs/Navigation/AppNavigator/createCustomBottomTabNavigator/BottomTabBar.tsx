@@ -52,7 +52,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
         return query;
     }
 
-    const policyID = queryJSON.policyID ?? activePolicyID;
+    const policyID = activePolicyID ?? queryJSON.policyID;
     const policy = PolicyUtils.getPolicy(policyID);
 
     // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
