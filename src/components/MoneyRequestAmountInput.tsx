@@ -179,7 +179,7 @@ function MoneyRequestAmountInput(
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!isInvalidAmount || isInvalidCurrency) {
+            if (isInvalidAmount || isInvalidCurrency) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
