@@ -857,6 +857,7 @@ export default {
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount.',
             invalidSplitParticipants: 'Please enter an amount greater than zero for at least two participants.',
+            invalidSplitYourself: 'Please enter a non-zero amount for your split.',
             other: 'Unexpected error. Please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
