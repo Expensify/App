@@ -21,7 +21,14 @@ function getPhoneNumberWithoutSpecialChars(phone: string): string {
  * Append user country code to the phone number
  */
 function appendCountryCode(phone: string): string {
-    return phone.startsWith('+') ? phone : `+${countryCodeByIP}${phone}`;
+    if (phone.startsWith('+')) {
+        return phone;
+    }
+    const phoneWithCountryCode = `+${countryCodeByIP}${phone}`;
+    if (parsePhoneNumber(phoneWithCountryCode).possible) {
+        return phoneWithCountryCode;
+    }
+    return `+${phone}`;
 }
 
 /**

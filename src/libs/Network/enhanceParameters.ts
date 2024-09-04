@@ -1,7 +1,24 @@
+import Onyx from 'react-native-onyx';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
+import pkg from '../../../package.json';
 import * as NetworkStore from './NetworkStore';
+
+// For all requests, we'll send the lastUpdateID that is applied to this client. This will
+// allow us to calculate previousUpdateID faster.
+let lastUpdateIDAppliedToClient = -1;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        if (value) {
+            lastUpdateIDAppliedToClient = value;
+        } else {
+            lastUpdateIDAppliedToClient = -1;
+        }
+    },
+});
 
 /**
  * Does this command require an authToken?
@@ -35,6 +52,10 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
+
+    finalParameters.appversion = pkg.version;
+
+    finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
 
     return finalParameters;
 }

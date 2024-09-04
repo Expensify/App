@@ -31,6 +31,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
+    const readonly = route.params.readonly ?? false;
 
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -43,7 +44,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
         }
         ReportActions.openReport(route.params.reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
@@ -58,7 +59,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             isAuthTokenRequired={!isLocalFile}
             report={report}
             isReceiptAttachment
-            canEditReceipt={canEditReceipt}
+            canEditReceipt={canEditReceipt && !readonly}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}

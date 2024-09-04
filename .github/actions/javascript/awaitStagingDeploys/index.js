@@ -7373,7 +7373,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -12257,7 +12257,22 @@ const CONST = {
         STAGING_DEPLOY: 'StagingDeployCash',
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    OPENAI_ROLES: {
+        USER: 'user',
+        ASSISTANT: 'assistant',
+    },
+    PROPOSAL_KEYWORD: 'Proposal',
+    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -12265,6 +12280,9 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
+    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 
@@ -12314,13 +12332,11 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token) {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
@@ -12339,6 +12355,15 @@ class GithubUtils {
                 },
             },
         }));
+    }
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
+        this.initOctokitWithToken(token);
     }
     /**
      * Either give an existing instance of Octokit rest or create a new one
@@ -12635,12 +12660,6 @@ class GithubUtils {
             .then((response) => response.data.workflow_runs[0]?.id);
     }
     /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests) {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
-    }
-    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
@@ -12695,12 +12714,31 @@ class GithubUtils {
             .then((events) => events.filter((event) => event.event === 'closed'))
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
-    static getArtifactByName(artefactName) {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName) {
+        return this.octokit.actions
+            .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            per_page: 100,
-        }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
+            per_page: 1,
+            name: artifactName,
+        })
+            .then((response) => response.data.artifacts[0]);
+    }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId) {
+        return this.octokit.actions
+            .downloadArtifact({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            artifact_id: artifactId,
+            archive_format: 'zip',
+        })
+            .then((response) => response.url);
     }
 }
 exports["default"] = GithubUtils;
@@ -12796,14 +12834,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12817,6 +12847,14 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 

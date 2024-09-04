@@ -4,12 +4,12 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
@@ -21,7 +21,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (isCentralPaneName(route.name)) {
             // Remove all central pane routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
@@ -36,7 +36,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
 }
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
@@ -56,25 +56,37 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             return;
         }
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     const {stateToRender, searchRoute} = useMemo(() => {
         const routes = reduceCentralPaneRoutes(state.routes);
 
-        // On narrow layout, if we are on /search route we want to hide the search central pane route.
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
             const lastRoute = routes[routes.length - 1];
             const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
             const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
+
+            // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
+            if (lastSearchCentralPane) {
+                return {
+                    stateToRender: {
+                        ...state,
+                        index: 0,
+                        routes: [filteredRoutes[0]],
+                    },
+                    searchRoute: lastSearchCentralPane,
+                };
+            }
+
             return {
                 stateToRender: {
                     ...state,
                     index: filteredRoutes.length - 1,
                     routes: filteredRoutes,
                 },
-                searchRoute: lastSearchCentralPane,
+                searchRoute: undefined,
             };
         }
 
@@ -86,7 +98,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             },
             searchRoute: undefined,
         };
-    }, [state, isSmallScreenWidth]);
+    }, [state, shouldUseNarrowLayout]);
 
     return (
         <NavigationContent>

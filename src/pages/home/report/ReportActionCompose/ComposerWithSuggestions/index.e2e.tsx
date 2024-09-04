@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import React, {forwardRef, useCallback, useRef} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -18,43 +19,61 @@ function IncrementRenderCount() {
 }
 
 function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
-    // Eventually Auto focus on e2e tests
-    useEffect(() => {
+    'use no memo';
+
+    // we rely on waterfall rendering in react, so we intentionally disable compiler
+    // for this component. This file is only used for e2e tests, so it's okay to
+    // disable compiler for this file.
+
+    const textInputRef = useRef<ComposerRef | null>();
+    const hasFocusBeenRequested = useRef(false);
+    const onLayout = useCallback((event: LayoutChangeEvent) => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
         if (testConfig?.reportScreen && typeof testConfig.reportScreen !== 'string' && !testConfig?.reportScreen.autoFocus) {
             return;
         }
+        const canRequestFocus = event.nativeEvent.layout.width > 0 && !hasFocusBeenRequested.current;
+        if (!canRequestFocus) {
+            return;
+        }
 
-        // We need to wait for the component to be mounted before focusing
-        setTimeout(() => {
-            const setFocus = () => {
-                if (!(ref && 'current' in ref)) {
+        hasFocusBeenRequested.current = true;
+
+        const setFocus = () => {
+            if (!(textInputRef && 'current' in textInputRef)) {
+                return;
+            }
+
+            textInputRef.current?.focus(true);
+
+            setTimeout(() => {
+                // and actually let's verify that the keyboard is visible
+                if (Keyboard.isVisible()) {
                     return;
                 }
 
-                ref.current?.focus(true);
+                textInputRef.current?.blur();
+                setFocus();
+                // 1000ms is enough time for any keyboard to open
+            }, 1000);
+        };
 
-                setTimeout(() => {
-                    // and actually let's verify that the keyboard is visible
-                    if (Keyboard.isVisible()) {
-                        return;
-                    }
-
-                    ref.current?.blur();
-                    setFocus();
-                    // 500ms is enough time for any keyboard to open
-                }, 500);
-            };
-
-            setFocus();
-        }, 1);
-    }, [ref]);
+        // Simulate user behavior and don't set focus immediately
+        setTimeout(setFocus, 2000);
+    }, []);
 
     return (
         <ComposerWithSuggestions
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={ref}
+            ref={(composerRef) => {
+                textInputRef.current = composerRef;
+
+                if (typeof ref === 'function') {
+                    ref(composerRef);
+                }
+            }}
+            onLayout={onLayout}
         >
             {/* Important: 
                     this has to be a child, as this container might not

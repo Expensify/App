@@ -3,8 +3,9 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -19,7 +20,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; q?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -32,25 +33,30 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         return;
     }
 
-    const params = action.payload.params as ActionPayloadParams;
-    let payloadParams = params?.params as Record<string, string | undefined>;
-    let screen = params.screen;
-
-    if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
-        screen = SCREENS.SEARCH.BOTTOM_TAB;
+    let name: string | undefined;
+    let params: Record<string, string | undefined>;
+    if (isCentralPaneName(action.payload.name)) {
+        name = action.payload.name;
+        params = action.payload.params as Record<string, string | undefined>;
+    } else {
+        const actionPayloadParams = action.payload.params as ActionPayloadParams;
+        name = actionPayloadParams.screen;
+        params = actionPayloadParams?.params as Record<string, string | undefined>;
     }
 
-    if (!payloadParams) {
-        payloadParams = {policyID};
+    if (name === SCREENS.SEARCH.CENTRAL_PANE) {
+        name = SCREENS.SEARCH.BOTTOM_TAB;
+    } else if (!params) {
+        params = {policyID};
     } else {
-        payloadParams.policyID = policyID;
+        params.policyID = policyID;
     }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
-            name: screen,
-            params: payloadParams,
+            name,
+            params,
         },
         target: bottomTabNavigatorRoute.state.key,
     };
@@ -77,7 +83,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()});
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
@@ -100,14 +106,20 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
-        const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
-        if (isOpeningSearchFromBottomTab) {
+        if (isOpeningSearchFromBottomTab && params.q) {
+            delete params.policyID;
+            const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+
             if (policyID) {
-                params.policyIDs = policyID;
-            } else {
-                delete params.policyIDs;
+                if (queryJSON) {
+                    queryJSON.policyID = policyID;
+                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                }
+            } else if (queryJSON) {
+                delete queryJSON.policyID;
+                params.q = SearchUtils.buildSearchQueryString(queryJSON);
             }
         }
 
@@ -120,11 +132,8 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         root.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
             payload: {
-                name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                params: {
-                    screen,
-                    params,
-                },
+                name: topmostCentralPaneRoute?.name,
+                params,
             },
         });
     } else {

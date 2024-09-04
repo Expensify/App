@@ -1,18 +1,21 @@
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | PaymentMethodType>;
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
-type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES>;
+type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
-type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES>;
+type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+
+type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type DropdownOption<TValueType> = {
     value: TValueType;
@@ -23,6 +26,11 @@ type DropdownOption<TValueType> = {
     iconDescription?: string;
     onSelected?: () => void;
     disabled?: boolean;
+    iconFill?: string;
+    interactive?: boolean;
+    numberOfLinesTitle?: number;
+    titleStyle?: ViewStyle;
+    shouldCloseModalOnSelect?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -38,6 +46,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
 
+    /** Callback when the options popover is shown */
+    onOptionsMenuShow?: () => void;
+
+    /** Callback when the options popover is shown */
+    onOptionsMenuHide?: () => void;
+
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
 
@@ -45,7 +59,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
@@ -77,6 +91,23 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
+
+    /** Decides which index in menuItems should be selected */
+    defaultSelectedIndex?: number;
+
+    /** Whether selected items should be marked as selected */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};
+export type {
+    PaymentType,
+    WorkspaceMemberBulkActionType,
+    WorkspaceDistanceRatesBulkActionType,
+    DropdownOption,
+    ButtonWithDropdownMenuProps,
+    WorkspaceTaxRatesBulkActionType,
+    ReportExportType,
+};

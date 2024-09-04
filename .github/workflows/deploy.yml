@@ -23,11 +23,31 @@ jobs:
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
-      - name: Tag version
-        run: git tag "$(npm run print-version --silent)"
+      - name: Get current app version
+        run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: 🚀 Push tags to trigger staging deploy 🚀
-        run: git push --tags
+      - name: 🚀 Create prerelease to trigger staging deploy 🚀
+        run: gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease --target staging
+        env:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Warn deployers if staging deploy failed
+        if: ${{ failure() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 NewDot staging deploy failed. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   deployProduction:
     runs-on: ubuntu-latest
@@ -50,21 +70,28 @@ jobs:
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: Get Release Pull Request List
-        id: getReleasePRList
-        uses: ./.github/actions/javascript/getDeployPullRequestList
-        with:
-          TAG: ${{ env.PRODUCTION_VERSION }}
-          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
-          IS_PRODUCTION_DEPLOY: true
-
-      - name: Generate Release Body
-        id: getReleaseBody
-        uses: ./.github/actions/javascript/getReleaseBody
-        with:
-          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-
-      - name: 🚀 Create release to trigger production deploy 🚀
-        run: gh release create ${{ env.PRODUCTION_VERSION }} --notes ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
+      - name: 🚀 Edit the release to be no longer a prerelease to deploy production 🚀
+        run: |
+          LATEST_RELEASE="$(gh release list --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
+          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ env.PRODUCTION_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" >> releaseNotes.md
+          gh release edit ${{ env.PRODUCTION_VERSION }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Warn deployers if production deploy failed
+        if: ${{ failure() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 NewDot production deploy failed. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

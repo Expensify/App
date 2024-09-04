@@ -1,32 +1,39 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as App from '@userActions/App';
+import variables from '@styles/variables';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -44,14 +51,16 @@ function ProfilePage({
         legalFirstName: '',
         legalLastName: '',
         dob: '',
-        address: {
-            street: '',
-            street2: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
+        addresses: [
+            {
+                street: '',
+                street2: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: '',
+            },
+        ],
     },
     currentUserPersonalDetails,
     isLoadingApp,
@@ -60,12 +69,15 @@ function ProfilePage({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
+
+    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
+    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -101,10 +113,6 @@ function ProfilePage({
         },
     ];
 
-    useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
-    }, [currentUserPersonalDetails]);
-
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
@@ -132,12 +140,12 @@ function ProfilePage({
             <HeaderWithBackButton
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
                 <MenuItemGroup>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('profilePage.publicSection.title')}
                             subtitle={translate('profilePage.publicSection.subtitle')}
@@ -146,6 +154,29 @@ function ProfilePage({
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
+                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
+                                <MenuItemGroup shouldUseSingleExecution={false}>
+                                    <AvatarWithImagePicker
+                                        isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                        source={avatarURL}
+                                        avatarID={accountID}
+                                        onImageSelected={PersonalDetails.updateAvatar}
+                                        onImageRemoved={PersonalDetails.deleteAvatar}
+                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        avatarStyle={styles.avatarXLarge}
+                                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                        errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                        errorRowStyles={styles.mt6}
+                                        onErrorClose={PersonalDetails.clearAvatarErrors}
+                                        onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                        previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                        originalFileName={currentUserPersonalDetails.originalFileName}
+                                        headerTitle={translate('profilePage.profileAvatar')}
+                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                        editIconStyle={styles.profilePageAvatar}
+                                    />
+                                </MenuItemGroup>
+                            </View>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
                                     // eslint-disable-next-line react/no-array-index-key
@@ -158,6 +189,25 @@ function ProfilePage({
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
+                            <View style={[styles.alignSelfStart, styles.pt3]}>
+                                <Tooltip text={translate('common.shareCode')}>
+                                    <PressableWithFeedback
+                                        accessibilityLabel={translate('common.shareCode')}
+                                        accessibilityRole="button"
+                                        accessible
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                                        style={[styles.button, styles.flexRow, styles.gap1, styles.ph4]}
+                                    >
+                                        <Icon
+                                            src={Expensicons.QrCode}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                            fill={theme.icon}
+                                        />
+                                        <Text style={styles.buttonText}>{translate('common.share')}</Text>
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            </View>
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}

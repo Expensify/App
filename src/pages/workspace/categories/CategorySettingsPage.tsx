@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,9 +13,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -39,10 +41,18 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const backTo = route.params?.backTo;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const policy = usePolicy(route.params.policyID);
 
     const policyCategory =
         policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
+
+    const navigateBack = () => {
+        if (backTo) {
+            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
+            return;
+        }
+        Navigation.goBack();
+    };
 
     useEffect(() => {
         if (policyCategory?.name === route.params.categoryName || !policyCategory) {
@@ -70,7 +80,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     const deleteCategory = () => {
         Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
-        Navigation.dismissModal();
+        navigateBack();
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -88,7 +98,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
             >
                 <HeaderWithBackButton
                     title={route.params.categoryName}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
+                    onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
@@ -121,8 +131,48 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
                             title={policyCategory.name}
-                            description={translate(`workspace.categories.categoryName`)}
+                            description={translate(`common.name`)}
                             onPress={navigateToEditCategory}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['GL Code']}
+                            description={translate(`workspace.categories.glCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory['Payroll Code']}
+                            description={translate(`workspace.categories.payrollCode`)}
+                            onPress={() => {
+                                if (!isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            route.params.policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
+                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name),
+                                        ),
+                                    );
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name));
+                            }}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>

@@ -38,7 +38,7 @@ function EnvironmentBadge() {
             error={error}
             text={text}
             badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnviromentStyle]}
-            textStyles={[styles.headerEnvBadgeText, {fontWeight: '700'}]}
+            textStyles={styles.headerEnvBadgeText}
             environment={environment}
             pressable
         />

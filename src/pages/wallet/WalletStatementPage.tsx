@@ -42,7 +42,7 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
         if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want this effect to run only on mount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
     }, []);
 
     useEffect(() => {

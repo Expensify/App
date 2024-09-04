@@ -21,7 +21,7 @@ type DecisionModalProps = {
     secondOptionText: string;
 
     /** onSubmit callback fired after clicking on first button */
-    onFirstOptionSubmit: () => void;
+    onFirstOptionSubmit?: () => void;
 
     /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;

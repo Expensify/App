@@ -72,7 +72,8 @@ const test = () => {
       // ... do something with the measurements
       E2EClient.submitTestResults({
           name: "Navigate to report",
-          duration: measurement.duration,
+          metric: measurement.duration,
+          unit: 'ms',
       }).then(E2EClient.submitTestDone)
   });
 

@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -11,9 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
+import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuOnyxProps = {
@@ -32,7 +32,7 @@ type AddPaymentMethodMenuProps = AddPaymentMethodMenuOnyxProps & {
     onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report> | EmptyObject;
+    iouReport?: OnyxEntry<Report>;
 
     /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
@@ -62,23 +62,45 @@ function AddPaymentMethodMenu({
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
     const {translate} = useLocalize();
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const isIOUReport = ReportUtils.isIOUReport(iouReport ?? {});
+    const isIOUReport = ReportUtils.isIOUReport(iouReport);
     const canUseBusinessBankAccount =
-        ReportUtils.isExpenseReport(iouReport ?? {}) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
+        ReportUtils.isExpenseReport(iouReport) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
+
+    const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
+
+    // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
+    useEffect(() => {
+        if (!isVisible || !isPersonalOnlyOption) {
+            return;
+        }
+
+        onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
+
+    if (isPersonalOnlyOption) {
+        return null;
+    }
 
     return (
         <PopoverMenu
             isVisible={isVisible}
-            onClose={onClose}
+            onClose={() => {
+                setRestoreFocusType(undefined);
+                onClose();
+            }}
             anchorPosition={anchorPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={anchorRef}
-            onItemSelected={onClose}
+            onItemSelected={() => {
+                setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
+                onClose();
+            }}
             menuItems={[
                 ...(canUsePersonalBankAccount
                     ? [
@@ -100,15 +122,18 @@ function AddPaymentMethodMenu({
                           },
                       ]
                     : []),
-                ...[
-                    {
-                        text: translate('common.debitCard'),
-                        icon: Expensicons.CreditCard,
-                        onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-                    },
-                ],
+                // Adding a debit card for P2P payments is temporarily disabled
+                // ...[
+                //     {
+                //         text: translate('common.debitCard'),
+                //         icon: Expensicons.CreditCard,
+                //         onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                //     },
+                // ],
             ]}
             withoutOverlay
+            shouldEnableNewFocusManagement
+            restoreFocusType={restoreFocusType}
         />
     );
 }

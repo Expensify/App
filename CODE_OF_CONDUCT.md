@@ -57,3 +57,5 @@ compliance with this Code is required to maintain your status as an Expensify co
 
 By signing up to participate as an contributor, you are acknowledging your understanding of and consent to (i) what is expected of you under this Code and (ii) notwithstanding anything to the contrary in any agreement you have with Expensify, Expensify’s right, but not obligation, to terminate your participation in the Expensify Contributor Community upon any breach of the Code, as determined in Expensify’s sole
 Discretion.
+
+Violations of our two rules may lead to removal from the contributor program. Severe violations can lead to an immediate ban, while lesser ones may result in a formal warning. Multiple warnings will also lead to removal. 

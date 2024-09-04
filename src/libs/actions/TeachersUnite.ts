@@ -5,6 +5,7 @@ import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -95,7 +96,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,

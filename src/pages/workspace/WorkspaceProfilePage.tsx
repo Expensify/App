@@ -1,9 +1,10 @@
-import {ExpensiMark} from 'expensify-common';
+import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -15,12 +16,15 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -29,29 +33,32 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
+import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkSpaceProfilePageOnyxProps = {
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-const parser = new ExpensiMark();
-
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+
+    // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -73,14 +80,32 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),
         );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
+    const isOwner = PolicyUtils.isPolicyOwner(policy, currentUserAccountID);
+    const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || formattedAddress;
+
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyProfilePage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
+    // as well as in the wide layout when looking at policy settings.
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const DefaultAvatar = useCallback(
         () => (
@@ -116,25 +141,21 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
-    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-    if (policy === undefined) {
-        return null;
-    }
-
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
-            shouldShowLoading={false}
+            // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+            shouldShowLoading={policy === undefined}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
-            shouldSkipVBBACall={false}
+            shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
-                <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         isCentralPane
                         title=""
@@ -155,8 +176,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[
-                                policy?.errorFields?.avatarURL ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
-                                isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
+                                policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout ? styles.mb1 : styles.mb3,
+                                shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,
                             ]}
@@ -175,14 +196,14 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             disabledStyle={styles.cursorDefault}
                             errorRowStyles={styles.mt3}
                         />
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
                                 description={translate('workspace.editor.nameInputLabel')}
                                 shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt3 : {}]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
                                 shouldGreyOutWhenDisabled={false}
                                 shouldUseDefaultCursorWhenDisabled
@@ -208,7 +229,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.generalSettings}
+                            pendingAction={policy?.pendingFields?.outputCurrency}
                             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             errorRowStyles={[styles.mt2]}
@@ -228,7 +249,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             </View>
                         </OfflineWithFeedback>
                         {canUseSpotnanaTravel && shouldShowAddress && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
@@ -252,14 +273,16 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     medium
                                     icon={Expensicons.QrCode}
                                 />
-                                <Button
-                                    accessibilityLabel={translate('common.delete')}
-                                    text={translate('common.delete')}
-                                    style={[styles.ml2]}
-                                    onPress={() => setIsDeleteModalOpen(true)}
-                                    medium
-                                    icon={Expensicons.Trashcan}
-                                />
+                                {isOwner && (
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        text={translate('common.delete')}
+                                        style={[styles.ml2]}
+                                        onPress={() => setIsDeleteModalOpen(true)}
+                                        medium
+                                        icon={Expensicons.Trashcan}
+                                    />
+                                )}
                             </View>
                         )}
                     </Section>
@@ -282,7 +305,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
+    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );

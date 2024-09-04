@@ -11,21 +11,24 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
@@ -117,39 +120,46 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const isReportOpenInRHP = useIsReportOpenInRHP();
-    const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
+        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+            if (shouldRestrictAction && policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
+
+            onSelected();
+        };
+
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false),
             },
             [CONST.IOU.TYPE.TRACK]: {
                 icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                 text: translate('iou.trackExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
                 icon: Expensicons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? '-1'),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? '-1'), false),
             },
         };
 
@@ -220,6 +230,7 @@ function AttachmentPickerWithMenuItems({
                             }
                             triggerAttachmentPicker();
                         },
+                        shouldCallAfterModalHide: true,
                     },
                 ];
                 return (

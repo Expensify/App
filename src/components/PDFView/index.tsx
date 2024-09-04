@@ -68,7 +68,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     useEffect(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -120,7 +120,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                             isPasswordInvalid={isPasswordInvalid}
                             onSubmit={onSubmit}
                             onPasswordUpdated={onPasswordChange}
-                            onPasswordFieldFocused={toggleKeyboardOnSmallScreens}
                         />
                     )}
                 />
@@ -132,7 +131,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
         <PressableWithoutFeedback
             onPress={onPress}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >

@@ -1,3 +1,4 @@
+import type {Unit} from '@libs/E2E/types';
 import type {Stats} from '../../measure/math';
 import * as format from './format';
 
@@ -8,6 +9,7 @@ type Entry = {
     diff: number;
     relativeDurationDiff: number;
     isDurationDiffOfSignificance: boolean;
+    unit: Unit;
 };
 
 type Data = {
@@ -18,7 +20,7 @@ type Data = {
 };
 
 const printRegularLine = (entry: Entry) => {
-    console.debug(` - ${entry.name}: ${format.formatDurationDiffChange(entry)}`);
+    console.debug(` - ${entry.name}: ${format.formatMetricDiffChange(entry)}`);
 };
 
 /**

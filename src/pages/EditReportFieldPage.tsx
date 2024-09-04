@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
@@ -54,8 +55,10 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
+    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
-    if (!reportField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !report || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -71,22 +74,21 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
         );
     }
 
-    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-
-    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
+    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
+            Navigation.goBack();
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);
+            Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
         }
-
-        Navigation.dismissModal(report?.reportID);
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
-        Navigation.dismissModal(report?.reportID);
+        setIsDeleteModalVisible(false);
+        Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;

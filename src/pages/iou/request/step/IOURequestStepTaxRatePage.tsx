@@ -7,11 +7,12 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -23,7 +24,7 @@ type IOURequestStepTaxRatePageOnyxProps = {
     policyCategories: OnyxEntry<PolicyCategories>;
 
     /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
@@ -38,7 +39,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
     const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
     const taxPercentage = getTaxValue(selectedTaxCode);
     if (taxPercentage) {
-        return TransactionUtils.calculateTaxAmount(taxPercentage, amount);
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
     }
 }
 

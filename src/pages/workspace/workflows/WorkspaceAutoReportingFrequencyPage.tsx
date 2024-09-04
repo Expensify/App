@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -48,19 +48,18 @@ const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFre
 });
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
+    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
+
     const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
-    const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
         Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '-1', item.keyForList as AutoReportingFrequencyKey);
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
-            setIsMonthlyFrequency(true);
             return;
         }
 
-        setIsMonthlyFrequency(false);
         Navigation.goBack();
     };
 
@@ -97,16 +96,12 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         </OfflineWithFeedback>
     );
 
-    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
-        const isSelected = policy?.autoReportingFrequency === frequencyKey;
-
-        return {
-            text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
-            keyForList: frequencyKey,
-            isSelected,
-            footerContent: isMonthlyFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
-        };
-    });
+    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => ({
+        text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
+        keyForList: frequencyKey,
+        isSelected: frequencyKey === autoReportingFrequency,
+        footerContent: frequencyKey === autoReportingFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+    }));
 
     return (
         <AccessOrNotFoundWrapper
@@ -138,7 +133,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             ListItem={RadioListItem}
                             sections={[{data: autoReportingFrequencyItems}]}
                             onSelectRow={onSelectAutoReportingFrequency}
-                            initiallyFocusedOptionKey={policy?.autoReportingFrequency}
+                            initiallyFocusedOptionKey={autoReportingFrequency}
+                            shouldUpdateFocusedIndex
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>

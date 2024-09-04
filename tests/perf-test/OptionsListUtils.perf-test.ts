@@ -64,13 +64,13 @@ const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_
 const mockedBetas = Object.values(CONST.BETAS);
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
         }),
-    } as typeof NativeNavigation;
+    };
 });
 
 const options = OptionsListUtils.createOptionList(personalDetails, reports);

@@ -34,6 +34,8 @@ type ObjectMethodData<T> = {
     data: T;
 };
 
+type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
+
 const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 beforeAll(() => {
@@ -44,7 +46,7 @@ beforeAll(() => {
     const moctokit = {
         rest: {
             issues: {
-                create: jest.fn().mockImplementation((arg) =>
+                create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
                     Promise.resolve({
                         data: {
                             ...arg,
@@ -618,14 +620,5 @@ describe('GithubUtils', () => {
             [1234, 'https://github.com/Expensify/App/pull/1234'],
             [54321, 'https://github.com/Expensify/App/pull/54321'],
         ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
-    });
-
-    describe('getReleaseBody', () => {
-        test.each([
-            // eslint-disable-next-line max-len
-            [[1, 2, 3], '- https://github.com/Expensify/App/pull/1\r\n- https://github.com/Expensify/App/pull/2\r\n- https://github.com/Expensify/App/pull/3'],
-            [[], ''],
-            [[12345], '- https://github.com/Expensify/App/pull/12345'],
-        ])('getReleaseBody("%s")', (input, expectedOutput) => expect(GithubUtils.getReleaseBody(input)).toBe(expectedOutput));
     });
 });

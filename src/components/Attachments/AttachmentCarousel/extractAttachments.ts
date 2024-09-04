@@ -4,20 +4,23 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Note} from '@src/types/onyx/Report';
 
 /**
  * Constructs the initial component state from report actions
  */
 function extractAttachments(
     type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
-    {reportID, accountID, parentReportAction, reportActions}: {reportID?: string; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+    {
+        privateNotes,
+        accountID,
+        parentReportAction,
+        reportActions,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
 ) {
-    const report = getReport(reportID);
-    const privateNotes = report?.privateNotes;
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
 
@@ -34,11 +37,11 @@ function extractAttachments(
                 }
 
                 uniqueSources.add(source);
-                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
+                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
-                    file: {name: splittedUrl[splittedUrl.length - 1]},
+                    file: {name: fileName},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
                     hasBeenFlagged: false,
@@ -49,12 +52,16 @@ function extractAttachments(
             if (name === 'img' && attribs.src) {
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+                const previewSource = tryResolveUrlFromApiRoot(attribs.src);
                 if (uniqueSources.has(source)) {
                     return;
                 }
 
                 uniqueSources.add(source);
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+
+                const width = (attribs['data-expensify-width'] && parseInt(attribs['data-expensify-width'], 10)) || undefined;
+                const height = (attribs['data-expensify-height'] && parseInt(attribs['data-expensify-height'], 10)) || undefined;
 
                 // Public image URLs might lack a file extension in the source URL, without an extension our
                 // AttachmentView fails to recognize them as images and renders fallback content instead.
@@ -69,8 +76,9 @@ function extractAttachments(
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
                     source,
+                    previewSource,
                     isAuthTokenRequired: !!expensifySource,
-                    file: {name: fileName},
+                    file: {name: fileName, width, height},
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',
                 });
@@ -91,9 +99,9 @@ function extractAttachments(
             return;
         }
 
-        const decision = action?.message?.[0]?.moderationDecision?.decision;
+        const decision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = (action?.message?.[0]?.html ?? '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = ReportActionsUtils.getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
         htmlParser.write(html);
     });
     htmlParser.end();

@@ -14,8 +14,8 @@ const updateMultilineInputRange: UpdateMultilineInputRange = (input, shouldAutoF
         return;
     }
 
-    if ('value' in input && input.value && input.setSelectionRange) {
-        const length = input.value.length as number;
+    if ('value' in input && typeof input.value === 'string' && input.setSelectionRange) {
+        const length = input.value.length;
         if (shouldAutoFocus) {
             (input as HTMLInputElement).setSelectionRange(length, length);
         }

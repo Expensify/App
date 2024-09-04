@@ -1,14 +1,22 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportActions = value),
+});
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -24,13 +32,14 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID ?? '-1');
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID || '-1');
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
 
         // Delete the failed task report too
-        const taskReportID = reportAction.message?.[0]?.taskReportID;
+        const taskReportID = ReportActionUtils.getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && ReportActionUtils.isCreatedTaskReportAction(reportAction)) {
             Report.deleteReport(taskReportID);
         }
@@ -58,18 +67,6 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     });
 }
 
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
-});
-
 /**
  *
 ignore: `undefined` means we want to check both parent and children report actions
@@ -83,7 +80,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     clearReportActionErrors(reportID, reportAction, keys);
 
-    const report = ReportUtils.getReport(reportID);
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = ReportActionUtils.getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));

@@ -2,8 +2,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ type WorkspaceCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typ
 function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <WorkspacePageWithSections
@@ -29,7 +29,7 @@ function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => (
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? '-1'} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}

@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,7 +8,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -33,14 +32,19 @@ type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps
 function SystemChatReportFooterMessage({choice, policies, activePolicyID}: SystemChatReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
-    const adminChatReport = useMemo(() => {
+    const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
             ? PolicyUtils.getPolicy(activePolicyID)
-            : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
+            : Object.values(policies ?? {}).find(
+                  (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
+              );
 
-        return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
-    }, [activePolicyID, policies]);
+        return String(adminPolicy?.chatReportIDAdmins ?? -1);
+    }, [activePolicyID, policies, currentUserLogin]);
+
+    const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
 
     const content = useMemo(() => {
         switch (choice) {

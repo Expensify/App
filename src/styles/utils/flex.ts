@@ -30,6 +30,10 @@ export default {
         flex: 4,
     },
 
+    flex5: {
+        flex: 5,
+    },
+
     flexRow: {
         flexDirection: 'row',
     },

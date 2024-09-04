@@ -7,11 +7,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type OfflineIndicatorProps = {
     /** Optional styles for container element that will override the default styling for the offline indicator */
@@ -25,7 +23,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline, isBackendReachable} = useNetwork();
+    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const computedStyles = useMemo((): StyleProp<ViewStyle> => {
@@ -36,7 +34,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
         return shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator;
     }, [containerStyles, shouldUseNarrowLayout, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
-    if (!isOffline && isBackendReachable) {
+    if (!isOffline) {
         return null;
     }
 
@@ -48,22 +46,7 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
-            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
-                {isOffline ? (
-                    translate('common.youAppearToBeOffline')
-                ) : (
-                    <>
-                        {translate('common.weMightHaveProblem')}
-                        <TextLink
-                            href={CONST.STATUS_EXPENSIFY_URL}
-                            style={[styles.chatItemComposeSecondaryRowSubText, styles.link]}
-                        >
-                            {new URL(CONST.STATUS_EXPENSIFY_URL).host}
-                        </TextLink>
-                        .
-                    </>
-                )}
-            </Text>
+            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>{translate('common.youAppearToBeOffline')}</Text>
         </View>
     );
 }

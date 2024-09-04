@@ -16,7 +16,7 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
             return;
         }
         labelRef.current.setAttribute('for', inputId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return (

@@ -90,7 +90,6 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
-                    disablePressOnEnter={false}
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}

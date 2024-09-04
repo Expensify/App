@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import type {ComponentType} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
@@ -63,7 +65,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const {translate} = useLocalize();
     const theme = useTheme();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
-    const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
+    const participantAccountIDs = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.participantAccountIDs ?? [] : [];
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -104,19 +106,20 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
-                        <MoneyRequestHeaderStatusBar
-                            title={
-                                <Icon
-                                    src={Expensicons.ReceiptScan}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
-                                    fill={theme.icon}
-                                />
-                            }
-                            description={translate('iou.receiptScanInProgressDescription')}
-                            shouldShowBorderBottom
-                            shouldStyleFlexGrow={false}
-                        />
+                        <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                            <MoneyRequestHeaderStatusBar
+                                icon={
+                                    <Icon
+                                        src={Expensicons.ReceiptScan}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                }
+                                description={translate('iou.receiptScanInProgressDescription')}
+                                shouldStyleFlexGrow={false}
+                            />
+                        </View>
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList
@@ -144,6 +147,9 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
                             action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
+                            onToggleBillable={(billable) => {
+                                IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {billable});
+                            }}
                         />
                     )}
                 </View>
@@ -158,20 +164,20 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
     transaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
         },
     },
     draftTransaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },
-})(withReportAndReportActionOrNotFound(SplitBillDetailsPage));
+})(withReportAndReportActionOrNotFound(SplitBillDetailsPage) as ComponentType<SplitBillDetailsPageProps>);
 
 export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
     report: {

@@ -1,16 +1,20 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,29 +23,22 @@ function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-
-    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
-
-    // TODO these default state values will come from API in next phase
-    const [autoRenew, setAutoRenew] = useState(true);
-    const [autoIncrease, setAutoIncrease] = useState(false);
+    const preferredCurrency = usePreferredCurrency();
+    const possibleCostSavings = useSubscriptionPossibleCostSavings();
 
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
-    // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
-        if (!autoRenew) {
-            // TODO make API call to enable auto renew here
-            setAutoRenew(true);
+        if (!privateSubscription?.autoRenew) {
+            Subscription.updateSubscriptionAutoRenew(true);
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
     };
+
     const handleAutoIncreaseToggle = () => {
-        // TODO make API call to toggle auto increase here
-        setAutoIncrease(!autoIncrease);
+        Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
@@ -54,7 +51,7 @@ function SubscriptionSettings() {
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
                 {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountSaved: isCollect ? CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.COLLECT_PLAN : CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.CONTROL_PLAN,
+                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
                 })}
             </Text>
         </View>
@@ -66,24 +63,28 @@ function SubscriptionSettings() {
             titleStyles={styles.textStrong}
             isCentralPane
         >
-            <View style={styles.mt5}>
-                <ToggleSettingOptionRow
-                    title={translate('subscription.subscriptionSettings.autoRenew')}
-                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                    onToggle={handleAutoRenewToggle}
-                    isActive={autoRenew}
-                />
-                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-            </View>
-            <View style={styles.mt3}>
-                <ToggleSettingOptionRow
-                    customTitle={customTitle}
-                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                    onToggle={handleAutoIncreaseToggle}
-                    isActive={autoIncrease}
-                />
-                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
-            </View>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
+                <View style={styles.mt5}>
+                    <ToggleSettingOptionRow
+                        title={translate('subscription.subscriptionSettings.autoRenew')}
+                        switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                        onToggle={handleAutoRenewToggle}
+                        isActive={privateSubscription?.autoRenew ?? false}
+                    />
+                    {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
+                </View>
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
+                <View style={styles.mt3}>
+                    <ToggleSettingOptionRow
+                        customTitle={customTitle}
+                        switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                        onToggle={handleAutoIncreaseToggle}
+                        isActive={privateSubscription?.addNewUsersAutomatically ?? false}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
+                </View>
+            </OfflineWithFeedback>
         </Section>
     );
 }

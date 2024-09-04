@@ -1,0 +1,73 @@
+diff --git a/node_modules/react-compiler-healthcheck/dist/index.js b/node_modules/react-compiler-healthcheck/dist/index.js
+index fa2ab22..93be1fb 100755
+--- a/node_modules/react-compiler-healthcheck/dist/index.js
++++ b/node_modules/react-compiler-healthcheck/dist/index.js
+@@ -69157,16 +69157,28 @@ var reactCompilerCheck = {
+       compile(source, path);
+     }
+   },
+-  report(verbose) {
++  report(verbose, json) {
+     const totalComponents =
+       SucessfulCompilation.length +
+       countUniqueLocInEvents(OtherFailures) +
+       countUniqueLocInEvents(ActionableFailures);
+-    console.log(
+-      chalk.green(
+-        `Successfully compiled ${SucessfulCompilation.length} out of ${totalComponents} components.`
+-      )
+-    );
++    if (!json) {
++      console.log(
++        chalk.green(
++          `Successfully compiled ${SucessfulCompilation.length} out of ${totalComponents} components.`
++        )
++      );
++    }
++    
++    if (json) {
++      const extractFileName = (output) => output.fnLoc.filename;
++      const successfulFiles = SucessfulCompilation.map(extractFileName);
++      const unsuccessfulFiles = [...new Set([...OtherFailures, ...ActionableFailures].map(extractFileName))];
++      console.log(JSON.stringify({
++        success: successfulFiles,
++        failure: unsuccessfulFiles,
++      }));
++    }
+     
+     if (verbose) {
+       for (const compilation of [...SucessfulCompilation, ...ActionableFailures, ...OtherFailures]) {
+@@ -69253,10 +69265,17 @@ function main() {
+         default: false,
+         alias: 'v',
+       })
++      .option('json', {
++        description: 'print a list of compiled/not-compiled files as JSON',
++        type: 'boolean',
++        default: false,
++        alias: 'j',
++      })
+       .parseSync();
+     const spinner = ora("Checking").start();
+     let src = argv.src;
+     let verbose = argv.verbose;
++    let json = argv.json;
+     const globOptions = {
+       onlyFiles: true,
+       ignore: [
+@@ -69276,9 +69295,12 @@ function main() {
+       libraryCompatCheck.run(source, path);
+     }
+     spinner.stop();
+-    reactCompilerCheck.report(verbose);
+-    strictModeCheck.report();
+-    libraryCompatCheck.report();
++    reactCompilerCheck.report(verbose, json);
++    // using json option we only want to get list of files
++    if (!json) {
++      strictModeCheck.report();
++      libraryCompatCheck.report();
++    }
+   });
+ }
+ main();

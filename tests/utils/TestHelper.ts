@@ -1,27 +1,51 @@
 import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
-type MockFetch = ReturnType<typeof jest.fn> & {
-    pause?: () => void;
-    fail?: () => void;
-    succeed?: () => void;
-    resume?: () => Promise<void>;
+type MockFetch = jest.MockedFn<typeof fetch> & {
+    pause: () => void;
+    fail: () => void;
+    succeed: () => void;
+    resume: () => Promise<void>;
+    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']) => void;
 };
 
-type QueueItem = (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
+type QueueItem = {
+    resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
+    input: RequestInfo;
+    options?: RequestInit;
+};
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
 
-type Listener = () => void;
+function setupApp() {
+    beforeAll(() => {
+        Linking.setInitialURL('https://new.expensify.com/');
+        appSetup();
+
+        // Connect to Pusher
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+        });
+    });
+}
 
 function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
     return {
@@ -156,12 +180,14 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock() {
-    const queue: QueueItem[] = [];
+function getGlobalFetchMock(): typeof fetch {
+    let queue: QueueItem[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let responses = new Map<string, (params: any) => OnyxResponse['onyxData']>();
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (): Partial<Response> =>
+    const getResponse = (input: RequestInfo, options?: RequestInit): Partial<Response> =>
         shouldFail
             ? {
                   ok: true,
@@ -169,28 +195,86 @@ function getGlobalFetchMock() {
               }
             : {
                   ok: true,
-                  json: () => Promise.resolve({jsonCode: 200}),
+                  json: async () => {
+                      const commandMatch = typeof input === 'string' ? input.match(/https:\/\/www.expensify.com.dev\/api\/(\w+)\?/) : null;
+                      const command = commandMatch ? commandMatch[1] : null;
+
+                      const responseHandler = command ? responses.get(command) : null;
+                      if (responseHandler) {
+                          const requestData = options?.body instanceof FormData ? Object.fromEntries(options.body) : {};
+                          return Promise.resolve({jsonCode: 200, onyxData: responseHandler(requestData)});
+                      }
+
+                      return Promise.resolve({jsonCode: 200});
+                  },
               };
 
-    const mockFetch: MockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
         if (!isPaused) {
-            return Promise.resolve(getResponse());
+            return Promise.resolve(getResponse(input, options));
         }
         return new Promise((resolve) => {
-            queue.push(resolve);
+            queue.push({resolve, input, options});
         });
-    });
+    }) as MockFetch;
+
+    const baseMockReset = mockFetch.mockReset.bind(mockFetch);
+    mockFetch.mockReset = () => {
+        baseMockReset();
+        queue = [];
+        responses = new Map();
+        isPaused = false;
+        shouldFail = false;
+        return mockFetch;
+    };
 
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach((resolve) => resolve(getResponse()));
+        queue.forEach(({resolve, input}) => resolve(getResponse(input)));
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']): void => {
+        responses.set(command, responseHandler);
+    };
     return mockFetch as typeof fetch;
+}
+
+function setupGlobalFetchMock(): MockFetch {
+    const mockFetch = getGlobalFetchMock();
+    const originalFetch = global.fetch;
+
+    global.fetch = mockFetch as unknown as typeof global.fetch;
+
+    afterAll(() => {
+        global.fetch = originalFetch;
+    });
+
+    return mockFetch as MockFetch;
+}
+
+function getFetchMockCalls(commandName: ApiCommand) {
+    return (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+}
+
+/**
+ * Assertion helper to validate that a command has been called a specific number of times.
+ */
+function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls: number) {
+    expect(getFetchMockCalls(commandName)).toHaveLength(expectedCalls);
+}
+
+/**
+ * Assertion helper to validate that a command has been called with specific parameters.
+ */
+function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
+    const call = getFetchMockCalls(commandName).at(callIndex);
+    expect(call).toBeTruthy();
+    const body = (call?.at(1) as RequestInit)?.body;
+    const params = body instanceof FormData ? Object.fromEntries(body) : {};
+    expect(params).toEqual(expect.objectContaining(expectedParams));
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -200,7 +284,7 @@ function setPersonalDetails(login: string, accountID: number) {
     return waitForBatchedUpdates();
 }
 
-function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null, previousReportActionID: string | null = null) {
+function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null) {
     const reportActionID = actionID ?? NumberUtils.rand64().toString();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -209,7 +293,6 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
         message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
         reportActionID,
         actorAccountID,
-        previousReportActionID,
     };
 }
 
@@ -222,30 +305,17 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = () => {
-    const transitionEndListeners: Listener[] = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
 export type {MockFetch, FormData};
-export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
+export {
+    assertFormDataMatchesObject,
+    buildPersonalDetails,
+    buildTestReportComment,
+    getGlobalFetchMock,
+    setPersonalDetails,
+    signInWithTestUser,
+    signOutTestUser,
+    setupApp,
+    expectAPICommandToHaveBeenCalled,
+    expectAPICommandToHaveBeenCalledWith,
+    setupGlobalFetchMock,
+};

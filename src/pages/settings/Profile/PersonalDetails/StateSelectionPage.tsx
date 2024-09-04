@@ -65,11 +65,11 @@ function StateSelectionPage() {
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+                    Navigation.goBack(appendParam(backTo, 'state', option.value));
                 }
             } else if (!_.isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
+                Navigation.navigate(appendParam(backTo, 'state', option.value));
             } else {
                 // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
                 // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
@@ -105,7 +105,7 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

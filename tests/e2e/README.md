@@ -148,7 +148,8 @@ const someDurationWeCollected = // ...
 
 E2EClient.submitTestResults({
     name: 'My test name',
-    duration: someDurationWeCollected,
+    metric: someDurationWeCollected,
+    unit: 'ms',
 });
 ```
 

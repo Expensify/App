@@ -44,8 +44,8 @@ function SignInPageLayout(
     const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
     const scrollViewRef = useRef<RNScrollView>(null);
     const prevPreferredLocale = usePrevious(preferredLocale);
-    const {windowHeight, isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const {containerStyles, contentContainerStyles} = useMemo(
         () => ({

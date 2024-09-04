@@ -12,10 +12,12 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
+    const isLarge = !!(tnode.attributes.islarge !== undefined);
     return (
-        <Text>
+        <Text style={isLarge && styles.onlyEmojisTextLineHeight}>
             <Text
                 style={styles.userSelectNone}
+                fontSize={variables.fontSizeSmall}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {' '}

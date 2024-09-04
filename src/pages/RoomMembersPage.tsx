@@ -20,13 +20,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +84,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     useEffect(() => {
         getRoomMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -169,23 +169,22 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+        const participants = ReportUtils.getParticipantsList(report, personalDetails, true);
 
-        participants?.forEach((accountID) => {
+        participants.forEach((accountID) => {
             const details = personalDetails[accountID];
 
-            if (!details) {
-                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                return;
-            }
-
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+            if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
-            const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const isDisabled =
+                (isPolicyExpenseChat && isAdmin) ||
+                accountID === session?.accountID ||
+                pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                details.accountID === report.ownerAccountID;
 
             result.push({
                 keyForList: String(accountID),
@@ -244,7 +243,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
-                    subtitle={ReportUtils.getReportName(report)}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));

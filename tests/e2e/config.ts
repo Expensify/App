@@ -26,6 +26,9 @@ export default {
     MAIN_APP_PATH: './app-e2eRelease.apk',
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
+    BRANCH_MAIN: 'main',
+    BRANCH_DELTA: 'delta',
+
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
     // The path to the activity within the app that we want to launch.
@@ -73,15 +76,15 @@ export default {
         [TEST_NAMES.OpenChatFinderPage]: {
             name: TEST_NAMES.OpenChatFinderPage,
         },
-        // TODO: Fix text and enable again
-        // [TEST_NAMES.ReportTyping]: {
-        //     name: TEST_NAMES.ReportTyping,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        // },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+            message: `Measure_performance#${Math.floor(Math.random() * 1000000)}`,
+        },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages

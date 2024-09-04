@@ -108,7 +108,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
         <DistanceMapView
             interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
-            mapPadding={CONST.MAP_PADDING}
+            mapPadding={CONST.MAPBOX.PADDING}
             pitchEnabled={false}
             initialState={{
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
@@ -118,6 +118,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
+            requireRouteToDisplayMap={requireRouteToDisplayMap}
         />
     ) : (
         <PendingMapView

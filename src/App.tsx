@@ -2,6 +2,7 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -29,13 +30,14 @@ import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeCont
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
+import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
@@ -47,54 +49,64 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
+    // We silence this warning for now and will address all the places where it happens separately.
+    // Then we can remove this line so the problem does not occur in the future.
+    '[Reanimated] Tried to modify key `current`',
 ]);
 
 const fill = {flex: 1};
 
+const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
     return (
-        <InitialURLContextProvider url={url}>
-            <GestureHandlerRootView style={fill}>
-                <ComposeProviders
-                    components={[
-                        OnyxProvider,
-                        ThemeProvider,
-                        ThemeStylesProvider,
-                        ThemeIllustrationsProvider,
-                        SafeAreaProvider,
-                        PortalProvider,
-                        SafeArea,
-                        LocaleContextProvider,
-                        HTMLEngineProvider,
-                        WindowDimensionsProvider,
-                        KeyboardStateProvider,
-                        PopoverContextProvider,
-                        CurrentReportIDContextProvider,
-                        ScrollOffsetContextProvider,
-                        ReportAttachmentsProvider,
-                        PickerStateProvider,
-                        EnvironmentProvider,
-                        CustomStatusBarAndBackgroundContextProvider,
-                        ActiveElementRoleProvider,
-                        ActiveWorkspaceContextProvider,
-                        ReportIDsContextProvider,
-                        PlaybackContextProvider,
-                        FullScreenContextProvider,
-                        VolumeContextProvider,
-                        VideoPopoverMenuContextProvider,
-                    ]}
-                >
-                    <CustomStatusBarAndBackground />
-                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                        <ColorSchemeWrapper>
-                            <Expensify />
-                        </ColorSchemeWrapper>
-                    </ErrorBoundary>
-                </ComposeProviders>
-            </GestureHandlerRootView>
-        </InitialURLContextProvider>
+        <StrictModeWrapper>
+            <SplashScreenStateContextProvider>
+                <InitialURLContextProvider url={url}>
+                    <GestureHandlerRootView style={fill}>
+                        <ComposeProviders
+                            components={[
+                                OnyxProvider,
+                                ThemeProvider,
+                                ThemeStylesProvider,
+                                ThemeIllustrationsProvider,
+                                SafeAreaProvider,
+                                PortalProvider,
+                                SafeArea,
+                                LocaleContextProvider,
+                                HTMLEngineProvider,
+                                KeyboardStateProvider,
+                                PopoverContextProvider,
+                                CurrentReportIDContextProvider,
+                                ScrollOffsetContextProvider,
+                                ReportAttachmentsProvider,
+                                PickerStateProvider,
+                                EnvironmentProvider,
+                                CustomStatusBarAndBackgroundContextProvider,
+                                ActiveElementRoleProvider,
+                                ActiveWorkspaceContextProvider,
+                                ReportIDsContextProvider,
+                                PlaybackContextProvider,
+                                FullScreenContextProvider,
+                                VolumeContextProvider,
+                                VideoPopoverMenuContextProvider,
+                                KeyboardProvider,
+                            ]}
+                        >
+                            <CustomStatusBarAndBackground />
+                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                <ColorSchemeWrapper>
+                                    <Expensify />
+                                </ColorSchemeWrapper>
+                            </ErrorBoundary>
+                        </ComposeProviders>
+                    </GestureHandlerRootView>
+                </InitialURLContextProvider>
+            </SplashScreenStateContextProvider>
+        </StrictModeWrapper>
     );
 }
 

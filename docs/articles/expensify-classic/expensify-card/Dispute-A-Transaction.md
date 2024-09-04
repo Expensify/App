@@ -1,50 +1,50 @@
 ---
 title: Expensify Card - Transaction Disputes & Fraud
-description: Learn how to dispute an Expensify Card transaction. 
+description: Understand how to dispute an Expensify Card transaction. 
 ---
-# Overview
-When using your Expensify Visa® Commercial Card, you may come across transaction errors, which can include things like:
-- Unrecognized, unauthorized, or fraudulent charges.
-- Transactions of an incorrect amount.
+# Disputing Expensify Card Transactions
+While using your Expensify Visa® Commercial Card, you might encounter transaction errors, such as:
+- Unauthorized transaction activity
+- Incorrect transaction amounts.
 - Duplicate charges for a single transaction.
-- Missing a promised merchant refund.
+- Missing merchant refunds.
 
-You’ll find all the relevant information on handling these below.
+When that happens, you may need to file a dispute for one or more transactions. 
 
-# How to Navigate the Dispute Process
 ## Disputing a Transaction
-
-If you spot an Expensify Card transaction error, please contact us immediately at [concierge@expensify.com](mailto:concierge@expensify.com). After that, we'll ask a few questions to better understand the situation. If the transaction has already settled in your account (no longer pending), we can file a dispute with our card processor on your behalf.
-
-If you suspect fraud on your Expensify Card, don't hesitate to cancel it by heading to Settings > Account > Credit Card Import > Request A New Card. Better safe than sorry!
-
-Lastly, if you haven’t enabled Two-Factor Authentication (2FA) yet, please do so ASAP to add an additional layer of security to your account.
+If you notice a transaction error on your Expensify Card, contact us immediately at concierge@expensify.com. We will ask a few questions to understand the situation better, and file a dispute with our card processor on your behalf.
 
 ## Types of Disputes
+The most common types of disputes are:
+- Unauthorized or fraudulent disputes
+- Service disputes
 
-There are two main dispute types:
+### Unauthorized or fraudulent disputes
+- Charges made after your card was lost or stolen.
+- Unauthorized charges while your card is in your possession (indicating compromised information).
+- Continued charges for a canceled recurring subscription.
 
-1. Unauthorized charges/fraud disputes, which include:
-   - Charges made with your card after it was lost or stolen.
-   - Unauthorized charges while your card is still in your possession (indicating compromised card information).
-   - Continued charges for a canceled recurring subscription.
+**If there are transactions made with your Expensify Card you don't recognize, you'll want to do the following right away:**
+1. Cancel your card by going to _**Settings > Account > Credit Card Import > Request A New Card**_.
+2. Enable Two-Factor Authentication (2FA) for added security under _**Settings > Account > Account Details > Two Factor Authentication**_.
 
-2. Service disputes, which include:
-   - Received damaged or defective merchandise.
-   - Charged for merchandise but never received it.
-   - Double-charged for a purchase made with another method (e.g., cash).
-   - Made a return but didn't receive a timely refund.
-   - Multiple charges for a single transaction.
-   - Charges settled for an incorrect amount.
+### Service Disputes
+- Received damaged or defective merchandise.
+- Charged for merchandise that was never received.
+- Double-charged for a purchase made with another method (e.g., cash).
+- Made a return but didn't receive a refund.
+- Multiple charges for a single transaction.
+- Charges settled for an incorrect amount.
 
-You don't need to categorize your dispute; we'll handle that. However, this may help you assess if a situation warrants a dispute. In most cases, the initial step for resolving a dispute should be contacting the merchant, as they can often address the issue promptly.
+For service disputes, contacting the merchant is often the quickest way to resolve the dispute.
 
 ## Simplifying the Dispute Process
-
-To ensure the dispute process goes smoothly, please:
-- Provide detailed information about the disputed charge, including why you're disputing it, what occurred, and any steps you've taken to address the issue.
-- If you recognize the merchant but not the charge, and you've transacted with them before, contact the merchant directly, as it may be a non-fraudulent error.
-- Include supporting documentation like receipts or cancellation confirmations when submitting your dispute to enhance the likelihood of a favorable resolution (not required but highly recommended).
+To ensure a smooth dispute process, please:
+- Provide detailed information about the disputed charge, including why you're disputing it and any steps you've taken to address the issue.
+- If you recognize the merchant but not the charge, contact the merchant directly.
+- Include supporting documentation (e.g., receipts, cancellation confirmations) when submitting your dispute to increase the chances of a favorable resolution (recommended but not required).
+- Make sure the transaction isn't pending (pending transactions cannot be disputed).
+   
 
 {% include faq-begin.md %}
 
