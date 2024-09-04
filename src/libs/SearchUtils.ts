@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -17,6 +18,8 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -549,6 +552,36 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
     return policyID;
 }
 
+function getDisplayValue(
+    filterName: string,
+    filter: string,
+    personalDetails: OnyxTypes.PersonalDetailsList,
+    cardList: OnyxTypes.CardList,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    taxRates: Record<string, string[]>,
+) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return cardList[filter].bank;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        const result: string[] = [];
+        Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
+            if (!taxRateKeys.some((taxRateKey) => taxRateKey === filter) || result.includes(taxRateName)) {
+                return;
+            }
+            result.push(taxRateName);
+        });
+        return result.join(' ');
+    }
+    return filter;
+}
+
 function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
@@ -556,22 +589,30 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
             filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
     });
 
     return filterValueString;
 }
 
-function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
-    const {type, status} = queryJSON;
+function getSearchHeaderTitle(
+    queryJSON: SearchQueryJSON,
+    PersonalDetails: OnyxTypes.PersonalDetailsList,
+    cardList: OnyxTypes.CardList,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    TaxRates: Record<string, string[]>,
+) {
     const filters = getFilters(queryJSON) ?? {};
-
-    let title = `type:${type} status:${status}`;
+    let title = '';
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
-        title += buildFilterString(key, queryFilter);
+        const displayQueryFilters: QueryFilter[] = queryFilter.map((filter) => ({
+            operator: filter.operator,
+            value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports, TaxRates),
+        }));
+        title += buildFilterString(key, displayQueryFilters);
     });
 
     return title;
