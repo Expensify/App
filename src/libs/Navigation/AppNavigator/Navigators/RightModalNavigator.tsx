@@ -187,6 +187,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
                         component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}
+                        component={ModalStackNavigators.SearchSavedSearchModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
