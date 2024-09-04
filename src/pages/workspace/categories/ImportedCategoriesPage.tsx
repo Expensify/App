@@ -92,8 +92,10 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             name,
             enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] : '',
+            'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : '',
         }));
+
+        console.log(categories, typeof categoriesGLCode[3]);
 
         if (categories) {
             setIsImportingCategories(true);
