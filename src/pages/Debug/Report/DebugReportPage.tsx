@@ -50,6 +50,7 @@ function DebugReportPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    formId={ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM}
                                     reportID={reportID}
                                     data={report ?? {}}
                                     onSave={(data) => {

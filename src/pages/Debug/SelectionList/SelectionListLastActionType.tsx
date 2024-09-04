@@ -3,7 +3,6 @@ import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -13,14 +12,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {LAST_ACTION_TYPE} from '@pages/Debug/const';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type DebugReportLastActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
-const LastActionTypeList: string[] = Object.values(LAST_ACTION_TYPE).reduce((acc, value) => {
+const LastActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc, value) => {
     if (isObject(value)) {
         acc.push(...Object.values(value));
         return acc;
@@ -60,7 +59,7 @@ function SelectionListLastActionType({
 
     const onSubmit = (item: ListItem) => {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastActionType: item.text as ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>});
+        Onyx.merge(ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT, {lastActionType: item.text as DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>});
         Navigation.goBack();
     };
 
