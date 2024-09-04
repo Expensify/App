@@ -90,6 +90,9 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Callback to blur composer */
         onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
+        /** Callback when layout of composer changes */
+        onLayout?: (event: LayoutChangeEvent) => void;
+
         /** Callback to update the value of the composer */
         onValueChange: (value: string) => void;
 
@@ -242,6 +245,7 @@ function ComposerWithSuggestions(
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
         onCleared = () => {},
+        onLayout: onLayoutProps,
 
         // Refs
         suggestionsRef,
@@ -686,13 +690,14 @@ function ComposerWithSuggestions(
 
     const onLayout = useCallback(
         (e: LayoutChangeEvent) => {
+            onLayoutProps?.(e);
             const composerLayoutHeight = e.nativeEvent.layout.height;
             if (composerHeight === composerLayoutHeight) {
                 return;
             }
             setComposerHeight(composerLayoutHeight);
         },
-        [composerHeight],
+        [composerHeight, onLayoutProps],
     );
 
     const onClear = useCallback(

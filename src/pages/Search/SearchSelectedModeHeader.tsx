@@ -8,10 +8,9 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 
 type SearchSelectedModeHeaderProps = {
     queryJSON: SearchQueryJSON | undefined;
-    isCustomQuery?: boolean;
 };
 
-function SearchSelectionModeHeader({queryJSON, isCustomQuery}: SearchSelectedModeHeaderProps) {
+function SearchSelectionModeHeader({queryJSON}: SearchSelectedModeHeaderProps) {
     const {translate} = useLocalize();
     const {clearSelectedTransactions} = useSearchContext();
 
@@ -29,7 +28,6 @@ function SearchSelectionModeHeader({queryJSON, isCustomQuery}: SearchSelectedMod
                 <SearchPageHeader
                     queryJSON={queryJSON}
                     hash={queryJSON.hash}
-                    isCustomQuery={isCustomQuery ?? false}
                 />
             )}
         </>

@@ -67,9 +67,9 @@ function SearchPageBottomTab() {
         scrollOffset.value = currentOffset;
     };
 
-    const {queryJSON, policyID, isCustomQuery} = useMemo(() => {
+    const {queryJSON, policyID} = useMemo(() => {
         if (activeCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE) {
-            return {queryJSON: undefined, policyID: undefined, isCustomQuery: undefined};
+            return {queryJSON: undefined, policyID: undefined};
         }
 
         const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
@@ -78,7 +78,6 @@ function SearchPageBottomTab() {
         return {
             queryJSON: parsedQuery,
             policyID: parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery),
-            isCustomQuery: searchParams.isCustomQuery,
         };
     }, [activeCentralPaneRoute]);
 
@@ -116,10 +115,7 @@ function SearchPageBottomTab() {
                         />
                     </View>
                     <Animated.View style={animatedTopBarStyle}>
-                        <SearchTypeMenu
-                            isCustomQuery={isCustomQuery}
-                            queryJSON={queryJSON}
-                        />
+                        <SearchTypeMenu queryJSON={queryJSON} />
                         {shouldUseNarrowLayout && (
                             <SearchStatusBar
                                 type={queryJSON.type}
@@ -129,10 +125,7 @@ function SearchPageBottomTab() {
                     </Animated.View>
                 </Animated.View>
             ) : (
-                <SearchSelectionModeHeader
-                    queryJSON={queryJSON}
-                    isCustomQuery={isCustomQuery}
-                />
+                <SearchSelectionModeHeader queryJSON={queryJSON} />
             )}
             {shouldUseNarrowLayout && (
                 <Search

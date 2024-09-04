@@ -93,7 +93,6 @@ function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: H
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
     hash: number;
-    isCustomQuery: boolean;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -115,7 +114,7 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
     }
 }
 
-function SearchPageHeader({queryJSON, hash, isCustomQuery}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -131,10 +130,13 @@ function SearchPageHeader({queryJSON, hash, isCustomQuery}: SearchPageHeaderProp
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const {status, type} = queryJSON;
-    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(getHeaderContent(type).titleText);
-    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
-    const headerIcon = isCustomQuery ? Illustrations.Filters : getHeaderContent(type).icon;
-    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
+    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+
+    const headerSubtitle = isCannedQuery ? translate(getHeaderContent(type).titleText) : SearchUtils.getSearchHeaderTitle(queryJSON);
+    const headerTitle = isCannedQuery ? '' : translate('search.filtersHeader');
+    const headerIcon = isCannedQuery ? getHeaderContent(type).icon : Illustrations.Filters;
+
+    const subtitleStyles = isCannedQuery ? styles.textHeadlineH2 : {};
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0) {

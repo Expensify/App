@@ -18,7 +18,7 @@ type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEA
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {q, isCustomQuery} = route.params;
+    const {q} = route.params;
 
     const queryJSON = useMemo(() => SearchUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
@@ -44,7 +44,6 @@ function SearchPage({route}: SearchPageProps) {
                 {queryJSON && (
                     <>
                         <SearchPageHeader
-                            isCustomQuery={isCustomQuery}
                             queryJSON={queryJSON}
                             hash={queryJSON.hash}
                         />

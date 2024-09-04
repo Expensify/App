@@ -134,7 +134,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+    const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
