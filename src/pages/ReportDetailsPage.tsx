@@ -50,6 +50,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import AccountUtils from '@libs/AccountUtils';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import TextLink from '@components/TextLink';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -234,15 +238,31 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-
+    const {isDelegatorAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (isMoneyRequestExported) {
+        if (isDelegatorAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
+        } else if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
             return;
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
     }, [isMoneyRequestExported, moneyRequestReport]);
+
+    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
+    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
+    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
+
+    const noDelegateAccessPromp = (
+            <Text>
+                {basicnoDelegateAccessPromptStart}
+                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
+                {basicnoDelegateAccessPromptEnd}
+            </Text>
+    );
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
@@ -813,6 +833,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     danger
                     shouldEnableNewFocusManagement
                 />
+                            <ConfirmModal
+                isVisible={isNoDelegateAccessMenuVisible}
+                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                title={translate('delegate.notAllowed')}
+                prompt={noDelegateAccessPromp}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
                     isVisible={isUnapproveModalVisible}

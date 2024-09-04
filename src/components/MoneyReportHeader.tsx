@@ -14,6 +14,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
+import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails'
 import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -94,7 +95,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
-    const currentUserDeatils = useCurrentUserPersonalDetails();
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -146,9 +146,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {isDelegatorAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const isDelegatorAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
+
 
     const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type || !chatReport) {
@@ -172,13 +172,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
 
     const noDelegateAccessPromp = (
-        <>
             <Text>
                 {basicnoDelegateAccessPromptStart}
                 <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
                 {basicnoDelegateAccessPromptEnd}
             </Text>
-        </>
     );
 
     const confirmApproval = () => {
