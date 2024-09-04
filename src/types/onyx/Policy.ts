@@ -1311,6 +1311,15 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Stripe Connect company website */
     companyWebsite?: string;
+
+    /** Bank account */
+    bankAccount?: {
+        /** Account balance */
+        stripeConnectAccountBalance?: number;
+
+        /** bankAccountID of selected BBA for payouts */
+        transferBankAccountID?: number;
+    };
 }>;
 
 /** Names of policy features */

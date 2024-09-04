@@ -9,7 +9,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
@@ -2524,17 +2524,24 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
 }
 
 /**
- * Checks if a report is an open task report assigned to current user.
+ * Checks if a report is waiting for the manager to complete an action.
+ * Example: the assignee of an open task report or the manager of a processing expense report.
  *
  * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isWaitingForAssigneeToCompleteAction(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     if (report?.hasOutstandingChildTask) {
         return true;
     }
 
-    if (isOpenTaskReport(report, parentReportAction) && !report?.hasParentAccess && isReportManager(report)) {
-        return true;
+    if (!report?.hasParentAccess && isReportManager(report)) {
+        if (isOpenTaskReport(report, parentReportAction)) {
+            return true;
+        }
+
+        if (isProcessingReport(report) && isExpenseReport(report)) {
+            return true;
+        }
     }
 
     return false;
@@ -2580,13 +2587,25 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteAction(optionOrReport, parentReportAction)) {
         return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest) {
         return true;
+    }
+
+    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
+        return true;
+    }
+
+    if (isInvoiceRoom(optionOrReport)) {
+        const invoiceRoomReportActions = ReportActionsUtils.getAllReportActions(optionOrReport.reportID);
+
+        return Object.values(invoiceRoomReportActions).some(
+            (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.childReportID && hasMissingInvoiceBankAccount(reportAction.childReportID),
+        );
     }
 
     return false;
@@ -3671,7 +3690,10 @@ function getReportName(
         return getIOUSubmittedMessage(parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-        return getIOUForwardedMessage(parentReportAction);
+        return getIOUForwardedMessage(parentReportAction, report);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+        return getRejectedReportMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED) {
         return getIOUApprovedMessage(parentReportAction);
@@ -4396,8 +4418,27 @@ function getIOUApprovedMessage(reportAction: ReportAction) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
 }
 
-function getIOUForwardedMessage(reportAction: ReportAction) {
-    return Localize.translateLocal('iou.forwardedAmount', {amount: getFormattedAmount(reportAction)});
+/**
+ * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
+ * so we retrieve the amount from the report instead
+ */
+function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInputOrEntry<Report> | string) {
+    const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
+    let formattedAmount;
+
+    // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
+    if (originalMessage?.amount) {
+        formattedAmount = getFormattedAmount(reportAction);
+    } else {
+        formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
+    }
+
+    return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
+}
+
+function getRejectedReportMessage() {
+    return Localize.translateLocal('iou.rejectedThisReport');
 }
 
 function getWorkspaceNameUpdatedMessage(action: ReportAction) {
@@ -4975,6 +5016,10 @@ function buildOptimisticTaskReportAction(
     };
 }
 
+function isWorkspaceChat(chatType: string) {
+    return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS || chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE || chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
 /**
  * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
  */
@@ -4996,10 +5041,11 @@ function buildOptimisticChatReport(
     optimisticReportID = '',
     shouldShowParticipants = true,
 ): OptimisticChatReport {
+    const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
             hidden: !shouldShowParticipants,
-            role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
+            ...(!isWorkspaceChatType && {role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER}),
         };
         // eslint-disable-next-line no-param-reassign
         reportParticipants[accountID] = participant;
@@ -6382,9 +6428,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter(
-        (accountID) => currentUserPersonalDetails?.accountID !== accountID && !PolicyUtils.isExpensifyTeam(allPersonalDetails?.[accountID]?.login),
-    );
+    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
@@ -6888,7 +6932,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = 'iou.paidElsewhereWithAmount';
+                translationKey = hasMissingInvoiceBankAccount(IOUReportID ?? '-1') ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhereWithAmount';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
@@ -7718,6 +7762,23 @@ function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, 
     return approvalChain;
 }
 
+/**
+ * Checks if the user has missing bank account for the invoice room.
+ */
+function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
+    const invoiceReport = getReport(iouReportID);
+
+    if (!isInvoiceReport(invoiceReport)) {
+        return false;
+    }
+
+    return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
+}
+
+function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -7814,6 +7875,7 @@ export {
     getIOUReportActionMessage,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
+    getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,
@@ -7913,6 +7975,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
+    isSubmittedExpenseReportManagerWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
@@ -7964,7 +8027,7 @@ export {
     isUserCreatedPolicyRoom,
     isValidReport,
     isValidReportIDFromPath,
-    isWaitingForAssigneeToCompleteTask,
+    isWaitingForAssigneeToCompleteAction,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
@@ -8022,6 +8085,7 @@ export {
     getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
+    hasMissingInvoiceBankAccount,
 };
 
 export type {
