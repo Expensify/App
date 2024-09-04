@@ -63,7 +63,6 @@ function adaptOnboardingRouteState() {
                 {
                     name: SCREENS.ONBOARDING.WORK,
                     params: currentRoute?.params,
-                    path: '/onboarding/works',
                 },
                 {...currentRoute},
             ],
