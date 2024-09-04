@@ -23,6 +23,8 @@ function useOptions() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const existingDelegates = account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [];
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
@@ -31,7 +33,7 @@ function useOptions() {
             betas,
             '',
             [],
-            CONST.EXPENSIFY_EMAILS,
+            [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
             false,
             true,
             false,
@@ -62,11 +64,11 @@ function useOptions() {
             tagOptions: [],
             taxRatesOptions: [],
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -79,7 +81,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
