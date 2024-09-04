@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -75,12 +75,15 @@ function AddPaymentMethodMenu({
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
-    const onPaymentItemSelected = (paymentMethod: PaymentMethod) => {
-        const paymentSelected = paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    const onPaymentItemSelected = useCallback(
+        (paymentMethod: PaymentMethod) => {
+            const paymentSelected = paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
 
-        IOU.completePaymentOnboarding(paymentSelected);
-        onItemSelected(paymentMethod);
-    };
+            IOU.completePaymentOnboarding(paymentSelected);
+            onItemSelected(paymentMethod);
+        },
+        [onItemSelected],
+    );
 
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
