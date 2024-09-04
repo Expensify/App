@@ -96,5 +96,6 @@ export default {
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
-    USE_REACT_STRICT_MODE: true,
+    // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
+    USE_REACT_STRICT_MODE_IN_DEV: true,
 } as const;
