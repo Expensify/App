@@ -17,9 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type DebugReportLastActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
+type DebugReportActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE>;
 
-const LastActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc, value) => {
+const ActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc, value) => {
     if (isObject(value)) {
         acc.push(...Object.values(value));
         return acc;
@@ -30,42 +30,52 @@ const LastActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).re
     return acc;
 }, [] as string[]);
 
-function SelectionListLastActionType({
+function SelectionListActionType({
     route: {
-        params: {reportID},
+        params: {reportID, reportActionID},
     },
-}: DebugReportLastActionPageProps) {
+}: DebugReportActionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        canEvict: false,
+        selector: (reportActions) => reportActions?.[reportActionID ?? ''],
+    });
+
     const [searchValue, setSearchValue] = useState('');
 
-    const selectedLastAction = report?.lastActionType ?? '';
+    const selectedAction = reportAction?.actionName ?? report?.lastActionType ?? '';
 
     const searchValueUppercase = searchValue.toUpperCase();
 
     const sections = useMemo(
         () =>
-            LastActionTypeList.filter((option) => option.includes(searchValueUppercase)).map((option) => ({
+            ActionTypeList.filter((option) => option.includes(searchValueUppercase)).map((option) => ({
                 text: option,
                 keyForList: option,
-                isSelected: option === selectedLastAction,
+                isSelected: option === selectedAction,
                 searchText: option,
             })),
-        [searchValueUppercase, selectedLastAction],
+        [searchValueUppercase, selectedAction],
     );
 
-    const selectedOptionKey = useMemo(() => (sections ?? []).filter((option) => option.searchText === selectedLastAction)[0]?.keyForList, [sections, selectedLastAction]);
+    const selectedOptionKey = useMemo(() => (sections ?? []).filter((option) => option.searchText === selectedAction)[0]?.keyForList, [sections, selectedAction]);
 
     const onSubmit = (item: ListItem) => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT, {lastActionType: item.text as DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>});
+        if (reportActionID) {
+            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: {actionName: item.text as DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>}});
+        } else {
+            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+            Onyx.merge(ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT, {lastActionType: item.text as DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>});
+        }
         Navigation.goBack();
     };
 
     return (
-        <ScreenWrapper testID={SelectionListLastActionType.displayName}>
-            <HeaderWithBackButton title={SelectionListLastActionType.displayName} />
+        <ScreenWrapper testID={SelectionListActionType.displayName}>
+            <HeaderWithBackButton title={SelectionListActionType.displayName} />
             <View style={styles.containerWithSpaceBetween}>
                 <SelectionList
                     sections={[{data: sections}]}
@@ -82,6 +92,6 @@ function SelectionListLastActionType({
     );
 }
 
-SelectionListLastActionType.displayName = 'SelectionListLastActionType';
+SelectionListActionType.displayName = 'SelectionListActionType';
 
-export default SelectionListLastActionType;
+export default SelectionListActionType;

@@ -1441,6 +1441,10 @@ type DebugParamList = {
     [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
         reportID: string;
     };
+    [SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE]: {
+        reportID?: string;
+        reportActionID?: string;
+    };
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;

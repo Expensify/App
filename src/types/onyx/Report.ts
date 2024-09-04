@@ -296,6 +296,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
+
+        /** Participant account id's */
+        participantAccountIDs?: number[];
+
+        /** Visible chat member account id's */
+        visibleChatMemberAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;

@@ -103,7 +103,7 @@ type DebugReportActionForm = Form<
         [INPUT_IDS.ORIGINAL_MESSAGE]: string;
         [INPUT_IDS.MESSAGE]: string;
         [INPUT_IDS.PREVIOUS_MESSAGE]: string;
-        [key: string]: string | boolean;
+        [key: string]: unknown;
     }
 >;
 

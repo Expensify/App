@@ -29,6 +29,7 @@ type DebugDetailsProps = {
     /** A unique Onyx key identifying the form */
     formId: typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM;
     reportID: string;
+    reportActionId?: string;
     onSave: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => void;
     onDelete: () => void;
     validate: (key: never, value: string) => void;
@@ -39,7 +40,7 @@ const DropdownOptionsArrays: Record<string, Array<DropdownOption<string>>> = Obj
     return acc;
 }, {} as Record<string, Array<DropdownOption<string>>>);
 
-function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: DebugDetailsProps) {
+function DebugDetails({data, reportID, onSave, onDelete, validate, formId, reportActionId}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onyxDraftDataKey = formId === ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM ? ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT : ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT;
@@ -69,12 +70,23 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
 
     useEffect(() => {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(formId, null);
+        Onyx.set(`${formId}Draft`, null);
     }, [formId]);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => {
-            onSave({...values, ...dropdownsState});
+            const dataToSave = {...values, ...dropdownsState};
+
+            const dataPreparedToSave = Object.entries(dataToSave).reduce((acc, [key, value]) => {
+                if (typeof value === 'boolean') {
+                    acc[key] = value;
+                } else {
+                    acc[key] = DebugUtils.stringToOnyxData(value as string, typeof data[key]);
+                }
+                return acc;
+            }, {} as Record<string, unknown>);
+
+            onSave(dataPreparedToSave);
         },
         [dropdownsState, onSave],
     );
@@ -89,7 +101,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
             contentContainerStyle={[styles.gap5, styles.ph5, styles.pb5]}
         >
             <FormProvider
-                style={[styles.flex1]}
+                style={styles.flexGrow1}
                 formID={formId}
                 validate={validator}
                 shouldValidateOnChange
@@ -103,9 +115,9 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
 
                     if (typeof defaultData === 'boolean') {
                         return (
-                            <View>
+                            <View style={[styles.mb5, styles.ml1]}>
                                 <InputWrapper
-                                    style={[styles.mt5, styles.mb5, styles.ml1]}
+                                    style={[styles.mt5, styles.mb5]}
                                     InputComponent={CheckboxWithLabel}
                                     label={key}
                                     inputID={key}
@@ -119,15 +131,14 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
 
                     if (DETAILS_SELECTION_LIST.includes(key)) {
                         return (
-                            <View>
-                                <MenuItemWithTopDescription
-                                    key={key}
-                                    title={(formDraftData?.[key] as string) ?? (defaultData as string)}
-                                    description={key}
-                                    onPress={() => Navigation.navigate(ROUTES.DEBUG_SELECTION_LIST_LAST_ACTION_TYPE.getRoute(reportID))}
-                                    shouldShowRightIcon
-                                />
-                            </View>
+                            <MenuItemWithTopDescription
+                                key={key}
+                                style={styles.mb5}
+                                title={(formDraftData?.[key] as string) ?? (defaultData as string)}
+                                description={key}
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_SELECTION_LIST_ACTION_TYPE.getRoute(reportID ?? '', reportActionId))}
+                                shouldShowRightIcon
+                            />
                         );
                     }
 
@@ -137,7 +148,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
                         type Details = DeepValueOf<typeof DetailsDropdown>;
 
                         return (
-                            <>
+                            <View style={styles.mb5}>
                                 <View style={[styles.flexWrap]}>
                                     <Text style={[styles.mutedTextLabel]}>{key}</Text>
                                 </View>
@@ -156,7 +167,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
                                     wrapperStyle={[styles.w100, styles.justifyContentBetween]}
                                     isSplitButton={false}
                                 />
-                            </>
+                            </View>
                         );
                     }
 
@@ -165,23 +176,26 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId}: Debu
                     const numberOfLines = DebugUtils.getNumberOfLinesFromString(stringValue);
 
                     return (
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={key}
-                            accessibilityLabel="Text input field"
-                            shouldSaveDraft
-                            forceActiveLabel
-                            label={key}
-                            numberOfLines={numberOfLines}
-                            multiline={numberOfLines > 1}
-                            defaultValue={stringValue}
-                        />
+                        <View style={styles.mb5}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={key}
+                                accessibilityLabel="Text input field"
+                                shouldSaveDraft
+                                forceActiveLabel
+                                label={key}
+                                numberOfLines={numberOfLines}
+                                multiline={numberOfLines > 1}
+                                defaultValue={stringValue}
+                            />
+                        </View>
                     );
                 })}
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
             </FormProvider>
             <Button
                 danger
+                large
                 text={translate('common.delete')}
                 onPress={() => {
                     onDelete();

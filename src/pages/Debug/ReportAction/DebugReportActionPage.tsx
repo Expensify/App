@@ -56,6 +56,7 @@ function DebugReportActionPage({
                                     formId={ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM}
                                     reportID={reportID}
                                     data={reportAction ?? {}}
+                                    reportActionId={reportActionID}
                                     onSave={(data) => {
                                         // eslint-disable-next-line rulesdir/prefer-actions-set-data
                                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
@@ -77,6 +78,6 @@ function DebugReportActionPage({
     );
 }
 
-DebugReportActionPage.displayName = 'DebugReportPage';
+DebugReportActionPage.displayName = 'DebugReportActionPage';
 
 export default DebugReportActionPage;

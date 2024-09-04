@@ -1519,9 +1519,9 @@ const ROUTES = {
         route: 'debug/report/:reportID/actions/:reportActionID/preview',
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
     },
-    DEBUG_SELECTION_LIST_LAST_ACTION_TYPE: {
-        route: 'debug/report/:reportID/last-action-type',
-        getRoute: (reportID: string) => `debug/report/${reportID}/last-action-type` as const,
+    DEBUG_SELECTION_LIST_ACTION_TYPE: {
+        route: 'debug/report/:reportID/action-type/:reportActionID?',
+        getRoute: (reportID: string, reportActionID?: string) => `debug/report/${reportID}/action-type/${reportActionID ?? ''}` as const,
     },
 } as const;
 

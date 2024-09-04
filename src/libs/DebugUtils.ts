@@ -4,17 +4,8 @@ import isValid from 'date-fns/isValid';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as IOU from './actions/IOU';
-import {hasValidDraftComment} from './DraftCommentUtils';
-import * as PolicyUtils from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportUtils from './ReportUtils';
-import * as TransactionUtils from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -514,7 +505,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
             value,
             {
                 hidden: 'boolean',
-                role: CONST.REPORT.ROLE,
             },
             'number',
         );
@@ -562,6 +552,13 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     if (key === 'pendingFields') {
         return validateObject(value, {});
     }
+    if (key === 'visibleChatMemberAccountIDs') {
+        return validateArray(value, 'number');
+    }
+    if (key === 'participantAccountIDs') {
+        return validateArray(value, 'number');
+    }
+
     validateString(value);
 }
 
@@ -590,6 +587,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
     if (REPORT_ACTION_DATE_PROPERTIES.includes(key)) {
         return validateDate(value);
     }
+
     if (key === 'whisperedToAccountIDs') {
         return validateArray(value, 'number');
     }
