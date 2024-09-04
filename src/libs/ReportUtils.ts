@@ -4091,6 +4091,7 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 }
 
 function buildOptimisticAddCommentReportAction(
+    delegate: string,
     text?: string,
     file?: FileObject,
     actorAccountID?: number,
@@ -4136,6 +4137,7 @@ function buildOptimisticAddCommentReportAction(
             originalMessage: {
                 html: htmlForNewComment,
                 whisperedTo: [],
+                delegate: delegate,
             },
             isFirstItem: false,
             isAttachmentOnly,
@@ -4197,6 +4199,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  * @param text - Text of the comment
  * @param parentReportID - Report ID of the parent report
  * @param createdOffset - The offset for task's created time that created via a loop
+ * @param delegate - Email of the delegate
  */
 function buildOptimisticTaskCommentReportAction(
     taskReportID: string,
@@ -4206,8 +4209,9 @@ function buildOptimisticTaskCommentReportAction(
     parentReportID: string,
     actorAccountID?: number,
     createdOffset = 0,
+    delegate = '',
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
+    const reportAction = buildOptimisticAddCommentReportAction(delegate, text, undefined, undefined, createdOffset, undefined, taskReportID);
     if (Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
     } else if (!Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message) {
@@ -4220,6 +4224,7 @@ function buildOptimisticTaskCommentReportAction(
         html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
         whisperedTo: [],
+        delegate: delegate,
     };
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
@@ -4532,6 +4537,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param [isSendMoneyFlow] - Whether this is pay someone flow
  * @param [receipt]
  * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
+ * @param delegate - Email of the delegate of the account
  */
 function buildOptimisticIOUReportAction(
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>,
@@ -4547,6 +4553,7 @@ function buildOptimisticIOUReportAction(
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
     linkedExpenseReportAction?: OnyxEntry<ReportAction>,
+    delegate = '',
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -4557,6 +4564,7 @@ function buildOptimisticIOUReportAction(
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
+        delegate,
     };
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -4616,11 +4624,12 @@ function buildOptimisticIOUReportAction(
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticApprovedReportAction {
+function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string, delegate: string): OptimisticApprovedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        delegate,
     };
 
     return {
@@ -4648,7 +4657,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticUnapprovedReportAction {
+function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string, delegate: string): OptimisticUnapprovedReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         actorAccountID: currentUserAccountID,
@@ -4659,6 +4668,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
             amount,
             currency,
             expenseReportID,
+            delegate,
         },
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency),
         person: [
@@ -4721,11 +4731,18 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+    adminAccountID: number | undefined,
+    delegate: string,
+): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        delegate,
     };
 
     return {

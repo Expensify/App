@@ -165,7 +165,7 @@ type OriginalMessageSubmitted = {
     expenseReportID: string;
 
     /** Email of the delegate */
-    email:string
+    email: string;
 };
 
 /** Model of `closed` report action */
