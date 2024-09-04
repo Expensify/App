@@ -1,6 +1,7 @@
 diff --git a/node_modules/react-native/.gradle/buildOutputCleanup/buildOutputCleanup.lock b/node_modules/react-native/.gradle/buildOutputCleanup/buildOutputCleanup.lock
 new file mode 100644
-index 0000000..e69de29
+index 0000000..a403fbb
+Binary files /dev/null and b/node_modules/react-native/.gradle/buildOutputCleanup/buildOutputCleanup.lock differ
 diff --git a/node_modules/react-native/.gradle/buildOutputCleanup/cache.properties b/node_modules/react-native/.gradle/buildOutputCleanup/cache.properties
 new file mode 100644
 index 0000000..17fb517
@@ -44,10 +45,10 @@ index 0000000..dacc2de
 +	</filteredResources>
 +</projectDescription>
 diff --git a/node_modules/react-native/Libraries/ReactNative/AppRegistry.js b/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
-index 68bd389..f99894d 100644
+index 68bd389..4d1925e 100644
 --- a/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
 +++ b/node_modules/react-native/Libraries/ReactNative/AppRegistry.js
-@@ -232,12 +232,34 @@ const AppRegistry = {
+@@ -232,12 +232,31 @@ const AppRegistry = {
      appParameters: Object,
      displayMode?: number,
    ): void {
@@ -66,10 +67,7 @@ index 68bd389..f99894d 100644
 +        return parameters;
 +      }
 +    
-+      const redactedSearchParams = queryString.split('&').map((param) => {
-+        const [key, value] = param.split('=');
-+        return `${key}=${sensitiveParams.includes(key) ? '<REDACTED>' : value}`
-+      });
++      const redactedSearchParams = [...new URLSearchParams(queryString).entries()].map(([key, value]) => `${key}=${sensitiveParams.includes(key) ? '<REDACTED>' : value}`);
 +      return {...parameters, initialProps: {...initialProps, url: `${urlBase}?${redactedSearchParams.join('&')}`}};
 +    }
 +
