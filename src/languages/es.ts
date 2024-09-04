@@ -368,6 +368,13 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        importSpreadsheet: 'Importar hoja de cálculo',
+        chooseFile: 'Elegir archivo',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        enabled: 'Habilitado',
+        ignore: 'Ignorar',
+        import: 'Importar',
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
         days: 'días',
@@ -406,6 +413,10 @@ export default {
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
         attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
+    },
+    filePicker: {
+        fileError: 'Error de archivo',
+        errorWhileSelectingFile: 'An error occurred while selecting an file. Please try again.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -656,12 +667,24 @@ export default {
         manual: 'Manual',
         scan: 'Escanear',
     },
+    spreadsheet: {
+        upload: 'Importar',
+        dragAndDrop: 'Arrastra y suelta un archivo de hoja de cálculo aquí',
+        chooseSpreadsheet: 'Subir',
+        fileContainsHeader: 'El archivo contiene encabezados',
+        column: (name: string) => `Columna ${name}`,
+        fieldNotMapped: (fieldName: string) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
+        singleFieldMultipleColumns: (fieldName: string) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
+        importFailedTitle: 'Fallo en la importación',
+        importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
+        importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importSuccessfullTitle: 'Importar categorías',
+    },
     receipt: {
         upload: 'Subir recibo',
         dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
-        chooseFile: 'Elegir archivo',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
@@ -794,6 +817,7 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
@@ -2154,6 +2178,7 @@ export default {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
     },
     workspace: {
         common: {
@@ -2811,6 +2836,9 @@ export default {
         companyCards: {
             addCompanyCards: 'Agregar tarjetas de empresa',
             selectCardFeed: 'Seleccionar feed de tarjetas',
+            assignCard: 'Asignar tarjeta',
+            cardNumber: 'Número de la tarjeta',
+            customFeed: 'Fuente personalizada',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -2904,8 +2932,11 @@ export default {
             updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
+            importCategories: 'Importar categorías',
+            importedCategoriesMessage: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         },
         moreFeatures: {
+            subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
             spendSection: {
                 title: 'Gasto',
                 subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
@@ -2997,7 +3028,7 @@ export default {
             },
             tags: {
                 title: 'Etiquetas',
-                subtitle: 'Añade formas adicionales de clasificar los gastos.',
+                subtitle: 'Clasifica costes y rastrea gastos facturables.',
             },
             taxes: {
                 title: 'Impuestos',
@@ -3073,6 +3104,7 @@ export default {
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            trackBillable: 'Permitir marcar gastos como facturables',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             enableTags: 'Habilitar etiquetas',
