@@ -200,8 +200,6 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
-            const paymentSelected = type === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-            IOU.completePaymentOnboarding(paymentSelected);
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {

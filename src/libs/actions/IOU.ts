@@ -7426,7 +7426,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     }
 
     if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
-        onboardingPurpose = CONST.ONBOARDING_CHOICES.SUBMIT;
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
     Report.completeOnboarding(
@@ -7446,6 +7446,9 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
         return;
     }
 
+    const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
+
     const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
@@ -7464,6 +7467,9 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         failureData,
         params: {reportActionID},
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+
+    const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
 
     const params: PayInvoiceParams = {
         reportID: invoiceReport.reportID,
