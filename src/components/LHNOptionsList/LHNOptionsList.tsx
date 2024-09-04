@@ -149,6 +149,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
+            // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, we move the lastMessageTextFromReport evaluation logic here
             let lastActorDetails: Partial<PersonalDetails> | null =
                 itemFullReport?.lastActorAccountID && personalDetails?.[itemFullReport.lastActorAccountID] ? personalDetails[itemFullReport.lastActorAccountID] : null;
             if (!lastActorDetails && lastReportAction) {
