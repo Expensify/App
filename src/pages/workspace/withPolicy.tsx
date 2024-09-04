@@ -77,7 +77,7 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         const currentRoute = routes?.at(-1);
         const policyID = getPolicyIDFromRoute(currentRoute as PolicyRoute);
 
-        if (policyID.length > 0 && props.policy) {
+        if (policyID.length > 0) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
