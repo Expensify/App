@@ -25,8 +25,13 @@ function getCircularReplacer() {
     };
 }
 
-function serializeLoggingData(logData?: Record<string, unknown> | null): Record<string, unknown> | undefined | null {
-    return logData && (JSON.parse(JSON.stringify(logData, getCircularReplacer())) as Record<string, unknown>);
+function serializeLoggingData<T extends Record<string, unknown> | undefined>(logData: T): T | null {
+    try {
+        return JSON.parse(JSON.stringify(logData, getCircularReplacer())) as T;
+    } catch (error) {
+        Log.hmmm('Failed to serialize log data', {error});
+        return null;
+    }
 }
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
