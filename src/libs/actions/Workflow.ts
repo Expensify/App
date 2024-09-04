@@ -127,6 +127,10 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         approversToRemove,
     });
 
+    if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
