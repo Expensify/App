@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import CategorySelectorListItem from '@components/SelectionList/CategorySelectorListItem';
+import SpendCategorySelectorListItem from '@components/SelectionList/SpendCategorySelectorListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -92,13 +92,13 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     {!!currentPolicy && sections?.length > 0 && (
                         <SelectionList
                             headerContent={
-                                <View style={[styles.mh5, styles.mt2]}>
+                                <View style={[styles.mh5, styles.mt2, styles.mb1]}>
                                     <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
                                     <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
                                 </View>
                             }
                             sections={sections}
-                            ListItem={CategorySelectorListItem}
+                            ListItem={SpendCategorySelectorListItem}
                             onSelectRow={() => {}}
                         />
                     )}

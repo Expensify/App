@@ -3468,7 +3468,6 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `policy_${policyID}`,
                   value: {
-                      isPendingUpgrade: true,
                       mccGroup: {
                           ...mccGroup,
                           [groupID]: {
@@ -3481,32 +3480,19 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
           ]
         : [];
 
-    const successData: OnyxUpdate[] = mccGroup
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `policy_${policyID}`,
-                  value: {
-                      isPendingUpgrade: false,
-                  },
-              },
-          ]
-        : [];
-
     const failureData: OnyxUpdate[] = mccGroup
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `policy_${policyID}`,
                   value: {
-                      isPendingUpgrade: false,
                       mccGroup,
                   },
               },
           ]
         : [];
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData: [], failureData});
 }
 /**
  * Call the API to set the receipt required amount for the given policy

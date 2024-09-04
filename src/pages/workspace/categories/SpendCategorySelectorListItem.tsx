@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
+import BaseListItem from '@components/SelectionList/BaseListItem';
+import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CategorySelector from '@pages/workspace/distanceRates/CategorySelector';
 import * as Policy from '@userActions/Policy/Policy';
-import BaseListItem from './BaseListItem';
-import type {InviteMemberListItemProps, ListItem} from './types';
 
-function CategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: InviteMemberListItemProps<TItem>) {
+function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: BaseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {policyID, groupID, categoryID} = item;
@@ -52,6 +52,6 @@ function CategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, is
     );
 }
 
-CategorySelectorListItem.displayName = 'CategorySelectorListItem';
+SpendCategorySelectorListItem.displayName = 'SpendCategorySelectorListItem';
 
-export default CategorySelectorListItem;
+export default SpendCategorySelectorListItem;
