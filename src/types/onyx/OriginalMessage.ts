@@ -68,6 +68,9 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Email of the delegate */
+    delegate: string;
 };
 
 /** Names of moderation decisions */
@@ -124,6 +127,9 @@ type OriginalMessageAddComment = {
 
     /** List accountIDs are mentioned in message */
     mentionedAccountIDs?: number[];
+
+    /** Email of the delegate */
+    delegate: string;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -157,6 +163,9 @@ type OriginalMessageSubmitted = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Email of the delegate */
+    email: string;
 };
 
 /** Model of `closed` report action */
@@ -430,6 +439,9 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Email of the delegate */
+    delegate: string;
 };
 
 /** Model of `forwarded` report action */
@@ -489,6 +501,9 @@ type OriginalMessageUnapproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** Email of the delegate */
+    delegate: string;
 };
 
 /**
