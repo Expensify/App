@@ -89,8 +89,8 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Checks if the policy had a sync error.
  */
-function hasSyncError(policy: OnyxEntry<Policy>): boolean {
-    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, false));
+function hasSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
+    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
 
 /**
@@ -159,8 +159,8 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
-function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy)) {
+function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy, isConnectionInProgress)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;

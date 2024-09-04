@@ -84,6 +84,7 @@ export type {default as ValidateBankAccountWithTransactionsParams} from './Valid
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
 export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAuthParams';
+export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuthParams';
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
@@ -277,7 +278,8 @@ export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabl
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
-export type {default as SetPolicyBillableMode} from './SetPolicyBillableMode';
+export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
+export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
@@ -287,6 +289,8 @@ export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyComp
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
+export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
+export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
