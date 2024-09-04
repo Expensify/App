@@ -110,7 +110,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={[styles.flex1, styles.pr0]}
+                        style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
