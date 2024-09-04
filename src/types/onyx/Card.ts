@@ -25,6 +25,15 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Domain name */
     domainName: string;
 
+    /** Transaction start date */
+    startDate?: Date;
+
+    /** The last time user checked the card for transactions */
+    lastUpdated: string;
+
+    /** Is checking for card transactions */
+    isLoadingLastUpdated?: boolean;
+
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 

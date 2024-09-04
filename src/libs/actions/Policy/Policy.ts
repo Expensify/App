@@ -39,6 +39,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    UpdateCompanyCardNameParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -3852,6 +3853,7 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
 
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
+
 function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -3879,6 +3881,95 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
     };
 
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, onyxData);
+}
+
+function unassignWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, selectedFeed: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`,
+                value: {
+                    [cardID]: null,
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
+}
+
+function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, selectedFeed: string) {
+    const authToken = NetworkStore.getAuthToken();
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`,
+            value: {
+                [cardID]: {isLoadingLastUpdated: true},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`,
+            value: {
+                [cardID]: {isLoadingLastUpdated: false},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`,
+            value: {
+                [cardID]: {isLoadingLastUpdated: false},
+            },
+        },
+    ];
+
+    const parameters = {
+        authToken,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, {optimisticData, successData, failureData});
+}
+
+function updateCompanyCardName(workspaceAccountID: number, cardID: number, newCardTitle: string, selectedFeed: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        cardTitle: newCardTitle,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateCompanyCardNameParams = {
+        authToken,
+        cardID,
+        cardName: newCardTitle,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData});
 }
 
 function clearAllPolicies() {
@@ -3976,6 +4067,9 @@ export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
     setWorkspaceCompanyCardTransactionLiability,
+    unassignWorkspaceCompanyCard,
+    updateWorkspaceCompanyCard,
+    updateCompanyCardName,
 };
 
 export type {NewCustomUnit};

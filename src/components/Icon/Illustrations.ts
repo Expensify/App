@@ -1,4 +1,7 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
@@ -231,5 +234,8 @@ export {
     AmexCompanyCards,
     MasterCardCompanyCards,
     VisaCompanyCards,
+    VisaCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    AmexCardCompanyCardDetail,
     TurtleInShell,
 };
