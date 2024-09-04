@@ -1,9 +1,9 @@
 import React from 'react';
-import Text from './Text';
-import TextLink from './TextLink';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type DelegateNoAccessModalProps = {
     isNoDelegateAccessMenuVisible: boolean;
