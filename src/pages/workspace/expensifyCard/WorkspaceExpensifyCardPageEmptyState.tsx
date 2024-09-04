@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -46,20 +47,18 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
+    const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList ?? {});
+
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished =
-        isEmptyObject(bankAccountList) &&
-        (reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
-            reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.SETUP ||
-            reimbursementAccountStatus === CONST.BANK_ACCOUNT.STATE.VALIDATING);
+    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const startFlow = useCallback(() => {
-        if (isEmptyObject(bankAccountList) || isSetupUnfinished) {
+        if (!eligibleBankAccounts.length || isSetupUnfinished) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
         }
-    }, [isSetupUnfinished, bankAccountList, policy?.id]);
+    }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
 
     return (
         <WorkspacePageWithSections

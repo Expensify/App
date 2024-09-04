@@ -1,9 +1,10 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -41,6 +42,7 @@ type IndicatorProps = IndicatorOnyxProps;
 function Indicator({reimbursementAccount, policies, bankAccountList, fundList, userWallet, walletTerms, loginList}: IndicatorOnyxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
@@ -55,6 +57,13 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
         () => Object.values(cleanPolicies).some(PolicyUtils.hasPolicyError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasEmployeeListError),
+        () =>
+            Object.values(cleanPolicies).some((cleanPolicy) =>
+                PolicyUtils.hasSyncError(
+                    cleanPolicy,
+                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+                ),
+            ),
         () => SubscriptionUtils.hasSubscriptionRedDotError(),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         () => !!loginList && UserUtils.hasLoginListError(loginList),

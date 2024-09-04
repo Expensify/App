@@ -1,5 +1,6 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -24,7 +25,10 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
-type SearchStatus = ValueOf<typeof CONST.SEARCH.STATUS>;
+type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
+type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
+type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -54,11 +58,12 @@ type QueryFilters = {
 type SearchQueryString = string;
 
 type SearchQueryAST = {
-    type: string;
+    type: SearchDataTypes;
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     filters: ASTNode;
+    policyID?: string;
 };
 
 type SearchQueryJSON = {
@@ -80,4 +85,7 @@ export type {
     QueryFilter,
     QueryFilters,
     AdvancedFiltersKeys,
+    ExpenseSearchStatus,
+    InvoiceSearchStatus,
+    TripSearchStatus,
 };

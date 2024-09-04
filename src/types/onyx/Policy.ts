@@ -57,31 +57,34 @@ type Attributes = {
 };
 
 /** Policy custom unit */
-type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Custom unit name */
-    name: string;
+type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Custom unit name */
+        name: string;
 
-    /** ID that identifies this custom unit */
-    customUnitID: string;
+        /** ID that identifies this custom unit */
+        customUnitID: string;
 
-    /** Contains custom attributes like unit, for this custom unit */
-    attributes: Attributes;
+        /** Contains custom attributes like unit, for this custom unit */
+        attributes: Attributes;
 
-    /** Distance rates using this custom unit */
-    rates: Record<string, Rate>;
+        /** Distance rates using this custom unit */
+        rates: Record<string, Rate>;
 
-    /** The default category in which this custom unit is used */
-    defaultCategory?: string;
+        /** The default category in which this custom unit is used */
+        defaultCategory?: string;
 
-    /** Whether this custom unit is enabled */
-    enabled?: boolean;
+        /** Whether this custom unit is enabled */
+        enabled?: boolean;
 
-    /** Error messages to show in UI */
-    errors?: OnyxCommon.Errors;
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
 
-    /** Form fields that triggered errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Form fields that triggered errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof Attributes
+>;
 
 /** Policy company address data */
 type CompanyAddress = {
@@ -177,6 +180,12 @@ type ConnectionLastSync = {
 
     /** Date when the connection's last failed sync occurred */
     errorDate?: string;
+
+    /** Error message when the connection's last sync failed */
+    errorMessage?: string;
+
+    /** If the connection's last sync failed due to authentication error */
+    isAuthenticationError: boolean;
 
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
@@ -798,158 +807,167 @@ type NetSuiteCustomFormID = {
     enabled: boolean;
 };
 
+/** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
+type NetSuiteSyncOptionsMapping = {
+    /** A general type of classification category in NetSuite */
+    classes: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to projects */
+    jobs: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to locations */
+    locations: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to customers */
+    customers: NetSuiteMappingValues;
+
+    /** A type of classification category in NetSuite linked to departments within the company */
+    departments: NetSuiteMappingValues;
+};
+
+/** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
+type NetSuiteSyncOptions = {
+    /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
+    mapping: NetSuiteSyncOptionsMapping;
+
+    /** Whether we want to import customers into NetSuite from across all subsidiaries */
+    crossSubsidiaryCustomers: boolean;
+
+    /** Whether we'll import employee supervisors and set them as managers in the Expensify approval workflow */
+    syncApprovalWorkflow: boolean;
+
+    /** Whether we import custom lists from NetSuite */
+    syncCustomLists?: boolean;
+
+    /** The approval level we set for an Expense Report record created in NetSuite */
+    exportReportsTo: NetSuiteExpenseReportApprovalLevels;
+
+    /** The approval level we set for a Vendor Bill record created in NetSuite */
+    exportVendorBillsTo: NetSuiteVendorBillApprovalLevels;
+
+    /** Whether or not we need to set the final approver in this policy via sync */
+    setFinalApprover: boolean;
+
+    /** Whether we sync report reimbursement status between Expensify and NetSuite */
+    syncReimbursedReports: boolean;
+
+    /** The relevant details of the custom segments we import into Expensify and code onto expenses */
+    customSegments?: NetSuiteCustomSegment[];
+
+    /** Whether to import Employees from NetSuite into Expensify */
+    syncPeople: boolean;
+
+    /** Whether to enable a new Expense Category into Expensify */
+    enableNewCategories?: boolean;
+
+    /** A now unused configuration saying whether a customer had toggled AutoSync yet. */
+    hasChosenAutoSyncOption: boolean;
+
+    /** The final approver to be set in the Expensify approval workflow */
+    finalApprover: string;
+
+    /** Whether to import tax groups from NetSuite */
+    syncTax?: boolean;
+
+    /** Whether to import custom segments from NetSuite */
+    syncCustomSegments?: boolean;
+
+    /** The relevant details of the custom lists we import into Expensify and code onto expenses */
+    customLists?: NetSuiteCustomList[];
+
+    /** Whether we'll import Expense Categories into Expensify as categories */
+    syncCategories: boolean;
+
+    /** A now unused configuration saying whether a customer had toggled syncing reimbursement yet. */
+    hasChosenSyncReimbursedReportsOption: boolean;
+
+    /** The approval level we set for a Journal Entry record created in NetSuite */
+    exportJournalsTo: NetSuiteJournalApprovalLevels;
+};
+
 /** User configuration for the NetSuite accounting integration. */
-type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Invoice Item Preference */
-    invoiceItemPreference?: NetSuiteInvoiceItemPreferenceValues;
+type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Invoice Item Preference */
+        invoiceItemPreference?: NetSuiteInvoiceItemPreferenceValues;
 
-    /** ID of the bank account for NetSuite invoice collections */
-    receivableAccount?: string;
+        /** ID of the bank account for NetSuite invoice collections */
+        receivableAccount?: string;
 
-    /** ID of the bank account for NetSuite tax posting */
-    taxPostingAccount?: string;
+        /** ID of the bank account for NetSuite tax posting */
+        taxPostingAccount?: string;
 
-    /** Whether we should export to the most recent open period if the current one is closed  */
-    exportToNextOpenPeriod: boolean;
+        /** Whether we should export to the most recent open period if the current one is closed  */
+        exportToNextOpenPeriod: boolean;
 
-    /** Whether we will include the original foreign amount of a transaction to NetSuite */
-    allowForeignCurrency?: boolean;
+        /** Whether we will include the original foreign amount of a transaction to NetSuite */
+        allowForeignCurrency?: boolean;
 
-    /** Where to export reimbursable expenses */
-    reimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
+        /** Where to export reimbursable expenses */
+        reimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
 
-    /** The sub-entity within the NetSuite account for which this policy is connected */
-    subsidiary: string;
+        /** The sub-entity within the NetSuite account for which this policy is connected */
+        subsidiary: string;
 
-    /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
-    syncOptions: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
-        mapping: OnyxCommon.OnyxValueWithOfflineFeedback<{
-            /** A general type of classification category in NetSuite */
-            classes: NetSuiteMappingValues;
+        /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
+        syncOptions: NetSuiteSyncOptions;
 
-            /** A type of classification category in NetSuite linked to projects */
-            jobs: NetSuiteMappingValues;
+        /** Whether to automatically create employees and vendors upon export in NetSuite if they don't exist */
+        autoCreateEntities: boolean;
 
-            /** A type of classification category in NetSuite linked to locations */
-            locations: NetSuiteMappingValues;
+        /** The account to run auto export */
+        exporter: string;
 
-            /** A type of classification category in NetSuite linked to customers */
-            customers: NetSuiteMappingValues;
+        /** The transaction date to set upon export */
+        exportDate?: NetSuiteExportDateOptions;
 
-            /** A type of classification category in NetSuite linked to departments within the company */
-            departments: NetSuiteMappingValues;
-        }>;
+        /** The type of transaction in NetSuite we export non-reimbursable transactions to */
+        nonreimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
 
-        /** Whether we want to import customers into NetSuite from across all subsidiaries */
-        crossSubsidiaryCustomers: boolean;
+        /** Credit account for reimbursable transactions */
+        reimbursablePayableAccount: string;
 
-        /** Whether we'll import employee supervisors and set them as managers in the Expensify approval workflow */
-        syncApprovalWorkflow: boolean;
+        /** Whether we post Journals as individual separate entries or a single unified entry */
+        journalPostingPreference?: NetSuiteJournalPostingPreferences;
 
-        /** Whether we import custom lists from NetSuite */
-        syncCustomLists?: boolean;
+        /** The Item record to associate with lines on an invoice created via Expensify */
+        invoiceItem?: string;
 
-        /** The approval level we set for an Expense Report record created in NetSuite */
-        exportReportsTo: NetSuiteExpenseReportApprovalLevels;
+        /** The internaID of the selected subsidiary in NetSuite */
+        subsidiaryID?: string;
 
-        /** The approval level we set for a Vendor Bill record created in NetSuite */
-        exportVendorBillsTo: NetSuiteVendorBillApprovalLevels;
+        /** The default vendor to use for Transactions in NetSuite */
+        defaultVendor?: string;
 
-        /** Whether or not we need to set the final approver in this policy via sync */
-        setFinalApprover: boolean;
+        /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
+        provincialTaxPostingAccount?: string;
 
-        /** Whether we sync report reimbursement status between Expensify and NetSuite */
-        syncReimbursedReports: boolean;
+        /** The account used for reimbursement in NetSuite */
+        reimbursementAccountID?: string;
 
-        /** The relevant details of the custom segments we import into Expensify and code onto expenses */
-        customSegments?: NetSuiteCustomSegment[];
+        /** The account used for approvals in NetSuite */
+        approvalAccount: string;
 
-        /** Whether to import Employees from NetSuite into Expensify */
-        syncPeople: boolean;
+        /** Credit account for Non-reimbursables (not applicable to expense report entry) */
+        payableAcct: string;
 
-        /** Whether to enable a new Expense Category into Expensify */
-        enableNewCategories?: boolean;
+        /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
+        customFormIDOptions?: NetSuiteCustomFormID;
 
-        /** A now unused configuration saying whether a customer had toggled AutoSync yet. */
-        hasChosenAutoSyncOption: boolean;
+        /** The account to use for Invoices export to NetSuite */
+        collectionAccount?: string;
 
-        /** The final approver to be set in the Expensify approval workflow */
-        finalApprover: string;
+        /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
+        suiteTaxEnabled?: boolean;
 
-        /** Whether to import tax groups from NetSuite */
-        syncTax?: boolean;
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
 
-        /** Whether to import custom segments from NetSuite */
-        syncCustomSegments?: boolean;
-
-        /** The relevant details of the custom lists we import into Expensify and code onto expenses */
-        customLists?: NetSuiteCustomList[];
-
-        /** Whether we'll import Expense Categories into Expensify as categories */
-        syncCategories: boolean;
-
-        /** A now unused configuration saying whether a customer had toggled syncing reimbursement yet. */
-        hasChosenSyncReimbursedReportsOption: boolean;
-
-        /** The approval level we set for a Journal Entry record created in NetSuite */
-        exportJournalsTo: NetSuiteJournalApprovalLevels;
-    }>;
-
-    /** Whther to automatically create employees and vendors upon export in NetSuite if they don't exist */
-    autoCreateEntities: boolean;
-
-    /** The account to run auto export */
-    exporter: string;
-
-    /** The transaction date to set upon export */
-    exportDate?: NetSuiteExportDateOptions;
-
-    /** The type of transaction in NetSuite we export non-reimbursable transactions to */
-    nonreimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
-
-    /** Credit account for reimbursable transactions */
-    reimbursablePayableAccount: string;
-
-    /** Whether we post Journals as individual separate entries or a single unified entry */
-    journalPostingPreference?: NetSuiteJournalPostingPreferences;
-
-    /** The Item record to associate with lines on an invoice created via Expensify */
-    invoiceItem?: string;
-
-    /** The internaID of the selected subsidiary in NetSuite */
-    subsidiaryID?: string;
-
-    /** The default vendor to use for Transactions in NetSuite */
-    defaultVendor?: string;
-
-    /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
-    provincialTaxPostingAccount?: string;
-
-    /** The account used for reimbursement in NetSuite */
-    reimbursementAccountID?: string;
-
-    /** The account used for approvals in NetSuite */
-    approvalAccount: string;
-
-    /** Credit account for Non-reimbursables (not applicable to expense report entry) */
-    payableAcct: string;
-
-    /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
-    customFormIDOptions?: NetSuiteCustomFormID;
-
-    /** The account to use for Invoices export to NetSuite */
-    collectionAccount?: string;
-
-    /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
-    suiteTaxEnabled?: boolean;
-
-    /** Collection of errors coming from BE */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof NetSuiteSyncOptions | keyof NetSuiteCustomFormID | keyof NetSuiteSyncOptionsMapping
+>;
 
 /** NetSuite connection model */
 type NetSuiteConnection = {
@@ -1202,16 +1220,16 @@ type Connection<ConnectionData, ConnectionConfig> = {
 /** Available integration connections */
 type Connections = {
     /** QuickBooks integration connection */
-    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: Connection<QBOConnectionData, QBOConnectionConfig>;
 
     /** Xero integration connection */
-    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.XERO]: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** NetSuite integration connection */
-    netsuite: NetSuiteConnection;
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 };
 
 /** Names of integration connections */
@@ -1267,6 +1285,9 @@ type PolicyReportField = {
     /** Value of the field */
     value?: string | null;
 
+    /** Value of the target */
+    target?: 'expense' | 'invoice' | 'paycheck';
+
     /** Options to select from if field is of type dropdown */
     values: string[];
 
@@ -1299,6 +1320,15 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Stripe Connect company website */
     companyWebsite?: string;
+
+    /** Bank account */
+    bankAccount?: {
+        /** Account balance */
+        stripeConnectAccountBalance?: number;
+
+        /** bankAccountID of selected BBA for payouts */
+        transferBankAccountID?: number;
+    };
 }>;
 
 /** Names of policy features */
@@ -1498,6 +1528,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
+        /** Whether the rules feature is enabled */
+        areRulesEnabled?: boolean;
+
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
@@ -1507,8 +1540,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
+        /** Whether the Company Cards feature is enabled */
+        areCompanyCardsEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
+
+        /** Whether the eReceipts are enabled */
+        eReceipts?: boolean;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
@@ -1539,8 +1578,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
+
+        /** Workspace account ID configured for Expensify Card */
+        workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */
@@ -1613,4 +1655,5 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     ACHAccount,
+    NetSuiteConnectionConfig,
 };

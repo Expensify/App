@@ -33,8 +33,19 @@ Onyx.connect({
     },
 });
 
-const hiddenTranslation = Localize.translateLocal('common.hidden');
-const youTranslation = Localize.translateLocal('common.you').toLowerCase();
+let hiddenTranslation = '';
+let youTranslation = '';
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        hiddenTranslation = Localize.translateLocal('common.hidden');
+        youTranslation = Localize.translateLocal('common.you').toLowerCase();
+    },
+});
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
@@ -323,6 +334,18 @@ function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
 
+function getPersonalDetailsLength() {
+    return personalDetails.length;
+}
+
+function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
+    const userDetails = getPersonalDetailByEmail(email);
+    if (userDetails) {
+        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
+    }
+    return email;
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -339,4 +362,6 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
+    getPersonalDetailsLength,
+    getUserNameByEmail,
 };

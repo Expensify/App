@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SearchStatus} from '@components/Search/types';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -9,32 +9,10 @@ import type CONST from '@src/CONST';
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
-    ? typeof TransactionListItem
-    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-    ? typeof ReportListItem
-    : never;
+type ListItemType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? typeof TransactionListItem : typeof ReportListItem;
 
-/** Model of search result section */
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
-    ? TransactionListItemType[]
-    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-    ? ReportListItemType[]
-    : never;
-
-/** Mapping of search results to list item */
-type SearchTypeToItemMap = {
-    [K in SearchDataTypes]: {
-        /** Collection of search result list item */
-        listItem: ListItemType<K>;
-
-        /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
-
-        /** Returns sorted search results sections based on search results data */
-        getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
-    };
-};
+/** Model of search list item data type */
+type ListItemDataType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItemType[] : ReportListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -54,7 +32,10 @@ type SearchResultsInfo = {
     offset: number;
 
     /** Type of search */
-    type: string;
+    type: SearchDataTypes;
+
+    /** The status filter for the current search */
+    status: SearchStatus;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -79,18 +60,6 @@ type SearchPersonalDetails = {
 
     /** User's email */
     login?: string;
-};
-
-/** Model of policy details search result */
-type SearchPolicyDetails = {
-    /** ID of the policy */
-    id: string;
-
-    /** Policy avatar URL */
-    avatarURL: string;
-
-    /** Policy name */
-    name: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -180,9 +149,9 @@ type SearchTransaction = {
     tag: string;
 
     /** The transaction description */
-    comment: {
+    comment?: {
         /** Content of the transaction description */
-        comment: string;
+        comment?: string;
     };
 
     /** The transaction category */
@@ -235,10 +204,10 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
-};
 
-/** Model of account details search result */
-type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
+    /** Whether the transaction report has only a single transaction */
+    isFromOneTransactionReport?: boolean;
+};
 
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
@@ -249,7 +218,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
-    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchReport>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -257,15 +226,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {
-    SearchTransaction,
-    SearchTransactionType,
-    SearchTransactionAction,
-    SearchPersonalDetails,
-    SearchPolicyDetails,
-    SearchAccountDetails,
-    SearchDataTypes,
-    SearchTypeToItemMap,
-    SearchReport,
-    SectionsType,
-};
+export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport};

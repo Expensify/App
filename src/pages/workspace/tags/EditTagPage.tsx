@@ -22,11 +22,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 type EditTagPageOnyxProps = {
     /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type EditTagPageProps = EditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
@@ -41,10 +41,13 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
+            const escapedTagName = PolicyUtils.escapeTagName(values.tagName.trim());
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (tags?.[tagName] && currentTagName !== tagName) {
+            } else if (escapedTagName === '0') {
+                errors.tagName = translate('workspace.tags.invalidTagNameError');
+            } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             }
 

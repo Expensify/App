@@ -35,34 +35,30 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false, policyIDs}: {query: SearchQueryString; isCustomQuery?: boolean; policyIDs?: string}) =>
-            `search?q=${query}&isCustomQuery=${isCustomQuery}${policyIDs ? `&policyIDs=${policyIDs}` : ''}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
-
     SEARCH_ADVANCED_FILTERS: 'search/filters',
-
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-
-    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-
-    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
-
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
-
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
-
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-
+    SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
+    SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
+    SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
+    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
+    SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
+    SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
+    SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
+    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
         getRoute: (reportID: string) => `search/view/${reportID}` as const,
     },
-
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -199,8 +195,9 @@ const ROUTES = {
     },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
-        getRoute: (contactMethod: string) => `settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details` as const,
+        getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
     },
+    SETINGS_CONTACT_METHOD_VALIDATE_ACTION: 'settings/profile/contact-methods/validate-action',
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
@@ -355,7 +352,7 @@ const ROUTES = {
     },
     ROOM_INVITE: {
         route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role ?? ''}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
@@ -534,7 +531,7 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
@@ -550,7 +547,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -642,12 +639,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'settings/workspaces/:policyID/workflows/approvals/expenses-from',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number) =>
-            `settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const,
+        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
@@ -689,6 +686,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
     },
+    WORKSPACE_INVOICES_COMPANY_NAME: {
+        route: 'settings/workspaces/:policyID/invoices/company-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-name` as const,
+    },
+    WORKSPACE_INVOICES_COMPANY_WEBSITE: {
+        route: 'settings/workspaces/:policyID/invoices/company-website',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
+    },
     WORKSPACE_TRAVEL: {
         route: 'settings/workspaces/:policyID/travel',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/travel` as const,
@@ -715,11 +720,11 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
+        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) =>
+        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
             `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
     },
     WORKSPACE_CATEGORIES: {
@@ -738,6 +743,14 @@ const ROUTES = {
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        route: 'settings/workspaces/:policyID/categories/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        route: 'settings/workspaces/:policyID/categories/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
@@ -885,9 +898,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
         getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
+        route: 'settings/workspaces/:policyID/company-cards/select-feed',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
+    WORKSPACE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
@@ -907,7 +928,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/issue-new`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
@@ -924,6 +945,18 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS: {
+        route: 'settings/workspaces/:policyID/company-cards/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME: {
+        route: 'settings/workspaces/:policyID/company-cards/settings/feed-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name` as const,
+    },
+    WORKSPACE_RULES: {
+        route: 'settings/workspaces/:policyID/rules',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
@@ -952,6 +985,22 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    RULES_RECEIPT_REQUIRED_AMOUNT: {
+        route: 'settings/workspaces/:policyID/rules/receipt-required-amount',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/receipt-required-amount` as const,
+    },
+    RULES_MAX_EXPENSE_AMOUNT: {
+        route: 'settings/workspaces/:policyID/rules/max-expense-amount',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-amount` as const,
+    },
+    RULES_MAX_EXPENSE_AGE: {
+        route: 'settings/workspaces/:policyID/rules/max-expense-age',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-age` as const,
+    },
+    RULES_BILLABLE_DEFAULT: {
+        route: 'settings/workspaces/:policyID/rules/billable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
@@ -983,7 +1032,7 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+        getRoute: (reportID: string, transactionID: string, readonly = false) => `r/${reportID}/transaction/${transactionID}/receipt${readonly ? '?readonly=true' : ''}` as const,
     },
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {
         route: 'r/:threadReportID/duplicates/review',

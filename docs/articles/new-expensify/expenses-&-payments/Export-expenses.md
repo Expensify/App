@@ -10,7 +10,9 @@ To export your expense data to a CSV,
 
  1. Click the **[Search](https://new.expensify.com/search/all?sortBy=date&sortOrder=desc)** tab in the bottom left menu.
  2. Select the checkbox to the left of the expenses or reports you wish to export.
- 3. Click **# selected** at the top-right and select **Download**. 
+ 3. Click **# selected** at the top-right and select **Download**.
+
+![Select the expenses to download]({{site.url}}/assets/images/Export-Expenses.png){:width="100%"}
 
 The CSV download will save locally to your device with the file naming prefix _“Expensify.”_ This file provides the following data for each expense: 
  - Date	

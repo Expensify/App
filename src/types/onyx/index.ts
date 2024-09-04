@@ -1,6 +1,6 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
-import type ApprovalWorkflow from './ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -10,6 +10,7 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type CardFeeds from './CardFeeds';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -21,6 +22,7 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
@@ -39,6 +41,7 @@ import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -50,7 +53,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -129,6 +132,7 @@ export type {
     Locale,
     Login,
     LoginList,
+    PendingContactAction,
     MapboxAccessToken,
     Modal,
     Network,
@@ -151,7 +155,7 @@ export type {
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
-    PolicyTagList,
+    PolicyTagLists,
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
@@ -217,7 +221,9 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
-    ApprovalWorkflow,
+    ApprovalWorkflowOnyx,
     MobileSelectionMode,
     WorkspaceTooltip,
+    CardFeeds,
+    ImportedSpreadsheet,
 };

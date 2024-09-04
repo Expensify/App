@@ -18,7 +18,7 @@ type SearchColumnConfig = {
     shouldShow: (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 };
 
-const SearchColumns: SearchColumnConfig[] = [
+const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -109,7 +109,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {expenseHeaders.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }

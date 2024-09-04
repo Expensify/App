@@ -1,10 +1,11 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import type {SearchQueryString} from '@components/Search/types';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +18,9 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName} from '@libs/NavigationUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as SearchUtils from '@libs/SearchUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -33,6 +37,34 @@ type BottomTabBarProps = {
     selectedTab: string | undefined;
 };
 
+/**
+ * Returns SearchQueryString that has policyID correctly set.
+ *
+ * When we're coming back to Search Screen we might have pre-existing policyID inside SearchQuery.
+ * There are 2 cases when we might want to remove this `policyID`:
+ *  - if Policy was removed in another screen
+ *  - if WorkspaceSwitcher was used to globally unset a policyID
+ * Otherwise policyID will be inserted into query
+ */
+function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
+    const queryJSON = SearchUtils.buildSearchQueryJSON(query);
+    if (!queryJSON) {
+        return query;
+    }
+
+    const policyID = activePolicyID ?? queryJSON.policyID;
+    const policy = PolicyUtils.getPolicy(policyID);
+
+    // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
+    if (!activePolicyID || !policy) {
+        delete queryJSON.policyID;
+    } else {
+        queryJSON.policyID = policyID;
+    }
+
+    return SearchUtils.buildSearchQueryString(queryJSON);
+}
+
 function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,6 +72,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const navigation = useNavigation();
     const {activeWorkspaceID} = useActiveWorkspace();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
+    }, [activeWorkspaceID, transactionViolations]);
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
@@ -66,13 +104,38 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
-    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
             return;
         }
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
+    }, [activeWorkspaceID, selectedTab]);
+
+    const navigateToSearch = useCallback(() => {
+        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
+            return;
+        }
+        interceptAnonymousUser(() => {
+            const currentSearchParams = SearchUtils.getCurrentSearchParams();
+            if (currentSearchParams) {
+                const {q, ...rest} = currentSearchParams;
+                const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
+
+                Navigation.navigate(
+                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                        query: cleanedQuery,
+                        ...rest,
+                    }),
+                );
+                return;
+            }
+
+            const defaultCannedQuery = SearchUtils.buildCannedSearchQuery();
+            // when navigating to search we might have an activePolicyID set from workspace switcher
+            const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        });
     }, [activeWorkspaceID, selectedTab]);
 
     return (
@@ -100,12 +163,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
             </Tooltip>
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
-                            return;
-                        }
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL})));
-                    }}
+                    onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
                     wrapperStyle={styles.flex1}

@@ -16,10 +16,10 @@ type SharedProps<T> = {
     subtitle: string;
     buttonText?: string;
     buttonAction?: () => void;
+    containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
-    emptyStateForegroundStyles?: StyleProp<ViewStyle>;
     minModalHeight?: number;
 };
 

@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -29,6 +29,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getSynchronizationErrorMessage} from './actions/connections';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -86,6 +87,13 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 }
 
 /**
+ * Checks if the policy had a sync error.
+ */
+function hasSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
+    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, isSyncInProgress));
+}
+
+/**
  * Check if the policy has any error fields.
  */
 function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
@@ -129,26 +137,37 @@ function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string):
     return distanceUnit?.rates[customUnitRateID];
 }
 
-function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
+function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
         return '';
     }
+
+    if (withDecimals) {
+        const decimalPart = numValue.toString().split('.')[1];
+        const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+        return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+    }
+
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
-    return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate, withDecimals?: boolean) {
+    return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit, withDecimals);
 }
 
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
-function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy, isConnectionInProgress)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
+}
+
+function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string | undefined) {
+    return policy?.role ?? policy?.employeeList?.[currentUserLogin ?? '-1']?.role;
 }
 
 /**
@@ -158,12 +177,12 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<t
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
     return (
         !!policy &&
         (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
-        !!policy?.role
+        !!getPolicyRole(policy, currentUserLogin)
     );
 }
 
@@ -175,14 +194,12 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
-    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the current user is of the role "user" on the policy.
  */
-const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
-    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
+const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
 
 /**
  * Checks if the policy is a free group policy.
@@ -241,7 +258,7 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -252,7 +269,7 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 /**
  * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
@@ -263,7 +280,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -276,7 +293,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<Pol
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
+function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -288,11 +305,22 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
     );
 }
 
+function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
+    const uniqueTagNames = new Set<string>();
+
+    for (const policyTagList of Object.values(policyTagLists ?? {})) {
+        for (const tag of Object.values(policyTagList.tags)) {
+            uniqueTagNames.add(getCleanedTagName(tag.name));
+        }
+    }
+    return Array.from(uniqueTagNames);
+}
+
 /**
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+    return tag?.replace(/\\:/g, CONST.COLON);
 }
 
 /**
@@ -312,7 +340,7 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
 /**
  * Whether the policy has multi-level tags
  */
-function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return Object.keys(policyTagList ?? {}).length > 1;
 }
 
@@ -411,6 +439,25 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+/** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
+ * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
+function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
+    const allTaxRates: Record<string, string[]> = {};
+    Object.values(allPolicies ?? {})?.forEach((policy) => {
+        if (!policy?.taxRates?.taxes) {
+            return;
+        }
+        Object.entries(policy?.taxRates?.taxes).forEach(([taxRateKey, taxRate]) => {
+            if (!allTaxRates[taxRate.name]) {
+                allTaxRates[taxRate.name] = [taxRateKey];
+                return;
+            }
+            allTaxRates[taxRate.name].push(taxRateKey);
+        });
+    });
+    return allTaxRates;
+}
+
 /**
  * Whether the tax rate can be deleted and disabled
  */
@@ -461,6 +508,32 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
 }
 
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+/**
+ * Returns the email of the account to forward the report to depending on the approver's approval limit.
+ * Used for advanced approval mode only.
+ */
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!isControlOnAdvancedApprovalMode(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo;
+    }
+    return employee.forwardsTo ?? '';
+}
+
 /**
  * Returns the accountID of the policy reimburser, if not available — falls back to the policy owner.
  */
@@ -493,9 +566,9 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 }
 
 /** Return active policies where current user is an admin */
-function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Policy[] {
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -505,13 +578,13 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 }
 
 /** Whether the user can send invoice */
-function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
-    return getActiveAdminWorkspaces(policies).length > 0;
+function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
+    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
     // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
     // return getActiveAdminWorkspaces(policies).some((policy) => canSendInvoiceFromWorkspace(policy.id));
 }
 
-function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
@@ -536,15 +609,14 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
-function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
 
-    return (bankAccounts ?? []).map(({id, name}, index) => ({
+    return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+        isSelected: selectedBankAccountId === id,
     }));
 }
 
@@ -897,6 +969,23 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
+function getWorkspaceAccountID(policyID: string) {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return 0;
+    }
+    return policy.workspaceAccountID ?? 0;
+}
+
+function getDomainNameForPolicy(policyID?: string): string {
+    if (!policyID) {
+        return '';
+    }
+
+    return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -916,14 +1005,15 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
-    getSubmitToAccountID,
     getTagList,
     getTagListName,
     getTagLists,
     getTaxByID,
     getUnitRateValue,
+    getRateDisplayValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
+    hasSyncError,
     hasCustomUnitsError,
     hasEmployeeListError,
     hasIntegrationAutoSync,
@@ -954,7 +1044,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
-    getXeroBankAccountsWithDefaultSelect,
+    getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
@@ -984,6 +1074,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    getDefaultApprover,
+    getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
     isNetSuiteCustomSegmentRecord,
@@ -994,6 +1086,13 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getSubmitToEmail,
+    getForwardsToAccount,
+    getSubmitToAccountID,
+    getWorkspaceAccountID,
+    getAllTaxRatesNamesAndKeys as getAllTaxRates,
+    getTagNamesFromTagsLists,
+    getDomainNameForPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

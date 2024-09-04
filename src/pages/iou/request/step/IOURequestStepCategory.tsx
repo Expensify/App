@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, ReportActions, Session, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -49,7 +49,7 @@ type IOURequestStepCategoryOnyxProps = {
     policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policyTags: OnyxEntry<PolicyTagLists>;
 
     /** The actions from the parent report */
     reportActions: OnyxEntry<ReportActions>;

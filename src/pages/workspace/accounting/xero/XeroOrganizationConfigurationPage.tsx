@@ -9,7 +9,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updatePolicyXeroConnectionConfig} from '@libs/actions/connections';
+import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -59,7 +59,7 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList);
+        Xero.updateXeroTenantID(policyID, keyForList, xeroConfig?.tenantID);
         Navigation.goBack();
     };
 

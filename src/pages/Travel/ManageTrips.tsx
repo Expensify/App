@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -7,6 +8,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +36,8 @@ function ManageTrips() {
     const {translate} = useLocalize();
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const policy = usePolicy(activePolicyID);
 
     const [ctaErrorMessage, setCtaErrorMessage] = useState('');
 
@@ -59,8 +62,12 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
+                        if (Str.isSMSLogin(account?.primaryLogin ?? '')) {
+                            setCtaErrorMessage(translate('travel.phoneError'));
+                            return;
+                        }
                         if (!hasPolicyAddress) {
-                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1'));
+                            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
                             return;
                         }
                         if (!hasAcceptedTravelTerms) {

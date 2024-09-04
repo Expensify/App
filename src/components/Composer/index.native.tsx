@@ -1,11 +1,13 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import type {ComposerProps} from './types';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -20,8 +23,7 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
-        shouldClear = false,
-        onClear = () => {},
+        onClear: onClearProp = () => {},
         onPasteFile = () => {},
         isDisabled = false,
         maxLines,
@@ -47,6 +49,15 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
+
+    useEffect(() => {
+        if (autoFocus === !!autoFocusInputRef.current) {
+            return;
+        }
+        inputCallbackRef(autoFocus ? textInput.current : null);
+    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
     /**
      * Set the TextInput Ref
      * @param {Element} el
@@ -58,6 +69,10 @@ function Composer(
             return;
         }
 
+        if (autoFocus) {
+            inputCallbackRef(el);
+        }
+
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
@@ -66,27 +81,30 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const onClear = useCallback(
+        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            onClearProp(nativeEvent.text);
+        },
+        [onClearProp],
+    );
+
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items[0];
             if (clipboardContent.type === 'text/plain') {
                 return;
             }
+            const mimeType = clipboardContent.type;
             const fileURI = clipboardContent.data;
-            const fileName = fileURI.split('/').pop();
-            const file: FileObject = {uri: fileURI, name: fileName, type: clipboardContent.type};
+            const baseFileName = fileURI.split('/').pop() ?? 'file';
+            const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
+            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+            const fileName = `${stem}.${fileExtension}`;
+            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
             onPasteFile(file);
         },
         [onPasteFile],
     );
-
-    useEffect(() => {
-        if (!shouldClear) {
-            return;
-        }
-        textInput.current?.clear();
-        onClear();
-    }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
@@ -116,6 +134,7 @@ function Composer(
                 }
                 props?.onBlur?.(e);
             }}
+            onClear={onClear}
         />
     );
 }

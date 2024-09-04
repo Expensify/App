@@ -18,6 +18,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -60,7 +61,7 @@ function ReportFieldsListValuesPage({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
@@ -92,9 +93,8 @@ function ReportFieldsListValuesPage({
                 index,
                 text: value,
                 keyForList: value,
-                isSelected: selectedValues[value],
+                isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues[index] ?? true,
-                pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
                 rightElement: (
                     <ListItemRightCaretWithLabel
                         shouldShowCaret={false}
@@ -104,7 +104,7 @@ function ReportFieldsListValuesPage({
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
+    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -117,9 +117,9 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const isAllSelected = listValues.length === Object.keys(selectedValues).length;
+        const areAllSelected = listValues.length === selectedValuesArray.length;
 
-        setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(areAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -177,7 +177,7 @@ function ReportFieldsListValuesPage({
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if ((isSmallScreenWidth && selectionMode?.isEnabled) ?? selectedValuesArray.length > 0) {
+        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -322,7 +322,7 @@ function ReportFieldsListValuesPage({
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
