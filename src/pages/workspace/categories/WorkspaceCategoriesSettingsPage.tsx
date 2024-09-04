@@ -89,7 +89,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && sections?.length > 0 && (
+                    {!!currentPolicy && sections[0].data.length > 0 && (
                         <SelectionList
                             headerContent={
                                 <View style={[styles.mh5, styles.mt2, styles.mb1]}>
