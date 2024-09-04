@@ -1,11 +1,9 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch} from 'date-fns';
 import isValid from 'date-fns/isValid';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -114,56 +112,6 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
-
-let isInFocusMode: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (priorityMode) => {
-        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    },
-});
-
-let allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        allTransactions = Object.keys(value)
-            .filter((key) => !!value[key])
-            .reduce((result: OnyxCollection<Transaction>, key) => {
-                if (result) {
-                    // eslint-disable-next-line no-param-reassign
-                    result[key] = value[key];
-                }
-                return result;
-            }, {});
-    },
-});
-
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-
-        allReportActions = actions ?? {};
-    },
-});
-
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID;
-    },
-});
 
 function convertToJSON(data: Record<string | number, unknown>) {
     return JSON.stringify(data, null, 6);
