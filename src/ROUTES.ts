@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -743,6 +743,14 @@ const ROUTES = {
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        route: 'settings/workspaces/:policyID/categories/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        route: 'settings/workspaces/:policyID/categories/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
