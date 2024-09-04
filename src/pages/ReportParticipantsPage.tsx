@@ -253,7 +253,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
         }
 
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
-    }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils, canSelectMultiple]);
+    }, [styles, translate, isGroupChat, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
