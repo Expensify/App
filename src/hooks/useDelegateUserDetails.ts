@@ -1,15 +1,15 @@
-import { useOnyx } from "react-native-onyx";
-import useCurrentUserPersonalDetails from "./useCurrentUserPersonalDetails";
-import ONYXKEYS from "@src/ONYXKEYS";
-import AccountUtils from "@libs/AccountUtils";
+import {useOnyx} from 'react-native-onyx';
+import AccountUtils from '@libs/AccountUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 function useDelegateUserDetails() {
     const currentUserDeatils = useCurrentUserPersonalDetails();
     const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isDelegatorAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
+    const isDelegateAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
 
     return {
-        isDelegatorAccessRestricted,
+        isDelegateAccessRestricted,
         currentUserDeatils,
     };
 }

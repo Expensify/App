@@ -22,6 +22,8 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -50,10 +52,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import AccountUtils from '@libs/AccountUtils';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import TextLink from '@components/TextLink';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -238,11 +236,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-    const {isDelegatorAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    
+
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (isDelegatorAccessRestricted) {
+        if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
         } else if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
@@ -257,11 +255,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
 
     const noDelegateAccessPromp = (
-            <Text>
-                {basicnoDelegateAccessPromptStart}
-                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-                {basicnoDelegateAccessPromptEnd}
-            </Text>
+        <Text>
+            {basicnoDelegateAccessPromptStart}
+            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
+            {basicnoDelegateAccessPromptEnd}
+        </Text>
     );
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
@@ -833,14 +831,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     danger
                     shouldEnableNewFocusManagement
                 />
-                            <ConfirmModal
-                isVisible={isNoDelegateAccessMenuVisible}
-                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
-                title={translate('delegate.notAllowed')}
-                prompt={noDelegateAccessPromp}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
+                <ConfirmModal
+                    isVisible={isNoDelegateAccessMenuVisible}
+                    onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                    title={translate('delegate.notAllowed')}
+                    prompt={noDelegateAccessPromp}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
                     isVisible={isUnapproveModalVisible}

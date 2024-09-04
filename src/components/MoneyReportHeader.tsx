@@ -14,12 +14,10 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails'
 import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import useCurrentUserPersonalDetails from '@src/hooks/useCurrentUserPersonalDetails';
-import AccountUtils from '@src/libs/AccountUtils';
+import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -146,9 +144,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegatorAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
 
     const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type || !chatReport) {
@@ -156,10 +153,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         setPaymentType(type);
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else if (isDelegatorAccessRestricted) {
+        if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
+        } else if (isAnyTransactionOnHold) {
+            setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
             IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
         } else {
@@ -172,19 +169,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
 
     const noDelegateAccessPromp = (
-            <Text>
-                {basicnoDelegateAccessPromptStart}
-                <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-                {basicnoDelegateAccessPromptEnd}
-            </Text>
+        <Text>
+            {basicnoDelegateAccessPromptStart}
+            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
+            {basicnoDelegateAccessPromptEnd}
+        </Text>
     );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else if (isDelegatorAccessRestricted) {
+        if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
+        } else if (isAnyTransactionOnHold) {
+            setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(moneyRequestReport, true);
         }

@@ -16,12 +16,11 @@ import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AccountUtils from '@libs/AccountUtils';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -195,10 +194,28 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {isDelegateAccessRestricted, currentUserDeatils} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const isDelegatorAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
-    const currentUserDeatils = useCurrentUserPersonalDetails();
+
+    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        if (!type) {
+            return;
+        }
+        setPaymentType(type);
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+        if (isDelegateAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
+        } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            setIsHoldMenuVisible(true);
+        } else if (chatReport && iouReport) {
+            if (ReportUtils.isInvoiceReport(iouReport)) {
+                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, iouReport);
+            }
+        }
+    };
+
     const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: currentUserDeatils.login ?? ''});
     const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
     const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
@@ -213,31 +230,12 @@ function ReportPreview({
         </>
     );
 
-    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
-        if (!type) {
-            return;
-        }
-        setPaymentType(type);
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            setIsHoldMenuVisible(true);
-        } else if (isDelegatorAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
-        } else if (chatReport && iouReport) {
-            if (ReportUtils.isInvoiceReport(iouReport)) {
-                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
-            } else {
-                IOU.payMoneyRequest(type, chatReport, iouReport);
-            }
-        }
-    };
-
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            setIsHoldMenuVisible(true);
-        } else if (isDelegatorAccessRestricted) {
+        if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
+        } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            setIsHoldMenuVisible(true);
         } else {
             IOU.approveMoneyRequest(iouReport, true);
         }
