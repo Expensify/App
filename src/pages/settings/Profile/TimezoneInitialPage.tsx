@@ -1,3 +1,4 @@
+import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +24,8 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
 
     const {translate} = useLocalize();
 
+    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
+
     /**
      * Updates setting for automatic timezone selection.
      * Note: If we are updating automatically, we'll immediately calculate the user's timezone.
@@ -30,7 +33,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const updateAutomaticTimezone = (isAutomatic: boolean) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            selected: isAutomatic ? (Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone) : timezone.selected,
+            selected: isAutomatic && !lodashIsEmpty(currentTimezone) ? currentTimezone : timezone.selected,
         });
     };
 
