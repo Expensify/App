@@ -137,7 +137,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
-        const allRecents = [...additionalRecents, ...chatOptions.recentReports].slice(0, 5);
+        const fiveRecents = [...additionalRecents, ...chatOptions.recentReports].slice(0, 5);
+        const restOfRecents = [...additionalRecents, ...chatOptions.recentReports].slice(5);
+        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
@@ -151,14 +153,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         newSections.push({
             title: translate('common.recents'),
-            data: allRecents,
-            shouldShow: chatOptions.recentReports.length > 0,
+            data: fiveRecents,
+            shouldShow: fiveRecents.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            data: contactsWithRestOfRecents,
+            shouldShow: contactsWithRestOfRecents.length > 0,
         });
 
         if (
