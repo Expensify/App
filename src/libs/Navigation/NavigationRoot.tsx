@@ -7,8 +7,8 @@ import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
@@ -83,7 +83,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
 
@@ -147,8 +147,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(!isSmallScreenWidth);
-    }, [isSmallScreenWidth]);
+        Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
+    }, [shouldUseNarrowLayout]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
