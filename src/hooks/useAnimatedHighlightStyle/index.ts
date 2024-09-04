@@ -66,7 +66,7 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(true);
-    }, [shouldHighlight, startHighlight]);
+    }, [shouldHighlight]);
 
     React.useEffect(() => {
         if (!startHighlight || !didScreenTransitionEnd) {
