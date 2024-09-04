@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -40,7 +39,7 @@ type DelegatedAccess = {
     delegate?: string;
 
     /** Authentication failure errors when disconnecting as a copilot */
-    error?: TranslationPaths;
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 /** Model of user account */
