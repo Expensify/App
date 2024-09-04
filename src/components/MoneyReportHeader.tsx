@@ -39,7 +39,6 @@ import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
