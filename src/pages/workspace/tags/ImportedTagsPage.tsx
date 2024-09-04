@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
+import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -17,43 +18,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ImportedTagsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
-
-function numberToColumn(index: number) {
-    let column = '';
-    let number = index;
-    while (number >= 0) {
-        column = String.fromCharCode((number % 26) + 65) + column;
-        number = Math.floor(number / 26) - 1;
-    }
-    return column;
-}
-
-function generateColumnNames(length: number) {
-    return Array.from({length}, (_, i) => numberToColumn(i));
-}
-
-function findDuplicate(array: string[]): string | null {
-    const frequencyCounter: Record<string, number> = {};
-
-    for (const item of array) {
-        if (item !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
-            if (frequencyCounter[item]) {
-                return item;
-            }
-            frequencyCounter[item] = (frequencyCounter[item] || 0) + 1;
-        }
-    }
-
-    return null;
-}
-
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [isImporting, setIsImporting] = useState(false);
-    const [containsHeader, setContainsHeader] = useState(false);
+    const [isImportingTags, setIsImportingTags] = useState(false);
+    const {containsHeader = true} = spreadsheet ?? {};
+    const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -69,7 +42,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         );
 
         if (isControl) {
-            roles.push({text: translate('workspace.tags.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE, isRequired: true});
+            roles.push({text: translate('workspace.tags.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
         return roles;
@@ -81,7 +54,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Record<string, string | null> = {};
+        let errors: Errors = {};
 
         if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
             // eslint-disable-next-line rulesdir/prefer-early-return
@@ -98,12 +71,16 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 errors = {};
             }
         }
-
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
     const importTags = useCallback(() => {
-        validate();
+        setIsValidationEnabled(true);
+        const errors = validate();
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
+
         const columns = Object.values(spreadsheet?.columns ?? {});
         const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
         const tagsGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
@@ -119,7 +96,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         }));
 
         if (tags) {
-            setIsImporting(true);
+            setIsImportingTags(true);
             importPolicyTags(policyID, tags);
         }
     }, [validate, spreadsheet, containsHeader, policyID]);
@@ -140,14 +117,12 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
-                containsHeader={containsHeader}
-                setContainsHeader={setContainsHeader}
                 columnNames={columnNames}
                 importFunction={importTags}
-                errors={validate()}
+                errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
-                isButtonLoading={isImporting}
-                headerText={translate('workspace.tags.importedTagsMessage', spreadsheetColumns?.length)}
+                isButtonLoading={isImportingTags}
+                learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
             />
 
             <ConfirmModal
@@ -155,7 +130,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                 onConfirm={() => {
-                    setIsImporting(false);
+                    setIsImportingTags(false);
                     closeImportPage();
                     Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
                 }}

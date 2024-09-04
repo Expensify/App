@@ -687,6 +687,7 @@ export default {
         importTagsSuccessfullDescription: (tags: number) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
+        importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -2884,7 +2885,6 @@ export default {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
-            importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
