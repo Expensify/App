@@ -104,17 +104,21 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
         );
 
-        const isCurrentUserSelected = selectedOptions.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+        const currentUserSelected = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         newSections.push(formattedResults.section);
 
-        if (chatOptions.currentUserOption && !isCurrentUserSelected) {
+        if (chatOptions.currentUserOption) {
             const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
-            newSections.push({
-                title: '',
-                data: [{...chatOptions.currentUserOption, text: formattedName}],
-                shouldShow: true,
-            });
+            if (!currentUserSelected) {
+                newSections.push({
+                    title: '',
+                    data: [{...chatOptions.currentUserOption, text: formattedName}],
+                    shouldShow: true,
+                });
+            } else {
+                currentUserSelected.text = formattedName;
+            }
         }
 
         newSections.push({
