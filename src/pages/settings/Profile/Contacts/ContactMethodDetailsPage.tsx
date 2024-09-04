@@ -206,7 +206,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <ErrorMessageRow
                         errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
-                        onClose={() => User.clearContactMethod(contactMethod)}
+                        onClose={() => {
+                            User.clearContactMethod(contactMethod);
+                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        }}
                         canDismissError
                     />
                 )}
