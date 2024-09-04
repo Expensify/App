@@ -37,6 +37,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
+    /** Card number */
+    cardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 

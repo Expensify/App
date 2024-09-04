@@ -389,6 +389,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
+        COMPANY_CARD_FEEDS: 'companyCardFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         NEW_DOT_COPILOT: 'newDotCopilot',
         WORKSPACE_RULES: 'workspaceRules',
@@ -4470,7 +4471,7 @@ const CONST = {
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
     MOBILE_PAGINATION_SIZE: 15,
-    WEB_PAGINATION_SIZE: 50,
+    WEB_PAGINATION_SIZE: 30,
 
     /** Dimensions for illustration shown in Confirmation Modal */
     CONFIRM_CONTENT_SVG_SIZE: {

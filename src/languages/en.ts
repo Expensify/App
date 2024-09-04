@@ -2144,6 +2144,7 @@ export default {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
+        phoneError: 'To book travel, your default contact method must be a valid email',
     },
     workspace: {
         common: {
@@ -2787,6 +2788,9 @@ export default {
         companyCards: {
             addCompanyCards: 'Add company cards',
             selectCardFeed: 'Select card feed',
+            assignCard: 'Assign card',
+            cardNumber: 'Card number',
+            customFeed: 'Custom feed',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -2881,6 +2885,7 @@ export default {
             importedCategoriesMessage: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
         },
         moreFeatures: {
+            subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
             spendSection: {
                 title: 'Spend',
                 subtitle: 'Enable functionality that helps you scale your team.',
@@ -2987,7 +2992,7 @@ export default {
             },
             tags: {
                 title: 'Tags',
-                subtitle: 'Add additional ways to classify spend.',
+                subtitle: 'Classify costs and track billable expenses.',
             },
             taxes: {
                 title: 'Taxes',
@@ -3063,6 +3068,7 @@ export default {
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
+            trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
