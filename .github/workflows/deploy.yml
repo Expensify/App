@@ -71,7 +71,10 @@ jobs:
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: 🚀 Edit the release to be no longer a prerelease to deploy production 🚀
-        run: gh release edit ${{ env.PRODUCTION_VERSION }} --prerelease=false --latest
+        run: |
+          LATEST_RELEASE="$(gh release list --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
+          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ env.PRODUCTION_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" >> releaseNotes.md
+          gh release edit ${{ env.PRODUCTION_VERSION }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 

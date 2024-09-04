@@ -2,13 +2,14 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
+import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, IntegrationEntityMap} from '@src/types/onyx/Policy';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -21,7 +22,11 @@ function getQuickbooksOnlineSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValue: boolean) {
+function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
+    policyID: string,
+    configUpdate: TConfigUpdate,
+    configCurrentData: TConfigUpdate,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -30,13 +35,9 @@ function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValu
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: null,
-                            },
+                            ...configUpdate,
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
+                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
                         },
                     },
                 },
@@ -52,13 +53,11 @@ function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValu
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            ...configCurrentData,
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            errorFields: Object.fromEntries(
+                                Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')]),
+                            ),
                         },
                     },
                 },
@@ -74,26 +73,19 @@ function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValu
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES]: null,
-                            },
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
                         },
                     },
                 },
             },
         },
     ];
-
-    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
-        policyID,
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES),
+    return {
+        optimisticData,
+        failureData,
+        successData,
     };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
 }
 
 function updateQuickbooksOnlineAutoSync(policyID: string, settingValue: boolean) {
@@ -177,7 +169,11 @@ function updateQuickbooksOnlineAutoSync(policyID: string, settingValue: boolean)
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
-function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: boolean) {
+function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Connections['quickbooksOnline']['config']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -186,12 +182,12 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: settingValue ?? null,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: null,
+                                [settingName]: null,
                             },
                         },
                     },
@@ -208,12 +204,12 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: settingValue ?? null,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: null,
+                                [settingName]: null,
                             },
                             errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -230,12 +226,12 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
-                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: settingValue ?? null,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: null,
+                                [settingName]: null,
                             },
                             errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: null,
+                                [settingName]: null,
                             },
                         },
                     },
@@ -243,13 +239,39 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID: string, settingValue: 
             },
         },
     ];
+    return {
+        optimisticData,
+        failureData,
+        successData,
+    };
+}
+
+function updateQuickbooksOnlineEnableNewCategories(policyID: string, settingValue: boolean) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES),
     };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
+    policyID: string,
+    configUpdate: TConfigUpdate,
+    configCurrentData: TConfigUpdate,
+) {
+    const onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData);
+
+    const parameters: UpdateQuickbooksOnlineAutoCreateVendorParams = {
+        policyID,
+        autoCreateVendor: JSON.stringify(configUpdate.autoCreateVendor),
+        nonReimbursableBillDefaultVendor: JSON.stringify(configUpdate.nonReimbursableBillDefaultVendor),
+        idempotencyKey: CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineSyncPeople(policyID: string, settingValue: boolean) {
@@ -331,78 +353,68 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TConnectionName exten
     policyID: string,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: settingValue ?? null,
-                            pendingFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: null,
-                            },
-                            errorFields: {
-                                [CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT),
     };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncLocations(policyID: string, settingValue: IntegrationEntityMap) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncCustomers(policyID: string, settingValue: IntegrationEntityMap) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncClasses(policyID: string, settingValue: IntegrationEntityMap) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES, settingValue);
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID: string, settingValue: string) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncTax(policyID: string, settingValue: boolean) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.SYNC_TAX),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineReimbursementAccountID(policyID: string, currentValue: string | undefined, settingValue: string) {
@@ -570,4 +582,9 @@ export {
     updateQuickbooksOnlineSyncPeople,
     updateQuickbooksOnlineReimbursementAccountID,
     updateQuickbooksOnlinePreferredExporter,
+    updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
+    updateQuickbooksOnlineSyncTax,
+    updateQuickbooksOnlineSyncClasses,
+    updateQuickbooksOnlineSyncLocations,
+    updateQuickbooksOnlineSyncCustomers,
 };
