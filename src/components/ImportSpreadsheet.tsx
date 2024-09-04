@@ -75,7 +75,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (!validateFile(file)) {
             return;
         }
-        let fileURI = file.uri || URL.createObjectURL(file);
+        let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
         }
