@@ -193,9 +193,17 @@ const tests = [
                                 right: '200',
                             },
                             right: {
-                                operator: 'eq',
-                                left: 'expenseType',
-                                right: 'cash,card',
+                                operator: 'or',
+                                left: {
+                                    operator: 'eq',
+                                    left: 'expenseType',
+                                    right: 'cash',
+                                },
+                                right: {
+                                    operator: 'eq',
+                                    left: 'expenseType',
+                                    right: 'card',
+                                },
                             },
                         },
                         right: {
@@ -211,9 +219,25 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
-                    left: 'category',
-                    right: 'travel,hotel,meal & entertainment',
+                    operator: 'or',
+                    left: {
+                        operator: 'or',
+                        left: {
+                            operator: 'eq',
+                            left: 'category',
+                            right: 'travel',
+                        },
+                        right: {
+                            operator: 'eq',
+                            left: 'category',
+                            right: 'hotel',
+                        },
+                    },
+                    right: {
+                        operator: 'eq',
+                        left: 'category',
+                        right: 'meal & entertainment',
+                    },
                 },
             },
         },
@@ -342,15 +366,39 @@ const tests = [
                             },
                         },
                         right: {
-                            operator: 'eq',
-                            left: 'merchant',
-                            right: 'Expensify, Inc.',
+                            operator: 'or',
+                            left: {
+                                operator: 'eq',
+                                left: 'merchant',
+                                right: 'Expensify',
+                            },
+                            right: {
+                                operator: 'eq',
+                                left: 'merchant',
+                                right: 'Inc.',
+                            },
                         },
                     },
                     right: {
-                        operator: 'eq',
-                        left: 'tag',
-                        right: 'hotel,travel,meals & entertainment',
+                        operator: 'or',
+                        left: {
+                            operator: 'or',
+                            left: {
+                                operator: 'eq',
+                                left: 'tag',
+                                right: 'hotel',
+                            },
+                            right: {
+                                operator: 'eq',
+                                left: 'tag',
+                                right: 'travel',
+                            },
+                        },
+                        right: {
+                            operator: 'eq',
+                            left: 'tag',
+                            right: 'meals & entertainment',
+                        },
                     },
                 },
             },
