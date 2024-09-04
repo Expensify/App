@@ -55,6 +55,11 @@ function saveSearch({queryJSON, name}: {queryJSON: SearchQueryJSON; name?: strin
     API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, name}, {optimisticData, finallyData});
 }
 
+function deleteSavedSearch(hash: number) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, finallyData});
+}
+
 function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
@@ -148,4 +153,5 @@ export {
     exportSearchItemsToCSV,
     updateAdvancedFilters,
     clearAdvancedFilters,
+    deleteSavedSearch,
 };
