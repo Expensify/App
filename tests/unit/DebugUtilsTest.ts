@@ -1,3 +1,4 @@
+import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -53,6 +54,24 @@ const MOCK_REPORT: Report = {
     total: 0,
     unheldTotal: 0,
     writeCapability: 'all',
+    visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+    tripData: {
+        startDate: '2024-08-08 18:20:44.171',
+        endDate: '2024-08-08 20:20:44.171',
+        tripID: '1',
+    },
+    pendingChatMembers: [
+        {
+            accountID: '1',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+    ],
+    privateNotes: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        1: {
+            note: 'Hello world!',
+        },
+    },
 } satisfies Report;
 
 const MOCK_REPORT_ACTION: ReportAction = {
@@ -84,11 +103,38 @@ const MOCK_REPORT_ACTION: ReportAction = {
     shouldShow: true,
     sequenceNumber: 0,
     lastModified: '2024-08-08 18:20:44.171',
+    errors: {},
+    whisperedToAccountIDs: [],
+    isLoading: false,
+    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 } satisfies ReportAction;
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
-const MOCK_CONST_ENUM = {foo: 'foo', bar: 'bar'};
+const MOCK_CONST_ENUM = {
+    foo: 'foo',
+    bar: 'bar',
+};
+
+const TEST_OBJECT = {
+    a: 1,
+    b: 'a',
+    c: [],
+    d: {},
+    e: true,
+    f: false,
+};
+
+const TEST_OBJECT_TYPE = {
+    a: 'number',
+    b: 'string',
+    c: 'array',
+    d: 'object',
+    e: 'boolean',
+    f: 'boolean',
+} satisfies ObjectType;
 
 describe('Debug Utils', () => {
     describe('onyxDataToString', () => {
@@ -172,19 +218,14 @@ describe('Debug Utils', () => {
         it('returns a converted object where all values are string representations of the original values from data object', () => {
             expect(
                 DebugUtils.onyxDataToDraftData({
-                    a: 1,
-                    b: 'a',
-                    c: [],
-                    d: {},
-                    e: true,
-                    f: false,
+                    ...TEST_OBJECT,
                     g: [1],
                     h: ['a'],
                     i: [true],
                     j: [false],
                     k: [{}],
-                    l: [{a: 1, b: 'a', c: [], d: {}, e: true, f: false}],
-                    m: {a: 1, b: 'a', c: [], d: {}, e: true, f: false},
+                    l: [TEST_OBJECT],
+                    m: TEST_OBJECT,
                     n: undefined,
                 }),
             ).toEqual({
@@ -199,8 +240,8 @@ describe('Debug Utils', () => {
                 i: DebugUtils.onyxDataToString([true]),
                 j: DebugUtils.onyxDataToString([false]),
                 k: DebugUtils.onyxDataToString([{}]),
-                l: DebugUtils.onyxDataToString([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}]),
-                m: DebugUtils.onyxDataToString({a: 1, b: 'a', c: [], d: {}, e: true, f: false}),
+                l: DebugUtils.onyxDataToString([TEST_OBJECT]),
+                m: DebugUtils.onyxDataToString(TEST_OBJECT),
                 n: 'undefined',
             });
         });
@@ -346,14 +387,7 @@ describe('Debug Utils', () => {
         });
         it('does not throw SyntaxError when value is a valid string representation of an object array', () => {
             expect(() => {
-                DebugUtils.validateArray(DebugUtils.onyxDataToString([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}]), {
-                    a: 'number',
-                    b: 'string',
-                    c: 'array',
-                    d: 'object',
-                    e: 'boolean',
-                    f: 'boolean',
-                });
+                DebugUtils.validateArray(DebugUtils.onyxDataToString([TEST_OBJECT]), TEST_OBJECT_TYPE);
             }).not.toThrow();
         });
         it('throws SyntaxError when value is just a string', () => {
@@ -381,92 +415,194 @@ describe('Debug Utils', () => {
                 DebugUtils.validateArray('["a"]', MOCK_CONST_ENUM);
             }).toThrow();
         });
+        it('throws SyntaxError when value is a valid string representation of an object array but it has an invalid property type', () => {
+            expect(() => {
+                DebugUtils.validateArray(
+                    DebugUtils.onyxDataToString([
+                        {
+                            c: 'a',
+                        },
+                    ]),
+                    {
+                        c: ['number', 'undefined'],
+                    },
+                );
+            }).toThrow();
+        });
+        it('does not throw SyntaxError when value is a valid string representation of an object array and has valid property types', () => {
+            expect(() => {
+                DebugUtils.validateArray(
+                    DebugUtils.onyxDataToString([
+                        {
+                            c: 2,
+                        },
+                    ]),
+                    {
+                        c: ['number', 'undefined'],
+                    },
+                );
+            }).not.toThrow();
+        });
+        it("throws SyntaxError when value is a valid string representation of an object array but there's a property type which is not an array as expected", () => {
+            expect(() => {
+                DebugUtils.validateArray(
+                    DebugUtils.onyxDataToString([
+                        {
+                            c: 2,
+                        },
+                    ]),
+                    {
+                        c: 'array',
+                    },
+                );
+            }).toThrow();
+        });
     });
     describe('validateObject', () => {
-        it('does not throw SyntaxError when value is "undefined"', () => {
-            expect(() => {
-                DebugUtils.validateObject('undefined', {});
-            }).not.toThrow();
+        describe('value is undefined', () => {
+            it('does not throw SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject('undefined', {});
+                }).not.toThrow();
+            });
         });
-        it('does not throw SyntaxError when value is a valid JSON', () => {
-            expect(() => {
-                DebugUtils.validateObject(DebugUtils.onyxDataToString({a: 1, b: 'a', c: [], d: {}, e: true, f: false}), {
-                    a: 'number',
-                    b: 'string',
-                    c: 'array',
-                    d: 'object',
-                    e: 'boolean',
-                    f: 'boolean',
+        describe('value is a JSON representation of an object', () => {
+            describe('object is valid', () => {
+                it('does not throw SyntaxError', () => {
+                    expect(() => {
+                        DebugUtils.validateObject(DebugUtils.onyxDataToString(TEST_OBJECT), TEST_OBJECT_TYPE);
+                    }).not.toThrow();
                 });
-            }).not.toThrow();
+            });
+            describe('object has an invalid property', () => {
+                it('throws SyntaxError', () => {
+                    expect(() => {
+                        DebugUtils.validateObject(
+                            DebugUtils.onyxDataToString({
+                                a: 'a',
+                                b: 'a',
+                                c: [],
+                                d: {},
+                                e: true,
+                                f: false,
+                            }),
+                            TEST_OBJECT_TYPE,
+                        );
+                    }).toThrow();
+                });
+            });
+            describe('object is a collection', () => {
+                describe('collection index type is invalid', () => {
+                    it('throws SyntaxError', () => {
+                        expect(() => {
+                            DebugUtils.validateObject(
+                                DebugUtils.onyxDataToString({
+                                    a: {
+                                        foo: 'bar',
+                                    },
+                                }),
+                                {
+                                    foo: 'string',
+                                },
+                                'number',
+                            );
+                        }).toThrow();
+                    });
+                });
+                describe('collection index type is valid', () => {
+                    describe('collection value type is not valid', () => {
+                        it('throws SyntaxError', () => {
+                            expect(() => {
+                                DebugUtils.validateObject(
+                                    DebugUtils.onyxDataToString({
+                                        a: [1, 2, 3],
+                                    }),
+                                    {
+                                        foo: 'string',
+                                    },
+                                    'string',
+                                );
+                            }).toThrow();
+                        });
+                    });
+                });
+            });
         });
-        it('throws SyntaxError when value is a JSON representation of an array', () => {
-            expect(() => {
-                DebugUtils.validateObject(DebugUtils.onyxDataToString([{a: 1, b: 'a', c: [], d: {}, e: true, f: false}]), {
-                    a: 'number',
-                    b: 'string',
-                    c: 'array',
-                    d: 'object',
-                    e: 'boolean',
-                    f: 'boolean',
-                });
-            }).toThrow();
+        describe('value is a JSON representation of an array', () => {
+            it('throws SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject(DebugUtils.onyxDataToString([TEST_OBJECT]), TEST_OBJECT_TYPE);
+                }).toThrow();
+            });
         });
-        it('throws SyntaxError when value is not a valid JSON - invalid property', () => {
-            expect(() => {
-                DebugUtils.validateObject(DebugUtils.onyxDataToString({a: 'a', b: 'a', c: [], d: {}, e: true, f: false}), {
-                    a: 'number',
-                    b: 'string',
-                    c: 'array',
-                    d: 'object',
-                    e: 'boolean',
-                    f: 'boolean',
-                });
-            }).toThrow();
+        describe('JSON contains an invalid property', () => {
+            it('throws SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject(
+                        DebugUtils.onyxDataToString({
+                            a: 'a',
+                            b: 'a',
+                            c: [],
+                            d: {},
+                            e: true,
+                            f: false,
+                        }),
+                        TEST_OBJECT_TYPE,
+                    );
+                }).toThrow();
+            });
         });
     });
     describe('validateString', () => {
-        it('does not throw SyntaxError when value is "undefined"', () => {
-            expect(() => {
-                DebugUtils.validateString('undefined');
-            }).not.toThrow();
+        describe('value is undefined', () => {
+            it('does not throw SyntaxError"', () => {
+                expect(() => {
+                    DebugUtils.validateString('undefined');
+                }).not.toThrow();
+            });
         });
     });
     describe('validateReportDraftProperty', () => {
         describe.each(Object.keys(MOCK_REPORT) as Array<keyof Report>)('%s', (key) => {
-            it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
-                if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
+            describe('is undefined', () => {
+                it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError'}`, () => {
+                    if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
+                        expect(() => {
+                            DebugUtils.validateReportDraftProperty(key, 'undefined');
+                        }).toThrow();
+                    } else {
+                        expect(() => {
+                            DebugUtils.validateReportDraftProperty(key, 'undefined');
+                        }).not.toThrow();
+                    }
+                });
+            });
+            describe('is invalid', () => {
+                it('throws SyntaxError', () => {
+                    const value = MOCK_REPORT[key];
+                    let invalidValue: unknown;
+                    switch (typeof value) {
+                        case 'number':
+                            invalidValue = 'a';
+                            break;
+                        case 'boolean':
+                        case 'object':
+                            invalidValue = 2;
+                            break;
+                        default:
+                            invalidValue = [];
+                    }
                     expect(() => {
-                        DebugUtils.validateReportDraftProperty(key, 'undefined');
+                        DebugUtils.validateReportDraftProperty(key, DebugUtils.onyxDataToString(invalidValue));
                     }).toThrow();
-                } else {
+                });
+            });
+            describe('is valid', () => {
+                it('does not throw SyntaxError', () => {
                     expect(() => {
-                        DebugUtils.validateReportDraftProperty(key, 'undefined');
+                        DebugUtils.validateReportDraftProperty(key, DebugUtils.onyxDataToString(MOCK_REPORT[key]));
                     }).not.toThrow();
-                }
-            });
-            it('throws SyntaxError when invalid', () => {
-                const value = MOCK_REPORT[key];
-                let invalidValue: unknown;
-                switch (typeof value) {
-                    case 'number':
-                        invalidValue = 'a';
-                        break;
-                    case 'boolean':
-                    case 'object':
-                        invalidValue = 2;
-                        break;
-                    default:
-                        invalidValue = [];
-                }
-                expect(() => {
-                    DebugUtils.validateReportDraftProperty(key, DebugUtils.onyxDataToString(invalidValue));
-                }).toThrow();
-            });
-            it('does not throw SyntaxError when valid', () => {
-                expect(() => {
-                    DebugUtils.validateReportDraftProperty(key, DebugUtils.onyxDataToString(MOCK_REPORT[key]));
-                }).not.toThrow();
+                });
             });
         });
     });
@@ -515,32 +651,71 @@ describe('Debug Utils', () => {
             }).not.toThrow();
         });
         it('throws SyntaxError when property is not a valid number', () => {
-            const reportAction = {...MOCK_REPORT_ACTION, accountID: '2'} as unknown as ReportAction;
+            const reportAction = {
+                ...MOCK_REPORT_ACTION,
+                accountID: '2',
+            } as unknown as ReportAction;
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
-            }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'accountID', expectedType: 'number | undefined'}}));
+            }).toThrow(
+                new SyntaxError('debug.invalidProperty', {
+                    cause: {
+                        propertyName: 'accountID',
+                        expectedType: 'number | undefined',
+                    },
+                }),
+            );
         });
         it('throws SyntaxError when property is not a valid date', () => {
-            const reportAction = {...MOCK_REPORT_ACTION, created: 2} as unknown as ReportAction;
+            const reportAction = {
+                ...MOCK_REPORT_ACTION,
+                created: 2,
+            } as unknown as ReportAction;
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
-            }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'created', expectedType: CONST.DATE.FNS_DB_FORMAT_STRING}}));
+            }).toThrow(
+                new SyntaxError('debug.invalidProperty', {
+                    cause: {
+                        propertyName: 'created',
+                        expectedType: CONST.DATE.FNS_DB_FORMAT_STRING,
+                    },
+                }),
+            );
         });
         it('throws SyntaxError when property is not a valid boolean', () => {
-            const reportAction = {...MOCK_REPORT_ACTION, isLoading: 2} as unknown as ReportAction;
+            const reportAction = {
+                ...MOCK_REPORT_ACTION,
+                isLoading: 2,
+            } as unknown as ReportAction;
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
-            }).toThrow(new SyntaxError('debug.invalidProperty', {cause: {propertyName: 'isLoading', expectedType: 'true | false | undefined'}}));
+            }).toThrow(
+                new SyntaxError('debug.invalidProperty', {
+                    cause: {
+                        propertyName: 'isLoading',
+                        expectedType: 'true | false | undefined',
+                    },
+                }),
+            );
         });
         it('throws SyntaxError when property is missing', () => {
-            const reportAction = {...MOCK_REPORT_ACTION, actionName: undefined} as unknown as ReportAction;
+            const reportAction = {
+                ...MOCK_REPORT_ACTION,
+                actionName: undefined,
+            } as unknown as ReportAction;
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
-            }).toThrow(new SyntaxError('debug.missingProperty', {cause: {propertyName: 'actionName'}}));
+            }).toThrow(
+                new SyntaxError('debug.missingProperty', {
+                    cause: {
+                        propertyName: 'actionName',
+                    },
+                }),
+            );
         });
     });
 });

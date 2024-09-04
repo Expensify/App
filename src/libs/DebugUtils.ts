@@ -1,11 +1,20 @@
 /* eslint-disable max-classes-per-file */
 import {isMatch} from 'date-fns';
 import isValid from 'date-fns/isValid';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
-import type {Note, Participants, PendingChatMember} from '@src/types/onyx/Report';
+import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as IOU from './actions/IOU';
+import {hasValidDraftComment} from './DraftCommentUtils';
+import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
+import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -33,7 +42,17 @@ class ObjectError extends SyntaxError {
     }
 }
 
-type ConstantEnum = Record<string, string | number | boolean>;
+type ObjectType = Record<
+    string,
+    | 'string'
+    | 'number'
+    | 'object'
+    | 'array'
+    | 'boolean' // Constant enum
+    | ConstantEnum
+>;
+
+type ConstantEnum = Record<string, unknown>;
 
 type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefined'>;
 
@@ -104,6 +123,56 @@ const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
 ] satisfies Array<keyof ReportAction>;
 
 const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
+
+let isInFocusMode: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIORITY_MODE,
+    callback: (priorityMode) => {
+        isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        allTransactions = Object.keys(value)
+            .filter((key) => !!value[key])
+            .reduce((result: OnyxCollection<Transaction>, key) => {
+                if (result) {
+                    // eslint-disable-next-line no-param-reassign
+                    result[key] = value[key];
+                }
+                return result;
+            }, {});
+    },
+});
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+
+        allReportActions = actions ?? {};
+    },
+});
+
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
 
 function convertToJSON(data: Record<string | number, unknown>) {
     return JSON.stringify(data, null, 6);
@@ -207,6 +276,11 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
     return Object.fromEntries(Object.entries(data ?? {}).map(([key, value]) => [key, onyxDataToString(value)]));
 }
 
+/**
+ * Validates if a string is a valid representation of a number
+ *
+ * @param value - string
+ */
 // eslint-disable-next-line rulesdir/prefer-early-return
 function validateNumber(value: string) {
     if (value !== 'undefined' && (value.includes(' ') || value === '' || Number.isNaN(Number(value)))) {
@@ -214,6 +288,11 @@ function validateNumber(value: string) {
     }
 }
 
+/**
+ * Validates if a string is a valid representation of a boolean
+ *
+ * @param value - string
+ */
 // eslint-disable-next-line rulesdir/prefer-early-return
 function validateBoolean(value: string) {
     if (!OPTIONAL_BOOLEAN_STRINGS.includes(value)) {
@@ -221,6 +300,11 @@ function validateBoolean(value: string) {
     }
 }
 
+/**
+ * Validates if a string is a valid representation of a date
+ *
+ * @param value - string
+ */
 // eslint-disable-next-line rulesdir/prefer-early-return
 function validateDate(value: string) {
     if (value !== 'undefined' && (!isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || !isValid(new Date(value)))) {
@@ -228,8 +312,14 @@ function validateDate(value: string) {
     }
 }
 
+/**
+ * Validates if a string is a valid representation of an enum value
+ *
+ * @param value - string
+ * @param constEnum - enum
+ */
 // eslint-disable-next-line rulesdir/prefer-early-return
-function validateConstantEnum(value: string, constEnum: Record<string, unknown>) {
+function validateConstantEnum(value: string, constEnum: ConstantEnum) {
     const enumValues = Object.values(constEnum).flatMap((val) => {
         if (val && typeof val === 'object') {
             return Object.values(val).map(String);
@@ -241,6 +331,12 @@ function validateConstantEnum(value: string, constEnum: Record<string, unknown>)
     }
 }
 
+/**
+ * Validates if a string is a valid representation of an array
+ *
+ * @param value - string
+ * @param arrayType - type of array element
+ */
 function validateArray(
     value: string,
     arrayType:
@@ -281,7 +377,7 @@ function validateArray(
                 const property = element[key as keyof typeof element];
                 // Property is a constant enum, so we apply validateConstantEnum
                 if (typeof val === 'object' && !Array.isArray(val)) {
-                    validateConstantEnum(property, val as ConstantEnum);
+                    return validateConstantEnum(property, val as ConstantEnum);
                 }
                 // Expected property type is array
                 if (val === 'array') {
@@ -289,40 +385,89 @@ function validateArray(
                     if (!Array.isArray(property)) {
                         throw new ArrayError(arrayType);
                     }
-                    // Property type is not one of the valid types
-                } else if (Array.isArray(val) ? !val.includes(typeof property) : typeof property !== val) {
+                    return;
+                }
+                // Property type is not one of the valid types
+                if (Array.isArray(val) ? !val.includes(typeof property) : typeof property !== val) {
                     throw new ArrayError(arrayType);
                 }
             });
-            // Element is a constant enum but it's not valid
-        } else if (typeof arrayType === 'object' && !Object.values(arrayType).includes(element)) {
-            throw new ArrayError(arrayType);
-            // Element is not a valid type
-        } else if (typeof element !== arrayType) {
+            return;
+        }
+        // Element is a constant enum
+        if (typeof arrayType === 'object') {
+            // Element doesn't exist in enum
+            if (!Object.values(arrayType).includes(element)) {
+                throw new ArrayError(arrayType);
+            }
+            return;
+        }
+        // Element is not a valid type
+        if (typeof element !== arrayType) {
             throw new ArrayError(arrayType);
         }
     });
 }
 
-function validateObject(value: string, type: Record<string, 'string' | 'number' | 'object' | 'array' | 'boolean'>) {
+/**
+ * Validates if a string is a valid representation of an object
+ *
+ * @param value - string
+ * @param type - expected object type
+ * @param collectionIndexType - type of collection index
+ */
+function validateObject(value: string, type: ObjectType, collectionIndexType?: 'string' | 'number') {
     if (value === 'undefined') {
         return;
     }
 
-    const object = parseJSON(value) as Record<string, 'string' | 'number' | 'object'>;
+    const expectedType = collectionIndexType
+        ? {
+              [collectionIndexType]: type,
+          }
+        : type;
+
+    const object = parseJSON(value) as ObjectType;
 
     if (typeof object !== 'object' || Array.isArray(object)) {
-        throw new ObjectError(type);
+        throw new ObjectError(expectedType);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    Object.entries(type).forEach(([key, val]) => {
-        if (val === 'array' ? !Array.isArray(object[key]) : typeof object[key] !== val) {
-            throw new ObjectError(type);
+    if (collectionIndexType) {
+        Object.keys(object).forEach((key) => {
+            try {
+                if (collectionIndexType === 'number') {
+                    validateNumber(key);
+                }
+            } catch (e) {
+                throw new ObjectError(expectedType);
+            }
+        });
+    }
+
+    const tests = collectionIndexType ? (Object.values(object) as unknown as Array<Record<string, 'string' | 'number' | 'object'>>) : [object];
+
+    tests.forEach((test) => {
+        if (typeof test !== 'object' || Array.isArray(test)) {
+            throw new ObjectError(expectedType);
         }
+
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.entries(type).forEach(([key, val]) => {
+            // test[key] is a constant enum
+            if (typeof val === 'object') {
+                return validateConstantEnum(test[key] as string, val);
+            }
+            if (val === 'array' ? !Array.isArray(test[key]) : typeof test[key] !== val) {
+                throw new ObjectError(expectedType);
+            }
+        });
     });
 }
 
+/**
+ * Validates if a string is a valid representation of a string
+ */
 function validateString(value: string) {
     if (value === 'undefined') {
         return;
@@ -347,84 +492,32 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         throw SyntaxError('debug.missingValue');
     }
     if (key === 'privateNotes') {
-        if (value === 'undefined') {
-            return;
-        }
-        const privateNotes = parseJSON(value) as Record<number, Note>;
-        if (Array.isArray(privateNotes)) {
-            throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: '{ "number": { "note": "string" } }'}});
-        }
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        Object.entries(privateNotes).forEach(([accountID, {note}]) => {
-            if (accountID.includes(' ') || accountID === '' || Number.isNaN(Number(accountID)) || Array.isArray(note) || typeof note !== 'string') {
-                throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: '{ "number": { "note": "string" } }'}});
-            }
-        });
-        return;
+        return validateObject(
+            value,
+            {
+                note: 'string',
+            },
+            'number',
+        );
     }
     if (key === 'permissions') {
-        if (value === 'undefined') {
-            return;
-        }
-        const permissions = parseJSON(value) as Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
-        if (!Array.isArray(permissions)) {
-            throw new SyntaxError('debug.invalidValue', {
-                cause: {expectedValues: `[${Object.values(CONST.REPORT.PERMISSIONS).join(' | ')}] | undefined`},
-            });
-        }
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        permissions.forEach((permission) => {
-            if (!Object.values(CONST.REPORT.PERMISSIONS).includes(permission)) {
-                throw new SyntaxError('debug.invalidValue', {
-                    cause: {expectedValues: `[${Object.values(CONST.REPORT.PERMISSIONS).join(' | ')}] | undefined`},
-                });
-            }
-        });
-        return;
+        return validateArray(value, CONST.REPORT.PERMISSIONS);
     }
     if (key === 'pendingChatMembers') {
-        if (value === 'undefined') {
-            return;
-        }
-        const pendingChatMembers = parseJSON(value) as PendingChatMember[];
-        if (!Array.isArray(pendingChatMembers)) {
-            throw new SyntaxError('debug.invalidValue', {
-                cause: {expectedValues: `[{ "accountID": string, pendingAction: ${Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).join(' | ')} }]`},
-            });
-        }
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        pendingChatMembers.forEach(({accountID, pendingAction}) => {
-            if (accountID.includes(' ') || accountID === '' || ![...Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION), null].includes(pendingAction)) {
-                throw new SyntaxError('debug.invalidValue', {
-                    cause: {expectedValues: `[{ "accountID": string, pendingAction: ${Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).join(' | ')} }]`},
-                });
-            }
+        return validateArray(value, {
+            accountID: 'string',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
         });
-        return;
     }
     if (key === 'participants') {
-        if (value === 'undefined') {
-            return;
-        }
-        const participants = parseJSON(value) as Participants;
-
-        if (typeof participants !== 'object' || Array.isArray(participants)) {
-            throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: '{ "number": { "isHidden": true | false | undefined, "role": "admin" | "member" | undefined } }'}});
-        }
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        Object.entries(participants).forEach(([accountID, participant]) => {
-            if (
-                accountID.includes(' ') ||
-                accountID === '' ||
-                Number.isNaN(Number(accountID)) ||
-                Array.isArray(participant) ||
-                ![true, false, undefined].includes(participant.hidden) ||
-                !['admin', 'member', undefined].includes(participant.role)
-            ) {
-                throw new SyntaxError('debug.invalidValue', {cause: {expectedValues: '{ "number": { "hidden": true | false | undefined, "role": "admin" | "member" | undefined } }'}});
-            }
-        });
-        return;
+        return validateObject(
+            value,
+            {
+                hidden: 'boolean',
+                role: CONST.REPORT.ROLE,
+            },
+            'number',
+        );
     }
     if (REPORT_NUMBER_PROPERTIES.includes(key)) {
         return validateNumber(value);
@@ -436,7 +529,11 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         return validateDate(value);
     }
     if (key === 'tripData') {
-        return validateObject(value, {startDate: 'string', endDate: 'string', tripID: 'string'});
+        return validateObject(value, {
+            startDate: 'string',
+            endDate: 'string',
+            tripID: 'string',
+        });
     }
     if (key === 'lastActionType') {
         return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
@@ -502,7 +599,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
     if (key === 'person') {
         return validateArray(value, {});
     }
-
+    if (key === 'errors') {
+        return validateObject(value, {});
+    }
     validateString(value);
 }
 
@@ -546,5 +645,7 @@ const DebugUtils = {
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
 };
+
+export type {ObjectType};
 
 export default DebugUtils;
