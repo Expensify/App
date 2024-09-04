@@ -266,6 +266,9 @@ Onyx.connect({
     callback: (value) => (allReportDraftComments = value),
 });
 
+let environmentURL: string;
+Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+
 registerPaginationConfig({
     initialCommand: WRITE_COMMANDS.OPEN_REPORT,
     previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
@@ -3370,8 +3373,8 @@ function completeOnboarding(
         const taskDescription =
             typeof task.description === 'function'
                 ? task.description({
-                      adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
-                      workspaceLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
+                      adminsRoomLink: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                      workspaceLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
