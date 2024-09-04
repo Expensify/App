@@ -57,9 +57,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
         [SCREENS.SEARCH.CENTRAL_PANE]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
-            parse: {
-                isCustomQuery: (isCustomQuery) => isCustomQuery.toLowerCase() === 'true',
-            },
         },
         [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
@@ -250,6 +247,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VALIDATE_ACTION]: {
+                            path: ROUTES.SETINGS_CONTACT_METHOD_VALIDATE_ACTION,
                         },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
@@ -481,6 +481,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
@@ -504,6 +507,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
@@ -755,6 +764,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             parse: {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
+                        },
+                        [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
+                            path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE]: {
+                            path: ROUTES.RULES_MAX_EXPENSE_AGE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+                            path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
                     },
                 },
@@ -1050,6 +1071,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TAG_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
@@ -1071,6 +1094,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
+                },
+                [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+                    path: ROUTES.WORKSPACE_COMPANY_CARDS.route,
                 },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,

@@ -1,9 +1,10 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -30,6 +31,16 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
+
+    const members = useMemo(() => {
+        if (approvalWorkflow.isDefault) {
+            return translate('workspace.common.everyone');
+        }
+
+        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+            .map((m) => m.displayName)
+            .join(', ');
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
 
     return (
         <PressableWithoutFeedback
@@ -60,7 +71,8 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
                     descriptionTextStyle={styles.textNormalThemeText}
-                    description={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
+                    description={members}
+                    numberOfLinesDescription={4}
                     icon={Expensicons.Users}
                     iconHeight={20}
                     iconWidth={20}

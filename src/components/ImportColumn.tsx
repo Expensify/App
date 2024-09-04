@@ -136,9 +136,6 @@ type ImportColumnProps = {
     /** It is an array of all values in specific column */
     column: string[];
 
-    /** Whether column contains header (user choice) */
-    containsHeader: boolean;
-
     /** It is column[0] when containsHeader = true or it is Column A, B, C,... otherwise */
     columnName: string;
 
@@ -149,10 +146,11 @@ type ImportColumnProps = {
     columnIndex: number;
 };
 
-function ImportColumn({column, containsHeader, columnName, columnRoles, columnIndex}: ImportColumnProps) {
+function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const {containsHeader = true} = spreadsheet ?? {};
 
     const options: Array<DropdownOption<string>> = columnRoles.map((item) => ({
         text: item.text,
@@ -161,10 +159,7 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         isSelected: spreadsheet?.columns[columnIndex] === item.value,
     }));
 
-    const columnValuesString = column
-        .slice(containsHeader ? 1 : 0, 6)
-        .join(', ')
-        .concat(column.length > 6 ? '...' : '');
+    const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
     const colName = findColumnName(column[0]);
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
@@ -183,11 +178,18 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         <View style={[styles.importColumnCard, styles.mt4]}>
             <Text style={styles.textSupporting}>{columnHeader}</Text>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                <Text style={[styles.flex1, styles.flexWrap]}>{columnValuesString}</Text>
+                <Text
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                    style={[styles.flex1, styles.flexWrap]}
+                >
+                    {columnValuesString}
+                </Text>
 
                 <View style={styles.ml2}>
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         shouldShowSelectedItemCheck
                         menuHeaderText={columnHeader}
                         isSplitButton={false}
@@ -202,6 +204,8 @@ function ImportColumn({column, containsHeader, columnName, columnRoles, columnIn
         </View>
     );
 }
+
+ImportColumn.displayName = 'ImportColumn';
 
 export type {ColumnRole};
 export default ImportColumn;

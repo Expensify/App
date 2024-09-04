@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
-                    horizontal: x + w,
+                    horizontal: x + w + h,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
@@ -111,8 +111,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
-                        large={isButtonSizeLarge}
-                        medium={!isButtonSizeLarge}
+                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
@@ -128,8 +129,9 @@ function ButtonWithDropdownMenu<IValueType>({
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
-                            large={isButtonSizeLarge}
-                            medium={!isButtonSizeLarge}
+                            large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                            small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         >
@@ -157,8 +159,9 @@ function ButtonWithDropdownMenu<IValueType>({
                     isLoading={isLoading}
                     text={selectedItem.text}
                     onPress={(event) => onPress(event, options[0].value)}
-                    large={isButtonSizeLarge}
-                    medium={!isButtonSizeLarge}
+                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />

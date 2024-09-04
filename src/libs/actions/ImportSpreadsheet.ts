@@ -20,8 +20,12 @@ function setColumnName(columnIndex: number, columnName: string): Promise<void> {
     return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: {[columnIndex]: columnName}});
 }
 
-function closeImportPage(): Promise<void> {
-    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, null);
+function setContainsHeader(containsHeader: boolean): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
 
-export {setSpreadsheetData, setColumnName, closeImportPage};
+function closeImportPage(): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {data: null, columns: null, shouldFinalModalBeOpened: false, importFinalModal: null});
+}
+
+export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader};
