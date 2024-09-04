@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useLocalize from '@hooks/useLocalize';
-import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';

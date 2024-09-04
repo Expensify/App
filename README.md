@@ -26,6 +26,7 @@
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
+* [React StrictMode](contributingGuides/STRICT_MODE.md)
 
 ----
 
