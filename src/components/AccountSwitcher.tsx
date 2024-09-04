@@ -141,7 +141,7 @@ function AccountSwitcher() {
                         <View style={[styles.flexRow, styles.gap1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge]}
+                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
                                 {currentUserPersonalDetails?.displayName}
                             </Text>
