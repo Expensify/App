@@ -5495,9 +5495,9 @@ const CONST = {
     },
 
     BOOT_SPLASH_STATE: {
-        VISIBLE: 1,
-        READY_TO_BE_HIDDEN: 2,
-        HIDDEN: 3,
+        VISIBLE: 'visible',
+        READY_TO_BE_HIDDEN: 'readyToBeHidden',
+        HIDDEN: `hidden`,
     },
 
     CSV_IMPORT_COLUMNS: {
