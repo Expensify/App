@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -97,7 +98,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
+        if (!NativeModules.HybridAppModule && !hasCompletedGuidedSetupFlow && authenticated && !shouldShowRequire2FAModal) {
             const {adaptedState} = getAdaptedStateFromPath(ROUTES.ONBOARDING_ROOT.route, linkingConfig.config);
             return adaptedState;
         }
@@ -181,7 +182,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             }}
         >
             {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}
-            <HybridAppMiddleware authenticated={authenticated}>
+            <HybridAppMiddleware>
                 <AppNavigator authenticated={authenticated} />
             </HybridAppMiddleware>
         </NavigationContainer>

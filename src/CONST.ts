@@ -5495,6 +5495,12 @@ const CONST = {
         },
     },
 
+    BOOT_SPLASH_STATE: {
+        VISIBLE: 'visible',
+        READY_TO_BE_HIDDEN: 'readyToBeHidden',
+        HIDDEN: `hidden`,
+    },
+
     CSV_IMPORT_COLUMNS: {
         EMAIL: 'email',
         NAME: 'name',
