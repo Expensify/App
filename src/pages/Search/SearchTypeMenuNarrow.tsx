@@ -1,68 +1,145 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
+import type {GestureResponderEvent, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import type {MenuItemBaseProps} from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
+import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchTypeMenuItem} from './SearchTypeMenu';
+
+type SavedSearchMenuItem = MenuItemBaseProps & {
+    key: string;
+    hash: string;
+    styles: Array<ViewStyle | TextStyle>;
+};
 
 type SearchTypeMenuNarrowProps = {
     typeMenuItems: SearchTypeMenuItem[];
     activeItemIndex: number;
     title?: string;
+    handleSavedSearches: () => {
+        savedSearchesMenuItems: SavedSearchMenuItem[];
+    };
+    queryJSON: SearchQueryJSON;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTypeMenuNarrowProps) {
+type SavedSearchMenuItemProps = MenuItemBaseProps & {
+    text: string;
+    styles?: Array<ViewStyle | TextStyle>;
+    disabled?: boolean;
+};
+
+function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSavedSearches, queryJSON}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
+    const {translate} = useLocalize();
+    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
 
-    const openMenu = () => setIsPopoverVisible(true);
-    const closeMenu = () => setIsPopoverVisible(false);
+    const openMenu = useCallback(() => setIsPopoverVisible(true), []);
+    const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
-    const popoverMenuItems = typeMenuItems.map((item, index) => {
-        const isSelected = title ? false : index === activeItemIndex;
+    const {savedSearchesMenuItems} = handleSavedSearches();
 
-        return {
-            text: item.title,
-            onSelected: singleExecution(() => Navigation.navigate(item.route)),
-            icon: item.icon,
-            iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-            iconRight: Expensicons.Checkmark,
-            shouldShowRightIcon: isSelected,
-            success: isSelected,
-            containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-        };
-    });
+    const popoverMenuItems = useMemo(() => {
+        const items = typeMenuItems.map((item, index) => {
+            const isSelected = title ? false : index === activeItemIndex;
 
-    if (title) {
-        popoverMenuItems.push({
-            text: title,
-            onSelected: closeMenu,
-            icon: Expensicons.Filters,
-            iconFill: theme.iconSuccessFill,
-            success: true,
-            containerStyle: [{backgroundColor: theme.border}],
-            iconRight: Expensicons.Checkmark,
-            shouldShowRightIcon: false,
+            return {
+                text: item.title,
+                onSelected: singleExecution(() => Navigation.navigate(item.route)),
+                icon: item.icon,
+                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: isSelected,
+                success: isSelected,
+                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+            };
         });
-    }
+
+        if (title) {
+            items.push({
+                text: title,
+                onSelected: closeMenu,
+                icon: Expensicons.Filters,
+                iconFill: theme.iconSuccessFill,
+                success: true,
+                containerStyle: [{backgroundColor: theme.border}],
+                iconRight: Expensicons.Checkmark,
+                shouldShowRightIcon: false,
+            });
+        }
+
+        return items;
+    }, [typeMenuItems, activeItemIndex, title, theme, singleExecution, closeMenu]);
 
     const menuIcon = useMemo(() => (title ? Expensicons.Filters : popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt), [activeItemIndex, popoverMenuItems, title]);
     const menuTitle = useMemo(() => title ?? popoverMenuItems[activeItemIndex]?.text, [activeItemIndex, popoverMenuItems, title]);
-    const titleViewStyles = title ? {...styles.flex1, ...styles.justifyContentCenter} : {};
+    const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
+
+    const getOverflowMenu = useCallback(
+        (itemName: string, hash: number) => {
+            const inputQuery = queryJSON.inputQuery ?? '';
+            return SearchUtils.getOverflowMenu(itemName, hash, inputQuery, showDeleteModal);
+        },
+        [queryJSON, showDeleteModal],
+    );
+
+    const allMenuItems = useMemo(() => {
+        const items = [...popoverMenuItems];
+        const newItems: SavedSearchMenuItemProps[] = [];
+        if (savedSearchesMenuItems && savedSearchesMenuItems.length > 0) {
+            newItems.push({
+                text: translate('search.savedSearchesMenuItemTitle'),
+                styles: [styles.textSupporting],
+                disabled: true,
+            });
+            newItems.push(
+                ...savedSearchesMenuItems.map((item: SavedSearchMenuItem) => ({
+                    text: item.title ?? '',
+                    styles: [styles.textSupporting],
+                    onSelected: (event: GestureResponderEvent | KeyboardEvent) => {
+                        if (item.onPress) {
+                            item.onPress(event);
+                        }
+                        closeMenu();
+                    },
+                    shouldShowRightComponent: true,
+                    rightComponent: (
+                        <ThreeDotsMenu
+                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''))}
+                            anchorPosition={{horizontal: 0, vertical: 380}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                        />
+                    ),
+                })),
+            );
+        }
+        return [...items, ...newItems];
+    }, [popoverMenuItems, savedSearchesMenuItems, translate, closeMenu, getOverflowMenu, styles.textSupporting]);
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
@@ -99,13 +176,14 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title}: SearchTyp
                 onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
             />
             <PopoverMenu
-                menuItems={popoverMenuItems}
+                menuItems={allMenuItems as PopoverMenuItem[]}
                 isVisible={isPopoverVisible}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onClose={closeMenu}
                 onItemSelected={closeMenu}
                 anchorRef={buttonRef}
             />
+            <DeleteConfirmModal />
         </View>
     );
 }
