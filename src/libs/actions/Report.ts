@@ -1113,9 +1113,7 @@ function openReport(
             },
         );
 
-        successData.push(
-            ...tasksForSuccessData,
-            {
+        successData.push(...tasksForSuccessData, {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
@@ -1206,7 +1204,7 @@ function openReport(
             guidedSetupData,
         };
 
-        console.log("#test", "xd");
+        console.log('#test', 'xd');
 
         parameters.guidedSetupObject = JSON.stringify(guidedSetupObject);
     }
