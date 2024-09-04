@@ -261,6 +261,7 @@ export default {
         comma: 'la coma',
         semicolon: 'el punto y coma',
         please: 'Por favor',
+        rename: 'Renombrar',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -3825,6 +3826,10 @@ export default {
             },
         },
         saveSearch: 'Guardar búsqueda',
+        savedSearchesMenuItemTitle: 'Guardadas',
+        searchName: 'Nombre de la búsqueda',
+        deleteSavedSearch: 'Eliminar búsqueda guardada',
+        deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             delete: 'Eliminar',

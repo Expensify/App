@@ -377,6 +377,7 @@ export default {
         reportID: 'Report ID',
         outstanding: 'Outstanding',
         days: 'days',
+        rename: 'Rename',
     },
     location: {
         useCurrent: 'Use current location',
@@ -3773,6 +3774,10 @@ export default {
             },
         },
         saveSearch: 'Save search',
+        deleteSavedSearch: 'Delete saved search',
+        deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
+        searchName: 'Search name',
+        savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             delete: 'Delete',
