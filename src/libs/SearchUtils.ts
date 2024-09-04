@@ -444,6 +444,8 @@ function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHA
             return 'search.filters.pinned';
         case CONST.SEARCH.CHAT_STATUS.UNREAD:
             return 'search.filters.unread';
+        case CONST.SEARCH.CHAT_STATUS.DRAFT:
+            return 'search.filters.draft';
     }
 }
 

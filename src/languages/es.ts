@@ -3876,6 +3876,7 @@ export default {
             is: 'Está',
             pinned: 'Fijado',
             unread: 'No leído',
+            draft: 'Borrador',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,

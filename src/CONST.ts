@@ -5247,6 +5247,7 @@ const CONST = {
         CHAT_STATUS: {
             UNREAD: 'unread',
             PINNED: 'pinned',
+            DRAFT: 'draft',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
