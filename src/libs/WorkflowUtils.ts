@@ -180,13 +180,24 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     membersToRemove?: Member[];
 
     /**
+     * Approvers to remove from the approval workflow
+     */
+    approversToRemove?: Approver[];
+
+    /**
      * Mode to use when converting the approval workflow
      */
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, previousEmployeeList, membersToRemove, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({
+    approvalWorkflow,
+    previousEmployeeList,
+    membersToRemove,
+    approversToRemove,
+    type,
+}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -235,6 +246,18 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, previousEmp
         updatedEmployeeList[email] = {
             email,
             submitsTo: '',
+        };
+    });
+
+    approversToRemove?.forEach(({email}) => {
+        if (updatedEmployeeList[email]) {
+            updatedEmployeeList[email].forwardsTo = '';
+            return;
+        }
+
+        updatedEmployeeList[email] = {
+            email,
+            forwardsTo: '',
         };
     });
 
