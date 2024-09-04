@@ -1,6 +1,14 @@
+import {NativeModules} from 'react-native';
+
 type ShortcutManagerModule = {
     removeAllDynamicShortcuts: () => void;
 };
 
-// eslint-disable-next-line import/prefer-default-export
+const {ShortcutManager} = NativeModules;
+
 export type {ShortcutManagerModule};
+
+export default ShortcutManager ||
+    ({
+        removeAllDynamicShortcuts: () => {},
+    } as ShortcutManagerModule);

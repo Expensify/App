@@ -36,6 +36,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import ShortcutManager from '@libs/ShortcutManager';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
@@ -55,8 +56,6 @@ import type {AutoAuthState} from '@src/types/onyx/Session';
 import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
-
-const {ShortcutManager} = NativeModules;
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
