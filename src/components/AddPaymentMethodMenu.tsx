@@ -118,9 +118,7 @@ function AddPaymentMethodMenu({
                           {
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
-                              onSelected: () => {
-                                  onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
-                              },
+                              onSelected: () => onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT),
                           },
                       ]
                     : []),
