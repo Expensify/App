@@ -27,6 +27,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
+import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -143,7 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegateAccessRestricted, delegateNoAccessPrompt} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -409,13 +410,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     transactionCount={transactionIDs.length}
                 />
             )}
-            <ConfirmModal
-                isVisible={isNoDelegateAccessMenuVisible}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
-                title={translate('delegate.notAllowed')}
-                prompt={delegateNoAccessPrompt}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
+                delegatorEmail={delegatorEmail ?? ''}
             />
 
             <ConfirmModal

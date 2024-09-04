@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -193,7 +194,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const {isDelegateAccessRestricted, delegateNoAccessPrompt} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -525,13 +526,10 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
-            <ConfirmModal
-                isVisible={isNoDelegateAccessMenuVisible}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
-                title={translate('delegate.notAllowed')}
-                prompt={delegateNoAccessPrompt}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
+                delegatorEmail={delegatorEmail ?? ''}
             />
 
             {isHoldMenuVisible && iouReport && requestType !== undefined && (

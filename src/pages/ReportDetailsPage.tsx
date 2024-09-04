@@ -7,6 +7,7 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -235,7 +236,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-    const {isDelegateAccessRestricted, delegateNoAccessPrompt} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
@@ -818,13 +819,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     danger
                     shouldEnableNewFocusManagement
                 />
-                <ConfirmModal
-                    isVisible={isNoDelegateAccessMenuVisible}
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                     onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
-                    title={translate('delegate.notAllowed')}
-                    prompt={delegateNoAccessPrompt}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
+                    delegatorEmail={delegatorEmail ?? ''}
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
