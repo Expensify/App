@@ -75,6 +75,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (!validateFile(file)) {
             return;
         }
+        file.uri = URL.createObjectURL(file);
         if (!file.uri) {
             return;
         }
@@ -98,6 +99,9 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             })
             .finally(() => {
                 setIsReadingFIle(false);
+                if (file.uri) {
+                    URL.revokeObjectURL(file.uri);
+                }
             });
     };
 
