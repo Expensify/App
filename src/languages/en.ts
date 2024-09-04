@@ -686,6 +686,8 @@ export default {
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
+        invalidFileMessage:
+            'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
     },
     receipt: {
         upload: 'Upload receipt',

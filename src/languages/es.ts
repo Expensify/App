@@ -679,6 +679,8 @@ export default {
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: (categories: number) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importSuccessfullTitle: 'Importar categorías',
+        invalidFileMessage:
+            'El archivo que ha cargado está vacío o contiene datos no válidos. Asegúrese de que el archivo tiene el formato correcto y contiene la información necesaria antes de volver a cargarlo.',
     },
     receipt: {
         upload: 'Subir recibo',
