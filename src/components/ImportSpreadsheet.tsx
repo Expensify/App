@@ -189,7 +189,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />
                                         <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{translate('common.dropMessage')}</Text>
+                                        <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
                                     </View>
                                 </View>
                             </DragAndDropConsumer>
