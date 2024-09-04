@@ -82,7 +82,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== reimbursableExpensesAccount?.id) {
-                QuickbooksOnline.updateQuickbooksOnlineReimbursableExpensesAccount(policyID, row.value);
+                QuickbooksOnline.updateQuickbooksOnlineReimbursableExpensesAccount(policyID, row.value, reimbursableExpensesAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },

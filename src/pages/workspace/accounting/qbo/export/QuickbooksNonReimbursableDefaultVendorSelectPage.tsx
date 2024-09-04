@@ -42,7 +42,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const selectVendor = useCallback(
         (row: CardListItem) => {
             if (row.value !== nonReimbursableBillDefaultVendor) {
-                QuickbooksOnline.updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID, row.value);
+                QuickbooksOnline.updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },

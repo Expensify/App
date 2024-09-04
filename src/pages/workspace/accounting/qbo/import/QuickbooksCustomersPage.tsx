@@ -50,6 +50,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                                         QuickbooksOnline.updateQuickbooksOnlineSyncCustomers(
                                             policyID,
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            syncCustomers,
                                         )
                                     }
                                 />

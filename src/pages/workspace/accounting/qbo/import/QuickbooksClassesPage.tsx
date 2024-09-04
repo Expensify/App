@@ -51,6 +51,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                                         QuickbooksOnline.updateQuickbooksOnlineSyncClasses(
                                             policyID,
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            syncClasses,
                                         )
                                     }
                                 />

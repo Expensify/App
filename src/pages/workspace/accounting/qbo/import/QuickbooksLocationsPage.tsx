@@ -55,6 +55,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                         QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
                                             policyID,
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            syncLocations,
                                         )
                                     }
                                     disabled={shouldBeDisabled}
