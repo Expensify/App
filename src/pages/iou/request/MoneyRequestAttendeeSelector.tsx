@@ -137,7 +137,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
-        const allRecents = [...chatOptions.recentReports, ...additionalRecents];
+        const allRecents = [...additionalRecents, ...chatOptions.recentReports].slice(0, 5);
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
