@@ -8,7 +8,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -45,7 +45,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                 <Switch
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={!!syncTax}
-                                    onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
+                                    onToggle={() => QuickbooksOnline.updateQuickbooksOnlineSyncTax(policyID, !syncTax)}
                                     disabled={!syncTax && isJournalExportEntity}
                                 />
                             </View>
