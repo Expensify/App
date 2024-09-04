@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -73,8 +74,8 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
-    const htmlForTaskPreview =
-        taskAssigneeAccountID > 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+    const [avatar] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => personalDetails?.[taskAssigneeAccountID]?.avatar});
+    const htmlForTaskPreview = `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
 
     if (isDeletedParentAction) {
@@ -110,6 +111,15 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                             accessibilityLabel={translate('task.task')}
                         />
                     </View>
+                    {taskAssigneeAccountID > 0 && (
+                        <Avatar
+                            containerStyles={[styles.mr2]}
+                            source={avatar}
+                            size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                            avatarID={taskAssigneeAccountID}
+                            type={CONST.ICON_TYPE_AVATAR}
+                        />
+                    )}
                     <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                 </View>
                 <Icon
