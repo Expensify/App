@@ -239,39 +239,24 @@ function convertApprovalWorkflowToPolicyEmployees({
             return;
         }
 
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].submitsTo = submitsTo;
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
             pendingAction,
         };
     });
 
     membersToRemove?.forEach(({email}) => {
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].submitsTo = '';
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: '',
             pendingAction,
         };
     });
 
     approversToRemove?.forEach(({email}) => {
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].forwardsTo = '';
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             forwardsTo: '',
             pendingAction,
         };
