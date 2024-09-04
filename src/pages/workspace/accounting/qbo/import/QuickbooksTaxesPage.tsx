@@ -3,7 +3,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -36,9 +36,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.taxes')}
                 isActive={!!qboConfig?.syncTax}
-                onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.SYNC_TAX, !qboConfig?.syncTax, qboConfig?.syncTax)
-                }
+                onToggle={() => QuickbooksOnline.updateQuickbooksOnlineSyncTax(policyID, !qboConfig?.syncTax)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], qboConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}

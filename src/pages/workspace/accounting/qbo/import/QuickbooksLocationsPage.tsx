@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -46,10 +46,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 isActive={isSwitchOn}
                 disabled={shouldBeDisabled}
                 onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(
+                    QuickbooksOnline.updateQuickbooksOnlineSyncLocations(
                         policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                        CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                         qboConfig?.syncLocations,
                     )

@@ -3,7 +3,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -39,10 +39,8 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.qbo.classes')}
                 isActive={isSwitchOn}
                 onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(
+                    QuickbooksOnline.updateQuickbooksOnlineSyncClasses(
                         policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                        CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES,
                         isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                         qboConfig?.syncClasses,
                     )
