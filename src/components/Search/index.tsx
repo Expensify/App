@@ -38,7 +38,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
-    isCustomQuery: boolean;
 };
 
 const transactionItemMobileHeight = 100;
@@ -75,7 +74,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, isCustomQuery}: SearchProps) {
+function Search({queryJSON}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -162,7 +161,7 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = memoize((item: TransactionListItemType | ReportListItemType) => getItemHeight(item), {
+    const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
             // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
@@ -197,7 +196,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -232,7 +230,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -325,7 +322,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     return (
         <>
             <SearchPageHeader
-                isCustomQuery={isCustomQuery}
                 queryJSON={queryJSON}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
