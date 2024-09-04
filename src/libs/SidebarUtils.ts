@@ -240,7 +240,7 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
-    lastMessageTextFromReport,
+    lastMessageTextFromReport: lastMessageTextFromReportProp,
     transactionViolations,
     invoiceReceiverPolicy,
 }: {
@@ -387,8 +387,8 @@ function getOptionData({
 
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
 
+    let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        // eslint-disable-next-line no-param-reassign
         lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
     }
 
