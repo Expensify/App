@@ -142,13 +142,5 @@ function getNextBillingDate(): string {
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
-function shouldShowPreTrialBillingBanner(): boolean {
-    return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
-}
-
-export default {
-    getBillingStatus,
-    shouldShowPreTrialBillingBanner,
-    getNextBillingDate,
-};
+export default {getBillingStatus, getNextBillingDate};
 export type {BillingStatusResult};

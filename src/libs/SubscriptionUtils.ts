@@ -200,6 +200,9 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && amountOwed !== 0;
 }
 
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
+}
 /**
  * @returns The card to be used for subscription billing.
  */
@@ -381,7 +384,7 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | und
         return undefined;
     }
 
-    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (shouldShowPreTrialBillingBanner()) {
         return translateLocal('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial()) {
@@ -470,6 +473,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
     return false;
 }
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -477,6 +481,7 @@ export {
     getCardForSubscriptionBilling,
     getFreeTrialText,
     getOverdueGracePeriodDate,
+    shouldShowPreTrialBillingBanner,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasRetryBillingError,
