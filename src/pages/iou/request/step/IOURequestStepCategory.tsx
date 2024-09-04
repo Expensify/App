@@ -168,8 +168,8 @@ function IOURequestStepCategory({
             )}
             {shouldShowEmptyState && (
                 <EmptyStateComponent
-                    title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                    subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                    title={translate('workspace.categories.emptyCategories.title')}
+                    subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     SkeletonComponent={TableListItemSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                     headerMedia={LottieAnimations.GenericEmptyState}
