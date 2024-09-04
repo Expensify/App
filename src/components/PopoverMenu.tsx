@@ -251,7 +251,9 @@ function PopoverMenu({
                             focused={focusedIndex === menuIndex}
                             displayInDefaultIconColor={item.displayInDefaultIconColor}
                             shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldShowRightComponent={item.shouldShowRightComponent}
                             iconRight={item.iconRight}
+                            rightComponent={item.rightComponent}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
                             isLabelHoverable={item.isLabelHoverable}
