@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -45,9 +46,12 @@ type BaseValidateCodeFormProps = {
 
     /** The role of the delegate */
     role: DelegateRole;
+
+    /** Any additional styles to apply */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -149,7 +153,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     }, [delegate, role, validateCode]);
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <View style={[styles.flex1, styles.justifyContentBetween, wrapperStyle]}>
             <View style={[styles.ph5, styles.mt3]}>
                 <MagicCodeInput
                     autoComplete={autoComplete}

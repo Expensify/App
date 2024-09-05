@@ -52,16 +52,21 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
             testID={DelegateMagicCodePage.displayName}
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                title={translate('delegate.makeSureItIsYou')}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
-            <ValidateCodeForm
-                ref={validateCodeFormRef}
-                delegate={delegatePersonalDetails?.login ?? ''}
-                role={role}
-            />
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('delegate.makeSureItIsYou')}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
+                    <ValidateCodeForm
+                        ref={validateCodeFormRef}
+                        delegate={delegatePersonalDetails?.login ?? ''}
+                        role={role}
+                        wrapperStyle={safeAreaPaddingBottomStyle}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
