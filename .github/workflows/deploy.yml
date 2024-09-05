@@ -267,7 +267,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: ./Users/runner/work/App/App/New\ Expensify.ipa
+          path: /Users/runner/work/App/App/New\ Expensify.ipa
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
