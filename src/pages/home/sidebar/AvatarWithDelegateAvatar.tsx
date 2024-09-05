@@ -1,10 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithDelegateAvatarProps = {
@@ -17,7 +18,8 @@ type AvatarWithDelegateAvatarProps = {
 
 function AvatarWithDelegateAvatar({delegateEmail, isSelected = false}: AvatarWithDelegateAvatarProps) {
     const styles = useThemeStyles();
-    const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
+    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const delegatePersonalDetail = Object.values(personalDetails[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
     return (
         <View style={styles.sidebarStatusAvatarContainer}>
@@ -26,8 +28,8 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false}: AvatarWit
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={CONST.AVATAR_SIZE.SMALL}
-                        source={UserUtils.getSmallSizeAvatar(personalDetail?.avatar, personalDetail?.accountID)}
-                        fallbackIcon={personalDetail?.fallbackIcon}
+                        source={UserUtils.getSmallSizeAvatar(delegatePersonalDetail?.avatar, delegatePersonalDetail?.accountID)}
+                        fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
                 </View>
