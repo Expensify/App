@@ -166,7 +166,7 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Second ping
-        mockListDeploys.mockResolvedValueOnce({
+        mockListDeploysForTag.mockResolvedValueOnce({
             data: {
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
@@ -183,7 +183,7 @@ describe('awaitStagingDeploys', () => {
         });
 
         // Third ping
-        mockListDeploys.mockResolvedValueOnce({
+        mockListDeploysForTag.mockResolvedValueOnce({
             data: {
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
