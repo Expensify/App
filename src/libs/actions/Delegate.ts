@@ -177,9 +177,9 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                         {
                             email,
                             role,
-                            pendingAction: 'add',
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             errorFields: {
-                                validateLogin: null,
+                                addDelegate: null,
                             },
                             isLoading: true,
                             pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
@@ -202,7 +202,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                             email,
                             role,
                             errorFields: {
-                                validateLogin: null,
+                                addDelegate: null,
                             },
                             isLoading: false,
                             pendingAction: null,
@@ -226,7 +226,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                             : {
                                   ...delegate,
                                   errorFields: {
-                                      validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
+                                      addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                                   },
                                   isLoading: false,
                                   pendingFields: {email: null, role: null},
