@@ -43,11 +43,12 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
 
     const {startTime, shouldUseFirebase} = timestampData[eventName];
 
+    const eventTime = performance.now() - startTime;
+
     if (shouldUseFirebase) {
         Firebase.stopTrace(eventName);
     }
 
-    const eventTime = performance.now() - startTime;
     Environment.getEnvironment().then((envName) => {
         const baseEventName = `${envName}.new.expensify.${eventName}`;
         const grafanaEventName = secondaryName ? `${baseEventName}.${secondaryName}` : baseEventName;
