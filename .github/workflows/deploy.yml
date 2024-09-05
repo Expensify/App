@@ -619,7 +619,7 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
+    if: github.ref == 'refs/heads/production' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
     needs: [android, desktop, iOS, web, check-deployment-success]
     steps:
       - uses: actions/checkout@v4
