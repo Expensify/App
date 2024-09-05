@@ -13,13 +13,13 @@ type ThemeProviderProps = React.PropsWithChildren & {
 
 function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
     const themePreference = useThemePreferenceWithStaticOverride(staticThemePreference);
-    const [, debouncedMyTheme, setMyTheme] = useDebouncedState(themePreference);
+    const [, debouncedTheme, setDebouncedTheme] = useDebouncedState(themePreference);
 
     useEffect(() => {
-        setMyTheme(themePreference);
-    }, [setMyTheme, themePreference]);
+        setDebouncedTheme(themePreference);
+    }, [setDebouncedTheme, themePreference]);
 
-    const theme = useMemo(() => themes[debouncedMyTheme], [debouncedMyTheme]);
+    const theme = useMemo(() => themes[debouncedTheme], [debouncedTheme]);
 
     useEffect(() => {
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
