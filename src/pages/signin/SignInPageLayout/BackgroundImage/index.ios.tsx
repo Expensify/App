@@ -4,10 +4,10 @@ import type {ImageSourcePropType} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
-import useSplashScreen from '@hooks/useSplashScreen';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
@@ -26,10 +26,10 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         });
     }
 
-    const {isSplashHidden} = useSplashScreen();
+    const {splashScreenState} = useSplashScreenStateContext();
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
-    if (!isSplashHidden) {
+    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
         return;
     }
 

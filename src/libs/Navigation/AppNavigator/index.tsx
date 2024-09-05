@@ -14,17 +14,17 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const initUrl = useContext(InitialURLContext);
+    const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        if (!NativeModules.HybridAppModule || !initialURL || !initialURL.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
             return;
         }
 
         Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(initUrl);
+            Navigation.navigate(initialURL);
         });
-    }, [initUrl]);
+    }, [initialURL]);
 
     if (authenticated) {
         // These are the protected screens and only accessible when an authToken is present

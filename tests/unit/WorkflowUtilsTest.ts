@@ -13,6 +13,7 @@ const personalDetailsByEmail: PersonalDetailsList = {};
 function buildPolicyEmployee(accountID: number, policyEmployee: Partial<PolicyEmployee> = {}): PolicyEmployee {
     return {
         email: `${accountID}@example.com`,
+        pendingAction: 'add',
         ...policyEmployee,
     };
 }
@@ -417,12 +418,12 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: ''}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: ''}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: ''}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: ''}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: ''}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update'}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update'}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update'}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update'}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update'}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update'}),
             });
         });
     });
