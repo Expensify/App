@@ -528,7 +528,27 @@ type AssignCardParams = {
     feed: string;
 };
 
+type SpreadSheetColumnParams = {
+    name: string;
+};
+
+type SpreadFieldNameParams = {
+    fieldName: string;
+};
+
+type SpreadCategoriesParams = {
+    categories: number;
+};
+
+type AssignedYouCardParams = {
+    assigner: string;
+};
+
 export type {
+    SpreadSheetColumnParams,
+    SpreadFieldNameParams,
+    AssignedYouCardParams,
+    SpreadCategoriesParams,
     DelegateRoleParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,

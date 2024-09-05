@@ -251,7 +251,7 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', {connectionName});
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         if (

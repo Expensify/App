@@ -60,13 +60,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
             } else {
                 errors = {};
             }
