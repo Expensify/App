@@ -18,7 +18,7 @@ function CurrencySelectionList({
     currencyList,
     selectedCurrencies = [],
     canSelectMultiple = false,
-    policyRecentlyUsedCurrencies,
+    recentlyUsedCurrencies,
 }: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
@@ -39,7 +39,7 @@ function CurrencySelectionList({
         }, [] as CurrencyListItem[]);
 
         const policyRecentlyUsedCurrencyOptions: CurrencyListItem[] =
-            policyRecentlyUsedCurrencies?.map((currencyCode) => {
+            recentlyUsedCurrencies?.map((currencyCode) => {
                 const currencyInfo = currencyList?.[currencyCode];
                 const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
                 return {
@@ -87,7 +87,7 @@ function CurrencySelectionList({
         }
 
         return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, policyRecentlyUsedCurrencies]);
+    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, recentlyUsedCurrencies]);
 
     return (
         <SelectionList

@@ -409,6 +409,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores recently used currencies */
+    RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -420,7 +423,6 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
-        POLICY_RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies_',
         // Whether the policy's connection data was attempted to be fetched in
         // the current user session. As this state only exists client-side, it
         // should not be included as part of the policy object. The policy
@@ -772,7 +774,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES]: OnyxTypes.RecentlyUsedCurrencies;
     [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
@@ -799,7 +800,7 @@ type OnyxValuesMapping = {
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
-
+    [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;

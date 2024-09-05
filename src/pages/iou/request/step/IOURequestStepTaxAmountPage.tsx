@@ -104,7 +104,6 @@ function IOURequestStepTaxAmountPage({
                 backTo ? 'confirm' : '',
                 currency,
                 Navigation.getActiveRouteWithoutParams(),
-                policy?.id,
             ),
         );
     };

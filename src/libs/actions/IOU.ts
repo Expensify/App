@@ -636,10 +636,9 @@ function buildOnyxDataForMoneyRequest(
     }
 
     if (optimisticPolicyRecentlyUsedCurrencies?.length) {
-        const personalPolicy = PolicyUtils.getPersonalPolicy();
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${iouReport.policyID ?? personalPolicy?.id}`,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
             value: optimisticPolicyRecentlyUsedCurrencies,
         });
     }
@@ -1014,10 +1013,9 @@ function buildOnyxDataForInvoice(
     }
 
     if (optimisticPolicyRecentlyUsedCurrencies?.length) {
-        const personalPolicy = PolicyUtils.getPersonalPolicy();
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${iouReport.policyID ?? personalPolicy?.id}`,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
             value: optimisticPolicyRecentlyUsedCurrencies,
         });
     }
@@ -1910,7 +1908,7 @@ function getSendInvoiceInformation(
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
-    const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(optimisticInvoiceReport.policyID, currency);
+    const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(currency);
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
@@ -2091,7 +2089,7 @@ function getMoneyRequestInformation(
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
-    const optimisticPolicyRecentluUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(iouReport.policyID, currency);
+    const optimisticPolicyRecentluUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(currency);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -2688,11 +2686,11 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used currencies if the category is changed
     if ('currency' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(iouReport?.policyID, transactionChanges.currency);
+        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(transactionChanges.currency);
         if (optimisticPolicyRecentlyUsedCurrencies.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${iouReport?.policyID}`,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
                 value: optimisticPolicyRecentlyUsedCurrencies,
             });
         }
@@ -4256,7 +4254,7 @@ function createSplitsAndOnyxData(
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
         // Add currency to optimistic policy recently used currencies when a participant is a workspace
-        const optimisticPolicyRecentlyUsedCurrencies = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCurrencies(participant.policyID, currency) : [];
+        const optimisticPolicyRecentlyUsedCurrencies = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCurrencies(currency) : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
@@ -4750,7 +4748,7 @@ function startSplitBill({
 
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(participant.policyID, currency);
+        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(currency);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
@@ -4763,7 +4761,7 @@ function startSplitBill({
         if (optimisticPolicyRecentlyUsedCurrencies.length > 0) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${participant.policyID}`,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
                 value: optimisticPolicyRecentlyUsedCurrencies,
             });
         }
@@ -5354,11 +5352,11 @@ function editRegularMoneyRequest(
 
     // Update recently used currencies if the category is changed
     if ('currency' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(iouReport?.policyID, transactionChanges.currency);
+        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticPolicyRecentlyUsedCurrencies(transactionChanges.currency);
         if (optimisticPolicyRecentlyUsedCurrencies.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${iouReport?.policyID}`,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
                 value: optimisticPolicyRecentlyUsedCurrencies,
             });
         }

@@ -183,9 +183,9 @@ Onyx.connect({
     callback: (val) => (reimbursementAccount = val),
 });
 
-let allRecentlyUsedCurrencies: OnyxCollection<RecentlyUsedCurrencies> = {};
+let allRecentlyUsedCurrencies: string[];
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES,
+    key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedCurrencies = val),
 });
@@ -2216,19 +2216,12 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCurrencies(policyID?: string, currency?: string) {
+function buildOptimisticPolicyRecentlyUsedCurrencies(currency?: string) {
     if (!currency) {
         return [];
     }
-    const personalPolicy = PolicyUtils.getPersonalPolicy();
-    const personalPolicyID = personalPolicy?.id;
-    if (!policyID && !personalPolicyID) {
-        return [];
-    }
-    const policyRecentlyUsedCurrencies = policyID
-        ? allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`]
-        : allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${personalPolicyID}`];
-    return lodashUnion([currency], policyRecentlyUsedCurrencies);
+
+    return lodashUnion([currency], allRecentlyUsedCurrencies);
 }
 
 /**

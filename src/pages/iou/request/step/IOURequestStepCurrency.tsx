@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RecentlyUsedCurrencies, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -23,7 +23,7 @@ type IOURequestStepCurrencyOnyxProps = {
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
     /** List of recently used currencies */
-    policyRecentlyUsedCurrencies: OnyxEntry<RecentlyUsedCurrencies>;
+    recentlyUsedCurrencies: string[];
 };
 
 type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
@@ -33,7 +33,7 @@ function IOURequestStepCurrency({
         params: {backTo, iouType, pageIndex, reportID, transactionID, action, currency: selectedCurrency = ''},
     },
     draftTransaction,
-    policyRecentlyUsedCurrencies,
+    recentlyUsedCurrencies,
 }: IOURequestStepCurrencyProps) {
     const {translate} = useLocalize();
     const {currency: originalCurrency = ''} = ReportUtils.getTransactionDetails(draftTransaction) ?? {};
@@ -78,7 +78,7 @@ function IOURequestStepCurrency({
         >
             {({didScreenTransitionEnd}) => (
                 <CurrencySelectionList
-                    policyRecentlyUsedCurrencies={policyRecentlyUsedCurrencies ?? []}
+                    recentlyUsedCurrencies={recentlyUsedCurrencies ?? []}
                     searchInputLabel={translate('common.search')}
                     onSelect={(option: CurrencyListItem) => {
                         if (!didScreenTransitionEnd) {
@@ -102,8 +102,8 @@ const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOU
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },
-    policyRecentlyUsedCurrencies: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${route.params.policyID ?? 0}`,
+    recentlyUsedCurrencies: {
+        key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
     },
 })(IOURequestStepCurrency);
 

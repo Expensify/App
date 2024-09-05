@@ -20,7 +20,7 @@ type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
     initiallySelectedCurrencyCode?: string;
 
     /** List of recently used currencies */
-    policyRecentlyUsedCurrencies?: string[];
+    recentlyUsedCurrencies?: string[];
 
     /** Callback to fire when a currency is selected */
     onSelect: (item: CurrencyListItem) => void;
