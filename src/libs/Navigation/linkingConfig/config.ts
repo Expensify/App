@@ -57,9 +57,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
         [SCREENS.SEARCH.CENTRAL_PANE]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
-            parse: {
-                isCustomQuery: (isCustomQuery) => isCustomQuery.toLowerCase() === 'true',
-            },
         },
         [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
@@ -519,6 +516,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,

@@ -65,10 +65,8 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 
-    // Param types of the search central pane are also used for the search bottom tab screen.
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         q: SearchQueryString;
-        isCustomQuery: boolean;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -1144,6 +1142,10 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        feed: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;

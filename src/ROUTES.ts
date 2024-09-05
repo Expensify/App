@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -909,6 +909,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
+        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
