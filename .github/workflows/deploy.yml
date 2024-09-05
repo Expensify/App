@@ -32,7 +32,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: github.ref == 'refs/heads/staging'
+    if: ${{ github.ref == 'refs/heads/staging' }}
     needs: validateActor
     secrets: inherit
 
@@ -443,9 +443,17 @@ jobs:
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' && needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
+    if: ${{ github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [checkDeploymentSuccess]
     steps:
+      # The command "gh release create" also creates and pushes a tag for the version if one does not already exist,
+      # So we need to checkout the staging branch and create that tag from the staging branch.
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
@@ -500,9 +508,15 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED)
+    if: ${{ github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [checkDeploymentSuccess]
     steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+        with:
+          ref: production
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
@@ -554,7 +568,7 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
-    if: needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED == 'true'
+    if: ${{ fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
@@ -615,7 +629,7 @@ jobs:
   postGithubComment:
     name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED)
+    if: ${{ fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
