@@ -42,7 +42,6 @@ type BaseValidateCodeFormOnyxProps = {
 };
 
 type ValidateCodeFormProps = {
-
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
 

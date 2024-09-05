@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,6 +85,8 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [currentCardID, setCurrentCardID] = useState<number>(-1);
     const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
     const domain = cardList?.[cardID]?.domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
@@ -105,30 +108,38 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const handleRevealDetails = (revealedCardID: number) => {
+    const openValidateCodeModal = (revealedCardID: number) => {
+        setCurrentCardID(revealedCardID);
+        setIsValidateCodeActionModalVisible(true);
+    };
+
+    const handleRevealDetails = (validateCode: string) => {
         setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
             ...prevState,
-            [revealedCardID]: true,
+            [currentCardID]: true,
         }));
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        Card.revealVirtualCardDetails(revealedCardID)
+        Card.revealVirtualCardDetails(currentCardID, validateCode)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [revealedCardID]: value}));
+                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [currentCardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardID]: '',
+                    [currentCardID]: '',
                 }));
             })
             .catch((error: string) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardID]: error,
+                    [currentCardID]: error,
                 }));
             })
-            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedCardID]: false})));
+            .finally(() => {
+                setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
+                setIsValidateCodeActionModalVisible(false);
+            });
     };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -232,7 +243,7 @@ function ExpensifyCardPage({
                                                         <Button
                                                             medium
                                                             text={translate('cardPage.cardDetails.revealDetails')}
-                                                            onPress={() => handleRevealDetails(card.cardID)}
+                                                            onPress={() => openValidateCodeModal(card.cardID)}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
                                                         />
@@ -301,6 +312,15 @@ function ExpensifyCardPage({
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}
+                    <ValidateCodeActionModal
+                        handleSubmitForm={handleRevealDetails}
+                        clearError={() => {}}
+                        onClose={() => setIsValidateCodeActionModalVisible(false)}
+                        isVisible={isValidateCodeActionModalVisible}
+                        // TODO: replace with translation
+                        title="Verify it is you"
+                        description="Please enter the code that sent to your email"
+                    />
                 </>
             )}
         </ScreenWrapper>

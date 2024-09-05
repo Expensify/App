@@ -273,7 +273,7 @@ function clearValidateCodeActionError(fieldName: string) {
     Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
         errorFields: {
             [fieldName]: null,
-        }
+        },
     });
 }
 
