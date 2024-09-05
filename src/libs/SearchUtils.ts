@@ -402,7 +402,8 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    if (str.includes(' ') || str.includes(',')) {
+    const regexp = /[<>,:=]/g;
+    if (regexp.test(str)) {
         return `"${str}"`;
     }
     return str;
@@ -442,13 +443,14 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
             }
         }
         if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-            return `${filterValue as string}`;
+            const value = (filterValue as string).split(' ').map(sanitizeString).join(' ');
+            return `${value}`;
         }
         if (filterKey === FILTER_KEYS.TYPE && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
+            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizeString(filterValue as string)}`;
         }
         if (filterKey === FILTER_KEYS.STATUS && filterValue) {
-            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+            return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeString(filterValue as string)}`;
         }
         if (
             (filterKey === FILTER_KEYS.CATEGORY ||
@@ -524,6 +526,9 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
+/**
+ * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
+ */
 function getFiltersFormValues(filters: QueryFilters, queryJSON: SearchQueryJSON) {
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -539,12 +544,22 @@ function getFiltersFormValues(filters: QueryFilters, queryJSON: SearchQueryJSON)
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
         ) {
             filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString());
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filtersForm[filterKey] = filters[filterKey]?.map((filter) => filter.value.toString()).join(' ');
+            filtersForm[filterKey] = filters[filterKey]
+                ?.map((filter) => filter.value.toString())
+                .map((filter) => {
+                    if (filter.includes(' ')) {
+                        return `"${filter}"`;
+                    }
+                    return filter;
+                })
+                .join(' ');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
             filtersForm[FILTER_KEYS.DATE_BEFORE] = filters[filterKey]?.find((filter) => filter.operator === 'lt')?.value.toString();
