@@ -7,10 +7,11 @@ const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 // TODO:
 // make makeTree faster
 // how to deal with unicode characters such as spanish ones?
+// i think we need to support numbers as well
 
 /**
  * Converts a string to an array of numbers representing the characters of the string.
- * The numbers are offset by the character code of 'a' (97). 
+ * The numbers are offset by the character code of 'a' (97).
  * - This is so that the numbers from a-z are in the range 0-25.
  * - 26 is for the delimiter character "{",
  * - 27 is for the end character "|".
@@ -33,7 +34,7 @@ function stringToArray(input: string) {
  * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
  */
 function makeTree(a: number[]) {
-    const N = 1000000;
+    const N = 25000; // TODO: i reduced this number from 1_000_000 down to this, for faster performance - however its possible that it needs to be bigger for larger search strings
     const start = performance.now();
     const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1)) as number[][];
     const l = Array(N).fill(0) as number[];
@@ -134,6 +135,15 @@ function makeTree(a: number[]) {
 
     /**
      * Returns all occurrences of the given (sub)string in the input string.
+     *
+     * You can think of the tree that we create as a big string that looks like this:
+     *
+     * "banana{pancake{apple|"
+     * The delimiter character '{' is used to separate the different strings.
+     * The end character '|' is used to indicate the end of our search string.
+     *
+     * This function will return the index(es) of found occurrences within this big string.
+     * So, when searching for "an", it would return [1, 4, 11].
      */
     function findSubstring(searchString: string) {
         const occurrences: number[] = [];
@@ -202,4 +212,4 @@ function testEmojis() {
     return performanceProfile(searchString, 'smile');
 }
 
-export {makeTree, stringToArray, runTest, testEmojis};
+export {makeTree, stringToArray, testEmojis};

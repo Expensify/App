@@ -18,6 +18,7 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
+import {makeTree, stringToArray} from '@libs/SuffixUkkonenTree';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -50,6 +51,8 @@ const setPerformanceTimersEnd = () => {
 };
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
+
+const aToZRegex = /[^a-z]/gi;
 
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
@@ -94,6 +97,112 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
+    /**
+     * Builds a suffix tree and returns a function to search in it.
+     *
+     * // TODO:
+     * - The results we get from tree.findSubstring are the indexes of the occurrence in the original string
+     *   I implemented a manual mapping function here, we probably want to put that inside the tree implementation
+     *   (including the implementation detail of the delimiter character)
+     */
+    const findInSearchTree = useMemo(() => {
+        // The character that separates the different options in the search string
+        const delimiterChar = '{';
+
+        const searchIndexListRecentReports: Array<OptionData | undefined> = [];
+        const searchIndexListPersonalDetails: Array<OptionData | undefined> = [];
+
+        let start = performance.now();
+        let searchString = searchOptions.personalDetails
+            .map((option) => {
+                // TODO: there are probably more fields we'd like to add to the search string
+                let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+                // Remove all none a-z chars:
+                searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
+
+                if (searchStringForTree.length > 0) {
+                    // We need to push an array that has the same length as the length of the string we insert for this option:
+                    const indexes = Array.from({length: searchStringForTree.length}, () => option);
+                    // Note: we add undefined for the delimiter character
+                    searchIndexListPersonalDetails.push(...indexes, undefined);
+                } else {
+                    return undefined;
+                }
+
+                return searchStringForTree;
+            })
+            .filter(Boolean)
+            .join(delimiterChar);
+        searchString += searchOptions.recentReports
+            .map((option) => {
+                let searchStringForTree = (option.login ?? '') + (option.login !== option.displayName ? option.displayName ?? '' : '');
+                searchStringForTree += option.reportID ?? '';
+                searchStringForTree += option.name ?? '';
+                // Remove all none a-z chars:
+                searchStringForTree = searchStringForTree.toLowerCase().replace(aToZRegex, '');
+
+                if (searchStringForTree.length > 0) {
+                    // We need to push an array that has the same length as the length of the string we insert for this option:
+                    const indexes = Array.from({length: searchStringForTree.length}, () => option);
+                    searchIndexListRecentReports.push(...indexes, undefined);
+                } else {
+                    return undefined;
+                }
+
+                return searchStringForTree;
+            })
+            // TODO: this can probably improved by a reduce
+            .filter(Boolean)
+            .join(delimiterChar);
+        searchString += '|'; // End Character
+        console.log(searchIndexListPersonalDetails.slice(0, 20));
+        console.log(searchString.substring(0, 20));
+        console.log('building search strings', performance.now() - start);
+
+        // TODO: stringToArray is probably also an implementation detail we want to hide from the developer
+        start = performance.now();
+        const numbers = stringToArray(searchString);
+        console.log('stringToArray', performance.now() - start);
+        start = performance.now();
+        const tree = makeTree(numbers);
+        console.log('makeTree', performance.now() - start);
+        start = performance.now();
+        tree.build();
+        console.log('build', performance.now() - start);
+
+        function search(searchInput: string) {
+            start = performance.now();
+            const result = tree.findSubstring(searchInput);
+            console.log('FindSubstring index result for searchInput', searchInput, result);
+            // Map the results to the original options
+            const mappedResults = {
+                personalDetails: [] as OptionData[],
+                recentReports: [] as OptionData[],
+            };
+            result.forEach((index) => {
+                // const textInSearchString = searchString.substring(index, searchString.indexOf(delimiterChar, index));
+                // console.log('textInSearchString', textInSearchString);
+
+                if (index < searchIndexListPersonalDetails.length) {
+                    const option = searchIndexListPersonalDetails[index];
+                    if (option) {
+                        mappedResults.personalDetails.push(option);
+                    }
+                } else {
+                    const option = searchIndexListRecentReports[index - searchIndexListPersonalDetails.length];
+                    if (option) {
+                        mappedResults.recentReports.push(option);
+                    }
+                }
+            });
+
+            console.log('search', performance.now() - start);
+            return mappedResults;
+        }
+
+        return search;
+    }, [searchOptions.personalDetails, searchOptions.recentReports]);
+
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
             return {
@@ -105,17 +214,17 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const newOptions = findInSearchTree(debouncedSearchValue.toLowerCase().replace(aToZRegex, ''));
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: newOptions.userToInvite,
+            userToInvite: undefined, // newOptions.userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions]);
+    }, [debouncedSearchValue, findInSearchTree]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
