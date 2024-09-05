@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getOriginalMessageForDelegate, getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +30,8 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import { getAccountIDsByLogins, getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -83,7 +85,10 @@ function ReportActionItemSingle({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const message = getOriginalMessage(action)
+    const delegateEmail = message?.delegate
 
+    console.log('delegateEmail::::', delegateEmail)
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -102,15 +107,15 @@ function ReportActionItemSingle({
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(report);
         avatarId = report.policyID;
-    } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
+    } else if (delegateEmail) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = personalDetails[action.delegateAccountID];
+        const delegateAccount = getPersonalDetailByEmail(delegateEmail)
+        const delegateDetails = delegateAccount;
         const delegateDisplayName = delegateDetails?.displayName;
-        actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
-        displayName = actorHint;
+        displayName = delegateDisplayName ?? '';
         avatarSource = delegateDetails?.avatar;
-        avatarId = action.delegateAccountID;
+        avatarId = delegateAccount?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
     }
@@ -235,7 +240,16 @@ function ReportActionItemSingle({
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
+    const actionTypes = [
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
+        CONST.REPORT.ACTIONS.TYPE.HOLD,
+        CONST.REPORT.ACTIONS.TYPE.UNHOLD,
 
+      ];
+      
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -285,6 +299,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
+                {actionTypes.includes(action?.actionName) && (<ReportActionItemBasicMessage message={'on behalf of Gandalf Gwaihir'} />)}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
