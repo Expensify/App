@@ -148,7 +148,11 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
-                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(policyID, isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id),
+                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
+                    policyID,
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
+                    qboConfig?.collectionAccountID,
+                ),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
             errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields),
