@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
+import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,8 +117,7 @@ function DebugReportActionCreatePage({
                             isDisabled={!draftReportAction || !!error}
                             onPress={() => {
                                 const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
-                                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
+                                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
                                 Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
                             }}
                         />

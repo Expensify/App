@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,6 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {DebugDetailsFormID} from '@userActions/Debug';
+import Debug from '@userActions/Debug';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@src/components/ButtonWithDropdownMenu/types';
 import CONST from '@src/CONST';
@@ -28,10 +30,10 @@ import {DETAILS_DROPDOWN_OPTIONS, DETAILS_SELECTION_LIST} from './const';
 type DebugDetailsProps = {
     data: Record<string, unknown>;
     /** A unique Onyx key identifying the form */
-    formId: typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM;
+    formId: DebugDetailsFormID;
     reportID: string;
     reportActionId?: string;
-    onSave: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => void;
+    onSave: (values: FormOnyxValues<DebugDetailsFormID>) => void;
     onDelete: () => void;
     validate: (key: never, value: string) => void;
 };
@@ -49,7 +51,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
     const [dropdownsState, setDropdownsState] = useState<Record<string, string>>({});
 
     const validator = useCallback(
-        (values: Record<string, unknown>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM> => {
+        (values: Record<string, unknown>): FormInputErrors<DebugDetailsFormID> => {
             const newErrors: Record<string, string | undefined> = {};
             Object.entries(values).forEach(([key, value]) => {
                 try {
@@ -70,12 +72,11 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
     );
 
     useEffect(() => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(`${formId}Draft`, null);
+        Debug.resetDebugDetailsDraftForm(formId);
     }, [formId]);
 
     const handleSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM | typeof ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM>) => {
+        (values: FormOnyxValues<DebugDetailsFormID>) => {
             const dataToSave = {...values, ...dropdownsState};
 
             const dataPreparedToSave = Object.entries(dataToSave).reduce((acc, [key, value]) => {
