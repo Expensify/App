@@ -1,6 +1,6 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ROUTES from '@src/ROUTES';
+import type ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
@@ -83,4 +83,4 @@ type SettlementButtonProps = {
     useKeyboardShortcuts?: boolean;
 };
 
-export type {SettlementButtonProps};
+export default SettlementButtonProps;

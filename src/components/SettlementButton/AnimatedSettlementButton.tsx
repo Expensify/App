@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import SettlementButton from '.';
-import {SettlementButtonProps} from './types';
+import type SettlementButtonProps from './types';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isVisible: boolean;
@@ -42,7 +42,7 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
         paymentCompleteTextScale.value = 0;
         paymentCompleteTextOpacity.value = 1;
         height.value = variables.componentSizeNormal;
-    }
+    };
 
     useEffect(() => {
         if (!isAnimationRunning) {

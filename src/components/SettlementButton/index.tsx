@@ -2,6 +2,11 @@ import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
+import * as Expensicons from '@components/Icon/Expensicons';
+import KYCWall from '@components/KYCWall';
+import {useSession} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,12 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethod, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ButtonWithDropdownMenu from '../ButtonWithDropdownMenu';
-import type {PaymentType} from '../ButtonWithDropdownMenu/types';
-import * as Expensicons from '../Icon/Expensicons';
-import KYCWall from '../KYCWall';
-import {useSession} from '../OnyxProvider';
-import {SettlementButtonProps} from './types';
+import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
