@@ -1,16 +1,15 @@
-import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {forwardRef, useEffect, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
@@ -24,13 +23,13 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {selectionMode} = useMobileSelectionMode(true);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems = sections[0].data.filter((item) => item.isSelected);
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -39,10 +38,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth]);
+    }, [sections, selectionMode, shouldUseNarrowLayout]);
 
     const handleLongPressRow = (item: TItem) => {
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout || item?.isDisabled || item?.isDisabledCheckbox) {
             return;
         }
         setLongPressedItem(item);
@@ -61,8 +61,6 @@ function SelectionListWithModal<TItem extends ListItem>(
             onTurnOnSelectionMode(longPressedItem);
         }
     };
-
-    useEffect(() => turnOffMobileSelectionMode(), []);
 
     return (
         <>

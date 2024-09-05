@@ -25,9 +25,12 @@ type CategorySelectorModalProps = {
 
     /** Label to display on field */
     label: string;
+
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView: boolean;
 };
 
-function CategorySelectorModal({policyID, isVisible, currentCategory, onCategorySelected, onClose, label}: CategorySelectorModalProps) {
+function CategorySelectorModal({policyID, isVisible, currentCategory, onCategorySelected, onClose, label, shouldUseCustomScrollView}: CategorySelectorModalProps) {
     const styles = useThemeStyles();
 
     return (
@@ -54,6 +57,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
+                    shouldUseCustomScrollView={shouldUseCustomScrollView}
                 />
             </ScreenWrapper>
         </Modal>
