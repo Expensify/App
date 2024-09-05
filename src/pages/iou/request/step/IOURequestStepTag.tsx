@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -129,42 +130,42 @@ function IOURequestStepTag({
 
 IOURequestStepTag.displayName = 'IOURequestStepTag';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepTagProps, IOURequestStepTagOnyxProps>({
-            splitDraftTransaction: {
-                key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? 0;
-                    return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-                },
-            },
-            policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-            },
-            policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-            },
-            policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-            },
-            reportActions: {
-                key: ({
-                    report,
-                    route: {
-                        params: {action, iouType},
-                    },
-                }) => {
-                    let reportID: string | undefined = '-1';
-                    if (action === CONST.IOU.ACTION.EDIT) {
-                        reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-                    }
-                    return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-                },
-                canEvict: false,
-            },
-            session: {
-                key: ONYXKEYS.SESSION,
-            },
-        })(IOURequestStepTag),
-    ),
-);
+function ComponentWithOnyx(props: Omit<IOURequestStepTagProps, keyof IOURequestStepTagOnyxProps>) {
+    const transactionID = props.route.params.transactionID ?? 0;
+    const [splitDraftTransaction, splitDraftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '-1'}`);
+
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.report ? props.report.policyID : '-1'}`);
+
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.report ? props.report.policyID : '-1'}`);
+
+    let reportID: string | undefined = '-1';
+    if (props.route.params.action === CONST.IOU.ACTION.EDIT) {
+        reportID = props.route.params.iouType === CONST.IOU.TYPE.SPLIT ? props.report?.reportID : props.report?.parentReportID;
+    }
+    const [reportActions, reportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        canEvict: false,
+    });
+
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(splitDraftTransactionMetadata, policyMetadata, policyCategoriesMetadata, policyTagsMetadata, reportActionsMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <IOURequestStepTag
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            splitDraftTransaction={splitDraftTransaction}
+            policy={policy}
+            policyCategories={policyCategories}
+            policyTags={policyTags}
+            reportActions={reportActions}
+            session={session}
+        />
+    );
+}
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(ComponentWithOnyx));

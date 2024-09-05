@@ -3,7 +3,7 @@ import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -25,6 +25,7 @@ import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -296,12 +297,22 @@ function AttachmentView({
 
 AttachmentView.displayName = 'AttachmentView';
 
-export default memo(
-    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        },
-    })(AttachmentView),
-);
-
 export type {AttachmentViewProps};
+
+function ComponentWithOnyx(props: Omit<AttachmentViewProps, keyof AttachmentViewOnyxProps>) {
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`);
+
+    if (isLoadingOnyxValue(transactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <AttachmentView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            transaction={transaction}
+        />
+    );
+}
+
+export default memo(ComponentWithOnyx);

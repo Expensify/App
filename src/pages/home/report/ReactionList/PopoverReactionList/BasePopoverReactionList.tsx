@@ -1,6 +1,6 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React, {useImperativeHandle} from 'react';
 import type {ForwardedRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useBasePopoverReactionList from '@hooks/useBasePopoverReactionList';
@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
 import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWithOnyx, ref: ForwardedRef<Partial<ReactionListRef>>) {
     const {emojiReactions, emojiName, reportActionID, currentUserPersonalDetails} = props;
@@ -50,10 +51,20 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
     );
 }
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<BasePopoverReactionListPropsWithLocalWithOnyx, BasePopoverReactionListOnyxProps>({
-        emojiReactions: {
-            key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-        },
-    })(forwardRef(BasePopoverReactionList)),
-);
+function ComponentWithOnyx(props: Omit<BasePopoverReactionListPropsWithLocalWithOnyx, keyof BasePopoverReactionListOnyxProps>) {
+    const [emojiReactions, emojiReactionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${props.reportActionID}`);
+
+    if (isLoadingOnyxValue(emojiReactionsMetadata)) {
+        return null;
+    }
+
+    return (
+        <BasePopoverReactionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            emojiReactions={emojiReactions}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

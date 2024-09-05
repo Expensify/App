@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -243,12 +244,20 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
 InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
-export default withNavigationTransitionEnd(
-    withReportOrNotFound()(
-        withOnyx<InviteReportParticipantsPageProps, InviteReportParticipantsPageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-        })(InviteReportParticipantsPage),
-    ),
-);
+function ComponentWithOnyx(props: Omit<InviteReportParticipantsPageProps, keyof InviteReportParticipantsPageOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <InviteReportParticipantsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+        />
+    );
+}
+
+export default withNavigationTransitionEnd(withReportOrNotFound()(ComponentWithOnyx));

@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TaskPreviewOnyxProps = {
     /* Onyx Props */
@@ -123,10 +124,20 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
 
 TaskPreview.displayName = 'TaskPreview';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<TaskPreviewProps, TaskPreviewOnyxProps>({
-        taskReport: {
-            key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-        },
-    })(TaskPreview),
-);
+function ComponentWithOnyx(props: Omit<TaskPreviewProps, keyof TaskPreviewOnyxProps>) {
+    const [taskReport, taskReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.taskReportID}`);
+
+    if (isLoadingOnyxValue(taskReportMetadata)) {
+        return null;
+    }
+
+    return (
+        <TaskPreview
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            taskReport={taskReport}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

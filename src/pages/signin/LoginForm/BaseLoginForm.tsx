@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -37,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
@@ -331,9 +332,22 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(
-    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
-        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
-    })(forwardRef(BaseLoginForm)),
-);
+function ComponentWithOnyx(props: Omit<BaseLoginFormProps, keyof BaseLoginFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [closeAccount, closeAccountMetadata] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+
+    if (isLoadingOnyxValue(accountMetadata, closeAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseLoginForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            closeAccount={closeAccount}
+        />
+    );
+}
+
+export default withToggleVisibilityView(ComponentWithOnyx);

@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +23,7 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -224,14 +225,22 @@ function WorkspacePageWithSections({
 
 WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspacePageWithSectionsProps, WorkspacePageWithSectionsOnyxProps>({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    })(WorkspacePageWithSections),
-);
+function ComponentWithOnyx(props: Omit<WorkspacePageWithSectionsProps, keyof WorkspacePageWithSectionsOnyxProps>) {
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    if (isLoadingOnyxValue(userMetadata, reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspacePageWithSections
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}
+
+export default withPolicyAndFullscreenLoading(ComponentWithOnyx);

@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -40,6 +40,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -473,14 +474,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
-        },
-    })(WorkspaceInitialPage),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceInitialPageProps, keyof WorkspaceInitialPageOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.route.params?.policyID ?? '-1'}`);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, policyCategoriesMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceInitialPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            policyCategories={policyCategories}
+        />
+    );
+}
+
+export default withPolicyAndFullscreenLoading(ComponentWithOnyx);

@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -32,6 +32,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormOnyxProps = {
@@ -422,12 +423,26 @@ function BaseValidateCodeForm(
 
 BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
-export default withToggleVisibilityView(
-    withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    })(forwardRef(BaseValidateCodeForm)),
-);
+function ComponentWithOnyx(props: Omit<BaseValidateCodeFormProps, keyof BaseValidateCodeFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(accountMetadata, credentialsMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseValidateCodeForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            credentials={credentials}
+            session={session}
+        />
+    );
+}
+
+export default withToggleVisibilityView(forwardRef(ComponentWithOnyx));
 
 export type {BaseValidateCodeFormRef};

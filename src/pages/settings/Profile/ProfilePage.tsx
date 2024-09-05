@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,6 +34,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -244,16 +245,24 @@ function ProfilePage({
 
 ProfilePage.displayName = 'ProfilePage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
-        },
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-    })(ProfilePage),
-);
+function ComponentWithOnyx(props: Omit<ProfilePageProps, keyof ProfilePageOnyxProps>) {
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(loginListMetadata, privatePersonalDetailsMetadata, isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <ProfilePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            loginList={loginList}
+            privatePersonalDetails={privatePersonalDetails}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -183,13 +184,21 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
-const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-})(IOURequestStepParticipants);
+function ComponentWithOnyx(props: Omit<IOURequestStepParticipantsProps, keyof IOURequestStepParticipantsOnyxProps>) {
+    const transactionID = props.route.params.transactionID ?? -1;
+    const [skipConfirmation, skipConfirmationMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipantsWithOnyx));
+    if (isLoadingOnyxValue(skipConfirmationMetadata)) {
+        return null;
+    }
+
+    return (
+        <IOURequestStepParticipants
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            skipConfirmation={skipConfirmation}
+        />
+    );
+}
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(ComponentWithOnyx));

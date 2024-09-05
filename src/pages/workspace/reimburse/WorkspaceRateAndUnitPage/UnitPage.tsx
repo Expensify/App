@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import type {UnitItemType} from '@components/UnitPicker';
 import UnitPicker from '@components/UnitPicker';
@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceUnitPageBaseProps = WithPolicyProps;
 
@@ -69,10 +70,21 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 }
 
 WorkspaceUnitPage.displayName = 'WorkspaceUnitPage';
-export default withPolicy(
-    withOnyx<WorkspaceUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
-        workspaceRateAndUnit: {
-            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
-        },
-    })(WorkspaceUnitPage),
-);
+
+function ComponentWithOnyx(props: Omit<WorkspaceUnitPageProps, keyof WorkspaceRateAndUnitOnyxProps>) {
+    const [workspaceRateAndUnit, workspaceRateAndUnitMetadata] = useOnyx(ONYXKEYS.WORKSPACE_RATE_AND_UNIT);
+
+    if (isLoadingOnyxValue(workspaceRateAndUnitMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceUnitPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            workspaceRateAndUnit={workspaceRateAndUnit}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);

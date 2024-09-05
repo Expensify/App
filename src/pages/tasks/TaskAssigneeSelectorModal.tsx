@@ -3,7 +3,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, Task} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TaskAssigneeSelectorModalOnyxProps = {
     /** All reports shared with the user */
@@ -258,13 +259,22 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
 TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
-const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProps, TaskAssigneeSelectorModalOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(TaskAssigneeSelectorModal);
+function ComponentWithOnyx(props: Omit<TaskAssigneeSelectorModalProps, keyof TaskAssigneeSelectorModalOnyxProps>) {
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
 
-export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
+    if (isLoadingOnyxValue(reportsMetadata, taskMetadata)) {
+        return null;
+    }
+
+    return (
+        <TaskAssigneeSelectorModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reports={reports}
+            task={task}
+        />
+    );
+}
+
+export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(ComponentWithOnyx));

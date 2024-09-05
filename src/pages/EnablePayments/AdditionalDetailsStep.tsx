@@ -1,7 +1,7 @@
 import {subYears} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
 import type {WalletAdditionalDetails} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IdologyQuestions from './IdologyQuestions';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
@@ -234,11 +235,20 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
 
 AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<AdditionalDetailsStepProps, AdditionalDetailsStepOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-        walletAdditionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        },
-    })(AdditionalDetailsStep),
-);
+function ComponentWithOnyx(props: Omit<AdditionalDetailsStepProps, keyof AdditionalDetailsStepOnyxProps>) {
+    const [walletAdditionalDetails, walletAdditionalDetailsMetadata] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+
+    if (isLoadingOnyxValue(walletAdditionalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <AdditionalDetailsStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletAdditionalDetails={walletAdditionalDetails}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

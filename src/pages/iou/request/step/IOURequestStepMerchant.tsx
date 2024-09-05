@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -18,6 +18,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -143,24 +144,27 @@ function IOURequestStepMerchant({
 
 IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
-            splitDraftTransaction: {
-                key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? -1;
-                    return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-                },
-            },
-            policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-            },
-            policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-            },
-            policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-            },
-        })(IOURequestStepMerchant),
-    ),
-);
+function ComponentWithOnyx(props: Omit<IOURequestStepMerchantProps, keyof IOURequestStepMerchantOnyxProps>) {
+    const transactionID = props.route.params.transactionID ?? -1;
+    const [splitDraftTransaction, splitDraftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report ? props.report.policyID : '-1'}`);
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.report ? props.report.policyID : '-1'}`);
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.report ? props.report.policyID : '-1'}`);
+
+    if (isLoadingOnyxValue(splitDraftTransactionMetadata, policyMetadata, policyCategoriesMetadata, policyTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <IOURequestStepMerchant
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            splitDraftTransaction={splitDraftTransaction}
+            policy={policy}
+            policyCategories={policyCategories}
+            policyTags={policyTags}
+        />
+    );
+}
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(ComponentWithOnyx));

@@ -4,7 +4,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -48,6 +48,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
@@ -596,15 +597,25 @@ function ReportActionCompose({
 
 ReportActionCompose.displayName = 'ReportActionCompose';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<ReportActionComposeProps, ReportActionComposeOnyxProps>({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        shouldShowComposeInput: {
-            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-    })(memo(ReportActionCompose)),
-);
+function ComponentWithOnyx(props: Omit<ReportActionComposeProps, keyof ReportActionComposeOnyxProps>) {
+    const [blockedFromConcierge, blockedFromConciergeMetadata] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const [shouldShowComposeInput, shouldShowComposeInputMetadata] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+
+    if (isLoadingOnyxValue(blockedFromConciergeMetadata, shouldShowComposeInputMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportActionCompose
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            blockedFromConcierge={blockedFromConcierge}
+            shouldShowComposeInput={shouldShowComposeInput}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(memo(ComponentWithOnyx));
+
 export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};

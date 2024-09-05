@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
@@ -31,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 import type {CustomStatusDraft} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type StatusPageOnyxProps = {
     draftStatus: OnyxEntry<CustomStatusDraft>;
@@ -229,10 +230,20 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
 StatusPage.displayName = 'StatusPage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<StatusPageProps, StatusPageOnyxProps>({
-        draftStatus: {
-            key: () => ONYXKEYS.CUSTOM_STATUS_DRAFT,
-        },
-    })(StatusPage),
-);
+function ComponentWithOnyx(props: Omit<StatusPageProps, keyof StatusPageOnyxProps>) {
+    const [draftStatus, draftStatusMetadata] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+
+    if (isLoadingOnyxValue(draftStatusMetadata)) {
+        return null;
+    }
+
+    return (
+        <StatusPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftStatus={draftStatus}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

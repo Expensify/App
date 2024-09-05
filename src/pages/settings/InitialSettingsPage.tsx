@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
@@ -49,6 +49,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type InitialSettingsPageOnyxProps = {
     /** The user's wallet account */
@@ -460,25 +461,30 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<InitialSettingsPageProps, InitialSettingsPageOnyxProps>({
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        fundList: {
-            key: ONYXKEYS.FUND_LIST,
-        },
-        walletTerms: {
-            key: ONYXKEYS.WALLET_TERMS,
-        },
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    })(InitialSettingsPage),
-);
+function ComponentWithOnyx(props: Omit<InitialSettingsPageProps, keyof InitialSettingsPageOnyxProps>) {
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList, fundListMetadata] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    if (isLoadingOnyxValue(userWalletMetadata, bankAccountListMetadata, fundListMetadata, walletTermsMetadata, loginListMetadata, policiesMetadata)) {
+        return null;
+    }
+
+    return (
+        <InitialSettingsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userWallet={userWallet}
+            bankAccountList={bankAccountList}
+            fundList={fundList}
+            walletTerms={walletTerms}
+            loginList={loginList}
+            policies={policies}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

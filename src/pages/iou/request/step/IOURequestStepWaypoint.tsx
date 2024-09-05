@@ -3,7 +3,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -33,6 +33,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -247,32 +248,38 @@ function IOURequestStepWaypoint({
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
-            userLocation: {
-                key: ONYXKEYS.USER_LOCATION,
+// Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+// that the google autocomplete component expects for it's "predefined places" feature.
+const waypointsSelector = (waypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>) =>
+    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
+        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+        .map((waypoint) => ({
+            name: waypoint.name,
+            description: waypoint.address ?? '',
+            geometry: {
+                location: {
+                    lat: waypoint.lat ?? 0,
+                    lng: waypoint.lng ?? 0,
+                },
             },
-            recentWaypoints: {
-                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+        }));
 
-                // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-                // that the google autocomplete component expects for it's "predefined places" feature.
-                selector: (waypoints) =>
-                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER as number) : [])
-                        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
-                        .map((waypoint) => ({
-                            name: waypoint.name,
-                            description: waypoint.address ?? '',
-                            geometry: {
-                                location: {
-                                    lat: waypoint.lat ?? 0,
-                                    lng: waypoint.lng ?? 0,
-                                },
-                            },
-                        })),
-            },
-        })(IOURequestStepWaypoint),
-    ),
-    true,
-);
+function ComponentWithOnyx(props: Omit<IOURequestStepWaypointProps, keyof IOURequestStepWaypointOnyxProps>) {
+    const [userLocation, userLocationMetadata] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [recentWaypoints, recentWaypointsMetadata] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: waypointsSelector});
+
+    if (isLoadingOnyxValue(userLocationMetadata, recentWaypointsMetadata)) {
+        return null;
+    }
+
+    return (
+        <IOURequestStepWaypoint
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userLocation={userLocation}
+            recentWaypoints={recentWaypoints}
+        />
+    );
+}
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(ComponentWithOnyx), true);

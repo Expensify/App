@@ -100,107 +100,107 @@ export default function transform(file, api) {
 
     let updateFile = false;
 
-    root.find(j.ExportDefaultDeclaration)
-        .filter((path) => {
-            const callExpression = path.value.declaration;
+    root.find(j.CallExpression, {
+        callee: {
+            type: 'Identifier',
+            name: 'withOnyx',
+        },
+    }).forEach((path) => {
+        updateFile = true;
+        const callExpression = path.parent.value;
+        const hocArgs = callExpression.callee.arguments;
 
-            return j.match(callExpression, {
-                type: 'CallExpression',
-                callee: {
-                    type: 'CallExpression',
-                    callee: {
-                        type: 'Identifier',
-                        name: 'withOnyx',
-                    },
-                },
-            });
-        })
-        .forEach((path) => {
-            updateFile = true;
-            const callExpression = path.value.declaration;
-            const hocArgs = callExpression.callee.arguments;
+        if (hocArgs.length > 1) {
+            console.warn(file.path, 'More than one argument');
+            throw new Error('More than one argument');
+        }
 
-            if (hocArgs.length > 1) {
-                console.warn(file.path, 'More than one argument');
-                throw new Error('More than one argument');
+        const [componentProps, componentPropsOnyx] = callExpression.callee.typeParameters.params.map((node) => {
+            // Check if the type is a intersection type
+            if (node.type === 'TSIntersectionType') {
+                // Join the types by an & operator
+                return node.types.map((typeNode) => typeNode.typeName.name).join(' & ');
             }
 
-            const [componentProps, componentPropsOnyx] = callExpression.callee.typeParameters.params.map((node) => {
-                // Check if the type is a intersection type
-                if (node.type === 'TSIntersectionType') {
-                    // Join the types by an & operator
-                    return node.types.map((typeNode) => typeNode.typeName.name).join(' & ');
-                }
-
-                return node.typeName.name;
-            });
-
-            if (!componentProps || !componentPropsOnyx) {
-                console.warn(file.path, 'Component props or onyx props not found');
-                throw new Error('Component props or onyx props not found');
-            }
-
-            const component = callExpression.arguments[callExpression.arguments.length - 1];
-            const componentSource = j(component).toSource();
-            const hooks = [];
-
-            if (!componentSource) {
-                console.warn(file.path, 'Component source not found');
-                throw new Error('Component source not found');
-            }
-
-            const hocFirstArgument = hocArgs[0].properties;
-
-            hocFirstArgument.forEach((objectProperty) => {
-                const onyxKeyName = objectProperty.key.name;
-                const onyxKeyValueObject = objectProperty.value.properties.find((property) => property.key.name === 'key');
-
-                if (!onyxKeyValueObject) {
-                    console.warn(file.path, 'Onyx key object value not found');
-                    throw new Error('Onyx key object value not found');
-                }
-                const onyxKeyValue = getKeyName(onyxKeyValueObject.value);
-
-                if (!onyxKeyValue) {
-                    console.warn(file.path, 'Onyx key value not found');
-                    throw new Error('Onyx key value not found');
-                }
-
-                const optionsProperties = ['canEvict', 'initWithStoredValues', 'allowStaleData'];
-                const options = {};
-
-                optionsProperties.forEach((optionProperty) => {
-                    const optionPropertyValueObject = objectProperty.value.properties.find((property) => property.key.name === optionProperty);
-                    options[optionProperty] = optionPropertyValueObject ? optionPropertyValueObject.value.value : undefined;
-                });
-                const selectorObject = objectProperty.value.properties.find((property) => property.key.name === 'selector');
-                const selectorString = selectorObject ? j(selectorObject.value).toSource() : undefined;
-
-                hooks.push({
-                    name: onyxKeyName,
-                    value: onyxKeyValue,
-                    options,
-                    selector: selectorString,
-                });
-            });
-
-            const hooksDeclarations = createHooks(hooks);
-            const ifLoadingReturnNull = ifLoadingReturnComponent(hooksDeclarations);
-            const returnJsx = createReturnComponent(hooks, componentSource);
-            const functionDeclaration = createFunction(hooksDeclarations, ifLoadingReturnNull, returnJsx, componentProps, componentPropsOnyx);
-
-            // Create an export default declaration
-            const exportDefaultDeclaration = j.exportDefaultDeclaration(functionDeclaration);
-
-            // Replace
-            if (true) {
-                console.log(j(exportDefaultDeclaration).toSource());
-            } else {
-                j(path).replaceWith();
-                updateImports(root);
-                root.find(j.Program).get('body').push(exportDefaultDeclaration);
-            }
+            return node.typeName.name;
         });
+
+        if (!componentProps || !componentPropsOnyx) {
+            console.warn(file.path, 'Component props or onyx props not found');
+            throw new Error('Component props or onyx props not found');
+        }
+
+        const component = callExpression.arguments[callExpression.arguments.length - 1];
+        const componentSource = j(component).toSource();
+        const hooks = [];
+
+        if (!componentSource) {
+            console.warn(file.path, 'Component source not found');
+            throw new Error('Component source not found');
+        }
+
+        const hocFirstArgument = hocArgs[0].properties;
+
+        hocFirstArgument.forEach((objectProperty) => {
+            const onyxKeyName = objectProperty.key.name;
+            const onyxKeyValueObject = objectProperty.value.properties.find((property) => property.key.name === 'key');
+
+            if (!onyxKeyValueObject) {
+                console.warn(file.path, 'Onyx key object value not found');
+                throw new Error('Onyx key object value not found');
+            }
+            const onyxKeyValue = getKeyName(onyxKeyValueObject.value);
+
+            if (!onyxKeyValue) {
+                console.warn(file.path, 'Onyx key value not found');
+                throw new Error('Onyx key value not found');
+            }
+
+            const optionsProperties = ['canEvict', 'initWithStoredValues', 'allowStaleData'];
+            const options = {};
+
+            optionsProperties.forEach((optionProperty) => {
+                const optionPropertyValueObject = objectProperty.value.properties.find((property) => property.key.name === optionProperty);
+                options[optionProperty] = optionPropertyValueObject ? optionPropertyValueObject.value.value : undefined;
+            });
+            const selectorObject = objectProperty.value.properties.find((property) => property.key.name === 'selector');
+            const selectorString = selectorObject ? j(selectorObject.value).toSource() : undefined;
+
+            hooks.push({
+                name: onyxKeyName,
+                value: onyxKeyValue,
+                options,
+                selector: selectorString,
+            });
+        });
+
+        const hooksDeclarations = createHooks(hooks);
+        const ifLoadingReturnNull = ifLoadingReturnComponent(hooksDeclarations);
+        const returnJsx = createReturnComponent(hooks, componentSource);
+        const functionDeclaration = createFunction(hooksDeclarations, ifLoadingReturnNull, returnJsx, componentProps, componentPropsOnyx);
+
+        // Replace
+        if (false) {
+            console.log(j(functionDeclaration).toSource());
+        } else {
+            root.find(j.ExportDefaultDeclaration).forEach((exportPath) => {
+                const hocName = exportPath?.value?.declaration?.callee?.name;
+
+                if (!hocName) {
+                    console.warn(file.path, 'Hoc name not found');
+                    throw new Error('Hoc name not found');
+                }
+
+                const newPath = j.exportDefaultDeclaration(j.callExpression(j.identifier(hocName), [j.identifier('ComponentWithOnyx')]));
+                root.find(j.Program).get('body').push(functionDeclaration);
+                if (exportPath.value) {
+                    j(exportPath).remove();
+                }
+                root.find(j.Program).get('body').push(newPath);
+            });
+            updateImports(root);
+        }
+    });
 
     if (updateFile) {
         return root.toSource();

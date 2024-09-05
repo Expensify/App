@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -37,6 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -357,15 +358,25 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
 
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
-export default withNavigationTransitionEnd(
-    withPolicyAndFullscreenLoading(
-        withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-        })(WorkspaceInvitePage),
-    ),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceInvitePageProps, keyof WorkspaceInvitePageOnyxProps>) {
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(
+        `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID.toString()}`,
+    );
+
+    if (isLoadingOnyxValue(betasMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceInvitePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            betas={betas}
+            invitedEmailsToAccountIDsDraft={invitedEmailsToAccountIDsDraft}
+        />
+    );
+}
+
+export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(ComponentWithOnyx));

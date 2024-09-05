@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -25,6 +25,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({
@@ -186,16 +187,24 @@ function BaseOnboardingPersonalDetails({
 
 BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<BaseOnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps>({
-        onboardingPurposeSelected: {
-            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-        },
-        onboardingAdminsChatReportID: {
-            key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
-        },
-        onboardingPolicyID: {
-            key: ONYXKEYS.ONBOARDING_POLICY_ID,
-        },
-    })(BaseOnboardingPersonalDetails),
-);
+function ComponentWithOnyx(props: Omit<BaseOnboardingPersonalDetailsProps, keyof BaseOnboardingPersonalDetailsOnyxProps>) {
+    const [onboardingPurposeSelected, onboardingPurposeSelectedMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingAdminsChatReportID, onboardingAdminsChatReportIDMetadata] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingPolicyID, onboardingPolicyIDMetadata] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+
+    if (isLoadingOnyxValue(onboardingPurposeSelectedMetadata, onboardingAdminsChatReportIDMetadata, onboardingPolicyIDMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseOnboardingPersonalDetails
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            onboardingPurposeSelected={onboardingPurposeSelected}
+            onboardingAdminsChatReportID={onboardingAdminsChatReportID}
+            onboardingPolicyID={onboardingPolicyID}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

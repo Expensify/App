@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PronounEntry = ListItem & {
     value: string;
@@ -107,10 +108,20 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
 
 PronounsPage.displayName = 'PronounsPage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<PronounsPageProps, PronounsPageOnyxProps>({
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-    })(PronounsPage),
-);
+function ComponentWithOnyx(props: Omit<PronounsPageProps, keyof PronounsPageOnyxProps>) {
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <PronounsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

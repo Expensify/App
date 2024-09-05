@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -42,6 +42,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Beta, PolicyEmployee} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceWorkflowsApprovalsApproverPageOnyxProps = {
     /** Beta features list */
@@ -448,10 +449,20 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
 WorkspaceWorkflowsApprovalsApproverPageWrapper.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceWorkflowsApprovalsApproverPageProps, WorkspaceWorkflowsApprovalsApproverPageOnyxProps>({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    })(WorkspaceWorkflowsApprovalsApproverPageWrapper),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceWorkflowsApprovalsApproverPageProps, keyof WorkspaceWorkflowsApprovalsApproverPageOnyxProps>) {
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+
+    if (isLoadingOnyxValue(betasMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceWorkflowsApprovalsApproverPageWrapper
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            betas={betas}
+        />
+    );
+}
+
+export default withPolicyAndFullscreenLoading(ComponentWithOnyx);

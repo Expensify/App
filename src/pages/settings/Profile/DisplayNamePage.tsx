@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -21,6 +21,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DisplayNamePageOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
@@ -124,10 +125,20 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
 
 DisplayNamePage.displayName = 'DisplayNamePage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<DisplayNamePageProps, DisplayNamePageOnyxProps>({
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-    })(DisplayNamePage),
-);
+function ComponentWithOnyx(props: Omit<DisplayNamePageProps, keyof DisplayNamePageOnyxProps>) {
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <DisplayNamePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

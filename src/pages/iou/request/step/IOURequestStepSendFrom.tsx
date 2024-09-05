@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -103,12 +104,20 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
 
 IOURequestStepSendFrom.displayName = 'IOURequestStepSendFrom';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepSendFromProps, IOURequestStepSendFromOnyxProps>({
-            allPolicies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-        })(IOURequestStepSendFrom),
-    ),
-);
+function ComponentWithOnyx(props: Omit<IOURequestStepSendFromProps, keyof IOURequestStepSendFromOnyxProps>) {
+    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    if (isLoadingOnyxValue(allPoliciesMetadata)) {
+        return null;
+    }
+
+    return (
+        <IOURequestStepSendFrom
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            allPolicies={allPolicies}
+        />
+    );
+}
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(ComponentWithOnyx));

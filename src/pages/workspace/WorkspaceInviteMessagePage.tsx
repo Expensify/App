@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
@@ -37,6 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -222,18 +223,28 @@ function WorkspaceInviteMessagePage({
 
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
-export default withPolicyAndFullscreenLoading(
-    withCurrentUserPersonalDetails(
-        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-            allPersonalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-            workspaceInviteMessageDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-            },
-        })(WorkspaceInviteMessagePage),
-    ),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceInviteMessagePageProps, keyof WorkspaceInviteMessagePageOnyxProps>) {
+    const [allPersonalDetails, allPersonalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(
+        `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID.toString()}`,
+    );
+
+    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${props.route.params.policyID.toString()}`);
+
+    if (isLoadingOnyxValue(allPersonalDetailsMetadata, invitedEmailsToAccountIDsDraftMetadata, workspaceInviteMessageDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceInviteMessagePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            allPersonalDetails={allPersonalDetails}
+            invitedEmailsToAccountIDsDraft={invitedEmailsToAccountIDsDraft}
+            workspaceInviteMessageDraft={workspaceInviteMessageDraft}
+        />
+    );
+}
+
+export default withPolicyAndFullscreenLoading(ComponentWithOnyx);

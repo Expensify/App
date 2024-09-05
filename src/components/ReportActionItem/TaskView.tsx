@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TaskViewOnyxProps = {
     /** All of the personal details for everyone */
@@ -189,10 +190,20 @@ function TaskView({report, ...props}: TaskViewProps) {
 
 TaskView.displayName = 'TaskView';
 
-const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(TaskView);
+function ComponentWithOnyx(props: Omit<TaskViewProps, keyof TaskViewOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-export default withCurrentUserPersonalDetails(TaskViewWithOnyx);
+    if (isLoadingOnyxValue(personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TaskView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+        />
+    );
+}
+
+export default withCurrentUserPersonalDetails(ComponentWithOnyx);

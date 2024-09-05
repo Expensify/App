@@ -1,6 +1,6 @@
 import React, {createContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
@@ -10,6 +10,7 @@ import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
@@ -129,14 +130,23 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, chi
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 
-const Provider = withCurrentUserPersonalDetails(
-    withOnyx<LocaleContextProviderProps, LocaleContextProviderOnyxProps>({
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            selector: (preferredLocale) => preferredLocale,
-        },
-    })(LocaleContextProvider),
-);
+function ComponentWithOnyx(props: Omit<LocaleContextProviderProps, keyof LocaleContextProviderOnyxProps>) {
+    const [preferredLocale, preferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+
+    if (isLoadingOnyxValue(preferredLocaleMetadata)) {
+        return null;
+    }
+
+    return (
+        <LocaleContextProvider
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            preferredLocale={preferredLocale}
+        />
+    );
+}
+
+const Provider = withCurrentUserPersonalDetails(ComponentWithOnyx);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 

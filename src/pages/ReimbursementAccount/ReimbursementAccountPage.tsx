@@ -5,7 +5,7 @@ import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +33,7 @@ import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHDataReimbursementAccount, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
@@ -509,29 +510,32 @@ function ReimbursementAccountPage({
 
 ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
-export default withPolicy(
-    withOnyx<ReimbursementAccountPageProps, ReimbursementAccountOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        plaidLinkToken: {
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
-        },
-        plaidCurrentEvent: {
-            key: ONYXKEYS.PLAID_CURRENT_EVENT,
-        },
-        onfidoToken: {
-            key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        account: {
-            key: ONYXKEYS.ACCOUNT,
-        },
-    })(ReimbursementAccountPage),
-);
+function ComponentWithOnyx(props: Omit<ReimbursementAccountPageProps, keyof ReimbursementAccountOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [plaidLinkToken, plaidLinkTokenMetadata] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidCurrentEvent, plaidCurrentEventMetadata] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
+    const [onfidoToken, onfidoTokenMetadata] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, sessionMetadata, plaidLinkTokenMetadata, plaidCurrentEventMetadata, onfidoTokenMetadata, isLoadingAppMetadata, accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReimbursementAccountPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            session={session}
+            plaidLinkToken={plaidLinkToken}
+            plaidCurrentEvent={plaidCurrentEvent}
+            onfidoToken={onfidoToken}
+            isLoadingApp={isLoadingApp}
+            account={account}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);

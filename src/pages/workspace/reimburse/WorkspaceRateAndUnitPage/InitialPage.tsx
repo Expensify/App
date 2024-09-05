@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount, WorkspaceRateAndUnit} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceRateAndUnitPageBaseProps = WithPolicyProps;
 
@@ -145,14 +146,22 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
 
 WorkspaceRateAndUnitPage.displayName = 'WorkspaceRateAndUnitPage';
 
-export default withPolicy(
-    withOnyx<WorkspaceRateAndUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        workspaceRateAndUnit: {
-            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
-        },
-    })(WorkspaceRateAndUnitPage),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceRateAndUnitPageProps, keyof WorkspaceRateAndUnitOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [workspaceRateAndUnit, workspaceRateAndUnitMetadata] = useOnyx(ONYXKEYS.WORKSPACE_RATE_AND_UNIT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, workspaceRateAndUnitMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceRateAndUnitPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            workspaceRateAndUnit={workspaceRateAndUnit}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);

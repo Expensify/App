@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceRateAndUnitForm';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceRatePageBaseProps = WithPolicyProps;
 
@@ -97,10 +98,20 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
 
 WorkspaceRatePage.displayName = 'WorkspaceRatePage';
 
-export default withPolicy(
-    withOnyx<WorkspaceRatePageProps, WorkspaceRateAndUnitOnyxProps>({
-        workspaceRateAndUnit: {
-            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
-        },
-    })(WorkspaceRatePage),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceRatePageProps, keyof WorkspaceRateAndUnitOnyxProps>) {
+    const [workspaceRateAndUnit, workspaceRateAndUnitMetadata] = useOnyx(ONYXKEYS.WORKSPACE_RATE_AND_UNIT);
+
+    if (isLoadingOnyxValue(workspaceRateAndUnitMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceRatePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            workspaceRateAndUnit={workspaceRateAndUnit}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);

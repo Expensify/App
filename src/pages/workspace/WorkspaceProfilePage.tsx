@@ -4,7 +4,7 @@ import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -304,8 +305,20 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
 
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
-export default withPolicy(
-    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    })(WorkspaceProfilePage),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceProfilePageProps, keyof WorkspaceProfilePageOnyxProps>) {
+    const [currencyList, currencyListMetadata] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+
+    if (isLoadingOnyxValue(currencyListMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceProfilePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            currencyList={currencyList}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);

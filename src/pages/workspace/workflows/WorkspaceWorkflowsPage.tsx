@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -40,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Beta} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -374,10 +375,20 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default withPolicy(
-    withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    })(WorkspaceWorkflowsPage),
-);
+function ComponentWithOnyx(props: Omit<WorkspaceWorkflowsPageProps, keyof WorkspaceWorkflowsPageOnyxProps>) {
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+
+    if (isLoadingOnyxValue(betasMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceWorkflowsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            betas={betas}
+        />
+    );
+}
+
+export default withPolicy(ComponentWithOnyx);
