@@ -116,12 +116,17 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 
     // Add each employee to the appropriate workflow
     Object.values(employees).forEach((employee) => {
-        const {email, submitsTo} = employee;
+        const {email, submitsTo, pendingAction} = employee;
         if (!email || !submitsTo) {
             return;
         }
 
-        const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
+        const member: Member = {
+            email,
+            avatar: personalDetailsByEmail[email]?.avatar,
+            displayName: personalDetailsByEmail[email]?.displayName ?? email,
+        };
+
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             if (submitsTo !== firstApprover) {
@@ -132,9 +137,14 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
+                pendingAction,
             };
         }
+
         approvalWorkflows[submitsTo].members.push(member);
+        if (pendingAction) {
+            approvalWorkflows[submitsTo].pendingAction = pendingAction;
+        }
     });
 
     // Sort the workflows by the first approver's name (default workflow has priority)
@@ -205,6 +215,8 @@ function convertApprovalWorkflowToPolicyEmployees({
         throw new Error('Approval workflow must have at least one approver');
     }
 
+    const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '';
@@ -216,6 +228,7 @@ function convertApprovalWorkflowToPolicyEmployees({
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
+            pendingAction,
         };
     });
 
@@ -226,38 +239,26 @@ function convertApprovalWorkflowToPolicyEmployees({
             return;
         }
 
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].submitsTo = submitsTo;
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
+            pendingAction,
         };
     });
 
     membersToRemove?.forEach(({email}) => {
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].submitsTo = '';
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: '',
+            pendingAction,
         };
     });
 
     approversToRemove?.forEach(({email}) => {
-        if (updatedEmployeeList[email]) {
-            updatedEmployeeList[email].forwardsTo = '';
-            return;
-        }
-
         updatedEmployeeList[email] = {
-            email,
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             forwardsTo: '',
+            pendingAction,
         };
     });
 

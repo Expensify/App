@@ -636,6 +636,8 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    SAGE_INTACCT_HELP_LINK:
+        "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -2406,6 +2408,7 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
+        EMPTY_COMMENT: /^(\s)*$/,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
         FIRST_SPACE: /.+?(?=\s)/,
@@ -4401,52 +4404,57 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceCategoriesLink}: {workspaceCategoriesLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *Categories*.\n' +
-                        '4. Enable and disable default categories.\n' +
-                        '5. Click *Add categories* to make your own.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Categories*.\n' +
+                        '5. Enable and disable default categories.\n' +
+                        '6. Click *Add categories* to make your own.\n' +
+                        '7. For more controls like requiring a category for every expense, click *Settings*.\n' +
                         '\n' +
-                        'For more controls like requiring a category for every expense, click *Settings*.',
+                        `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceMoreFeaturesLink}: {workspaceMoreFeaturesLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *More features*.\n' +
-                        '4. Enable *Workflows*.\n' +
-                        '5. In *Workflows*, enable *Add approvals*.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *More features*.\n' +
+                        '5. Enable *Workflows*.\n' +
+                        '6. In *Workflows*, enable *Add approvals*.\n' +
+                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
                         '\n' +
-                        'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
+                        `[Take me to enable more features](${workspaceMoreFeaturesLink}).`,
                 },
                 {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description: ({workspaceLink}: {workspaceLink: string}) =>
+                    description: ({workspaceMembersLink}: {workspaceMembersLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
-                        '3. Click *Members* > *Invite member*.\n' +
-                        '4. Enter emails or phone numbers. \n' +
-                        '5. Add an invite message if you want.\n' +
+                        '2. Go to Workspaces.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Members* > *Invite member*.\n' +
+                        '5. Enter emails or phone numbers. \n' +
+                        '6. Add an invite message if you want.\n' +
                         '\n' +
-                        'That’s it! Happy expensing :)',
+                        `[Take me to workspace members](${workspaceMembersLink}). That’s it, happy expensing! :)`,
                 },
             ],
         },

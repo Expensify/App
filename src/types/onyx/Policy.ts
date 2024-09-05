@@ -1235,6 +1235,15 @@ type Connections = {
 /** Names of integration connections */
 type ConnectionName = keyof Connections;
 
+/** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
+type MccGroup = {
+    /** Default category for provided MCC Group */
+    category: string;
+
+    /** ID of the Merchant Category Code */
+    groupID: string;
+};
+
 /** Model of verified reimbursement bank account linked to policy */
 type ACHAccount = {
     /** ID of the bank account */
@@ -1579,10 +1588,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether GL codes are enabled */
         glCodes?: boolean;
 
+        /** Policy MCC Group settings */
+        mccGroup?: Record<string, MccGroup>;
+
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */

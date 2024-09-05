@@ -1,17 +1,24 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import {isAuthenticationError} from '@libs/actions/connections';
+import * as Localize from '@libs/Localize';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getImportCustomFieldsSettings,
     shouldHideCustomFormIDOptions,
@@ -206,5 +213,44 @@ function getAccountingIntegrationData(
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getAccountingIntegrationData};
+function getSynchronizationErrorMessage(
+    policy: OnyxEntry<Policy>,
+    connectionName: PolicyConnectionName,
+    isSyncInProgress: boolean,
+    translate: LocaleContextProps['translate'],
+    styles?: ThemeStyles,
+): React.ReactNode | undefined {
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        if (
+            !isSyncInProgress &&
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
+        ) {
+            return syncError;
+        }
+        return;
+    }
+
+    const connection = policy?.connections?.[connectionName];
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
+        return;
+    }
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)) {
+        return (
+            <Text style={[styles?.formError]}>
+                <Text style={[styles?.formError]}>{translate('workspace.sageIntacct.authenticationError')}</Text>
+                <TextLink
+                    style={[styles?.link, styles?.fontSizeLabel]}
+                    href={CONST.SAGE_INTACCT_HELP_LINK}
+                >
+                    {translate('workspace.sageIntacct.learnMore')}
+                </TextLink>
+            </Text>
+        );
+    }
+    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+}
+
+export {getAccountingIntegrationData, getSynchronizationErrorMessage};
