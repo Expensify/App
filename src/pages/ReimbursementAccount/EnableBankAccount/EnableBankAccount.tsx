@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type EnableBankAccountOnyxProps = {
     /** Object with various information about the user */
@@ -116,8 +117,18 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
 
 EnableBankAccount.displayName = 'EnableStep';
 
-export default withOnyx<EnableBankAccountProps, EnableBankAccountOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(EnableBankAccount);
+export default function EnableBankAccountOnyx(props: Omit<EnableBankAccountProps, keyof EnableBankAccountOnyxProps>) {
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(userMetadata)) {
+        return null;
+    }
+
+    return (
+        <EnableBankAccount
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}

@@ -2,7 +2,7 @@ import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -142,12 +143,20 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 
 BusinessInfo.displayName = 'BusinessInfo';
 
-export default withOnyx<BusinessInfoProps, BusinessInfoOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(BusinessInfo);
+export default function BusinessInfoOnyx(props: Omit<BusinessInfoProps, keyof BusinessInfoOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft, reimbursementAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, reimbursementAccountDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <BusinessInfo
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            reimbursementAccountDraft={reimbursementAccountDraft}
+        />
+    );
+}

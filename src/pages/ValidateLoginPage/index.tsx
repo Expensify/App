@@ -1,10 +1,11 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
@@ -46,6 +47,18 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>, ValidateLoginPageOnyxNativeProps>({
-    session: {key: ONYXKEYS.SESSION},
-})(ValidateLoginPage);
+export default function ValidateLoginPageOnyx(props: Omit<ValidateLoginPageProps, keyof ValidateLoginPageOnyxNativeProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ValidateLoginPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

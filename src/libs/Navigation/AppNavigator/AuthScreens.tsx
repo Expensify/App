@@ -1,7 +1,7 @@
 import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -48,6 +48,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
@@ -570,14 +571,23 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+export default function AuthScreensMemoizedOnyx(props: Omit<AuthScreensProps, keyof AuthScreensProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDMetadata] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientMetadata] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+
+    if (isLoadingOnyxValue(sessionMetadata, lastOpenedPublicRoomIDMetadata, initialLastUpdateIDAppliedToClientMetadata)) {
+        return null;
+    }
+
+    return (
+        <AuthScreensMemoized
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+            lastOpenedPublicRoomID={lastOpenedPublicRoomID}
+            initialLastUpdateIDAppliedToClient={initialLastUpdateIDAppliedToClient}
+        />
+    );
+}

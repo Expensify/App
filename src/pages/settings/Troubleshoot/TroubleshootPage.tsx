@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
@@ -31,6 +31,7 @@ import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
@@ -176,12 +177,24 @@ function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPa
 
 TroubleshootPage.displayName = 'TroubleshootPage';
 
-export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-    shouldMaskOnyxState: {
-        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
-        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
-    },
-})(TroubleshootPage);
+export default function TroubleshootPageOnyx(props: Omit<TroubleshootPageProps, keyof TroubleshootPageOnyxProps>) {
+    const [shouldStoreLogs, shouldStoreLogsMetadata] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+
+    /*
+    Selector FIXME: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true
+    */
+    const [shouldMaskOnyxState, shouldMaskOnyxStateMetadata] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+
+    if (isLoadingOnyxValue(shouldStoreLogsMetadata, shouldMaskOnyxStateMetadata)) {
+        return null;
+    }
+
+    return (
+        <TroubleshootPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            shouldStoreLogs={shouldStoreLogs}
+            shouldMaskOnyxState={shouldMaskOnyxState}
+        />
+    );
+}

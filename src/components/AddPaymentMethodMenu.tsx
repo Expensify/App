@@ -2,7 +2,7 @@ import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
@@ -140,8 +141,18 @@ function AddPaymentMethodMenu({
 
 AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
-export default withOnyx<AddPaymentMethodMenuProps, AddPaymentMethodMenuOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(AddPaymentMethodMenu);
+export default function AddPaymentMethodMenuOnyx(props: Omit<AddPaymentMethodMenuProps, keyof AddPaymentMethodMenuOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddPaymentMethodMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

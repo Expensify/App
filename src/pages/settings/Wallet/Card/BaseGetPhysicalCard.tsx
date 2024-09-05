@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,6 +19,7 @@ import type {GetPhysicalCardForm} from '@src/types/form';
 import type {CardList, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type OnValidate = (values: OnyxEntry<GetPhysicalCardForm>) => Errors;
 
@@ -175,22 +176,28 @@ function BaseGetPhysicalCard({
 
 BaseGetPhysicalCard.displayName = 'BaseGetPhysicalCard';
 
-export default withOnyx<BaseGetPhysicalCardProps, BaseGetPhysicalCardOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(BaseGetPhysicalCard);
-
 export type {RenderContentProps};
+
+export default function BaseGetPhysicalCardOnyx(props: Omit<BaseGetPhysicalCardProps, keyof BaseGetPhysicalCardOnyxProps>) {
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(cardListMetadata, loginListMetadata, sessionMetadata, privatePersonalDetailsMetadata, draftValuesMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseGetPhysicalCard
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            cardList={cardList}
+            loginList={loginList}
+            session={session}
+            privatePersonalDetails={privatePersonalDetails}
+            draftValues={draftValues}
+        />
+    );
+}

@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -25,6 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, LoginList, PendingContactAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ValidateCodeFormHandle = {
     focus: () => void;
@@ -262,6 +263,18 @@ BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
-export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(BaseValidateCodeForm);
+export default function BaseValidateCodeFormOnyx(props: Omit<BaseValidateCodeFormProps, keyof BaseValidateCodeFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseValidateCodeForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -33,6 +33,7 @@ import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
@@ -309,17 +310,24 @@ function ExpensifyCardPage({
 
 ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
-export default withOnyx<ExpensifyCardPageProps, ExpensifyCardPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(ExpensifyCardPage);
+export default function ExpensifyCardPageOnyx(props: Omit<ExpensifyCardPageProps, keyof ExpensifyCardPageOnyxProps>) {
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(cardListMetadata, loginListMetadata, privatePersonalDetailsMetadata, draftValuesMetadata)) {
+        return null;
+    }
+
+    return (
+        <ExpensifyCardPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            cardList={cardList}
+            loginList={loginList}
+            privatePersonalDetails={privatePersonalDetails}
+            draftValues={draftValues}
+        />
+    );
+}

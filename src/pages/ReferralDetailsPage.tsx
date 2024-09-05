@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageOnyxProps = {
@@ -103,6 +104,18 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
 
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 
-export default withOnyx<ReferralDetailsPageProps, ReferralDetailsPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ReferralDetailsPage);
+export default function ReferralDetailsPageOnyx(props: Omit<ReferralDetailsPageProps, keyof ReferralDetailsPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReferralDetailsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ChangeExpensifyLoginLinkOnyxProps = {
     /** The credentials of the person logging in */
@@ -40,8 +41,18 @@ function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLi
 
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
-export default withOnyx<ChangeExpensifyLoginLinkProps, ChangeExpensifyLoginLinkOnyxProps>({
-    credentials: {
-        key: ONYXKEYS.CREDENTIALS,
-    },
-})(ChangeExpensifyLoginLink);
+export default function ChangeExpensifyLoginLinkOnyx(props: Omit<ChangeExpensifyLoginLinkProps, keyof ChangeExpensifyLoginLinkOnyxProps>) {
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+
+    if (isLoadingOnyxValue(credentialsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ChangeExpensifyLoginLink
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            credentials={credentials}
+        />
+    );
+}

@@ -4,7 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -35,6 +35,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
@@ -407,18 +408,22 @@ function PaymentMethodList({
 
 PaymentMethodList.displayName = 'PaymentMethodList';
 
-export default withOnyx<PaymentMethodListProps, PaymentMethodListOnyxProps>({
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    // Temporarily disabled - used for P2P debit cards
-    // fundList: {
-    //     key: ONYXKEYS.FUND_LIST,
-    // },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-    },
-})(PaymentMethodList);
+export default function PaymentMethodListOnyx(props: Omit<PaymentMethodListProps, keyof PaymentMethodListOnyxProps>) {
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [isLoadingPaymentMethods, isLoadingPaymentMethodsMetadata] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+
+    if (isLoadingOnyxValue(bankAccountListMetadata, cardListMetadata, isLoadingPaymentMethodsMetadata)) {
+        return null;
+    }
+
+    return (
+        <PaymentMethodList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            bankAccountList={bankAccountList}
+            cardList={cardList}
+            isLoadingPaymentMethods={isLoadingPaymentMethods}
+        />
+    );
+}

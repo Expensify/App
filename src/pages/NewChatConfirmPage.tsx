@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -184,11 +185,20 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
 NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
-export default withOnyx<NewChatConfirmPageProps, NewChatConfirmPageOnyxProps>({
-    newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-    allPersonalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(NewChatConfirmPage);
+export default function NewChatConfirmPageOnyx(props: Omit<NewChatConfirmPageProps, keyof NewChatConfirmPageOnyxProps>) {
+    const [newGroupDraft, newGroupDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [allPersonalDetails, allPersonalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(newGroupDraftMetadata, allPersonalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <NewChatConfirmPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            newGroupDraft={newGroupDraft}
+            allPersonalDetails={allPersonalDetails}
+        />
+    );
+}

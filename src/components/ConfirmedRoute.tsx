@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
@@ -128,10 +129,20 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     );
 }
 
-export default withOnyx<ConfirmedRouteProps, ConfirmedRoutePropsOnyxProps>({
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
-})(ConfirmedRoute);
-
 ConfirmedRoute.displayName = 'ConfirmedRoute';
+
+export default function ConfirmedRouteOnyx(props: Omit<ConfirmedRouteProps, keyof ConfirmedRoutePropsOnyxProps>) {
+    const [mapboxAccessToken, mapboxAccessTokenMetadata] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
+
+    if (isLoadingOnyxValue(mapboxAccessTokenMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConfirmedRoute
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            mapboxAccessToken={mapboxAccessToken}
+        />
+    );
+}

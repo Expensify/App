@@ -1,5 +1,5 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet, WalletTerms} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ActivateStepOnyxProps = {
     /** Information about the user accepting the terms for payments */
@@ -52,8 +53,18 @@ function ActivateStep({userWallet, walletTerms}: ActivateStepProps) {
 
 ActivateStep.displayName = 'ActivateStep';
 
-export default withOnyx<ActivateStepProps, ActivateStepOnyxProps>({
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-})(ActivateStep);
+export default function ActivateStepOnyx(props: Omit<ActivateStepProps, keyof ActivateStepOnyxProps>) {
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+
+    if (isLoadingOnyxValue(walletTermsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ActivateStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletTerms={walletTerms}
+        />
+    );
+}

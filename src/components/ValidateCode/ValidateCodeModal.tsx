@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as SessionType} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ValidateCodeModalOnyxProps = {
     /** Session of currently logged in user */
@@ -73,6 +74,18 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
 
 ValidateCodeModal.displayName = 'ValidateCodeModal';
 
-export default withOnyx<ValidateCodeModalProps, ValidateCodeModalOnyxProps>({
-    session: {key: ONYXKEYS.SESSION},
-})(ValidateCodeModal);
+export default function ValidateCodeModalOnyx(props: Omit<ValidateCodeModalProps, keyof ValidateCodeModalOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ValidateCodeModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

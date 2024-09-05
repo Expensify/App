@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
 import type {LoginList} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type KnowATeacherPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -140,6 +141,18 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
 
 KnowATeacherPage.displayName = 'KnowATeacherPage';
 
-export default withOnyx<KnowATeacherPageProps, KnowATeacherPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(KnowATeacherPage);
+export default function KnowATeacherPageOnyx(props: Omit<KnowATeacherPageProps, keyof KnowATeacherPageOnyxProps>) {
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+
+    if (isLoadingOnyxValue(loginListMetadata)) {
+        return null;
+    }
+
+    return (
+        <KnowATeacherPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            loginList={loginList}
+        />
+    );
+}

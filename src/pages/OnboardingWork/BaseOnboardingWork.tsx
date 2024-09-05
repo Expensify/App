@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
@@ -121,11 +122,20 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingPolicyID: {
-        key: ONYXKEYS.ONBOARDING_POLICY_ID,
-    },
-})(BaseOnboardingWork);
+export default function BaseOnboardingWorkOnyx(props: Omit<BaseOnboardingWorkProps, keyof BaseOnboardingWorkOnyxProps>) {
+    const [onboardingPurposeSelected, onboardingPurposeSelectedMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID, onboardingPolicyIDMetadata] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+
+    if (isLoadingOnyxValue(onboardingPurposeSelectedMetadata, onboardingPolicyIDMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseOnboardingWork
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            onboardingPurposeSelected={onboardingPurposeSelected}
+            onboardingPolicyID={onboardingPolicyID}
+        />
+    );
+}

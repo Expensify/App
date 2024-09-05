@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
@@ -87,8 +88,22 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxProps>, ValidateLoginPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    session: {key: ONYXKEYS.SESSION},
-})(ValidateLoginPage);
+export default function ValidateLoginPageOnyx(props: Omit<ValidateLoginPageProps, keyof ValidateLoginPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(accountMetadata, credentialsMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ValidateLoginPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            credentials={credentials}
+            session={session}
+        />
+    );
+}

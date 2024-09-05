@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type GetAssistanceOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -92,9 +93,21 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
 
 GetAssistancePage.displayName = 'GetAssistancePage';
 
-export default withOnyx<GetAssistancePageProps, GetAssistanceOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
-    },
-})(GetAssistancePage);
+export default function GetAssistancePageOnyx(props: Omit<GetAssistancePageProps, keyof GetAssistanceOnyxProps>) {
+    /*
+    Selector FIXME: (account) => account && {guideCalendarLink: account.guideCalendarLink}
+    */
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <GetAssistancePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

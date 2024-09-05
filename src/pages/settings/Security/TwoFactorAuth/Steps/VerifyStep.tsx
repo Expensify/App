@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -21,6 +21,7 @@ import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from '@pa
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
@@ -138,6 +139,18 @@ function VerifyStep({account}: VerifyStepProps) {
 
 VerifyStep.displayName = 'VerifyStep';
 
-export default withOnyx<VerifyStepProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(VerifyStep);
+export default function VerifyStepOnyx(props: Omit<VerifyStepProps, keyof BaseTwoFactorAuthFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <VerifyStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

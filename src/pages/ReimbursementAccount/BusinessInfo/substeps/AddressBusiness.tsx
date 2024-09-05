@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
@@ -13,6 +13,7 @@ import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type AddressBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -93,9 +94,18 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
 
 AddressBusiness.displayName = 'AddressBusiness';
 
-export default withOnyx<AddressBusinessProps, AddressBusinessOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(AddressBusiness);
+export default function AddressBusinessOnyx(props: Omit<AddressBusinessProps, keyof AddressBusinessOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddressBusiness
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}

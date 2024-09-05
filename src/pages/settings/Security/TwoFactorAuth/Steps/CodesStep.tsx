@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
@@ -160,9 +161,20 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
 
 CodesStep.displayName = 'CodesStep';
 
-export default withOnyx<CodesStepProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(CodesStep);
+export default function CodesStepOnyx(props: Omit<CodesStepProps, keyof BaseTwoFactorAuthFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(accountMetadata, userMetadata)) {
+        return null;
+    }
+
+    return (
+        <CodesStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            user={user}
+        />
+    );
+}

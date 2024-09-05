@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
@@ -23,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {LoginList, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ContactMethodsPageOnyxProps = {
     /** Login list for the user that is signed in */
@@ -131,11 +132,20 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
 
 ContactMethodsPage.displayName = 'ContactMethodsPage';
 
-export default withOnyx<ContactMethodsPageProps, ContactMethodsPageOnyxProps>({
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ContactMethodsPage);
+export default function ContactMethodsPageOnyx(props: Omit<ContactMethodsPageProps, keyof ContactMethodsPageOnyxProps>) {
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(loginListMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ContactMethodsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            loginList={loginList}
+            session={session}
+        />
+    );
+}

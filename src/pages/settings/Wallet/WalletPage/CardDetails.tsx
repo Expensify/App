@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -14,6 +14,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [
@@ -102,8 +103,18 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
 
 CardDetails.displayName = 'CardDetails';
 
-export default withOnyx<CardDetailsProps, CardDetailsOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-})(CardDetails);
+export default function CardDetailsOnyx(props: Omit<CardDetailsProps, keyof CardDetailsOnyxProps>) {
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <CardDetails
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            privatePersonalDetails={privatePersonalDetails}
+        />
+    );
+}

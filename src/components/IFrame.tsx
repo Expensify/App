@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type OldDotIFrameOnyxProps = {
     session: OnyxEntry<Session>;
@@ -123,8 +124,18 @@ function OldDotIFrame({session}: OldDotIFrameProps) {
     );
 }
 
-export default withOnyx<OldDotIFrameProps, OldDotIFrameOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(OldDotIFrame);
+export default function OldDotIFrameOnyx(props: Omit<OldDotIFrameProps, keyof OldDotIFrameOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <OldDotIFrame
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

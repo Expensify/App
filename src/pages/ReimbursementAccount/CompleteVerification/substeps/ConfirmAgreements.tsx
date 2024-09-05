@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConfirmAgreementsOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -122,9 +123,18 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
 
 ConfirmAgreements.displayName = 'ConfirmAgreements';
 
-export default withOnyx<ConfirmAgreementsProps, ConfirmAgreementsOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(ConfirmAgreements);
+export default function ConfirmAgreementsOnyx(props: Omit<ConfirmAgreementsProps, keyof ConfirmAgreementsOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConfirmAgreements
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}

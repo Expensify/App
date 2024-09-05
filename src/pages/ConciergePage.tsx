@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConciergePageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -68,8 +69,18 @@ function ConciergePage({session}: ConciergePageProps) {
 
 ConciergePage.displayName = 'ConciergePage';
 
-export default withOnyx<ConciergePageProps, ConciergePageOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConciergePage);
+export default function ConciergePageOnyx(props: Omit<ConciergePageProps, keyof ConciergePageOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConciergePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

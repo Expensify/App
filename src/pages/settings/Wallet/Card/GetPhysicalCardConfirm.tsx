@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const goToGetPhysicalCardName = (domain: string) => {
@@ -94,8 +95,18 @@ function GetPhysicalCardConfirm({
 
 GetPhysicalCardConfirm.displayName = 'GetPhysicalCardConfirm';
 
-export default withOnyx<GetPhysicalCardConfirmProps, GetPhysicalCardConfirmOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardConfirm);
+export default function GetPhysicalCardConfirmOnyx(props: Omit<GetPhysicalCardConfirmProps, keyof GetPhysicalCardConfirmOnyxProps>) {
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(draftValuesMetadata)) {
+        return null;
+    }
+
+    return (
+        <GetPhysicalCardConfirm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftValues={draftValues}
+        />
+    );
+}

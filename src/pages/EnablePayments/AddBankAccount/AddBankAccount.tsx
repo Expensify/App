@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
@@ -118,15 +119,22 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
 AddBankAccount.displayName = 'AddBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-})(AddBankAccount);
+export default function AddBankAccountOnyx(props: Omit<AddPersonalBankAccountPageWithOnyxProps, keyof AddPersonalBankAccountPageWithOnyxProps>) {
+    const [plaidData, plaidDataMetadata] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccountDraft, personalBankAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(plaidDataMetadata, personalBankAccountMetadata, personalBankAccountDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddBankAccount
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            plaidData={plaidData}
+            personalBankAccount={personalBankAccount}
+            personalBankAccountDraft={personalBankAccountDraft}
+        />
+    );
+}

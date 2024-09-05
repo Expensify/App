@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {PlaidData, ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PlaidOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -97,15 +98,22 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
 
 Plaid.displayName = 'Plaid';
 
-export default withOnyx<PlaidProps, PlaidOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(Plaid);
+export default function PlaidOnyx(props: Omit<PlaidProps, keyof PlaidOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft, reimbursementAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [plaidData, plaidDataMetadata] = useOnyx(ONYXKEYS.PLAID_DATA);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, reimbursementAccountDraftMetadata, plaidDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <Plaid
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            reimbursementAccountDraft={reimbursementAccountDraft}
+            plaidData={plaidData}
+        />
+    );
+}

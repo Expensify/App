@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
@@ -287,12 +288,23 @@ function AddPlaidBankAccount({
 
 AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
-export default withOnyx<AddPlaidBankAccountProps, AddPlaidBankAccountOnyxProps>({
-    plaidLinkToken: {
-        key: ONYXKEYS.PLAID_LINK_TOKEN,
+export default function AddPlaidBankAccountOnyx(props: Omit<AddPlaidBankAccountProps, keyof AddPlaidBankAccountOnyxProps>) {
+    const [plaidLinkToken, plaidLinkTokenMetadata] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {
         initWithStoredValues: false,
-    },
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-})(AddPlaidBankAccount);
+    });
+
+    const [isPlaidDisabled, isPlaidDisabledMetadata] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+
+    if (isLoadingOnyxValue(plaidLinkTokenMetadata, isPlaidDisabledMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddPlaidBankAccount
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            plaidLinkToken={plaidLinkToken}
+            isPlaidDisabled={isPlaidDisabled}
+        />
+    );
+}

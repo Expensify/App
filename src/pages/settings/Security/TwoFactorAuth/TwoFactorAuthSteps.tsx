@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
@@ -73,6 +74,18 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
-export default withOnyx<TwoFactorAuthStepProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(TwoFactorAuthSteps);
+export default function TwoFactorAuthStepsOnyx(props: Omit<TwoFactorAuthStepProps, keyof BaseTwoFactorAuthFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <TwoFactorAuthSteps
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

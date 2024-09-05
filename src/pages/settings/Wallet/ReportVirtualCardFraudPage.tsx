@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ReportVirtualCardFraudForm} from '@src/types/form';
 import type {Card as OnyxCard} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ReportVirtualCardFraudPageOnyxProps = {
     /** Form data propTypes */
@@ -85,11 +86,20 @@ function ReportVirtualCardFraudPage({
 
 ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
 
-export default withOnyx<ReportVirtualCardFraudPageProps, ReportVirtualCardFraudPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    formData: {
-        key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-    },
-})(ReportVirtualCardFraudPage);
+export default function ReportVirtualCardFraudPageOnyx(props: Omit<ReportVirtualCardFraudPageProps, keyof ReportVirtualCardFraudPageOnyxProps>) {
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [formData, formDataMetadata] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
+
+    if (isLoadingOnyxValue(cardListMetadata, formDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportVirtualCardFraudPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            cardList={cardList}
+            formData={formData}
+        />
+    );
+}

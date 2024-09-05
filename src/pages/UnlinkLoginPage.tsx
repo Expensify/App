@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
@@ -10,6 +10,7 @@ import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type UnlinkLoginPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -43,6 +44,18 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
 
 UnlinkLoginPage.displayName = 'UnlinkLoginPage';
 
-export default withOnyx<UnlinkLoginPageProps, UnlinkLoginPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(UnlinkLoginPage);
+export default function UnlinkLoginPageOnyx(props: Omit<UnlinkLoginPageProps, keyof UnlinkLoginPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <UnlinkLoginPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

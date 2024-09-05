@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -39,6 +39,7 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceNewRoomPageOnyxProps = {
     /** The list of policies the user has access to. */
@@ -346,21 +347,30 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    formState: {
-        key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+export default function WorkspaceNewRoomPageOnyx(props: Omit<WorkspaceNewRoomPageProps, keyof WorkspaceNewRoomPageOnyxProps>) {
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
+    const [formState, formStateMetadata] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         initWithStoredValues: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    activePolicyID: {
-        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    },
-})(WorkspaceNewRoomPage);
+    });
+
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    if (isLoadingOnyxValue(policiesMetadata, reportsMetadata, formStateMetadata, sessionMetadata, activePolicyIDMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceNewRoomPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policies={policies}
+            reports={reports}
+            formState={formState}
+            session={session}
+            activePolicyID={activePolicyID}
+        />
+    );
+}

@@ -1,12 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PrivatePersonalDetails, Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -46,11 +47,20 @@ function CardPreview({privatePersonalDetails, session}: CardPreviewProps) {
 
 CardPreview.displayName = 'CardPreview';
 
-export default withOnyx<CardPreviewProps, CardPreviewOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(CardPreview);
+export default function CardPreviewOnyx(props: Omit<CardPreviewProps, keyof CardPreviewOnyxProps>) {
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <CardPreview
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            privatePersonalDetails={privatePersonalDetails}
+            session={session}
+        />
+    );
+}

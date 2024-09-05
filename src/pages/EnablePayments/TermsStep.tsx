@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -14,6 +14,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet, WalletTerms} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 
@@ -124,8 +125,18 @@ function TermsStep(props: TermsStepProps) {
 
 TermsStep.displayName = 'TermsPage';
 
-export default withOnyx<TermsStepProps, TermsStepOnyxProps>({
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-})(TermsStep);
+export default function TermsStepOnyx(props: Omit<TermsStepProps, keyof TermsStepOnyxProps>) {
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+
+    if (isLoadingOnyxValue(walletTermsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TermsStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletTerms={walletTerms}
+        />
+    );
+}

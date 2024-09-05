@@ -4,7 +4,7 @@ import {format} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CapturedLogs} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
@@ -228,11 +229,20 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
 
 ConsolePage.displayName = 'ConsolePage';
 
-export default withOnyx<ConsolePageProps, ConsolePageOnyxProps>({
-    capturedLogs: {
-        key: ONYXKEYS.LOGS,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(ConsolePage);
+export default function ConsolePageOnyx(props: Omit<ConsolePageProps, keyof ConsolePageOnyxProps>) {
+    const [capturedLogs, capturedLogsMetadata] = useOnyx(ONYXKEYS.LOGS);
+    const [shouldStoreLogs, shouldStoreLogsMetadata] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+
+    if (isLoadingOnyxValue(capturedLogsMetadata, shouldStoreLogsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConsolePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            capturedLogs={capturedLogs}
+            shouldStoreLogs={shouldStoreLogs}
+        />
+    );
+}

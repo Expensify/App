@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
@@ -14,6 +14,7 @@ import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorA
 import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type GetCodeProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
@@ -64,9 +65,20 @@ function GetCode({account}: GetCodeProps) {
 
 GetCode.displayName = 'GetCode';
 
-export default withOnyx<GetCodeProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(GetCode);
+export default function GetCodeOnyx(props: Omit<GetCodeProps, keyof BaseTwoFactorAuthFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(accountMetadata, userMetadata)) {
+        return null;
+    }
+
+    return (
+        <GetCode
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            user={user}
+        />
+    );
+}

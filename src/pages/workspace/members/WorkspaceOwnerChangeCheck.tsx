@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Text from '@components/Text';
@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceOwnerChangeCheckOnyxProps = {
     /** Personal details of all users */
@@ -91,8 +92,18 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
 WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
 
-export default withOnyx<WorkspaceOwnerChangeCheckProps, WorkspaceOwnerChangeCheckOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(WorkspaceOwnerChangeCheck);
+export default function WorkspaceOwnerChangeCheckOnyx(props: Omit<WorkspaceOwnerChangeCheckProps, keyof WorkspaceOwnerChangeCheckOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceOwnerChangeCheck
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+        />
+    );
+}

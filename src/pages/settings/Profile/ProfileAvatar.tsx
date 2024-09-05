@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -12,6 +12,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ProfileAvatarOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -52,14 +53,22 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
 
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-export default withOnyx<ProfileAvatarProps, ProfileAvatarOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    personalDetailsMetadata: {
-        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(ProfileAvatar);
+export default function ProfileAvatarOnyx(props: Omit<ProfileAvatarProps, keyof ProfileAvatarOnyxProps>) {
+    const [personalDetails, personalDetailsListMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsMetadata, personalDetailsMetadataMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(personalDetailsListMetadata, personalDetailsMetadataMetadata, isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <ProfileAvatar
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+            personalDetailsMetadata={personalDetailsMetadata}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}

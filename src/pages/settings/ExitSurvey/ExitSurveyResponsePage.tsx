@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyResponsePageOnyxProps = {
@@ -179,9 +180,21 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
 
 ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
-export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
-    draftResponse: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT,
-        selector: (value) => value?.[INPUT_IDS.RESPONSE] ?? '',
-    },
-})(ExitSurveyResponsePage);
+export default function ExitSurveyResponsePageOnyx(props: Omit<ExitSurveyResponsePageProps, keyof ExitSurveyResponsePageOnyxProps>) {
+    /*
+    Selector FIXME: (value) => value?.[INPUT_IDS.RESPONSE] ?? ''
+    */
+    const [draftResponse, draftResponseMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(draftResponseMetadata)) {
+        return null;
+    }
+
+    return (
+        <ExitSurveyResponsePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftResponse={draftResponse}
+        />
+    );
+}

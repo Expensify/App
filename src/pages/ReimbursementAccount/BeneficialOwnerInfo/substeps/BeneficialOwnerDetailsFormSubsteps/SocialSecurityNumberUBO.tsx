@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -15,6 +15,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -80,8 +81,18 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
 
 SocialSecurityNumberUBO.displayName = 'SocialSecurityNumberUBO';
 
-export default withOnyx<SocialSecurityNumberUBOProps, SocialSecurityNumberUBOOnyxProps>({
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(SocialSecurityNumberUBO);
+export default function SocialSecurityNumberUBOOnyx(props: Omit<SocialSecurityNumberUBOProps, keyof SocialSecurityNumberUBOOnyxProps>) {
+    const [reimbursementAccountDraft, reimbursementAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(reimbursementAccountDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <SocialSecurityNumberUBO
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccountDraft={reimbursementAccountDraft}
+        />
+    );
+}

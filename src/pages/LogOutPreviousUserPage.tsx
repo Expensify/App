@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -15,6 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
@@ -93,12 +94,24 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
 
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
-export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
-    isAccountLoading: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account?.isLoading ?? false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(LogOutPreviousUserPage);
+export default function LogOutPreviousUserPageOnyx(props: Omit<LogOutPreviousUserPageProps, keyof LogOutPreviousUserPageOnyxProps>) {
+    /*
+    Selector FIXME: (account) => account?.isLoading ?? false
+    */
+    const [isAccountLoading, isAccountLoadingMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(isAccountLoadingMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <LogOutPreviousUserPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isAccountLoading={isAccountLoading}
+            session={session}
+        />
+    );
+}

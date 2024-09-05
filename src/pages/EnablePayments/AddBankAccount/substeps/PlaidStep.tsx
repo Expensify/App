@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 import type {PlaidData} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PlaidOnyxProps = {
     /** The draft values of the bank account being setup */
@@ -91,11 +92,20 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
 
 PlaidStep.displayName = 'PlaidStep';
 
-export default withOnyx<PlaidStepProps, PlaidOnyxProps>({
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(PlaidStep);
+export default function PlaidStepOnyx(props: Omit<PlaidStepProps, keyof PlaidOnyxProps>) {
+    const [personalBankAccountDraft, personalBankAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [plaidData, plaidDataMetadata] = useOnyx(ONYXKEYS.PLAID_DATA);
+
+    if (isLoadingOnyxValue(personalBankAccountDraftMetadata, plaidDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <PlaidStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalBankAccountDraft={personalBankAccountDraft}
+            plaidData={plaidData}
+        />
+    );
+}

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +13,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -185,8 +186,18 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
 
 ReportWelcomeText.displayName = 'ReportWelcomeText';
 
-export default withOnyx<ReportWelcomeTextProps, ReportWelcomeTextOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(ReportWelcomeText);
+export default function ReportWelcomeTextOnyx(props: Omit<ReportWelcomeTextProps, keyof ReportWelcomeTextOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportWelcomeText
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+        />
+    );
+}

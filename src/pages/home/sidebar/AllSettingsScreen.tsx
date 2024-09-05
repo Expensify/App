@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -18,6 +18,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type AllSettingsScreenOnyxProps = {
     policies: OnyxCollection<Policy>;
@@ -123,8 +124,18 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
 
 AllSettingsScreen.displayName = 'AllSettingsScreen';
 
-export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(AllSettingsScreen);
+export default function AllSettingsScreenOnyx(props: Omit<AllSettingsScreenProps, keyof AllSettingsScreenOnyxProps>) {
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    if (isLoadingOnyxValue(policiesMetadata)) {
+        return null;
+    }
+
+    return (
+        <AllSettingsScreen
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policies={policies}
+        />
+    );
+}

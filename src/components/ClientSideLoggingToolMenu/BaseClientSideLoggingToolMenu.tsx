@@ -1,6 +1,6 @@
 import React from 'react';
 import {Alert} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
@@ -12,6 +12,7 @@ import * as Console from '@libs/actions/Console';
 import {parseStringifiedMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CapturedLogs, Log} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -93,12 +94,22 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
 
 BaseClientSideLoggingToolMenu.displayName = 'BaseClientSideLoggingToolMenu';
 
-export default withOnyx<BaseClientSideLoggingToolProps, BaseClientSideLoggingToolMenuOnyxProps>({
-    capturedLogs: {
-        key: ONYXKEYS.LOGS,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(BaseClientSideLoggingToolMenu);
 export type {File};
+
+export default function BaseClientSideLoggingToolMenuOnyx(props: Omit<BaseClientSideLoggingToolProps, keyof BaseClientSideLoggingToolMenuOnyxProps>) {
+    const [capturedLogs, capturedLogsMetadata] = useOnyx(ONYXKEYS.LOGS);
+    const [shouldStoreLogs, shouldStoreLogsMetadata] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+
+    if (isLoadingOnyxValue(capturedLogsMetadata, shouldStoreLogsMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseClientSideLoggingToolMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            capturedLogs={capturedLogs}
+            shouldStoreLogs={shouldStoreLogs}
+        />
+    );
+}

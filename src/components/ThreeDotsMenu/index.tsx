@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -14,6 +14,7 @@ import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ThreeDotsMenuProps from './types';
 
 type ThreeDotsMenuOnyxProps = {
@@ -114,8 +115,18 @@ function ThreeDotsMenu({
 
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default withOnyx<ThreeDotsMenuProps, ThreeDotsMenuOnyxProps>({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
-})(ThreeDotsMenu);
+export default function ThreeDotsMenuOnyx(props: Omit<ThreeDotsMenuProps, keyof ThreeDotsMenuOnyxProps>) {
+    const [modal, modalMetadata] = useOnyx(ONYXKEYS.MODAL);
+
+    if (isLoadingOnyxValue(modalMetadata)) {
+        return null;
+    }
+
+    return (
+        <ThreeDotsMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            modal={modal}
+        />
+    );
+}

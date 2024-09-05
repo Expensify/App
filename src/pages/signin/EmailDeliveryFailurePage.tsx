@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -13,6 +13,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type EmailDeliveryFailurePageOnyxProps = {
     /** The credentials of the logged in person */
@@ -90,6 +91,18 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
 
 EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
-export default withOnyx<EmailDeliveryFailurePageProps, EmailDeliveryFailurePageOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(EmailDeliveryFailurePage);
+export default function EmailDeliveryFailurePageOnyx(props: Omit<EmailDeliveryFailurePageProps, keyof EmailDeliveryFailurePageOnyxProps>) {
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+
+    if (isLoadingOnyxValue(credentialsMetadata)) {
+        return null;
+    }
+
+    return (
+        <EmailDeliveryFailurePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            credentials={credentials}
+        />
+    );
+}

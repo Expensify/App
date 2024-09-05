@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Onfido from '@components/Onfido';
@@ -14,6 +14,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type RequestorOnfidoStepOnyxProps = {
     /** The token required to initialize the Onfido SDK */
@@ -87,11 +88,20 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
 
 RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
-export default withOnyx<RequestorOnfidoStepProps, RequestorOnfidoStepOnyxProps>({
-    onfidoToken: {
-        key: ONYXKEYS.ONFIDO_TOKEN,
-    },
-    onfidoApplicantID: {
-        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
-    },
-})(RequestorOnfidoStep);
+export default function RequestorOnfidoStepOnyx(props: Omit<RequestorOnfidoStepProps, keyof RequestorOnfidoStepOnyxProps>) {
+    const [onfidoToken, onfidoTokenMetadata] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [onfidoApplicantID, onfidoApplicantIDMetadata] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
+
+    if (isLoadingOnyxValue(onfidoTokenMetadata, onfidoApplicantIDMetadata)) {
+        return null;
+    }
+
+    return (
+        <RequestorOnfidoStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            onfidoToken={onfidoToken}
+            onfidoApplicantID={onfidoApplicantID}
+        />
+    );
+}

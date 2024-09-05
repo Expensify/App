@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +13,7 @@ import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import type {RenderContentProps} from './BaseGetPhysicalCard';
 
@@ -116,8 +117,18 @@ function GetPhysicalCardAddress({
 
 GetPhysicalCardAddress.displayName = 'GetPhysicalCardAddress';
 
-export default withOnyx<GetPhysicalCardAddressProps, GetPhysicalCardAddressOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardAddress);
+export default function GetPhysicalCardAddressOnyx(props: Omit<GetPhysicalCardAddressProps, keyof GetPhysicalCardAddressOnyxProps>) {
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(draftValuesMetadata)) {
+        return null;
+    }
+
+    return (
+        <GetPhysicalCardAddress
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftValues={draftValues}
+        />
+    );
+}

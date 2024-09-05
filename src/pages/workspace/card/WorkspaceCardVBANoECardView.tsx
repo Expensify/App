@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,6 +14,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {User} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceCardVBANoECardViewOnyxProps = {
     /** Information about the logged in user's account */
@@ -56,8 +57,18 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
 
 WorkspaceCardVBANoECardView.displayName = 'WorkspaceCardVBANoECardView';
 
-export default withOnyx<WorkspaceCardVBANoECardViewProps, WorkspaceCardVBANoECardViewOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(WorkspaceCardVBANoECardView);
+export default function WorkspaceCardVBANoECardViewOnyx(props: Omit<WorkspaceCardVBANoECardViewProps, keyof WorkspaceCardVBANoECardViewOnyxProps>) {
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(userMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceCardVBANoECardView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SignInPageLayout from './SignInPageLayout';
 
 type ThirdPartySignInPageOnyxProps = {
@@ -83,8 +84,18 @@ function ThirdPartySignInPage({account, signInProvider}: ThirdPartySignInPagePro
 
 ThirdPartySignInPage.displayName = 'ThirdPartySignInPage';
 
-export default withOnyx<ThirdPartySignInPageProps, ThirdPartySignInPageOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-})(ThirdPartySignInPage);
+export default function ThirdPartySignInPageOnyx(props: Omit<ThirdPartySignInPageProps, keyof ThirdPartySignInPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ThirdPartySignInPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

@@ -3,7 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
@@ -617,26 +618,30 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
 WalletPage.displayName = 'WalletPage';
 
-export default withOnyx<WalletPageProps, WalletPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    isLoadingPaymentMethods: {
-        key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-    },
-})(WalletPage);
+export default function WalletPageOnyx(props: Omit<WalletPageProps, keyof WalletPageOnyxProps>) {
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [walletTransfer, walletTransferMetadata] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList, fundListMetadata] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [isLoadingPaymentMethods, isLoadingPaymentMethodsMetadata] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+
+    if (isLoadingOnyxValue(cardListMetadata, walletTransferMetadata, userWalletMetadata, bankAccountListMetadata, fundListMetadata, walletTermsMetadata, isLoadingPaymentMethodsMetadata)) {
+        return null;
+    }
+
+    return (
+        <WalletPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            cardList={cardList}
+            walletTransfer={walletTransfer}
+            userWallet={userWallet}
+            bankAccountList={bankAccountList}
+            fundList={fundList}
+            walletTerms={walletTerms}
+            isLoadingPaymentMethods={isLoadingPaymentMethods}
+        />
+    );
+}

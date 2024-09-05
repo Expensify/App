@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -24,6 +24,7 @@ import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type GroupChatNameEditPageOnyxProps = {
     groupChatDraft: OnyxEntry<NewGroupChatDraft>;
@@ -117,8 +118,18 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
 
 GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
-export default withOnyx<GroupChatNameEditPageProps, GroupChatNameEditPageOnyxProps>({
-    groupChatDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-})(GroupChatNameEditPage);
+export default function GroupChatNameEditPageOnyx(props: Omit<GroupChatNameEditPageProps, keyof GroupChatNameEditPageOnyxProps>) {
+    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+
+    if (isLoadingOnyxValue(groupChatDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <GroupChatNameEditPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            groupChatDraft={groupChatDraft}
+        />
+    );
+}

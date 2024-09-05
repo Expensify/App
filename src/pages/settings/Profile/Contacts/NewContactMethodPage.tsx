@@ -3,7 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -27,6 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewContactMethodPageOnyxProps = {
     /** Login list for the user that is signed in */
@@ -145,6 +146,18 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
 
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 
-export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(NewContactMethodPage);
+export default function NewContactMethodPageOnyx(props: Omit<NewContactMethodPageProps, keyof NewContactMethodPageOnyxProps>) {
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+
+    if (isLoadingOnyxValue(loginListMetadata)) {
+        return null;
+    }
+
+    return (
+        <NewContactMethodPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            loginList={loginList}
+        />
+    );
+}

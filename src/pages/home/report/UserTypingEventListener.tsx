@@ -2,13 +2,14 @@ import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type UserTypingEventListenerOnyxProps = {
     /** Stores last visited path */
@@ -83,9 +84,21 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
 
 UserTypingEventListener.displayName = 'UserTypingEventListener';
 
-export default withOnyx<UserTypingEventListenerProps, UserTypingEventListenerOnyxProps>({
-    lastVisitedPath: {
-        key: ONYXKEYS.LAST_VISITED_PATH,
-        selector: (path) => path ?? '',
-    },
-})(UserTypingEventListener);
+export default function UserTypingEventListenerOnyx(props: Omit<UserTypingEventListenerProps, keyof UserTypingEventListenerOnyxProps>) {
+    /*
+    Selector FIXME: (path) => path ?? ''
+    */
+    const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+
+    if (isLoadingOnyxValue(lastVisitedPathMetadata)) {
+        return null;
+    }
+
+    return (
+        <UserTypingEventListener
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            lastVisitedPath={lastVisitedPath}
+        />
+    );
+}

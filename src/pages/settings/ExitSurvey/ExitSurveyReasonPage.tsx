@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -18,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyReasonPageOnyxProps = {
@@ -97,9 +98,21 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
 
 ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 
-export default withOnyx<ExitSurveyReasonPageOnyxProps, ExitSurveyReasonPageOnyxProps>({
-    draftReason: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
-        selector: (value) => value?.[INPUT_IDS.REASON] ?? null,
-    },
-})(ExitSurveyReasonPage);
+export default function ExitSurveyReasonPageOnyx(props: Omit<ExitSurveyReasonPageOnyxProps, keyof ExitSurveyReasonPageOnyxProps>) {
+    /*
+    Selector FIXME: (value) => value?.[INPUT_IDS.REASON] ?? null
+    */
+    const [draftReason, draftReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(draftReasonMetadata)) {
+        return null;
+    }
+
+    return (
+        <ExitSurveyReasonPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftReason={draftReason}
+        />
+    );
+}

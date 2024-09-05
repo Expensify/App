@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -94,7 +95,20 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
 
 ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
 
-export default withOnyx<ChooseSSOOrMagicCodeProps, ChooseSSOOrMagicCodeOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ChooseSSOOrMagicCode);
+export default function ChooseSSOOrMagicCodeOnyx(props: Omit<ChooseSSOOrMagicCodeProps, keyof ChooseSSOOrMagicCodeOnyxProps>) {
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(credentialsMetadata, accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ChooseSSOOrMagicCode
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            credentials={credentials}
+            account={account}
+        />
+    );
+}

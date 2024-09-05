@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DateTime = {
     dateTime: string;
@@ -81,8 +82,18 @@ function SetDatePage({customStatus}: SetDatePageProps) {
 
 SetDatePage.displayName = 'SetDatePage';
 
-export default withOnyx<SetDatePageProps, SetDatePageOnyxProps>({
-    customStatus: {
-        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-    },
-})(SetDatePage);
+export default function SetDatePageOnyx(props: Omit<SetDatePageProps, keyof SetDatePageOnyxProps>) {
+    const [customStatus, customStatusMetadata] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+
+    if (isLoadingOnyxValue(customStatusMetadata)) {
+        return null;
+    }
+
+    return (
+        <SetDatePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            customStatus={customStatus}
+        />
+    );
+}

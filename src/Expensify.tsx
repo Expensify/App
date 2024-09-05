@@ -3,7 +3,8 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -314,30 +315,53 @@ function Expensify({
 
 Expensify.displayName = 'Expensify';
 
-export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
-    isCheckingPublicRoom: {
-        key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+export default function ExpensifyOnyx(props: Omit<ExpensifyProps, keyof ExpensifyOnyxProps>) {
+    const [isCheckingPublicRoom, isCheckingPublicRoomMetadata] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {
         initWithStoredValues: false,
-    },
-    updateAvailable: {
-        key: ONYXKEYS.UPDATE_AVAILABLE,
+    });
+
+    const [updateAvailable, updateAvailableMetadata] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {
         initWithStoredValues: false,
-    },
-    updateRequired: {
-        key: ONYXKEYS.UPDATE_REQUIRED,
+    });
+
+    const [updateRequired, updateRequiredMetadata] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {
         initWithStoredValues: false,
-    },
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    screenShareRequest: {
-        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-    },
-    focusModeNotification: {
-        key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+    });
+
+    const [isSidebarLoaded, isSidebarLoadedMetadata] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
+    const [screenShareRequest, screenShareRequestMetadata] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
+
+    const [focusModeNotification, focusModeNotificationMetadata] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {
         initWithStoredValues: false,
-    },
-    lastVisitedPath: {
-        key: ONYXKEYS.LAST_VISITED_PATH,
-    },
-})(Expensify);
+    });
+
+    const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+
+    if (
+        isLoadingOnyxValue(
+            isCheckingPublicRoomMetadata,
+            updateAvailableMetadata,
+            updateRequiredMetadata,
+            isSidebarLoadedMetadata,
+            screenShareRequestMetadata,
+            focusModeNotificationMetadata,
+            lastVisitedPathMetadata,
+        )
+    ) {
+        return null;
+    }
+
+    return (
+        <Expensify
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isCheckingPublicRoom={isCheckingPublicRoom}
+            updateAvailable={updateAvailable}
+            updateRequired={updateRequired}
+            isSidebarLoaded={isSidebarLoaded}
+            screenShareRequest={screenShareRequest}
+            focusModeNotification={focusModeNotification}
+            lastVisitedPath={lastVisitedPath}
+        />
+    );
+}

@@ -1,12 +1,13 @@
 import type {ParamListBase, RouteProp} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PriorityMode} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
@@ -98,12 +99,22 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
 }
 
-export default withOnyx<ScrollOffsetContextProviderProps, ScrollOffsetContextProviderOnyxProps>({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-})(ScrollOffsetContextProvider);
-
 export {ScrollOffsetContext};
 
 export type {ScrollOffsetContextProviderProps, ScrollOffsetContextValue};
+
+export default function ScrollOffsetContextProviderOnyx(props: Omit<ScrollOffsetContextProviderProps, keyof ScrollOffsetContextProviderOnyxProps>) {
+    const [priorityMode, priorityModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+
+    if (isLoadingOnyxValue(priorityModeMetadata)) {
+        return null;
+    }
+
+    return (
+        <ScrollOffsetContextProvider
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            priorityMode={priorityMode}
+        />
+    );
+}

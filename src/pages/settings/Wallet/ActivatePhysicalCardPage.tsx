@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
@@ -27,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Card} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ActivatePhysicalCardPageOnyxProps = {
     /** Card list propTypes */
@@ -164,8 +165,18 @@ function ActivatePhysicalCardPage({
 
 ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
 
-export default withOnyx<ActivatePhysicalCardPageProps, ActivatePhysicalCardPageOnyxProps>({
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-})(ActivatePhysicalCardPage);
+export default function ActivatePhysicalCardPageOnyx(props: Omit<ActivatePhysicalCardPageProps, keyof ActivatePhysicalCardPageOnyxProps>) {
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+
+    if (isLoadingOnyxValue(cardListMetadata)) {
+        return null;
+    }
+
+    return (
+        <ActivatePhysicalCardPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            cardList={cardList}
+        />
+    );
+}

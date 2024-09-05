@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 import type {LoginList} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -134,6 +135,18 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
 
 IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
-export default withOnyx<IntroSchoolPrincipalPageProps, IntroSchoolPrincipalPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(IntroSchoolPrincipalPage);
+export default function IntroSchoolPrincipalPageOnyx(props: Omit<IntroSchoolPrincipalPageProps, keyof IntroSchoolPrincipalPageOnyxProps>) {
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+
+    if (isLoadingOnyxValue(loginListMetadata)) {
+        return null;
+    }
+
+    return (
+        <IntroSchoolPrincipalPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            loginList={loginList}
+        />
+    );
+}

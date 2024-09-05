@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type UnlinkLoginFormOnyxProps = {
     /** State for the account */
@@ -92,7 +93,20 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
 
 UnlinkLoginForm.displayName = 'UnlinkLoginForm';
 
-export default withOnyx<UnlinkLoginFormProps, UnlinkLoginFormOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(UnlinkLoginForm);
+export default function UnlinkLoginFormOnyx(props: Omit<UnlinkLoginFormProps, keyof UnlinkLoginFormOnyxProps>) {
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(credentialsMetadata, accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <UnlinkLoginForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            credentials={credentials}
+            account={account}
+        />
+    );
+}

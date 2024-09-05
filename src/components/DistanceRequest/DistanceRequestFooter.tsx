@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
@@ -18,6 +18,7 @@ import type {MapboxAccessToken} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const MAX_WAYPOINTS = 25;
 
@@ -122,8 +123,18 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
 
 DistanceRequestFooter.displayName = 'DistanceRequestFooter';
 
-export default withOnyx<DistanceRequestFooterProps, DistanceRequestFooterOnyxProps>({
-    mapboxAccessToken: {
-        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    },
-})(DistanceRequestFooter);
+export default function DistanceRequestFooterOnyx(props: Omit<DistanceRequestFooterProps, keyof DistanceRequestFooterOnyxProps>) {
+    const [mapboxAccessToken, mapboxAccessTokenMetadata] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
+
+    if (isLoadingOnyxValue(mapboxAccessTokenMetadata)) {
+        return null;
+    }
+
+    return (
+        <DistanceRequestFooter
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            mapboxAccessToken={mapboxAccessToken}
+        />
+    );
+}

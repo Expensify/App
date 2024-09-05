@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
@@ -13,6 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 type OnValidateResult = {
@@ -75,8 +76,18 @@ function GetPhysicalCardPhone({
 
 GetPhysicalCardPhone.displayName = 'GetPhysicalCardPhone';
 
-export default withOnyx<GetPhysicalCardPhoneProps, GetPhysicalCardPhoneOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardPhone);
+export default function GetPhysicalCardPhoneOnyx(props: Omit<GetPhysicalCardPhoneProps, keyof GetPhysicalCardPhoneOnyxProps>) {
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(draftValuesMetadata)) {
+        return null;
+    }
+
+    return (
+        <GetPhysicalCardPhone
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            draftValues={draftValues}
+        />
+    );
+}

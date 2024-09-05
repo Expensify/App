@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,6 +17,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
     /** Contains plaid data */
@@ -109,12 +110,20 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
 }
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(AddPersonalBankAccountPage);
+export default function AddPersonalBankAccountPageOnyx(props: Omit<AddPersonalBankAccountPageWithOnyxProps, keyof AddPersonalBankAccountPageWithOnyxProps>) {
+    const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [plaidData, plaidDataMetadata] = useOnyx(ONYXKEYS.PLAID_DATA);
+
+    if (isLoadingOnyxValue(personalBankAccountMetadata, plaidDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddPersonalBankAccountPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalBankAccount={personalBankAccount}
+            plaidData={plaidData}
+        />
+    );
+}

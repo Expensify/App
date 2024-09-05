@@ -1,6 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import Log from '@libs/Log';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import viewRef from '@src/types/utils/viewRef';
 import type {KYCWallProps, PaymentMethod} from './types';
 
@@ -175,21 +176,26 @@ function KYCWall({
 
 KYCWall.displayName = 'BaseKYCWall';
 
-export default withOnyx<BaseKYCWallProps, BaseKYCWallOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(KYCWall);
+export default function KYCWallOnyx(props: Omit<BaseKYCWallProps, keyof BaseKYCWallOnyxProps>) {
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [fundList, fundListMetadata] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    if (isLoadingOnyxValue(userWalletMetadata, walletTermsMetadata, fundListMetadata, bankAccountListMetadata, reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <KYCWall
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userWallet={userWallet}
+            walletTerms={walletTerms}
+            fundList={fundList}
+            bankAccountList={bankAccountList}
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}

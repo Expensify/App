@@ -1,8 +1,9 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
 function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
@@ -15,7 +16,20 @@ function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(SAMLSignInPage);
+export default function SAMLSignInPageOnyx(props: Omit<SAMLSignInPageProps, keyof SAMLSignInPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+
+    if (isLoadingOnyxValue(accountMetadata, credentialsMetadata)) {
+        return null;
+    }
+
+    return (
+        <SAMLSignInPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            credentials={credentials}
+        />
+    );
+}

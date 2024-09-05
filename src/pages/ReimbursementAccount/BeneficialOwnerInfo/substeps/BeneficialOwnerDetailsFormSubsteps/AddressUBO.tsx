@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
@@ -13,6 +13,7 @@ import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const BENEFICIAL_OWNER_INFO_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -86,8 +87,18 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
 
 AddressUBO.displayName = 'AddressUBO';
 
-export default withOnyx<AddressUBOProps, AddressUBOOnyxProps>({
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
-    },
-})(AddressUBO);
+export default function AddressUBOOnyx(props: Omit<AddressUBOProps, keyof AddressUBOOnyxProps>) {
+    const [reimbursementAccountDraft, reimbursementAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+
+    if (isLoadingOnyxValue(reimbursementAccountDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <AddressUBO
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccountDraft={reimbursementAccountDraft}
+        />
+    );
+}

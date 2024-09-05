@@ -1,7 +1,7 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
@@ -85,11 +86,20 @@ function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBi
 
 DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default withOnyx<DateOfBirthPageProps, DateOfBirthPageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(DateOfBirthPage);
+export default function DateOfBirthPageOnyx(props: Omit<DateOfBirthPageProps, keyof DateOfBirthPageOnyxProps>) {
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <DateOfBirthPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            privatePersonalDetails={privatePersonalDetails}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}

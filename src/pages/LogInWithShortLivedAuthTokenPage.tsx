@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +14,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
@@ -71,6 +72,18 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default withOnyx<LogInWithShortLivedAuthTokenPageProps, LogInWithShortLivedAuthTokenPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(LogInWithShortLivedAuthTokenPage);
+export default function LogInWithShortLivedAuthTokenPageOnyx(props: Omit<LogInWithShortLivedAuthTokenPageProps, keyof LogInWithShortLivedAuthTokenPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <LogInWithShortLivedAuthTokenPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewTaskDescriptionPageOnyxProps = {
     /** Task Creation Data */
@@ -102,8 +103,18 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 
-export default withOnyx<NewTaskDescriptionPageProps, NewTaskDescriptionPageOnyxProps>({
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(NewTaskDescriptionPage);
+export default function NewTaskDescriptionPageOnyx(props: Omit<NewTaskDescriptionPageProps, keyof NewTaskDescriptionPageOnyxProps>) {
+    const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
+
+    if (isLoadingOnyxValue(taskMetadata)) {
+        return null;
+    }
+
+    return (
+        <NewTaskDescriptionPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            task={task}
+        />
+    );
+}

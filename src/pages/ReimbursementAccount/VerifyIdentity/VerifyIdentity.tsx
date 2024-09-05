@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -16,6 +16,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type VerifyIdentityOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -88,15 +89,22 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
 
 VerifyIdentity.displayName = 'VerifyIdentity';
 
-export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    onfidoApplicantID: {
-        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
-    },
-    onfidoToken: {
-        key: ONYXKEYS.ONFIDO_TOKEN,
-    },
-})(VerifyIdentity);
+export default function VerifyIdentityOnyx(props: Omit<VerifyIdentityProps, keyof VerifyIdentityOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [onfidoApplicantID, onfidoApplicantIDMetadata] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
+    const [onfidoToken, onfidoTokenMetadata] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, onfidoApplicantIDMetadata, onfidoTokenMetadata)) {
+        return null;
+    }
+
+    return (
+        <VerifyIdentity
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            onfidoApplicantID={onfidoApplicantID}
+            onfidoToken={onfidoToken}
+        />
+    );
+}

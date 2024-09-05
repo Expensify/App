@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 import type {PersonalBankAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ConfirmationOnyxProps = {
     /** The draft values of the bank account being setup */
@@ -80,15 +81,22 @@ function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext
 
 ConfirmationStep.displayName = 'ConfirmationStep';
 
-export default withOnyx<ConfirmationStepProps, ConfirmationOnyxProps>({
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(ConfirmationStep);
+export default function ConfirmationStepOnyx(props: Omit<ConfirmationStepProps, keyof ConfirmationOnyxProps>) {
+    const [personalBankAccountDraft, personalBankAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+
+    if (isLoadingOnyxValue(personalBankAccountDraftMetadata, personalBankAccountMetadata, userWalletMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConfirmationStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalBankAccountDraft={personalBankAccountDraft}
+            personalBankAccount={personalBankAccount}
+            userWallet={userWallet}
+        />
+    );
+}

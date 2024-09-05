@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SignInPage from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
 
@@ -61,6 +62,18 @@ function SignInModal({session}: SignInModalProps) {
 
 SignInModal.displayName = 'SignInModal';
 
-export default withOnyx<SignInModalProps, SignInModalOnyxProps>({
-    session: {key: ONYXKEYS.SESSION},
-})(SignInModal);
+export default function SignInModalOnyx(props: Omit<SignInModalProps, keyof SignInModalOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <SignInModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

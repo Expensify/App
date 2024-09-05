@@ -1,11 +1,12 @@
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type UserWallet from '@src/types/onyx/UserWallet';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Text from './Text';
 
 type CurrentWalletBalanceOnyxProps = {
@@ -25,8 +26,18 @@ function CurrentWalletBalance({userWallet, balanceStyles}: CurrentWalletBalanceP
 
 CurrentWalletBalance.displayName = 'CurrentWalletBalance';
 
-export default withOnyx<CurrentWalletBalanceProps, CurrentWalletBalanceOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(CurrentWalletBalance);
+export default function CurrentWalletBalanceOnyx(props: Omit<CurrentWalletBalanceProps, keyof CurrentWalletBalanceOnyxProps>) {
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+
+    if (isLoadingOnyxValue(userWalletMetadata)) {
+        return null;
+    }
+
+    return (
+        <CurrentWalletBalance
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userWallet={userWallet}
+        />
+    );
+}

@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type LegalNamePageOnyxProps = {
     /** User's private personal details */
@@ -136,11 +137,20 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
 
 LegalNamePage.displayName = 'LegalNamePage';
 
-export default withOnyx<LegalNamePageProps, LegalNamePageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(LegalNamePage);
+export default function LegalNamePageOnyx(props: Omit<LegalNamePageProps, keyof LegalNamePageOnyxProps>) {
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <LegalNamePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            privatePersonalDetails={privatePersonalDetails}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}

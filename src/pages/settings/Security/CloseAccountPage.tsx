@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CloseAccountPageOnyxProps = {
     /** Session of currently logged in user */
@@ -142,8 +143,18 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
 
 CloseAccountPage.displayName = 'CloseAccountPage';
 
-export default withOnyx<CloseAccountPageProps, CloseAccountPageOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(CloseAccountPage);
+export default function CloseAccountPageOnyx(props: Omit<CloseAccountPageProps, keyof CloseAccountPageOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <CloseAccountPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

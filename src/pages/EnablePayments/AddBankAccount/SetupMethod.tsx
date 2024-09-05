@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,6 +16,7 @@ import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SetupMethodOnyxProps = {
     /** The user's data */
@@ -66,11 +67,20 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
 
 SetupMethod.displayName = 'SetupMethod';
 
-export default withOnyx<SetupMethodProps, SetupMethodOnyxProps>({
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(SetupMethod);
+export default function SetupMethodOnyx(props: Omit<SetupMethodProps, keyof SetupMethodOnyxProps>) {
+    const [isPlaidDisabled, isPlaidDisabledMetadata] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(isPlaidDisabledMetadata, userMetadata)) {
+        return null;
+    }
+
+    return (
+        <SetupMethod
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isPlaidDisabled={isPlaidDisabled}
+            user={user}
+        />
+    );
+}

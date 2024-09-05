@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
@@ -16,6 +16,7 @@ import {Memoize} from '@libs/memoize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import pkg from '../../../package.json';
 import RNFS from './RNFS';
 import Share from './Share';
@@ -183,8 +184,18 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, showShareButton =
 
 BaseProfilingToolMenu.displayName = 'BaseProfilingToolMenu';
 
-export default withOnyx<BaseProfilingToolMenuProps, BaseProfilingToolMenuOnyxProps>({
-    isProfilingInProgress: {
-        key: ONYXKEYS.APP_PROFILING_IN_PROGRESS,
-    },
-})(BaseProfilingToolMenu);
+export default function BaseProfilingToolMenuOnyx(props: Omit<BaseProfilingToolMenuProps, keyof BaseProfilingToolMenuOnyxProps>) {
+    const [isProfilingInProgress, isProfilingInProgressMetadata] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS);
+
+    if (isLoadingOnyxValue(isProfilingInProgressMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseProfilingToolMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isProfilingInProgress={isProfilingInProgress}
+        />
+    );
+}

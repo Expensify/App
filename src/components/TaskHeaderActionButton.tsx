@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -10,6 +10,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 
 type TaskHeaderActionButtonOnyxProps = {
@@ -56,8 +57,18 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
 
 TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
-export default withOnyx<TaskHeaderActionButtonProps, TaskHeaderActionButtonOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(TaskHeaderActionButton);
+export default function TaskHeaderActionButtonOnyx(props: Omit<TaskHeaderActionButtonProps, keyof TaskHeaderActionButtonOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <TaskHeaderActionButton
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

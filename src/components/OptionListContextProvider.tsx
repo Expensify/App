@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -8,6 +8,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
@@ -173,10 +174,20 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     };
 };
 
-export default withOnyx<OptionsListProviderProps, OptionsListProviderOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(OptionsListContextProvider);
-
 export {useOptionsListContext, useOptionsList, OptionsListContext};
+
+export default function OptionsListContextProviderOnyx(props: Omit<OptionsListProviderProps, keyof OptionsListProviderOnyxProps>) {
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
+    if (isLoadingOnyxValue(reportsMetadata)) {
+        return null;
+    }
+
+    return (
+        <OptionsListContextProvider
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reports={reports}
+        />
+    );
+}

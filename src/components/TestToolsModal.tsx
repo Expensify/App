@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,6 +12,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
@@ -72,11 +73,20 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
 
 TestToolsModal.displayName = 'TestToolsModal';
 
-export default withOnyx<TestToolsModalProps, TestToolsModalOnyxProps>({
-    isTestToolsModalOpen: {
-        key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(TestToolsModal);
+export default function TestToolsModalOnyx(props: Omit<TestToolsModalProps, keyof TestToolsModalOnyxProps>) {
+    const [isTestToolsModalOpen, isTestToolsModalOpenMetadata] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
+    const [shouldStoreLogs, shouldStoreLogsMetadata] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+
+    if (isLoadingOnyxValue(isTestToolsModalOpenMetadata, shouldStoreLogsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TestToolsModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isTestToolsModalOpen={isTestToolsModalOpen}
+            shouldStoreLogs={shouldStoreLogs}
+        />
+    );
+}

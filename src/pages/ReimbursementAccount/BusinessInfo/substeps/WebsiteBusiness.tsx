@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount, Session, User} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WebsiteBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -86,15 +87,22 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
 
 WebsiteBusiness.displayName = 'WebsiteBusiness';
 
-export default withOnyx<WebsiteBusinessProps, WebsiteBusinessOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(WebsiteBusiness);
+export default function WebsiteBusinessOnyx(props: Omit<WebsiteBusinessProps, keyof WebsiteBusinessOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata, sessionMetadata, userMetadata)) {
+        return null;
+    }
+
+    return (
+        <WebsiteBusiness
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+            session={session}
+            user={user}
+        />
+    );
+}

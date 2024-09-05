@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -13,6 +13,7 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
 function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
@@ -80,7 +81,20 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(SAMLSignInPage);
+export default function SAMLSignInPageOnyx(props: Omit<SAMLSignInPageProps, keyof SAMLSignInPageOnyxProps>) {
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(credentialsMetadata, accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <SAMLSignInPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            credentials={credentials}
+            account={account}
+        />
+    );
+}

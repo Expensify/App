@@ -1,5 +1,5 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,6 +12,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PreferredTheme} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ThemePageOnyxProps = {
     /** The theme of the app */
@@ -58,8 +59,18 @@ function ThemePage({preferredTheme}: ThemePageProps) {
 
 ThemePage.displayName = 'ThemePage';
 
-export default withOnyx<ThemePageProps, ThemePageOnyxProps>({
-    preferredTheme: {
-        key: ONYXKEYS.PREFERRED_THEME,
-    },
-})(ThemePage);
+export default function ThemePageOnyx(props: Omit<ThemePageProps, keyof ThemePageOnyxProps>) {
+    const [preferredTheme, preferredThemeMetadata] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+
+    if (isLoadingOnyxValue(preferredThemeMetadata)) {
+        return null;
+    }
+
+    return (
+        <ThemePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            preferredTheme={preferredTheme}
+        />
+    );
+}

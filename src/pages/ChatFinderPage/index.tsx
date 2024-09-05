@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ChatFinderPageFooter from './ChatFinderPageFooter';
 
 type ChatFinderPageOnyxProps = {
@@ -198,12 +199,23 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
 ChatFinderPage.displayName = 'ChatFinderPage';
 
-export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+export default function ChatFinderPageOnyx(props: Omit<ChatFinderPageProps, keyof ChatFinderPageOnyxProps>) {
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+
+    const [isSearchingForReports, isSearchingForReportsMetadata] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {
         initWithStoredValues: false,
-    },
-})(ChatFinderPage);
+    });
+
+    if (isLoadingOnyxValue(betasMetadata, isSearchingForReportsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ChatFinderPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            betas={betas}
+            isSearchingForReports={isSearchingForReports}
+        />
+    );
+}

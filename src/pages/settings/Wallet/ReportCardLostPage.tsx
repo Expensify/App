@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -27,6 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ReportPhysicalCardForm} from '@src/types/form';
 import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const OPTIONS_KEYS = {
     DAMAGED: 'damaged',
@@ -215,14 +216,22 @@ function ReportCardLostPage({
 
 ReportCardLostPage.displayName = 'ReportCardLostPage';
 
-export default withOnyx<ReportCardLostPageProps, ReportCardLostPageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
-    },
-    formData: {
-        key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-    },
-})(ReportCardLostPage);
+export default function ReportCardLostPageOnyx(props: Omit<ReportCardLostPageProps, keyof ReportCardLostPageOnyxProps>) {
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [formData, formDataMetadata] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+
+    if (isLoadingOnyxValue(privatePersonalDetailsMetadata, cardListMetadata, formDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportCardLostPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            privatePersonalDetails={privatePersonalDetails}
+            cardList={cardList}
+            formData={formData}
+        />
+    );
+}

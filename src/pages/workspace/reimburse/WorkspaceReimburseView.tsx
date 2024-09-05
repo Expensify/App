@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
 
 type WorkspaceReimburseViewOnyxProps = {
@@ -142,9 +143,18 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
 
 WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
-export default withOnyx<WorkspaceReimburseViewProps, WorkspaceReimburseViewOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(WorkspaceReimburseView);
+export default function WorkspaceReimburseViewOnyx(props: Omit<WorkspaceReimburseViewProps, keyof WorkspaceReimburseViewOnyxProps>) {
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    if (isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceReimburseView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}

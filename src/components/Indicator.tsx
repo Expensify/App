@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -11,6 +11,7 @@ import * as UserUtils from '@libs/UserUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LoginList, Policy, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CheckingMethod = () => boolean;
 
@@ -83,27 +84,30 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
 
 Indicator.displayName = 'Indicator';
 
-export default withOnyx<IndicatorProps, IndicatorOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-})(Indicator);
+export default function IndicatorOnyx(props: Omit<IndicatorProps, keyof IndicatorOnyxProps>) {
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [fundList, fundListMetadata] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList, loginListMetadata] = useOnyx(ONYXKEYS.LOGIN_LIST);
+
+    if (isLoadingOnyxValue(policiesMetadata, bankAccountListMetadata, reimbursementAccountMetadata, fundListMetadata, userWalletMetadata, walletTermsMetadata, loginListMetadata)) {
+        return null;
+    }
+
+    return (
+        <Indicator
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policies={policies}
+            bankAccountList={bankAccountList}
+            reimbursementAccount={reimbursementAccount}
+            fundList={fundList}
+            userWallet={userWallet}
+            walletTerms={walletTerms}
+            loginList={loginList}
+        />
+    );
+}

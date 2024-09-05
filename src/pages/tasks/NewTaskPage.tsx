@@ -3,7 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Report, Task} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewTaskPageOnyxProps = {
     /** Task Creation Data */
@@ -234,14 +235,22 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
 NewTaskPage.displayName = 'NewTaskPage';
 
-export default withOnyx<NewTaskPageProps, NewTaskPageOnyxProps>({
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(NewTaskPage);
+export default function NewTaskPageOnyx(props: Omit<NewTaskPageProps, keyof NewTaskPageOnyxProps>) {
+    const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(taskMetadata, reportsMetadata, personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <NewTaskPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            task={task}
+            reports={reports}
+            personalDetails={personalDetails}
+        />
+    );
+}

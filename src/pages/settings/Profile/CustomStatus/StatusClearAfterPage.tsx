@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 
@@ -222,8 +223,18 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
 StatusClearAfterPage.displayName = 'StatusClearAfterPage';
 
-export default withOnyx<StatusClearAfterPageProps, StatusClearAfterPageOnyxProps>({
-    customStatus: {
-        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-    },
-})(StatusClearAfterPage);
+export default function StatusClearAfterPageOnyx(props: Omit<StatusClearAfterPageProps, keyof StatusClearAfterPageOnyxProps>) {
+    const [customStatus, customStatusMetadata] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+
+    if (isLoadingOnyxValue(customStatusMetadata)) {
+        return null;
+    }
+
+    return (
+        <StatusClearAfterPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            customStatus={customStatus}
+        />
+    );
+}

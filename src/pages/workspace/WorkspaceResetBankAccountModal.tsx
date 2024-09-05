@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import BankAccount from '@libs/models/BankAccount';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceResetBankAccountModalOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -55,8 +56,18 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
-export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WorkspaceResetBankAccountModal);
+export default function WorkspaceResetBankAccountModalOnyx(props: Omit<WorkspaceResetBankAccountModalProps, keyof WorkspaceResetBankAccountModalOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceResetBankAccountModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

@@ -3,7 +3,7 @@ import React, {useContext, useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MentionReportContext from './MentionReportContext';
 
 type MentionReportOnyxProps = {
@@ -119,9 +120,21 @@ const chatReportSelector = (report: OnyxEntry<Report>): Report =>
         policyID: report.policyID,
     }) as Report;
 
-export default withOnyx<MentionReportRendererProps, MentionReportOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector,
-    },
-})(MentionReportRenderer);
+export default function MentionReportRendererOnyx(props: Omit<MentionReportRendererProps, keyof MentionReportOnyxProps>) {
+    /*
+    Selector FIXME: chatReportSelector
+    */
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
+    if (isLoadingOnyxValue(reportsMetadata)) {
+        return null;
+    }
+
+    return (
+        <MentionReportRenderer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reports={reports}
+        />
+    );
+}

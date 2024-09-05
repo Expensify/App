@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,6 +9,7 @@ import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Locale} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
 
@@ -61,11 +62,20 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
 
 LocalePicker.displayName = 'LocalePicker';
 
-export default withOnyx<LocalePickerProps, LocalePickerOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(LocalePicker);
+export default function LocalePickerOnyx(props: Omit<LocalePickerProps, keyof LocalePickerOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [preferredLocale, preferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+
+    if (isLoadingOnyxValue(accountMetadata, preferredLocaleMetadata)) {
+        return null;
+    }
+
+    return (
+        <LocalePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            preferredLocale={preferredLocale}
+        />
+    );
+}

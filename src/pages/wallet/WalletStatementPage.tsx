@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {WalletStatement} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WalletStatementOnyxProps = {
     walletStatement: OnyxEntry<WalletStatement>;
@@ -93,8 +94,18 @@ function WalletStatementPage({walletStatement, route}: WalletStatementPageProps)
 
 WalletStatementPage.displayName = 'WalletStatementPage';
 
-export default withOnyx<WalletStatementPageProps, WalletStatementOnyxProps>({
-    walletStatement: {
-        key: ONYXKEYS.WALLET_STATEMENT,
-    },
-})(WalletStatementPage);
+export default function WalletStatementPageOnyx(props: Omit<WalletStatementPageProps, keyof WalletStatementOnyxProps>) {
+    const [walletStatement, walletStatementMetadata] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
+
+    if (isLoadingOnyxValue(walletStatementMetadata)) {
+        return null;
+    }
+
+    return (
+        <WalletStatementPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletStatement={walletStatement}
+        />
+    );
+}

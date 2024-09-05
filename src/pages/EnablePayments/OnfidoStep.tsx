@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletOnfido} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OnfidoPrivacy from './OnfidoPrivacy';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
@@ -80,11 +81,20 @@ function OnfidoStep({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoStepP
 
 OnfidoStep.displayName = 'OnfidoStep';
 
-export default withOnyx<OnfidoStepProps, OnfidoStepOnyxProps>({
-    walletOnfidoData: {
-        key: ONYXKEYS.WALLET_ONFIDO,
-
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+export default function OnfidoStepOnyx(props: Omit<OnfidoStepProps, keyof OnfidoStepOnyxProps>) {
+    const [walletOnfidoData, walletOnfidoDataMetadata] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
         initWithStoredValues: false,
-    },
-})(OnfidoStep);
+    });
+
+    if (isLoadingOnyxValue(walletOnfidoDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <OnfidoStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletOnfidoData={walletOnfidoData}
+        />
+    );
+}

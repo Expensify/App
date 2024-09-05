@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
@@ -29,6 +29,7 @@ import type {BankAccountList, FundList, UserWallet, WalletTransfer} from '@src/t
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TransferBalancePageOnyxProps = {
     /** User's wallet information */
@@ -229,17 +230,24 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
 
 TransferBalancePage.displayName = 'TransferBalancePage';
 
-export default withOnyx<TransferBalancePageProps, TransferBalancePageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-})(TransferBalancePage);
+export default function TransferBalancePageOnyx(props: Omit<TransferBalancePageProps, keyof TransferBalancePageOnyxProps>) {
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTransfer, walletTransferMetadata] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList, fundListMetadata] = useOnyx(ONYXKEYS.FUND_LIST);
+
+    if (isLoadingOnyxValue(userWalletMetadata, walletTransferMetadata, bankAccountListMetadata, fundListMetadata)) {
+        return null;
+    }
+
+    return (
+        <TransferBalancePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userWallet={userWallet}
+            walletTransfer={walletTransfer}
+            bankAccountList={bankAccountList}
+            fundList={fundList}
+        />
+    );
+}

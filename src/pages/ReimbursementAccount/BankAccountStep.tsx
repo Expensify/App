@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BankInfo from './BankInfo/BankInfo';
 
 type BankAccountStepOnyxProps = {
@@ -188,11 +189,20 @@ function BankAccountStep({
 
 BankAccountStep.displayName = 'BankAccountStep';
 
-export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-    isPlaidDisabled: {
-        key: ONYXKEYS.IS_PLAID_DISABLED,
-    },
-})(BankAccountStep);
+export default function BankAccountStepOnyx(props: Omit<BankAccountStepProps, keyof BankAccountStepOnyxProps>) {
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+    const [isPlaidDisabled, isPlaidDisabledMetadata] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+
+    if (isLoadingOnyxValue(userMetadata, isPlaidDisabledMetadata)) {
+        return null;
+    }
+
+    return (
+        <BankAccountStep
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+            isPlaidDisabled={isPlaidDisabled}
+        />
+    );
+}

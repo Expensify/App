@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
@@ -126,13 +127,20 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
 
 PersonalInfoPage.displayName = 'PersonalInfoPage';
 
-export default withOnyx<PersonalInfoPageProps, PersonalInfoPageOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetailsDraft: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
-    },
-})(PersonalInfoPage);
+export default function PersonalInfoPageOnyx(props: Omit<PersonalInfoPageProps, keyof PersonalInfoPageOnyxProps>) {
+    const [walletAdditionalDetails, walletAdditionalDetailsMetadata] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetailsDraft, walletAdditionalDetailsDraftMetadata] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+
+    if (isLoadingOnyxValue(walletAdditionalDetailsMetadata, walletAdditionalDetailsDraftMetadata)) {
+        return null;
+    }
+
+    return (
+        <PersonalInfoPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletAdditionalDetails={walletAdditionalDetails}
+            walletAdditionalDetailsDraft={walletAdditionalDetailsDraft}
+        />
+    );
+}

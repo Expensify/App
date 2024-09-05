@@ -2,7 +2,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletOnfido} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
     applicantID: '',
@@ -92,11 +93,20 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
 
 OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
-export default withOnyx<OnfidoPrivacyProps, OnfidoPrivacyOnyxProps>({
-    walletOnfidoData: {
-        key: ONYXKEYS.WALLET_ONFIDO,
-
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+export default function OnfidoPrivacyOnyx(props: Omit<OnfidoPrivacyProps, keyof OnfidoPrivacyOnyxProps>) {
+    const [walletOnfidoData, walletOnfidoDataMetadata] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
         initWithStoredValues: false,
-    },
-})(OnfidoPrivacy);
+    });
+
+    if (isLoadingOnyxValue(walletOnfidoDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <OnfidoPrivacy
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            walletOnfidoData={walletOnfidoData}
+        />
+    );
+}

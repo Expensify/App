@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {UserWallet} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivateStep from './ActivateStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import FailedKYC from './FailedKYC';
@@ -92,12 +93,20 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
-export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
-        // stored values here.
+export default function EnablePaymentsPageOnyx(props: Omit<EnablePaymentsPageProps, keyof EnablePaymentsPageOnyxProps>) {
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET, {
         initWithStoredValues: false,
-    },
-})(EnablePaymentsPage);
+    });
+
+    if (isLoadingOnyxValue(userWalletMetadata)) {
+        return null;
+    }
+
+    return (
+        <EnablePaymentsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userWallet={userWallet}
+        />
+    );
+}

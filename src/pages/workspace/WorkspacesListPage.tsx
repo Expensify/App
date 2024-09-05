@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspacesListRow from './WorkspacesListRow';
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -453,18 +454,24 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
 
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
-export default withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WorkspacesListPage);
+export default function WorkspacesListPageOnyx(props: Omit<WorkspaceListPageProps, keyof WorkspaceListPageOnyxProps>) {
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(policiesMetadata, reimbursementAccountMetadata, reportsMetadata, sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspacesListPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policies={policies}
+            reimbursementAccount={reimbursementAccount}
+            reports={reports}
+            session={session}
+        />
+    );
+}

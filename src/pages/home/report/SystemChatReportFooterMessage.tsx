@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SystemChatReportFooterMessageOnyxProps = {
     /** Saved onboarding purpose selected by the user */
@@ -88,14 +89,22 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
 
 SystemChatReportFooterMessage.displayName = 'SystemChatReportFooterMessage';
 
-export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFooterMessageOnyxProps>({
-    choice: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    activePolicyID: {
-        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    },
-})(SystemChatReportFooterMessage);
+export default function SystemChatReportFooterMessageOnyx(props: Omit<SystemChatReportFooterMessageProps, keyof SystemChatReportFooterMessageOnyxProps>) {
+    const [choice, choiceMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    if (isLoadingOnyxValue(choiceMetadata, policiesMetadata, activePolicyIDMetadata)) {
+        return null;
+    }
+
+    return (
+        <SystemChatReportFooterMessage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            choice={choice}
+            policies={policies}
+            activePolicyID={activePolicyID}
+        />
+    );
+}

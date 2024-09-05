@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
 import Button from '@components/Button';
@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExitReason, ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageOnyxProps = {
@@ -96,9 +97,21 @@ function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfir
 
 ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
-export default withOnyx<ExitSurveyConfirmPageProps, ExitSurveyConfirmPageOnyxProps>({
-    exitReason: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
-    },
-})(ExitSurveyConfirmPage);
+export default function ExitSurveyConfirmPageOnyx(props: Omit<ExitSurveyConfirmPageProps, keyof ExitSurveyConfirmPageOnyxProps>) {
+    /*
+    Selector FIXME: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null
+    */
+    const [exitReason, exitReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM);
+
+    if (isLoadingOnyxValue(exitReasonMetadata)) {
+        return null;
+    }
+
+    return (
+        <ExitSurveyConfirmPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            exitReason={exitReason}
+        />
+    );
+}

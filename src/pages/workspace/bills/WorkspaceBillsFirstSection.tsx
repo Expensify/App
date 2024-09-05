@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session, User} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceBillsFirstSectionOnyxProps = {
     /** Session of currently logged in user */
@@ -75,11 +76,20 @@ function WorkspaceBillsFirstSection({session, policyID, user}: WorkspaceBillsFir
 
 WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
-export default withOnyx<WorkspaceBillsFirstSectionProps, WorkspaceBillsFirstSectionOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(WorkspaceBillsFirstSection);
+export default function WorkspaceBillsFirstSectionOnyx(props: Omit<WorkspaceBillsFirstSectionProps, keyof WorkspaceBillsFirstSectionOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(sessionMetadata, userMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceBillsFirstSection
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+            user={user}
+        />
+    );
+}

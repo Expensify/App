@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
@@ -105,8 +106,18 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
 
 RoomNamePage.displayName = 'RoomNamePage';
 
-export default withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(RoomNamePage);
+export default function RoomNamePageOnyx(props: Omit<RoomNamePageProps, keyof RoomNamePageOnyxProps>) {
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
+    if (isLoadingOnyxValue(reportsMetadata)) {
+        return null;
+    }
+
+    return (
+        <RoomNamePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            reports={reports}
+        />
+    );
+}
