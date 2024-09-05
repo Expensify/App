@@ -131,7 +131,7 @@ function BankAccountStep({
                         isCentralPane
                     >
                         {!!plaidDesktopMessage && (
-                            <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
+                            <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
@@ -144,7 +144,7 @@ function BankAccountStep({
                                     medium
                                 />
                                 <Text
-                                    style={[styles.textLabelSupportingNormal]}
+                                    style={[styles.textLabelSupportingNormal, styles.flex1]}
                                     suppressHighlighting
                                 >
                                     {translate('workspace.bankAccount.connectBankAccountNote')}
