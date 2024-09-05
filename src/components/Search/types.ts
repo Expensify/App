@@ -71,13 +71,6 @@ type SearchQueryJSON = {
     hash: number;
 } & SearchQueryAST;
 
-type NewQueryFilter = {
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    value: string[];
-};
-
-type NewFilter = NewQueryFilter[];
-
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
