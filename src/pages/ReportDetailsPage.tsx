@@ -558,6 +558,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
                     reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
+                    isDelegateAccessRestricted: isDelegateAccessRestricted,
+                    setIsNoDelegateAccessMenuVisible: setIsNoDelegateAccessMenuVisible,
                 }),
             );
         }
