@@ -991,6 +991,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
  * Deletes the avatar image for the workspace
  */
 function deleteWorkspaceAvatar(policyID: string) {
+    const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1003,6 +1004,7 @@ function deleteWorkspaceAvatar(policyID: string) {
                     avatarURL: null,
                 },
                 avatarURL: '',
+                originalFileName: null,
             },
         },
     ];
@@ -1022,6 +1024,8 @@ function deleteWorkspaceAvatar(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                avatarURL: policy?.avatarURL,
+                originalFileName: policy?.originalFileName,
                 errorFields: {
                     avatarURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('avatarWithImagePicker.deleteWorkspaceError'),
                 },
