@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getSynchronizationErrorMessage, isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -43,7 +43,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
-import {getAccountingIntegrationData} from './utils';
+import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
@@ -65,15 +65,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
-    const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress);
+    const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     // Enter credentials item shouldn't be shown for SageIntacct and NetSuite integrations
     const shouldShowEnterCredentials =
-        connectedIntegration &&
-        !!synchronizationError &&
-        isAuthenticationError(policy, connectedIntegration) &&
-        connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT &&
-        connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+        connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration) && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
 
     const policyID = policy?.id ?? '-1';
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
@@ -96,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: Expensicons.NewWindow,
-                          shouldShowRightIcon: true,
+                          shouldShowRightIcon: connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
                       },
                   ]
                 : [
