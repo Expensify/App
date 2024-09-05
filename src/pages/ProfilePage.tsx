@@ -197,7 +197,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
