@@ -187,7 +187,7 @@ function FloatingActionButtonAndPopover(
     const {isOffline} = useNetwork();
 
     const {canUseSpotnanaTravel} = usePermissions();
-    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
+    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {

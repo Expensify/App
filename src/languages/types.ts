@@ -103,6 +103,7 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -118,6 +119,8 @@ type UserSplitParams = {amount: string};
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
+
+type CompanyCardFeedNameParams = {feedName: string};
 
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
@@ -358,6 +361,11 @@ type ApprovalWorkflowErrorParams = {
     name2: string;
 };
 
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -371,6 +379,7 @@ export type {
     CharacterLimitParams,
     ConfirmHoldExpenseParams,
     ConfirmThatParams,
+    CompanyCardFeedNameParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
@@ -481,4 +490,5 @@ export type {
     RemoveMembersWarningPrompt,
     DeleteExpenseTranslationParams,
     ApprovalWorkflowErrorParams,
+    AssignCardParams,
 };

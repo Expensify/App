@@ -483,8 +483,14 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -528,35 +534,33 @@ function MoneyRequestConfirmationList({
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
 
-        return [payeeOption, ...selectedParticipants]
-            .filter((participantOption) => !PolicyUtils.isExpensifyTeam(participantOption.login))
-            .map((participantOption: Participant) => ({
-                ...participantOption,
-                tabIndex: -1,
-                isSelected: false,
-                isInteractive: !shouldDisableParticipant(participantOption),
-                rightElement: (
-                    <MoneyRequestAmountInput
-                        autoGrow={false}
-                        amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
-                        currency={iouCurrencyCode}
-                        prefixCharacter={currencySymbol}
-                        disableKeyboard={false}
-                        isCurrencyPressable={false}
-                        hideFocusedState={false}
-                        hideCurrencySymbol
-                        formatAmountOnBlur
-                        prefixContainerStyle={[styles.pv0]}
-                        inputStyle={[styles.optionRowAmountInput]}
-                        containerStyle={[styles.textInputContainer]}
-                        touchableInputWrapperStyle={[styles.ml3]}
-                        onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                        onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
-                        maxLength={formattedTotalAmount.length}
-                        contentWidth={formattedTotalAmount.length * 8}
-                    />
-                ),
-            }));
+        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
+            ...participantOption,
+            tabIndex: -1,
+            isSelected: false,
+            isInteractive: !shouldDisableParticipant(participantOption),
+            rightElement: (
+                <MoneyRequestAmountInput
+                    autoGrow={false}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
+                    currency={iouCurrencyCode}
+                    prefixCharacter={currencySymbol}
+                    disableKeyboard={false}
+                    isCurrencyPressable={false}
+                    hideFocusedState={false}
+                    hideCurrencySymbol
+                    formatAmountOnBlur
+                    prefixContainerStyle={[styles.pv0]}
+                    inputStyle={[styles.optionRowAmountInput]}
+                    containerStyle={[styles.textInputContainer]}
+                    touchableInputWrapperStyle={[styles.ml3]}
+                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
+                    maxLength={formattedTotalAmount.length}
+                    contentWidth={formattedTotalAmount.length * 8}
+                />
+            ),
+        }));
     }, [
         isTypeSplit,
         payeePersonalDetails,
@@ -839,7 +843,6 @@ function MoneyRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
