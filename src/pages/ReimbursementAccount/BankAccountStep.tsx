@@ -36,8 +36,8 @@ type BankAccountStepOnyxProps = {
     /** If the plaid button has been disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
 
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<OnyxTypes.PersonalBankAccount>;
+    /** List of bank accounts */
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type BankAccountStepProps = BankAccountStepOnyxProps & {
@@ -71,7 +71,7 @@ function BankAccountStep({
     reimbursementAccount,
     onBackButtonPress,
     isPlaidDisabled = false,
-    personalBankAccount = {},
+    bankAccountList = {},
 }: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -83,6 +83,7 @@ function BankAccountStep({
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const personalBankAccounts = Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -134,7 +135,7 @@ function BankAccountStep({
                                 <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
-                        {personalBankAccount.plaidAccountID && (
+                        {!!personalBankAccounts.length && (
                             <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                                 <Icon
                                     src={Expensicons.Lightbulb}
@@ -214,8 +215,7 @@ export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
     },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
 })(BankAccountStep);
