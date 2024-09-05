@@ -42,8 +42,6 @@ type BaseValidateCodeFormOnyxProps = {
 };
 
 type ValidateCodeFormProps = {
-    /** The contact method being valdiated */
-    contactMethod: string;
 
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
@@ -54,7 +52,7 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
-    /** The contact that's going to be added after successful validation */
+    /** The state of magic code that being sent */
     validateCodeAction?: ValidateMagicCodeAction;
 
     /** The pending action for submitting form */
@@ -166,9 +164,10 @@ function BaseValidateCodeForm({
 
             if (validateError) {
                 clearError();
+                User.clearValidateCodeActionError('actionVerified');
             }
         },
-        [validateError],
+        [validateError, clearError],
     );
 
     /**
@@ -206,7 +205,7 @@ function BaseValidateCodeForm({
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
                 errorRowStyles={[styles.mt2]}
-                onClose={clearError}
+                onClose={() => User.clearValidateCodeActionError('actionVerified')}
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <PressableWithFeedback

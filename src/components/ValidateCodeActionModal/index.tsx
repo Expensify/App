@@ -14,22 +14,26 @@ import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-function ValidateCodeActionModal({isVisible, title, description, onClose}: ValidateCodeActionModalProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError}: ValidateCodeActionModalProps) {
+    console.log('validateError', validateError)
     const themeStyles = useThemeStyles();
+    const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const hide = useCallback(() => {
-        // clear data, error etc here.
+        clearError();
         onClose();
-    }, [onClose]);
+    }, [onClose, clearError]);
 
     useEffect(() => {
+        if (!firstRenderRef.current || !isVisible) {
+            return;
+        }
+        firstRenderRef.current = false;
         User.requestValidateCodeAction();
-    }, []);
+    }, [isVisible]);
 
     return (
         <Modal
@@ -52,15 +56,17 @@ function ValidateCodeActionModal({isVisible, title, description, onClose}: Valid
                     onBackButtonPress={hide}
                 />
                 {validateCodeAction?.isLoading ? (
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator style={[themeStyles.flex1, themeStyles.pRelative]} />
                 ) : (
                     <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
                         <Text style={[themeStyles.mb3]}>{description}</Text>
                         <ValidateCodeForm
-                            handleSubmitForm={() => {}}
-                            clearError={() => {}}
+                            validateCodeAction={validateCodeAction}
+                            validatePendingAction={validatePendingAction}
+                            validateError={validateError}
+                            handleSubmitForm={handleSubmitForm}
+                            clearError={clearError}
                             ref={validateCodeFormRef}
-                            contactMethod={account?.primaryLogin ?? ''}
                         />
                     </View>
                 )}

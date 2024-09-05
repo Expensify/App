@@ -269,6 +269,14 @@ function clearContactMethod(contactMethod: string) {
     });
 }
 
+function clearValidateCodeActionError(fieldName: string) {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        errorFields: {
+            [fieldName]: null,
+        }
+    });
+}
+
 /**
  * Clears any possible stored errors for a specific field on a contact method
  */
@@ -306,6 +314,12 @@ function clearUnvalidatedNewContactMethodAction() {
         validateCodeSent: null,
         pendingFields: null,
         errorFields: null,
+    });
+}
+
+function addPendingContactMethod(contactMethod: string) {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        contactMethod,
     });
 }
 
@@ -1324,4 +1338,6 @@ export {
     saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
+    addPendingContactMethod,
+    clearValidateCodeActionError,
 };

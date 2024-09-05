@@ -1,3 +1,5 @@
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
 type ValidateCodeActionModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
@@ -10,6 +12,18 @@ type ValidateCodeActionModalProps = {
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
+
+    /** The pending action for submitting form */
+    validatePendingAction?: PendingAction | null;
+
+    /** The error of submitting  */
+    validateError?: Errors;
+
+    /** Function is called when submitting form  */
+    handleSubmitForm: (validateCode: string) => void;
+
+    /** Function to clear error of the form */
+    clearError: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export
