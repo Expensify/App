@@ -377,6 +377,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
+                private_isArchived: null,
             },
         });
     });
