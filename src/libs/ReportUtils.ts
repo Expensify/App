@@ -9,7 +9,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense, OriginalMessageSelfDMRejectTransaction} from 'src/types/onyx/OriginalMessage';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, QBOCircle, XeroCircle} from '@components/Icon/Expensicons';
@@ -4436,6 +4436,11 @@ function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInpu
     return Localize.translateLocal('iou.forwardedAmount', {amount: formattedAmount});
 }
 
+function getSelfDMRejectedTransactionReportActionMessage(reportAction: ReportAction) {
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageSelfDMRejectTransaction;
+    return Localize.translateLocal('iou.declinedExpense', {comment});
+}
+
 function getRejectedReportMessage() {
     return Localize.translateLocal('iou.rejectedThisReport');
 }
@@ -7878,6 +7883,7 @@ export {
     getIOUApprovedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
+    getSelfDMRejectedTransactionReportActionMessage,
     getWorkspaceNameUpdatedMessage,
     getIOUSubmittedMessage,
     getIcons,

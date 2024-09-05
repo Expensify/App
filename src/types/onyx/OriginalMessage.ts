@@ -518,6 +518,12 @@ type OriginalMessageExpensifyCard = {
     assigneeAccountID: number;
 };
 
+/**   */
+type OriginalMessageSelfDMRejectTransaction = {
+    /** The rejector's comment */
+    message: string;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
@@ -561,6 +567,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.SELFDM_REJECTEDTRANSACTION]: OriginalMessageSelfDMRejectTransaction;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
@@ -607,4 +614,5 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
+    OriginalMessageSelfDMRejectTransaction,
 };
