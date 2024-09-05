@@ -636,6 +636,9 @@ jobs:
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
+      - name: Get current app version
+        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
       - name: Upload web sourcemaps to GitHub Release
         run: gh release upload ${{ env.PRODUCTION_VERSION }} ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.PRODUCTION_VERSION }} --clobber
         env:
