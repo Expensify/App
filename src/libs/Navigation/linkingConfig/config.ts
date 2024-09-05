@@ -1208,8 +1208,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE]: {
-                            path: ROUTES.DEBUG_SELECTION_LIST_ACTION_TYPE.route,
+                        [SCREENS.DEBUG.DEBUG_REPORT_ACTION_TYPE_LIST]: {
+                            path: ROUTES.DEBUG_REPORT_ACTION_TYPE_LIST.route,
                             exact: true,
                         },
                     },

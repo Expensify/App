@@ -137,7 +137,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
                                 style={styles.mb5}
                                 title={(formDraftData?.[key] as string) ?? (defaultData as string)}
                                 description={key}
-                                onPress={() => Navigation.navigate(ROUTES.DEBUG_SELECTION_LIST_ACTION_TYPE.getRoute(reportID ?? '', reportActionId))}
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_TYPE_LIST.getRoute(reportID ?? '', reportActionId))}
                                 shouldShowRightIcon
                             />
                         );

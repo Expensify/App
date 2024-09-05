@@ -556,7 +556,7 @@ const SCREENS = {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
-        SELECTION_LIST_ACTION_TYPE: 'Selection_List_Action_Type',
+        DEBUG_REPORT_ACTION_TYPE_LIST: 'Debug_Report_Action_Type_List',
     },
 } as const;
 

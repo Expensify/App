@@ -577,7 +577,7 @@ const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
     [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportPage').default,
     [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionPage').default,
     [SCREENS.DEBUG.REPORT_ACTION_CREATE]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionCreatePage').default,
-    [SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE]: () => require<ReactComponentModule>('../../../../pages/Debug/SelectionList/SelectionListActionType').default,
+    [SCREENS.DEBUG.DEBUG_REPORT_ACTION_TYPE_LIST]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionTypeListPage').default,
 });
 
 export {

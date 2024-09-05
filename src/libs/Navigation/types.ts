@@ -1441,7 +1441,7 @@ type DebugParamList = {
     [SCREENS.DEBUG.REPORT_ACTION_CREATE]: {
         reportID: string;
     };
-    [SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE]: {
+    [SCREENS.DEBUG.DEBUG_REPORT_ACTION_TYPE_LIST]: {
         reportID?: string;
         reportActionID?: string;
     };

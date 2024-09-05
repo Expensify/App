@@ -17,9 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type DebugReportActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.SELECTION_LIST_ACTION_TYPE>;
+type DebugReportActionTypeListPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DEBUG_REPORT_ACTION_TYPE_LIST>;
 
-const ActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc, value) => {
+const reportActionTypeList = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc: string[], value) => {
     if (isObject(value)) {
         acc.push(...Object.values(value));
         return acc;
@@ -28,13 +28,13 @@ const ActionTypeList: string[] = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce
     acc.push(value);
 
     return acc;
-}, [] as string[]);
+}, []);
 
-function SelectionListActionType({
+function DebugReportActionTypeListPage({
     route: {
         params: {reportID, reportActionID},
     },
-}: DebugReportActionPageProps) {
+}: DebugReportActionTypeListPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -51,12 +51,16 @@ function SelectionListActionType({
 
     const sections = useMemo(
         () =>
-            ActionTypeList.filter((option) => option.includes(searchValueUppercase)).map((option) => ({
-                text: option,
-                keyForList: option,
-                isSelected: option === selectedAction,
-                searchText: option,
-            })),
+            reportActionTypeList
+                .filter((option) => option.includes(searchValueUppercase))
+                .map(
+                    (option): ListItem => ({
+                        text: option,
+                        keyForList: option,
+                        isSelected: option === selectedAction,
+                        searchText: option,
+                    }),
+                ),
         [searchValueUppercase, selectedAction],
     );
 
@@ -74,8 +78,8 @@ function SelectionListActionType({
     };
 
     return (
-        <ScreenWrapper testID={SelectionListActionType.displayName}>
-            <HeaderWithBackButton title={SelectionListActionType.displayName} />
+        <ScreenWrapper testID={DebugReportActionTypeListPage.displayName}>
+            <HeaderWithBackButton title={DebugReportActionTypeListPage.displayName} />
             <View style={styles.containerWithSpaceBetween}>
                 <SelectionList
                     sections={[{data: sections}]}
@@ -92,6 +96,6 @@ function SelectionListActionType({
     );
 }
 
-SelectionListActionType.displayName = 'SelectionListActionType';
+DebugReportActionTypeListPage.displayName = 'DebugReportActionTypeListPage';
 
-export default SelectionListActionType;
+export default DebugReportActionTypeListPage;
