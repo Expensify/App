@@ -767,7 +767,7 @@ function getInviteOnboardingDetails() {
     const firstName = personalDetails?.firstName ?? '';
     const lastName = personalDetails?.lastName ?? '';
 
-    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT) {
+    if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
         return {
             choice,
             data: CONST.ONBOARDING_MESSAGES[choice],
