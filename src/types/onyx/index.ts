@@ -1,6 +1,7 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
+import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -22,6 +23,7 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
@@ -107,6 +109,7 @@ export type {
     TryNewDot,
     Account,
     AccountData,
+    AssignCard,
     BankAccount,
     BankAccountList,
     Beta,
@@ -224,4 +227,5 @@ export type {
     MobileSelectionMode,
     WorkspaceTooltip,
     CardFeeds,
+    ImportedSpreadsheet,
 };

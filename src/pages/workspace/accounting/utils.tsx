@@ -1,16 +1,40 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import {isAuthenticationError} from '@libs/actions/connections';
+import * as Localize from '@libs/Localize';
+import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {
+    getImportCustomFieldsSettings,
+    shouldHideCustomFormIDOptions,
+    shouldHideExportForeignCurrencyAmount,
+    shouldHideExportJournalsTo,
+    shouldHideExportVendorBillsTo,
+    shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableJournalPostingAccount,
+    shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideReimbursableDefaultVendor,
+    shouldHideReimbursableJournalPostingAccount,
+    shouldHideReimbursedReportsSection,
+    shouldHideReportsExportTo,
+    shouldHideTaxPostingAccountSelect,
+    shouldShowInvoiceItemMenuItem,
+} from './netsuite/utils';
 import type {AccountingIntegration} from './types';
 
 function getAccountingIntegrationData(
@@ -21,7 +45,11 @@ function getAccountingIntegrationData(
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
+    canUseNetSuiteUSATax?: boolean,
 ): AccountingIntegration | undefined {
+    const netsuiteConfig = policy?.connections?.netsuite?.options.config;
+    const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
+
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -80,15 +108,64 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    ...CONST.NETSUITE_CONFIG.IMPORT_FIELDS,
+                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                    ...(canUseTaxNetSuite(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary?.country) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX] : []),
+                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, netsuiteConfig),
+                    ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, netsuiteConfig),
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.NETSUITE_CONFIG.EXPORTER,
+                    CONST.NETSUITE_CONFIG.EXPORT_DATE,
+                    CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    ...(!shouldHideReimbursableDefaultVendor(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                    ...(!shouldHideNonReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                    ...(!shouldHideReimbursableJournalPostingAccount(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                    ...(!shouldHideJournalPostingPreference(true, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+                    CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    ...(!shouldHideReimbursableDefaultVendor(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                    ...(!shouldHideNonReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                    ...(!shouldHideReimbursableJournalPostingAccount(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                    ...(!shouldHideJournalPostingPreference(false, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+                    CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT,
+                    CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE,
+                    ...(shouldShowInvoiceItemMenuItem(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : []),
+                    ...(!shouldHideProvincialTaxPostingAccountSelect(netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT] : []),
+                    ...(!shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT] : []),
+                    ...(!shouldHideExportForeignCurrencyAmount(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY] : []),
+                    CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.NETSUITE_CONFIG.AUTO_SYNC,
+                    ...(!shouldHideReimbursedReportsSection(netsuiteConfig)
+                        ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT]
+                        : []),
+                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE,
+                    CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES,
+                    CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES,
+                    ...(!shouldHideReportsExportTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO] : []),
+                    ...(!shouldHideExportVendorBillsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
+                    ...(!shouldHideExportJournalsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
+                    CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT,
+                    CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED,
+                    ...(!shouldHideCustomFormIDOptions(netsuiteConfig)
+                        ? [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE]
+                        : []),
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
                         ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
                         : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
                 },
+                pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields},
+                errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
@@ -142,5 +219,44 @@ function getAccountingIntegrationData(
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getAccountingIntegrationData};
+function getSynchronizationErrorMessage(
+    policy: OnyxEntry<Policy>,
+    connectionName: PolicyConnectionName,
+    isSyncInProgress: boolean,
+    translate: LocaleContextProps['translate'],
+    styles?: ThemeStyles,
+): React.ReactNode | undefined {
+    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        if (
+            !isSyncInProgress &&
+            (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
+        ) {
+            return syncError;
+        }
+        return;
+    }
+
+    const connection = policy?.connections?.[connectionName];
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
+        return;
+    }
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)) {
+        return (
+            <Text style={[styles?.formError]}>
+                <Text style={[styles?.formError]}>{translate('workspace.sageIntacct.authenticationError')}</Text>
+                <TextLink
+                    style={[styles?.link, styles?.fontSizeLabel]}
+                    href={CONST.SAGE_INTACCT_HELP_LINK}
+                >
+                    {translate('workspace.sageIntacct.learnMore')}
+                </TextLink>
+            </Text>
+        );
+    }
+    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+}
+
+export {getAccountingIntegrationData, getSynchronizationErrorMessage};
