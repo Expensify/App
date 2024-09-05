@@ -107,8 +107,9 @@ function WorkspaceInviteMessagePage({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        const policyMemberAccountIDs = Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
+        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         Navigation.dismissModal();
