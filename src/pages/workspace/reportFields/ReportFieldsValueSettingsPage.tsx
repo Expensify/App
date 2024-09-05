@@ -125,7 +125,7 @@ function ReportFieldsValueSettingsPage({
                         </View>
                     </View>
                     <MenuItemWithTopDescription
-                        title={currentValueName}
+                        title={currentValueName ?? oldValueName}
                         description={translate('common.value')}
                         shouldShowRightIcon={!reportFieldID}
                         interactive={!reportFieldID}
