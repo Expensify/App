@@ -105,9 +105,6 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
 
-    /** Whether the personal bank account option should be shown */
-    shouldShowPersonalBankAccountOption?: boolean;
-
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
@@ -147,7 +144,6 @@ function SettlementButton({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     style,
-    shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
@@ -158,10 +154,9 @@ function SettlementButton({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID), [activePolicyID]);
-
     const session = useSession();
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID, session?.email), [activePolicyID, session?.email]);
+
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
@@ -171,18 +166,27 @@ function SettlementButton({
         (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
     const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
-        const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
-            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
-                icon: Expensicons.Wallet,
-                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-            },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: translate('iou.settlePersonalBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusinessBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.DEBIT_CARD]: {
+                text: translate('iou.settleDebitCard', {formattedAmount}),
+                icon: Expensicons.CreditCard,
+                value: CONST.PAYMENT_METHODS.DEBIT_CARD,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
@@ -190,6 +194,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
+        const buttonOptions = [];
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
@@ -207,12 +212,10 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
-        if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
+        if (canUseWallet || (isExpenseReport && shouldShowPaywithExpensifyOption)) {
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
         }
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
-        }
+
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
@@ -272,7 +275,12 @@ function SettlementButton({
             return;
         }
 
-        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+        if (
+            iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
+            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
+        ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
@@ -306,7 +314,6 @@ function SettlementButton({
             chatReportID={chatReportID}
             iouReport={iouReport}
             anchorAlignment={kycWallAnchorAlignment}
-            shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
@@ -314,10 +321,7 @@ function SettlementButton({
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu={isInvoiceReport}
-                    customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                    isSplitButton={!isInvoiceReport}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}

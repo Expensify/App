@@ -243,88 +243,6 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
-
-    // const advancedFilters = useMemo(
-    //     () => [
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, translate),
-    //             description: 'common.date' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY, translate),
-    //             description: 'common.currency' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, translate),
-    //             description: 'common.merchant' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, translate),
-    //             description: 'common.description' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID, translate),
-    //             description: 'common.reportID' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, translate),
-    //             description: 'common.total' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, translate),
-    //             description: 'common.category' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, translate),
-    //             description: 'search.filters.hasKeywords' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
-    //         },
-    //         {
-    //             title: getFilterCardDisplayTitle(searchAdvancedFilters, cardList),
-    //             description: 'common.card' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
-    //             shouldHide: Object.keys(cardList).length === 0,
-    //         },
-    //         {
-    //             title: getFilterTaxRateDisplayTitle(searchAdvancedFilters, taxRates),
-    //             description: 'workspace.taxes.taxRate' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
-    //         },
-    //         {
-    //             title: getFilterExpenseDisplayTitle(searchAdvancedFilters, translate),
-    //             description: 'search.expenseType' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
-    //         },
-    //         {
-    //             title: getFilterDisplayTitle(searchAdvancedFilters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, translate),
-    //             description: 'common.tag' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
-    //         },
-    //         {
-    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.from ?? [], personalDetails),
-    //             description: 'common.from' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
-    //         },
-    //         {
-    //             title: getFilterParticipantDisplayTitle(searchAdvancedFilters.to ?? [], personalDetails),
-    //             description: 'common.to' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
-    //         },
-    //         {
-    //             title: getFilterInDisplayTitle(searchAdvancedFilters, translate, reports),
-    //             description: 'common.in' as const,
-    //             route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-    //         },
-    //     ],
-    //     [searchAdvancedFilters, translate, cardList, taxRates, personalDetails, reports],
-    // );
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const onFormSubmit = () => {
@@ -334,7 +252,6 @@ function AdvancedSearchFilters() {
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query,
-                isCustomQuery: true,
             }),
         );
     };
