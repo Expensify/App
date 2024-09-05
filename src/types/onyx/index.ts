@@ -104,6 +104,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 import type WorkspaceTooltip from './WorkspaceTooltip';
+import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 
 export type {
     TryNewDot,
@@ -228,4 +229,5 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     ImportedSpreadsheet,
+    ValidateMagicCodeAction,
 };

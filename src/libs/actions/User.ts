@@ -469,6 +469,60 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
 }
 
+function requestValidateCodeAction() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                isLoading: true,
+                pendingFields: {
+                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                errorFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: true,
+                isLoading: false,
+                errorFields: {
+                    actionVerified: null,
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+                isLoading: false,
+                errorFields: {
+                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                },
+                pendingFields: {
+                    actionVerified: null,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+}
+
 /**
  * Validates a login given an accountID and validation code
  */
@@ -1269,4 +1323,5 @@ export {
     requestRefund,
     saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    requestValidateCodeAction,
 };
