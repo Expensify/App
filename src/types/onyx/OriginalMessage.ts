@@ -493,8 +493,8 @@ type OriginalMessageUnapproved = {
 
 /** Model of `Removed From Approval Chain` report action */
 type OriginalMessageRemovedFromApprovalChain = {
-    /** The submitter whose approval chain changed such that the approver was removed from their approval chain */
-    submitterAccountID: number;
+    /** The submitter IDs whose approval chains changed such that the approver was removed from their approval chains */
+    submittersAccountIDs: number[];
 
     /** The accountID of the approver who was removed from the submitter's approval chain */
     whisperedTo: number[];
@@ -566,8 +566,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
-    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: OriginalMessageRemovedFromApprovalChain;
-    [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
