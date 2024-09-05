@@ -113,6 +113,7 @@ type RequestCountParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+    available?: boolean;
 };
 
 type RequestAmountParams = {amount: string};
@@ -522,6 +523,11 @@ type ReconciliationWorksParams = {lastFourPAN: string};
 
 type DelegateRoleParams = {role: DelegateRole};
 
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
+};
+
 export type {
     DelegateRoleParams,
     ReconciliationWorksParams,
@@ -708,4 +714,5 @@ export type {
     DisconnectTitleParams,
     CharacterLengthLimitParams,
     OptionalParam,
+    AssignCardParams,
 };

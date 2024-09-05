@@ -35,7 +35,7 @@ const ROUTES = {
 
     SEARCH_CENTRAL_PANE: {
         route: 'search',
-        getRoute: ({query, isCustomQuery = false}: {query: SearchQueryString; isCustomQuery?: boolean}) => `search?q=${query}&isCustomQuery=${isCustomQuery}` as const,
+        getRoute: ({query}: {query: SearchQueryString}) => `search?q=${query}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
@@ -547,7 +547,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE_ADDRESS: {
         route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -744,6 +744,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        route: 'settings/workspaces/:policyID/categories/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        route: 'settings/workspaces/:policyID/categories/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
+    },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
@@ -901,6 +909,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
+        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',
