@@ -6,8 +6,9 @@ import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
-import useSplashScreen from '@hooks/useSplashScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
@@ -15,7 +16,7 @@ type Props = {
 
 function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieView>) {
     const appState = useAppState();
-    const {isSplashHidden} = useSplashScreen();
+    const {splashScreenState} = useSplashScreenStateContext();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
 
@@ -45,7 +46,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
     // 2. heavy rendering, see issue: https://github.com/Expensify/App/issues/34696
     // 3. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    if (isError || appState.isBackground || !animationFile || !isSplashHidden || !isInteractionComplete) {
+    if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || !isInteractionComplete) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
