@@ -67,7 +67,7 @@ export default function useAnimatedHighlightStyle({
         }
         setStartHighlight(true);
         // We only need to add shouldHighlight as a dependency and adding startHighlight as deps will cause a loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldHighlight]);
 
     React.useEffect(() => {
