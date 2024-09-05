@@ -41,7 +41,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const {splashScreenState} = useSplashScreenStateContext();
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
-    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || !isInteractionComplete) {
         return;
     }
 
