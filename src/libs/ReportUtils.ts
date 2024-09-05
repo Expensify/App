@@ -7775,8 +7775,8 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
 }
 
-function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
+function isExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID;
 }
 
 export {
@@ -7975,7 +7975,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isSubmittedExpenseReportManagerWithoutParentAccess,
+    isExpenseReportManagerWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
