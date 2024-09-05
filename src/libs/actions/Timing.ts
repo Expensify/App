@@ -20,7 +20,7 @@ let timestampData: Record<string, TimestampData> = {};
  * @param shouldUseFirebase - adds an additional trace in Firebase
  */
 function start(eventName: string, shouldUseFirebase = true) {
-    timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
+    timestampData[eventName] = {startTime: performance.now(), shouldUseFirebase};
 
     if (!shouldUseFirebase) {
         return;
@@ -42,13 +42,13 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
     }
 
     const {startTime, shouldUseFirebase} = timestampData[eventName];
+
+    if (shouldUseFirebase) {
+        Firebase.stopTrace(eventName);
+    }
+
+    const eventTime = performance.now() - startTime;
     Environment.getEnvironment().then((envName) => {
-        const eventTime = Date.now() - startTime;
-
-        if (shouldUseFirebase) {
-            Firebase.stopTrace(eventName);
-        }
-
         const baseEventName = `${envName}.new.expensify.${eventName}`;
         const grafanaEventName = secondaryName ? `${baseEventName}.${secondaryName}` : baseEventName;
 
