@@ -54,6 +54,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
     SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
+    SEARCH_ADVANCED_FILTERS_IS: 'search/filters/is',
 
     SEARCH_REPORT: {
         route: 'search/view/:reportID',
@@ -909,6 +910,10 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
+        getRoute: (policyID: string, feed: string) => `settings/workspaces/${policyID}/company-cards/${feed}/assign-card` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID',

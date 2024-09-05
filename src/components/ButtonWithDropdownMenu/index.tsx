@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
-                    horizontal: x + w + h,
+                    horizontal: x + w,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
@@ -110,7 +110,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={[styles.flex1, styles.pr0]}
+                        style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
