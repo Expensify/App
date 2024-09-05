@@ -987,7 +987,7 @@ function getDomainNameForPolicy(policyID?: string): string {
 }
 
 function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
-    return policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.BASIC || !!policy?.errorFields?.approvalMode;
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
 export {
