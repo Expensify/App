@@ -1,9 +1,7 @@
 import React, {memo, useEffect, useRef} from 'react';
-import {InteractionManager} from 'react-native';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
-import CONST from '@src/CONST';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
