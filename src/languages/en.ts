@@ -4644,7 +4644,7 @@ const translations = {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
-        role: ({role}: DelegateRoleParams) => {
+        role: (test: string) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Full';
@@ -4655,6 +4655,10 @@ const translations = {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+    },
+    roomChangeLogs: {
+        updateRoomDescription: 'set the room description to:',
+        clearRoomDescription: 'cleared the room description',
     },
 };
 
