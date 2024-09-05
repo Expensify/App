@@ -329,6 +329,7 @@ function IOURequestStepScan({
                             IOU.requestMoney(
                                 report,
                                 0,
+                                transaction?.attendees,
                                 transaction?.currency ?? 'USD',
                                 transaction?.created ?? '',
                                 '',
@@ -372,6 +373,7 @@ function IOURequestStepScan({
                             IOU.requestMoney(
                                 report,
                                 0,
+                                transaction?.attendees,
                                 transaction?.currency ?? 'USD',
                                 transaction?.created ?? '',
                                 '',

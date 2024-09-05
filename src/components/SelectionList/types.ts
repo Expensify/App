@@ -4,6 +4,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -195,6 +196,9 @@ type TransactionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** Attendees in the transaction */
+        attendees?: Attendee[];
     };
 
 type ReportListItemType = ListItem &

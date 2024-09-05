@@ -25,7 +25,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -56,6 +56,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The formatted amount of the transaction */
     formattedAmount: string;
 
+    /** The formatted amount of the transaction per 1 attendee */
+    formattedAmountPerAttendee: string;
+
     /** The error message for the form */
     formError: string;
 
@@ -64,6 +67,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The category of the IOU */
     iouCategory: string;
+
+    /** The list of attendees */
+    iouAttendees: Attendee[] | undefined;
 
     /** The comment of the IOU */
     iouComment: string | undefined;
@@ -175,8 +181,10 @@ function MoneyRequestConfirmationListFooter({
     didConfirm,
     distance,
     formattedAmount,
+    formattedAmountPerAttendee,
     formError,
     hasRoute,
+    iouAttendees,
     iouCategory,
     iouComment,
     iouCreated,
@@ -225,6 +233,7 @@ function MoneyRequestConfirmationListFooter({
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM), [policy?.id, policy?.type]);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -500,6 +509,25 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key="attendees"
+                    shouldShowRightIcon
+                    title={iouAttendees?.map((item) => item.displayName ?? item.login).join(', ')}
+                    description={`${translate('iou.attendees')} ${
+                        iouAttendees?.length && iouAttendees.length > 1 ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                    }`}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    interactive
+                    shouldRenderAsHTML
+                />
+            ),
+            shouldShow: shouldShowAttendees,
             isSupplementary: true,
         },
         {
