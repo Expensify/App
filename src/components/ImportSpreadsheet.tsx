@@ -65,7 +65,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         }
 
         if ((file?.size ?? 0) <= 0) {
-            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
         return true;
