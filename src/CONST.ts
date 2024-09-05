@@ -1340,7 +1340,6 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
-        ANONYMOUS_USER_DOMAIN: '@expensify.anon',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
