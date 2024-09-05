@@ -558,8 +558,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
                     reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
-                    isDelegateAccessRestricted: isDelegateAccessRestricted,
-                    setIsNoDelegateAccessMenuVisible: setIsNoDelegateAccessMenuVisible,
+                    isDelegateAccessRestricted,
+                    setIsNoDelegateAccessMenuVisible,
                 }),
             );
         }
@@ -571,7 +571,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, isDelegateAccessRestricted]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
