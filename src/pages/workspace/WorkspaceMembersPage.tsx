@@ -411,7 +411,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     };
 
     const getHeaderContent = () => (
-        <>
+        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
@@ -422,7 +422,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
-        </>
+        </View>
     );
 
     useEffect(() => {

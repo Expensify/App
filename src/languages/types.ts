@@ -405,6 +405,11 @@ type UpdateReportMemberRoleParams = {
     newRole: string;
 };
 
+type AssignCardParams = {
+    assignee: string;
+    feed: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -535,4 +540,5 @@ export type {
     SearchFilterAmountBetweenParams,
     ReportMemberRoleParams,
     UpdateReportMemberRoleParams,
+    AssignCardParams,
 };
