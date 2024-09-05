@@ -7,6 +7,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidationCode} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,12 +25,14 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const styles = useThemeStyles();
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
+    const {isOffline} = useNetwork();
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
 
     const submitButton = (
         <Button
             success
+            isDisabled={isOffline}
             large
             text={translate('delegate.addCopilot')}
             style={styles.mt6}
