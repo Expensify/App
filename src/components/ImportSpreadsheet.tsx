@@ -92,9 +92,13 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][]).then(() => {
-                    Navigation.navigate(goTo);
-                });
+                setSpreadsheetData(data as string[][])
+                    .then(() => {
+                        Navigation.navigate(goTo);
+                    })
+                    .catch(() => {
+                        setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                    });
             })
             .finally(() => {
                 setIsReadingFIle(false);

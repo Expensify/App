@@ -67,6 +67,7 @@ function IOURequestStepScan({
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
+    // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
