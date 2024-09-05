@@ -3801,7 +3801,7 @@ export default {
             }
             const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
             const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
-            return `removed you from ${submittersNames}'s approval ${workflowWord} and workspace chat${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+            return `removed you from ${submittersNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
         },
     },
     roomMembersPage: {
