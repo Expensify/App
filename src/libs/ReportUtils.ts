@@ -5757,9 +5757,6 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     if (isEmptyReport(report) && !isSelfDM(report)) {
         return false;
     }
-    if (!report.lastReadTime) {
-        return false;
-    }
 
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
