@@ -11,7 +11,7 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldAutoDismiss = false, isUseInInvertedList = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     useEffect(
@@ -52,18 +52,16 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, isUseInInv
                         const target = e.target || e.nativeEvent.target;
                         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
                         setTimeout(() => {
-                            InteractionManager.runAfterInteractions(() => {
-                                target?.measure((fx, fy, width, height, px, py) => {
-                                    updateTargetBounds({
-                                        height,
-                                        width,
-                                        x: px,
-                                        y: isUseInInvertedList ? py - height : py,
-                                    });
-                                    showTooltip();
+                            target?.measureInWindow((fx, fy, width, height) => {
+                                updateTargetBounds({
+                                    height,
+                                    width,
+                                    x: fx,
+                                    y: fy,
                                 });
+                                showTooltip();
                             });
-                        }, CONST.ANIMATED_TRANSITION);
+                        }, 500);
                     },
                 });
             }}

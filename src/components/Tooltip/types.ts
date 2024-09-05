@@ -75,17 +75,11 @@ type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** Whether to automatically dismiss the tooltip after 5 seconds */
         shouldAutoDismiss?: boolean;
-
-        /** Whether the Tooltip is used in inverted */
-        isUseInInvertedList?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
-
-    /** Whether the Tooltip is used in inverted */
-    isUseInInvertedList?: boolean;
 };
 
 export default TooltipProps;

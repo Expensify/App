@@ -6,7 +6,7 @@ function OptionRowRendererComponent(props: CellContainerProps) {
         <CellContainer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            style={[props.style, {zIndex: -props.index, position: 'relative'}]}
+            style={[props.style, {zIndex: -props.index}]}
         />
     );
 }

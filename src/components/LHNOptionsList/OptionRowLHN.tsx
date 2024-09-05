@@ -178,7 +178,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                isUseInInvertedList
                 shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
