@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,19 +36,21 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
 
     const [isAnimationRunning, setIsAnimationRunning] = useState(false);
 
-    const resetAnimation = () => {
+    const resetAnimation = useCallback(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
         buttonScale.value = 1;
         buttonOpacity.value = 1;
         paymentCompleteTextScale.value = 0;
         paymentCompleteTextOpacity.value = 1;
         height.value = variables.componentSizeNormal;
-    };
+    }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height]);
 
     useEffect(() => {
         if (!isAnimationRunning) {
             resetAnimation();
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         buttonScale.value = withTiming(0, {duration: 200});
         buttonOpacity.value = withTiming(0, {duration: 200});
         paymentCompleteTextScale.value = withTiming(1, {duration: 200});
@@ -59,7 +61,7 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
             withTiming(0, {duration: 200}, () => runOnJS(setIsAnimationRunning)(false)),
         );
         paymentCompleteTextOpacity.value = withDelay(1200, withTiming(0, {duration: 200}));
-    }, [isAnimationRunning]);
+    }, [isAnimationRunning, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
     if (!isVisible && !isAnimationRunning) {
         return null;
@@ -74,6 +76,7 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
             )}
             <Animated.View style={buttonStyles}>
                 <SettlementButton
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
                     onPress={(paymentType, payAsBusiness) => {
                         const isPaid = !!settlementButtonProps.onPress(paymentType, payAsBusiness);
