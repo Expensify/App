@@ -563,14 +563,10 @@ function getDisplayValue(
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-        const result: string[] = [];
-        Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
-            if (!taxRateKeys.some((taxRateKey) => taxRateKey === filter) || result.includes(taxRateName)) {
-                return;
-            }
-            result.push(taxRateName);
-        });
-        return result.join(' ');
+        const result = Object.entries(taxRates)
+            .filter(([, taxRateKeys]) => taxRateKeys.includes(filter))
+            .map(([taxRate]) => taxRate);
+        return [...new Set<string>(result)].map((taxRate) => sanitizeString(taxRate)).join(' ');
     }
     return filter;
 }
