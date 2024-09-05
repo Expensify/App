@@ -11,7 +11,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import SettlementButton from '@components/SettlementButton';
+import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -200,11 +201,13 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
+            HapticFeedback.longPress();
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {
                 IOU.payMoneyRequest(type, chatReport, iouReport);
             }
+            return true;
         }
     };
 
@@ -463,34 +466,33 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && (
-                                    <SettlementButton
-                                        formattedAmount={getSettlementAmount() ?? ''}
-                                        currency={iouReport?.currency}
-                                        policyID={policyID}
-                                        chatReportID={chatReportID}
-                                        iouReport={iouReport}
-                                        onPress={confirmPayment}
-                                        onPaymentOptionsShow={onPaymentOptionsShow}
-                                        onPaymentOptionsHide={onPaymentOptionsHide}
-                                        confirmApproval={confirmApproval}
-                                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                        addBankAccountRoute={bankAccountRoute}
-                                        shouldHidePaymentOptions={!shouldShowPayButton}
-                                        shouldShowApproveButton={shouldShowApproveButton}
-                                        shouldDisableApproveButton={shouldDisableApproveButton}
-                                        kycWallAnchorAlignment={{
-                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                        }}
-                                        paymentMethodDropdownAnchorAlignment={{
-                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                        }}
-                                        isDisabled={isOffline && !canAllowSettlement}
-                                        isLoading={!isOffline && !canAllowSettlement}
-                                    />
-                                )}
+                                <AnimatedSettlementButton
+                                    isVisible={shouldShowSettlementButton}
+                                    formattedAmount={getSettlementAmount() ?? ''}
+                                    currency={iouReport?.currency}
+                                    policyID={policyID}
+                                    chatReportID={chatReportID}
+                                    iouReport={iouReport}
+                                    onPress={confirmPayment}
+                                    onPaymentOptionsShow={onPaymentOptionsShow}
+                                    onPaymentOptionsHide={onPaymentOptionsHide}
+                                    confirmApproval={confirmApproval}
+                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                    addBankAccountRoute={bankAccountRoute}
+                                    shouldHidePaymentOptions={!shouldShowPayButton}
+                                    shouldShowApproveButton={shouldShowApproveButton}
+                                    shouldDisableApproveButton={shouldDisableApproveButton}
+                                    kycWallAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                    paymentMethodDropdownAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                    isDisabled={isOffline && !canAllowSettlement}
+                                    isLoading={!isOffline && !canAllowSettlement}
+                                />
                                 {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
