@@ -231,7 +231,6 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
         if (!includeMemberWithPendingDelete) {
             const member = members?.[email];
             if (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                console.log('RETURNING FOR [' + email + ']');
                 return;
             }
         }
