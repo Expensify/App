@@ -5484,7 +5484,7 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): An
     };
 
     // Do not create #announce room if the room already exists or if there are less than 3 participants in workspace
-    if (announceReport || accountIDs.length < 3) {
+    if (accountIDs.length < 3 || announceReport) {
         return announceRoomOnyxData;
     }
 

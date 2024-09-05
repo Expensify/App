@@ -3346,8 +3346,6 @@ function categorizeTrackedExpense(
         receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
-        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
-        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
@@ -3423,8 +3421,6 @@ function shareTrackedExpense(
         receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
-        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
-        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
