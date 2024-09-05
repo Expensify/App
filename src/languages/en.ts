@@ -3790,7 +3790,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
-        removedFromApprovalWorkflow: ({submitterName}) => `removed you from ${submitterName}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
+        removedFromApprovalWorkflow: ({submittersNames}) => {
+            let joinedNames: string = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' and ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = submittersNames.slice(0, submittersNames.length - 1).join(', ') + ' and ' + submittersNames[submittersNames.length - 1];
+            }
+            const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
+            const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
+            return `removed you from ${submittersNames}'s approval ${workflowWord} and workspace chat${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
