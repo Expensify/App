@@ -2362,7 +2362,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.120):
+  - RNLiveMarkdown (0.1.129):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2382,9 +2382,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.120)
+    - RNLiveMarkdown/common (= 0.1.129)
     - Yoga
-  - RNLiveMarkdown/common (0.1.120):
+  - RNLiveMarkdown/common (0.1.129):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3235,7 +3235,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 8781e2529230a1bc3ea8d75e5c3cd071b6c6aed7
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: cfc927fc0b1182e364237c72692e079107c6f5f1
+  RNLiveMarkdown: 72b96f1766725f9d78db2ac8c5ce919b8188c656
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 5ab6bfd249cd67262615153c648f8d809aab781c
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
