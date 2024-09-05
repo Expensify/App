@@ -45,6 +45,7 @@ function getAccountingIntegrationData(
     key?: number,
     canUseNetSuiteUSATax?: boolean,
 ): AccountingIntegration | undefined {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
 
@@ -60,9 +61,39 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
+                ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.QUICKBOOKS_CONFIG.EXPORTER,
+                    CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
+                    CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                    CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
+                        ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
+                        : []),
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL &&
+                    policy?.connections?.quickbooksOnline?.config?.autoCreateVendor
+                        ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]
+                        : []),
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
+                    CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
+                    CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                    ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
+                ],
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
