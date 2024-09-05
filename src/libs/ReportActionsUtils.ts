@@ -1657,10 +1657,9 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
 
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
-    const submitterDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([originalMessage?.submitterAccountID ?? 0], currentUserAccountID ?? -1)[0];
-    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {
-        submitterName: submitterDetails?.displayName ?? submitterDetails?.login ?? 'Unknown Submitter',
-    });
+    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? -1)
+        .map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
+    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames});
 }
 
 export {
