@@ -343,8 +343,7 @@ function ReportActionItem({
                 return;
             }
 
-            ReportActionComposeFocusManager.composerRef.current?.blur();
-            ReportActionComposeFocusManager.editComposerRef.current?.blur();
+            ReportActionComposeFocusManager.blurAll();
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
