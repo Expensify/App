@@ -32,8 +32,16 @@ function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
 
+function canUseCompanyCardFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.COMPANY_CARD_FEEDS) || canUseAllBetas(betas);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+}
+
+function canUseNewDotCopilot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_COPILOT) || canUseAllBetas(betas);
 }
 
 function canUseWorkspaceRules(betas: OnyxEntry<Beta[]>): boolean {
@@ -60,7 +68,9 @@ export default {
     canUseWorkflowsAdvancedApproval,
     canUseSpotnanaTravel,
     canUseWorkspaceFeeds,
+    canUseCompanyCardFeeds,
     canUseNetSuiteUSATax,
+    canUseNewDotCopilot,
     canUseWorkspaceRules,
     canUseCombinedTrackSubmit,
 };

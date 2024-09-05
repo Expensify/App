@@ -16,7 +16,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
-import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
+import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -292,16 +292,9 @@ function getSortedReportData(data: ReportListItemType[]) {
 function getCurrentSearchParams() {
     const rootState = navigationRef.getRootState() as State<RootStackParamList>;
 
-    const lastSearchCentralPaneRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
-    const lastSearchBottomTabRoute = rootState.routes[0].state?.routes.filter((route) => route.name === SCREENS.SEARCH.BOTTOM_TAB).at(-1);
+    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
 
-    if (lastSearchCentralPaneRoute) {
-        return lastSearchCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    }
-
-    if (lastSearchBottomTabRoute) {
-        return lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
-    }
+    return lastSearchRoute ? (lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) : undefined;
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
@@ -428,6 +421,16 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
@@ -454,7 +457,9 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.TAG ||
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO) &&
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -581,6 +586,16 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
     return normalizeQuery(`type:${type} status:${status}`);
 }
 
+/**
+ * Returns whether a given search query is a Canned query.
+ *
+ * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
+ * For example: "type:trip status:all" is a canned query.
+ */
+function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
+    return !queryJSON.filters;
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
@@ -599,5 +614,7 @@ export {
     normalizeQuery,
     shouldShowYear,
     buildCannedSearchQuery,
+    isCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
 };
