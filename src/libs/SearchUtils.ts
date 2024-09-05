@@ -529,7 +529,8 @@ function getFilters(queryJSON: SearchQueryJSON) {
 /**
  * returns the values of the filters in a format that can be used in the SearchAdvancedFiltersForm as initial form values
  */
-function getFiltersFormValues(filters: QueryFilters, queryJSON: SearchQueryJSON) {
+function getFiltersFormValues(queryJSON: SearchQueryJSON) {
+    const filters = getFilters(queryJSON);
     const filterKeys = Object.keys(filters);
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     for (const filterKey of filterKeys) {

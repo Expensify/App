@@ -36,8 +36,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title}
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
     const onPress = () => {
-        const filters = SearchUtils.getFilters(queryJSON);
-        const values = SearchUtils.getFiltersFormValues(filters, queryJSON);
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };

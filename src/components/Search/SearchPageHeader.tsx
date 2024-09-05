@@ -296,8 +296,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
     }
 
     const onPress = () => {
-        const filters = SearchUtils.getFilters(queryJSON);
-        const values = SearchUtils.getFiltersFormValues(filters, queryJSON);
+        const values = SearchUtils.getFiltersFormValues(queryJSON);
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
