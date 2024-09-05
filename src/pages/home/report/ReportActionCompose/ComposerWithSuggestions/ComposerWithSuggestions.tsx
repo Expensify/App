@@ -14,7 +14,7 @@ import type {
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -57,6 +57,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SyncSelection = {
     position: number;
@@ -823,22 +824,29 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
-export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-    editFocused: {
-        key: ONYXKEYS.INPUT_FOCUSED,
-    },
-    parentReportActions: {
-        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+export type {ComposerWithSuggestionsProps};
+
+export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, keyof ComposerWithSuggestionsOnyxProps>) {
+    const [modal, modalMetadata] = useOnyx(ONYXKEYS.MODAL);
+    const [preferredSkinTone = 0, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
+    const [editFocused = false, editFocusedMetadata] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.parentReportID}`, {
         canEvict: false,
         initWithStoredValues: false,
-    },
-})(memo(ComposerWithSuggestionsWithRef));
+    });
 
-export type {ComposerWithSuggestionsProps};
+    if (isLoadingOnyxValue(modalMetadata, preferredSkinToneMetadata, editFocusedMetadata, parentReportActionsMetadata)) {
+        return null;
+    }
+
+    return (
+        <ComposerWithSuggestionsWithRef
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            modal={modal}
+            preferredSkinTone={preferredSkinTone}
+            editFocused={editFocused}
+            parentReportActions={parentReportActions}
+        />
+    );
+}

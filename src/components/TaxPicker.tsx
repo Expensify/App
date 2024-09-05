@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -13,6 +13,7 @@ import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
 
@@ -125,19 +126,24 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit,
 
 TaxPicker.displayName = 'TaxPicker';
 
-export default withOnyx<TaxPickerProps, TaxPickerOnyxProps>({
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    transaction: {
-        key: ({transactionID, action}) => {
-            if (IOUUtils.shouldUseTransactionDraft(action)) {
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
-            }
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        },
-    },
-    splitDraftTransaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-    },
-})(TaxPicker);
+export default function ComponentWithOnyx(props: Omit<TaxPickerProps, keyof TaxPickerOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`);
+    const [transaction, transactionMetadata] = useOnyx(
+        `${IOUUtils.shouldUseTransactionDraft(props.action) ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+    );
+    const [splitDraftTransaction, splitDraftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${props.transactionID}`);
+
+    if (isLoadingOnyxValue(policyMetadata, transactionMetadata, splitDraftTransactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <TaxPicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+            transaction={transaction}
+            splitDraftTransaction={splitDraftTransaction}
+        />
+    );
+}

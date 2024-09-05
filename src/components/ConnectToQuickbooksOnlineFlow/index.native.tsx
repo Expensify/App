@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,6 +12,7 @@ import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
 type ConnectToQuickbooksOnlineFlowOnyxProps = {
@@ -69,8 +70,18 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
 
 ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
 
-export default withOnyx<ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps, ConnectToQuickbooksOnlineFlowOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConnectToQuickbooksOnlineFlow);
+export default function ComponentWithOnyx(props: Omit<ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps, keyof ConnectToQuickbooksOnlineFlowOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConnectToQuickbooksOnlineFlow
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

@@ -84,9 +84,8 @@ ConfirmationStep.displayName = 'ConfirmationStep';
 export default function ConfirmationStepOnyx(props: Omit<ConfirmationStepProps, keyof ConfirmationOnyxProps>) {
     const [personalBankAccountDraft, personalBankAccountDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
 
-    if (isLoadingOnyxValue(personalBankAccountDraftMetadata, personalBankAccountMetadata, userWalletMetadata)) {
+    if (isLoadingOnyxValue(personalBankAccountDraftMetadata, personalBankAccountMetadata)) {
         return null;
     }
 
@@ -96,7 +95,6 @@ export default function ConfirmationStepOnyx(props: Omit<ConfirmationStepProps, 
             {...props}
             personalBankAccountDraft={personalBankAccountDraft}
             personalBankAccount={personalBankAccount}
-            userWallet={userWallet}
         />
     );
 }

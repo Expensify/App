@@ -4,7 +4,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type OnboardingWorkProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
+type OnboardingWorkProps = StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>;
 
 type BaseOnboardingWorkOnyxProps = {
     /** Saved onboarding purpose selected by the user */

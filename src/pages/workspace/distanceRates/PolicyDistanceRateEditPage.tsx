@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateEditForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PolicyDistanceRateEditPageOnyxProps = {
     /** Policy details */
@@ -108,8 +109,18 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
 
 PolicyDistanceRateEditPage.displayName = 'PolicyDistanceRateEditPage';
 
-export default withOnyx<PolicyDistanceRateEditPageProps, PolicyDistanceRateEditPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRateEditPage);
+export default function ComponentWithOnyx(props: Omit<PolicyDistanceRateEditPageProps, keyof PolicyDistanceRateEditPageOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <PolicyDistanceRateEditPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+        />
+    );
+}

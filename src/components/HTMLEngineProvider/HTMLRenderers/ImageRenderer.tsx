@@ -1,5 +1,5 @@
-import React, {memo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ImageRendererWithOnyxProps = {
     /** Current user */
@@ -113,13 +114,18 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
-    ),
-);
+export default function ComponentWithOnyx(props: Omit<ImageRendererProps, keyof ImageRendererWithOnyxProps>) {
+    const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
+
+    if (isLoadingOnyxValue(userMetadata)) {
+        return null;
+    }
+
+    return (
+        <ImageRenderer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}

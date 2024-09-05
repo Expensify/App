@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CategorySettingsPageOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -191,8 +192,18 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
 
 CategorySettingsPage.displayName = 'CategorySettingsPage';
 
-export default withOnyx<CategorySettingsPageProps, CategorySettingsPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(CategorySettingsPage);
+export default function ComponentWithOnyx(props: Omit<CategorySettingsPageProps, keyof CategorySettingsPageOnyxProps>) {
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyCategoriesMetadata)) {
+        return null;
+    }
+
+    return (
+        <CategorySettingsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyCategories={policyCategories}
+        />
+    );
+}

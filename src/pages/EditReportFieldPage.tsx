@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -18,6 +18,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -163,11 +164,20 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
 EditReportFieldPage.displayName = 'EditReportFieldPage';
 
-export default withOnyx<EditReportFieldPageProps, EditReportFieldPageOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(EditReportFieldPage);
+export default function ComponentWithOnyx(props: Omit<EditReportFieldPageProps, keyof EditReportFieldPageOnyxProps>) {
+    const [report, reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(reportMetadata, policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <EditReportFieldPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            policy={policy}
+        />
+    );
+}

@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceJoinUserPageOnyxProps = {
     /** The policy of the report */
@@ -75,8 +76,19 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
 }
 
 WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
-export default withOnyx<WorkspaceJoinUserPageProps, WorkspaceJoinUserPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route?.params?.policyID}`,
-    },
-})(WorkspaceJoinUserPage);
+
+export default function ComponentWithOnyx(props: Omit<WorkspaceJoinUserPageProps, keyof WorkspaceJoinUserPageOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route?.params?.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceJoinUserPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+        />
+    );
+}

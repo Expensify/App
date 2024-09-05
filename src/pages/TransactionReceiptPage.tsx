@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, ReportMetadata, Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TransactionReceiptOnyxProps = {
     report: OnyxEntry<Report>;
@@ -75,14 +76,22 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
 
 TransactionReceipt.displayName = 'TransactionReceipt';
 
-export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '-1'}`,
-    },
-    reportMetadata: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '-1'}`,
-    },
-})(TransactionReceipt);
+export default function ComponentWithOnyx(props: Omit<TransactionReceiptProps, keyof TransactionReceiptOnyxProps>) {
+    const [report, reportResultMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID ?? '-1'}`);
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${props.route.params.transactionID ?? '-1'}`);
+    const [reportMetadata, reportMetadataMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID ?? '-1'}`);
+
+    if (isLoadingOnyxValue(reportResultMetadata, transactionMetadata, reportMetadataMetadata)) {
+        return null;
+    }
+
+    return (
+        <TransactionReceipt
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            transaction={transaction}
+            reportMetadata={reportMetadata}
+        />
+    );
+}

@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
@@ -90,14 +91,22 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
 
 CategoryPicker.displayName = 'CategoryPicker';
 
-export default withOnyx<CategoryPickerProps, CategoryPickerOnyxProps>({
-    policyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-    },
-    policyCategoriesDraft: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-    },
-    policyRecentlyUsedCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
-    },
-})(CategoryPicker);
+export default function ComponentWithOnyx(props: Omit<CategoryPickerProps, keyof CategoryPickerOnyxProps>) {
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.policyID}`);
+    const [policyCategoriesDraft, policyCategoriesDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${props.policyID}`);
+    const [policyRecentlyUsedCategories, policyRecentlyUsedCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${props.policyID}`);
+
+    if (isLoadingOnyxValue(policyCategoriesMetadata, policyCategoriesDraftMetadata, policyRecentlyUsedCategoriesMetadata)) {
+        return null;
+    }
+
+    return (
+        <CategoryPicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyCategories={policyCategories}
+            policyCategoriesDraft={policyCategoriesDraft}
+            policyRecentlyUsedCategories={policyRecentlyUsedCategories}
+        />
+    );
+}

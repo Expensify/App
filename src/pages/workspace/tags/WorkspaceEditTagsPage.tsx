@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceEditTagsPageOnyxProps = {
     /** Collection of tags attached to a policy */
@@ -99,8 +100,18 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
 
 WorkspaceEditTagsPage.displayName = 'WorkspaceEditTagsPage';
 
-export default withOnyx<WorkspaceEditTagsPageProps, WorkspaceEditTagsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(WorkspaceEditTagsPage);
+export default function ComponentWithOnyx(props: Omit<WorkspaceEditTagsPageProps, keyof WorkspaceEditTagsPageOnyxProps>) {
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceEditTagsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyTags={policyTags}
+        />
+    );
+}

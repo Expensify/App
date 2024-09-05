@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
@@ -184,12 +185,23 @@ function AvatarWithDisplayName({
 
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
-export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
+export default function ComponentWithOnyx(props: Omit<AvatarWithDisplayNameProps, keyof AvatarWithDisplayNamePropsWithOnyx>) {
+    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report ? props.report.parentReportID : '-1'}`, {
         canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(AvatarWithDisplayName);
+    });
+
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (isLoadingOnyxValue(parentReportActionsMetadata, personalDetailsMetadata)) {
+        return null;
+    }
+
+    return (
+        <AvatarWithDisplayName
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            parentReportActions={parentReportActions}
+            personalDetails={personalDetails}
+        />
+    );
+}

@@ -2,7 +2,7 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Text from '@components/Text';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction, Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -162,8 +163,18 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
-    transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
-    },
-})(ReportActionItemMessage);
+export default function ComponentWithOnyx(props: Omit<ReportActionItemMessageProps, keyof ReportActionItemMessageOnyxProps>) {
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(props.action) ?? -1}`);
+
+    if (isLoadingOnyxValue(transactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportActionItemMessage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            transaction={transaction}
+        />
+    );
+}

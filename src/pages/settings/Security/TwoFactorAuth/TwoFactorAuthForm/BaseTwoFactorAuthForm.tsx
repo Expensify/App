@@ -1,6 +1,6 @@
-import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +8,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from './types';
 
 type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
@@ -92,6 +93,18 @@ function BaseTwoFactorAuthForm({account, autoComplete, validateInsteadOfDisable}
     );
 }
 
-export default withOnyx<BaseTwoFactorAuthFormProps & RefAttributes<BaseTwoFactorAuthFormRef>, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(forwardRef(BaseTwoFactorAuthForm));
+export default function ComponentWithOnyx(props: Omit<BaseTwoFactorAuthFormProps & RefAttributes<BaseTwoFactorAuthFormRef>, keyof BaseTwoFactorAuthFormOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (isLoadingOnyxValue(accountMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseTwoFactorAuthForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+        />
+    );
+}

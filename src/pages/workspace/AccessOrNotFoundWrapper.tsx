@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import React, {useEffect, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -20,6 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy),
@@ -165,14 +166,22 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
 export type {AccessVariant};
 
-export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    isLoadingReportData: {
-        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    },
-})(AccessOrNotFoundWrapper);
+export default function ComponentWithOnyx(props: Omit<AccessOrNotFoundWrapperProps, keyof AccessOrNotFoundWrapperOnyxProps>) {
+    const [report, reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.reportID}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`);
+    const [isLoadingReportData, isLoadingReportDataMetadata] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+
+    if (isLoadingOnyxValue(reportMetadata, policyMetadata, isLoadingReportDataMetadata)) {
+        return null;
+    }
+
+    return (
+        <AccessOrNotFoundWrapper
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            policy={policy}
+            isLoadingReportData={isLoadingReportData}
+        />
+    );
+}

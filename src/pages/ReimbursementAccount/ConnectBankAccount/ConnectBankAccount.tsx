@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,6 +13,7 @@ import EnableBankAccount from '@pages/ReimbursementAccount/EnableBankAccount/Ena
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Policy, ReimbursementAccount} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -95,15 +96,23 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account, p
 
 ConnectBankAccount.displayName = 'ConnectBankAccount';
 
-export default withOnyx<ConnectBankAccountProps, ConnectBankAccountOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-    policy: {
-        key: ({reimbursementAccount}) => `${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`,
-    },
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(ConnectBankAccount);
+export default function ComponentWithOnyx(props: Omit<ConnectBankAccountProps, keyof ConnectBankAccountOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
+
+    if (isLoadingOnyxValue(accountMetadata, policyMetadata, reimbursementAccountMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConnectBankAccount
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            policy={policy}
+            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+            reimbursementAccount={reimbursementAccount}
+        />
+    );
+}

@@ -1,8 +1,7 @@
-import lodashIsEqual from 'lodash/isEqual';
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -15,6 +14,7 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedOnyxProps = {
@@ -98,33 +98,22 @@ function ReportActionItemCreated({report, personalDetails, policy, reportID}: Re
 
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
+export default function ComponentWithOnyx(props: Omit<ReportActionItemCreatedProps, keyof ReportActionItemCreatedOnyxProps>) {
+    const [report, reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.reportID}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
+    if (isLoadingOnyxValue(reportMetadata, policyMetadata, personalDetailsMetadata)) {
+        return null;
+    }
 
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    memo(
-        ReportActionItemCreated,
-        (prevProps, nextProps) =>
-            prevProps.policy?.name === nextProps.policy?.name &&
-            prevProps.policy?.avatarURL === nextProps.policy?.avatarURL &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
-            prevProps.report?.description === nextProps.report?.description &&
-            prevProps.personalDetails === nextProps.personalDetails &&
-            prevProps.policy?.description === nextProps.policy?.description &&
-            prevProps.report?.reportName === nextProps.report?.reportName &&
-            prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
-            lodashIsEqual(prevProps.report?.invoiceReceiver, nextProps.report?.invoiceReceiver) &&
-            prevProps.report?.errorFields === nextProps.report?.errorFields,
-    ),
-);
+    return (
+        <ReportActionItemCreated
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            policy={policy}
+            personalDetails={personalDetails}
+        />
+    );
+}

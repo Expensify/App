@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,6 +30,7 @@ import type {PersonalDetailsList, Report, ReportAction, Session, Transaction} fr
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SplitBillDetailsPageTransactionOnyxProps = {
     /** The current transaction */
@@ -160,37 +161,36 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
-const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPageTransactionOnyxProps>({
-    transaction: {
-        key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
-            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
-        },
-    },
-})(withReportAndReportActionOrNotFound(SplitBillDetailsPage) as ComponentType<SplitBillDetailsPageProps>);
-
-export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+function ComponentWithOnyx(props: Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageOnyxPropsWithoutTransaction>) {
+    const [report, reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+    const [reportActions, reportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {
         canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WrappedComponent);
+    });
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    const reportAction = reportActions?.[props.route.params.reportActionID];
+    const originalMessage = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+    const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`);
+    const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+
+    if (isLoadingOnyxValue(reportMetadata, reportActionsMetadata, personalDetailsMetadata, sessionMetadata, transactionMetadata, draftTransactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <SplitBillDetailsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            reportActions={reportActions}
+            personalDetails={personalDetails}
+            session={session}
+            transaction={transaction}
+            draftTransaction={draftTransaction}
+        />
+    );
+}
+
+export default withReportAndReportActionOrNotFound(ComponentWithOnyx as ComponentType<SplitBillDetailsPageProps>);

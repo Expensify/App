@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ReportAvatarOnyxProps = {
     report: OnyxEntry<Report>;
@@ -46,14 +47,22 @@ function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = tr
 
 ReportAvatar.displayName = 'ReportAvatar';
 
-export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportAvatar);
+export default function ComponentWithOnyx(props: Omit<ReportAvatarProps, keyof ReportAvatarOnyxProps>) {
+    const [report, reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID ?? '-1'}`);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    if (isLoadingOnyxValue(reportMetadata, isLoadingAppMetadata, policiesMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportAvatar
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            report={report}
+            isLoadingApp={isLoadingApp}
+            policies={policies}
+        />
+    );
+}

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentlyUsedReportFields} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type EditReportFieldDropdownPageComponentProps = {
     /** Value of the policy report field */
@@ -121,8 +122,18 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
 
 EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
 
-export default withOnyx<EditReportFieldDropdownPageProps, EditReportFieldDropdownPageOnyxProps>({
-    recentlyUsedReportFields: {
-        key: () => ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
-    },
-})(EditReportFieldDropdownPage);
+export default function ComponentWithOnyx(props: Omit<EditReportFieldDropdownPageProps, keyof EditReportFieldDropdownPageOnyxProps>) {
+    const [recentlyUsedReportFields, recentlyUsedReportFieldsMetadata] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+
+    if (isLoadingOnyxValue(recentlyUsedReportFieldsMetadata)) {
+        return null;
+    }
+
+    return (
+        <EditReportFieldDropdownPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            recentlyUsedReportFields={recentlyUsedReportFields}
+        />
+    );
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
@@ -10,6 +10,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './types';
 
 function BaseQuickEmojiReactions({
@@ -54,14 +55,22 @@ function BaseQuickEmojiReactions({
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 
-export default withOnyx<BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
-    emojiReactions: {
-        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(BaseQuickEmojiReactions);
+export default function ComponentWithOnyx(props: Omit<BaseQuickEmojiReactionsProps, keyof BaseQuickEmojiReactionsOnyxProps>) {
+    const [preferredSkinTone, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [emojiReactions, emojiReactionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${props.reportActionID}`);
+    const [preferredLocale, preferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+
+    if (isLoadingOnyxValue(preferredSkinToneMetadata, emojiReactionsMetadata, preferredLocaleMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseQuickEmojiReactions
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            preferredSkinTone={preferredSkinTone}
+            emojiReactions={emojiReactions}
+            preferredLocale={preferredLocale}
+        />
+    );
+}

@@ -1,11 +1,10 @@
-import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
@@ -357,35 +357,28 @@ function BaseReportActionContextMenu({
     );
 }
 
-export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContextMenuOnyxProps>({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    reportActions: {
-        key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-        canEvict: false,
-    },
-    transaction: {
-        key: ({reportActions, reportActionID}) => {
-            const reportAction = reportActions?.[reportActionID];
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? -1}`;
-        },
-    },
-})(
-    memo(BaseReportActionContextMenu, (prevProps, nextProps) => {
-        const {reportActions: prevReportActions, ...prevPropsWithoutReportActions} = prevProps;
-        const {reportActions: nextReportActions, ...nextPropsWithoutReportActions} = nextProps;
-
-        const prevReportAction = prevReportActions?.[prevProps.reportActionID] ?? '';
-        const nextReportAction = nextReportActions?.[nextProps.reportActionID] ?? '';
-
-        // We only want to re-render when the report action that is attached to is changed
-        if (prevReportAction !== nextReportAction) {
-            return false;
-        }
-
-        return lodashIsEqual(prevPropsWithoutReportActions, nextPropsWithoutReportActions);
-    }),
-);
-
 export type {BaseReportActionContextMenuProps};
+
+export default function ComponentWithOnyx(props: Omit<BaseReportActionContextMenuProps, keyof BaseReportActionContextMenuOnyxProps>) {
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    const [reportActions, reportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.originalReportID}`, {
+        canEvict: false,
+    });
+    const reportAction = reportActions?.[props.reportActionID];
+    const TransactionID = reportAction && (ReportActionsUtils.getLinkedTransactionID(reportAction) ?? -1);
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${TransactionID}`);
+
+    if (isLoadingOnyxValue(betasMetadata, reportActionsMetadata, transactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseReportActionContextMenu
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            betas={betas}
+            reportActions={reportActions}
+            transaction={transaction}
+        />
+    );
+}

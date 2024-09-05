@@ -3,7 +3,7 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Direction from './Direction';
 import type {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
@@ -299,8 +300,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default withOnyx<ComponentProps, MapViewOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-})(memo(MapView));
+export default function ComponentWithOnyx(props: Omit<ComponentProps, keyof MapViewOnyxProps>) {
+    const [userLocation, userLocationMetadata] = useOnyx(ONYXKEYS.USER_LOCATION);
+
+    if (isLoadingOnyxValue(userLocationMetadata)) {
+        return null;
+    }
+
+    return (
+        <MapView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userLocation={userLocation}
+        />
+    );
+}

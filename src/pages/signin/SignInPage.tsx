@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials, Locale} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
@@ -361,20 +362,26 @@ function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignIn
 
 SignInPageThemeWrapper.displayName = 'SignInPage';
 
-export default withOnyx<SignInPageProps & RefAttributes<SignInPageRef>, SignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    /**
-      This variable is only added to make sure the component is re-rendered
-      whenever the activeClients change, so that we call the
-      ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
-      We use that function to prevent repeating code that checks which client is the leader.
-    */
-    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(forwardRef(SignInPageThemeWrapper));
-
 export type {SignInPageRef};
+
+export default function ComponentWithOnyx(props: Omit<SignInPageProps & RefAttributes<SignInPageRef>, keyof SignInPageOnyxProps>) {
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [activeClients, activeClientsMetadata] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
+    const [preferredLocale, preferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+
+    if (isLoadingOnyxValue(accountMetadata, credentialsMetadata, activeClientsMetadata, preferredLocaleMetadata)) {
+        return null;
+    }
+
+    return (
+        <SignInPageThemeWrapper
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            account={account}
+            credentials={credentials}
+            activeClients={activeClients}
+            preferredLocale={preferredLocale}
+        />
+    );
+}

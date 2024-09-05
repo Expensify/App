@@ -1,12 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
@@ -61,8 +62,18 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report, policy}: Anon
 
 AnonymousReportFooter.displayName = 'AnonymousReportFooter';
 
-export default withOnyx<AnonymousReportFooterProps, AnonymousReportFooterPropsWithOnyx>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-    },
-})(AnonymousReportFooter);
+export default function ComponentWithOnyx(props: Omit<AnonymousReportFooterProps, keyof AnonymousReportFooterPropsWithOnyx>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report?.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <AnonymousReportFooter
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+        />
+    );
+}

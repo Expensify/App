@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
@@ -158,9 +159,20 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
 }
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
-export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(EReceiptThumbnail);
 export type {IconSize, EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};
+
+export default function ComponentWithOnyx(props: Omit<EReceiptThumbnailProps, keyof EReceiptThumbnailOnyxProps>) {
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`);
+
+    if (isLoadingOnyxValue(transactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <EReceiptThumbnail
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            transaction={transaction}
+        />
+    );
+}

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,6 +21,7 @@ import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
@@ -341,12 +342,20 @@ function SettlementButton({
 
 SettlementButton.displayName = 'SettlementButton';
 
-export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
-    nvpLastPaymentMethod: {
-        key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        selector: (paymentMethod) => paymentMethod ?? {},
-    },
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-})(SettlementButton);
+export default function ComponentWithOnyx(props: Omit<SettlementButtonProps, keyof SettlementButtonOnyxProps>) {
+    const [nvpLastPaymentMethod = {}, nvpLastPaymentMethodMetadata] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`);
+
+    if (isLoadingOnyxValue(nvpLastPaymentMethodMetadata, policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <SettlementButton
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            nvpLastPaymentMethod={nvpLastPaymentMethod}
+            policy={policy}
+        />
+    );
+}

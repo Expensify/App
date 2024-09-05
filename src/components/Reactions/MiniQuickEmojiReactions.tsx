@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
@@ -16,6 +16,7 @@ import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
@@ -104,14 +105,22 @@ function MiniQuickEmojiReactions({
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
-export default withOnyx<MiniQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
-    emojiReactions: {
-        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(MiniQuickEmojiReactions);
+export default function ComponentWithOnyx(props: Omit<MiniQuickEmojiReactionsProps, keyof BaseQuickEmojiReactionsOnyxProps>) {
+    const [preferredSkinTone, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [emojiReactions, emojiReactionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${props.reportActionID}`);
+    const [preferredLocale, preferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+
+    if (isLoadingOnyxValue(preferredSkinToneMetadata, emojiReactionsMetadata, preferredLocaleMetadata)) {
+        return null;
+    }
+
+    return (
+        <MiniQuickEmojiReactions
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            preferredSkinTone={preferredSkinTone}
+            emojiReactions={emojiReactions}
+            preferredLocale={preferredLocale}
+        />
+    );
+}

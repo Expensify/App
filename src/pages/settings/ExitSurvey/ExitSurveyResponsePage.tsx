@@ -181,7 +181,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
 ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
 export default function ExitSurveyResponsePageOnyx(props: Omit<ExitSurveyResponsePageProps, keyof ExitSurveyResponsePageOnyxProps>) {
-    const [draftResponse = null, draftResponseMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {
+    const [draftResponse = '', draftResponseMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {
         selector: (value) => value?.[INPUT_IDS.RESPONSE],
     });
 

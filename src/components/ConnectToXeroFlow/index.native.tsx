@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Session} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ConnectToXeroFlowProps} from './types';
 
 type ConnectToXeroFlowOnyxProps = {
@@ -91,8 +92,18 @@ function ConnectToXeroFlow({policyID, session}: ConnectToXeroFlowProps & Connect
 
 ConnectToXeroFlow.displayName = 'ConnectToXeroFlow';
 
-export default withOnyx<ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps, ConnectToXeroFlowOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConnectToXeroFlow);
+export default function ComponentWithOnyx(props: Omit<ConnectToXeroFlowProps & ConnectToXeroFlowOnyxProps, keyof ConnectToXeroFlowOnyxProps>) {
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    if (isLoadingOnyxValue(sessionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ConnectToXeroFlow
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            session={session}
+        />
+    );
+}

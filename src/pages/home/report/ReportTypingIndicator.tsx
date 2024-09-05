@@ -1,6 +1,6 @@
-import React, {memo, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportUserIsTyping} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ReportTypingIndicatorOnyxProps = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
@@ -63,8 +64,18 @@ function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps)
 
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default withOnyx<ReportTypingIndicatorProps, ReportTypingIndicatorOnyxProps>({
-    userTypingStatuses: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-    },
-})(memo(ReportTypingIndicator));
+export default function ComponentWithOnyx(props: Omit<ReportTypingIndicatorProps, keyof ReportTypingIndicatorOnyxProps>) {
+    const [userTypingStatuses, userTypingStatusesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${props.reportID}`);
+
+    if (isLoadingOnyxValue(userTypingStatusesMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportTypingIndicator
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            userTypingStatuses={userTypingStatuses}
+        />
+    );
+}

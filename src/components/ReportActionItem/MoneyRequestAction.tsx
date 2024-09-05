@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MoneyRequestPreview from './MoneyRequestPreview';
 
 type MoneyRequestActionOnyxProps = {
@@ -142,15 +143,25 @@ function MoneyRequestAction({
 
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
-export default withOnyx<MoneyRequestActionProps, MoneyRequestActionOnyxProps>({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
-    },
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+export default function ComponentWithOnyx(props: Omit<MoneyRequestActionProps, keyof MoneyRequestActionOnyxProps>) {
+    const [chatReport, chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.chatReportID}`);
+    const [iouReport, iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.requestReportID}`);
+
+    const [reportActions, reportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.chatReportID}`, {
         canEvict: false,
-    },
-})(MoneyRequestAction);
+    });
+
+    if (isLoadingOnyxValue(chatReportMetadata, iouReportMetadata, reportActionsMetadata)) {
+        return null;
+    }
+
+    return (
+        <MoneyRequestAction
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            chatReport={chatReport}
+            iouReport={iouReport}
+            reportActions={reportActions}
+        />
+    );
+}

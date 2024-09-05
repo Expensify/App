@@ -1,10 +1,10 @@
 import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -38,6 +38,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
@@ -484,32 +485,47 @@ function FloatingActionButtonAndPopover(
 
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
-export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
-    allPolicies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector,
-    },
-    isLoading: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-    quickAction: {
-        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    },
-    quickActionReport: {
-        key: ({quickAction}) => `${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`,
-    },
-    quickActionPolicy: {
-        key: ({quickActionReport}) => `${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    hasSeenTrackTraining: {
-        key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-    },
-})(forwardRef(FloatingActionButtonAndPopover));
-
 export type {PolicySelector};
+
+export default function ComponentWithOnyx(
+    props: Omit<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, keyof FloatingActionButtonAndPopoverOnyxProps>,
+) {
+    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
+    const [isLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [quickAction, quickActionMetadata] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [quickActionReport, quickActionReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
+    const [quickActionPolicy, quickActionPolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [hasSeenTrackTraining, hasSeenTrackTrainingMetadata] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
+
+    if (
+        isLoadingOnyxValue(
+            allPoliciesMetadata,
+            isLoadingMetadata,
+            quickActionMetadata,
+            quickActionReportMetadata,
+            quickActionPolicyMetadata,
+            personalDetailsMetadata,
+            sessionMetadata,
+            hasSeenTrackTrainingMetadata,
+        )
+    ) {
+        return null;
+    }
+
+    return (
+        <FloatingActionButtonAndPopover
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            allPolicies={allPolicies}
+            isLoading={isLoading}
+            quickAction={quickAction}
+            quickActionReport={quickActionReport}
+            quickActionPolicy={quickActionPolicy}
+            personalDetails={personalDetails}
+            session={session}
+            hasSeenTrackTraining={hasSeenTrackTraining}
+        />
+    );
+}

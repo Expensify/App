@@ -1,7 +1,7 @@
 import lodashEscape from 'lodash/escape';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
@@ -11,6 +11,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {
@@ -74,13 +75,23 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
 ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
-export default withOnyx<ArchivedReportFooterProps, ArchivedReportFooterOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    reportClosedAction: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+export default function ComponentWithOnyx(props: Omit<ArchivedReportFooterProps, keyof ArchivedReportFooterOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reportClosedAction, reportClosedActionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report.reportID}`, {
         canEvict: false,
         selector: ReportActionsUtils.getLastClosedReportAction,
-    },
-})(ArchivedReportFooter);
+    });
+
+    if (isLoadingOnyxValue(personalDetailsMetadata, reportClosedActionMetadata)) {
+        return null;
+    }
+
+    return (
+        <ArchivedReportFooter
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+            reportClosedAction={reportClosedAction}
+        />
+    );
+}

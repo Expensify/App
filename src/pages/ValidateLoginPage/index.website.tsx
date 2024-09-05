@@ -88,7 +88,7 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default function ValidateLoginPageOnyx(props: Omit<ValidateLoginPageProps, keyof ValidateLoginPageOnyxProps>) {
+export default function ValidateLoginPageOnyx(props: Omit<ValidateLoginPageProps<ValidateLoginPageOnyxProps>, keyof ValidateLoginPageOnyxProps>) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);

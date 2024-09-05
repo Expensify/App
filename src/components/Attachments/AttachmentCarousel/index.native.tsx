@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CarouselButtons from './CarouselButtons';
 import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
@@ -144,13 +145,25 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+export default function ComponentWithOnyx(props: Omit<AttachmentCarouselProps, keyof AttachmentCaraouselOnyxProps>) {
+    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report.parentReportID}`, {
         canEvict: false,
-    },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+    });
+
+    const [reportActions, reportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report.reportID}`, {
         canEvict: false,
-    },
-})(AttachmentCarousel);
+    });
+
+    if (isLoadingOnyxValue(parentReportActionsMetadata, reportActionsMetadata)) {
+        return null;
+    }
+
+    return (
+        <AttachmentCarousel
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            parentReportActions={parentReportActions}
+            reportActions={reportActions}
+        />
+    );
+}

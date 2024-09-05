@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -209,8 +210,18 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
 PolicyDistanceRateDetailsPage.displayName = 'PolicyDistanceRateDetailsPage';
 
-export default withOnyx<PolicyDistanceRateDetailsPageProps, PolicyDistanceRateDetailsPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRateDetailsPage);
+export default function ComponentWithOnyx(props: Omit<PolicyDistanceRateDetailsPageProps, keyof PolicyDistanceRateDetailsPageOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <PolicyDistanceRateDetailsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+        />
+    );
+}

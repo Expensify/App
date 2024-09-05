@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -14,6 +14,7 @@ import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Download as OnyxDownload} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyOnyxProps = {
@@ -75,11 +76,19 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 
-export default withOnyx<BaseAnchorForAttachmentsOnlyProps, BaseAnchorForAttachmentsOnlyOnyxProps>({
-    download: {
-        key: ({source}) => {
-            const sourceID = (source?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
-        },
-    },
-})(BaseAnchorForAttachmentsOnly);
+export default function ComponentWithOnyx(props: Omit<BaseAnchorForAttachmentsOnlyProps, keyof BaseAnchorForAttachmentsOnlyOnyxProps>) {
+    const sourceID = (props.source?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const [download, downloadMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+
+    if (isLoadingOnyxValue(downloadMetadata)) {
+        return null;
+    }
+
+    return (
+        <BaseAnchorForAttachmentsOnly
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            download={download}
+        />
+    );
+}

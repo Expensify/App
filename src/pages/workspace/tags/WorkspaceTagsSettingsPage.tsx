@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceTagsSettingsPageOnyxProps = {
     /** Collection of tags attached to a policy */
@@ -138,8 +139,18 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
 
 WorkspaceTagsSettingsPage.displayName = 'WorkspaceTagsSettingsPage';
 
-export default withOnyx<WorkspaceTagsSettingsPageProps, WorkspaceTagsSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(WorkspaceTagsSettingsPage);
+export default function ComponentWithOnyx(props: Omit<WorkspaceTagsSettingsPageProps, keyof WorkspaceTagsSettingsPageOnyxProps>) {
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceTagsSettingsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyTags={policyTags}
+        />
+    );
+}

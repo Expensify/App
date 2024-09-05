@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagLists} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceEditTagGLCodePageOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -92,8 +93,18 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
 
 TagGLCodePage.displayName = 'TagGLCodePage';
 
-export default withOnyx<EditTagGLCodePageProps, WorkspaceEditTagGLCodePageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
-    },
-})(TagGLCodePage);
+export default function ComponentWithOnyx(props: Omit<EditTagGLCodePageProps, keyof WorkspaceEditTagGLCodePageOnyxProps>) {
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.route?.params?.policyID}`);
+
+    if (isLoadingOnyxValue(policyTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TagGLCodePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyTags={policyTags}
+        />
+    );
+}

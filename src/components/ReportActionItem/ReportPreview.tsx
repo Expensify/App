@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -38,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
@@ -535,23 +536,28 @@ function ReportPreview({
 
 ReportPreview.displayName = 'ReportPreview';
 
-export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(ReportPreview);
+export default function ComponentWithOnyx(props: Omit<ReportPreviewProps, keyof ReportPreviewOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`);
+    const [chatReport, chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.chatReportID}`);
+    const [iouReport, iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.iouReportID}`);
+    const [transactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations, transactionViolationsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+
+    if (isLoadingOnyxValue(policyMetadata, chatReportMetadata, iouReportMetadata, transactionsMetadata, transactionViolationsMetadata, userWalletMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportPreview
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+            chatReport={chatReport}
+            iouReport={iouReport}
+            transactions={transactions}
+            transactionViolations={transactionViolations}
+            userWallet={userWallet}
+        />
+    );
+}

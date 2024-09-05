@@ -1,8 +1,9 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MoneyRequestPreviewContent from './MoneyRequestPreviewContent';
 import type {MoneyRequestPreviewOnyxProps, MoneyRequestPreviewProps} from './types';
 
@@ -15,30 +16,35 @@ function MoneyRequestPreview(props: MoneyRequestPreviewProps) {
 
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';
 
-export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    transaction: {
-        key: ({action}) => {
-            const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-            const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        },
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-})(MoneyRequestPreview);
+export default function ComponentWithOnyx(props: Omit<MoneyRequestPreviewProps, keyof MoneyRequestPreviewOnyxProps>) {
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [chatReport, chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.chatReportID}`);
+    const [iouReport, iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.iouReportID}`);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+
+    const reportAction = props.action;
+    const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
+    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+    const [walletTerms, walletTermsMetadata] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [transactionViolations, transactionViolationsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+    if (isLoadingOnyxValue(personalDetailsMetadata, chatReportMetadata, iouReportMetadata, sessionMetadata, transactionMetadata, walletTermsMetadata, transactionViolationsMetadata)) {
+        return null;
+    }
+
+    return (
+        <MoneyRequestPreview
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            personalDetails={personalDetails}
+            chatReport={chatReport}
+            iouReport={iouReport}
+            session={session}
+            transaction={transaction}
+            walletTerms={walletTerms}
+            transactionViolations={transactionViolations}
+        />
+    );
+}

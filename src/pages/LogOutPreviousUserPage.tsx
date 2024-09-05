@@ -95,8 +95,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
 export default function LogOutPreviousUserPageOnyx(props: Omit<LogOutPreviousUserPageProps, keyof LogOutPreviousUserPageOnyxProps>) {
-    const [isAccountLoading = false, isAccountLoadingMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-
+    const [isAccountLoading = false, isAccountLoadingMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading});
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
 
     if (isLoadingOnyxValue(isAccountLoadingMetadata, sessionMetadata)) {

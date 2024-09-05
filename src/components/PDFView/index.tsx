@@ -4,7 +4,7 @@ import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewOnyxProps, PDFViewProps} from './types';
 
@@ -142,14 +143,22 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     );
 }
 
-export default withOnyx<PDFViewProps, PDFViewOnyxProps>({
-    maxCanvasArea: {
-        key: ONYXKEYS.MAX_CANVAS_AREA,
-    },
-    maxCanvasHeight: {
-        key: ONYXKEYS.MAX_CANVAS_HEIGHT,
-    },
-    maxCanvasWidth: {
-        key: ONYXKEYS.MAX_CANVAS_WIDTH,
-    },
-})(memo(PDFView));
+export default function ComponentWithOnyx(props: Omit<PDFViewProps, keyof PDFViewOnyxProps>) {
+    const [maxCanvasArea, maxCanvasAreaMetadata] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
+    const [maxCanvasHeight, maxCanvasHeightMetadata] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
+    const [maxCanvasWidth, maxCanvasWidthMetadata] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
+
+    if (isLoadingOnyxValue(maxCanvasAreaMetadata, maxCanvasHeightMetadata, maxCanvasWidthMetadata)) {
+        return null;
+    }
+
+    return (
+        <PDFView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            maxCanvasArea={maxCanvasArea}
+            maxCanvasHeight={maxCanvasHeight}
+            maxCanvasWidth={maxCanvasWidth}
+        />
+    );
+}

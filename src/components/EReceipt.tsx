@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +12,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -100,9 +101,20 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
 
 EReceipt.displayName = 'EReceipt';
 
-export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(EReceipt);
 export type {EReceiptProps, EReceiptOnyxProps};
+
+export default function ComponentWithOnyx(props: Omit<EReceiptProps, keyof EReceiptOnyxProps>) {
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`);
+
+    if (isLoadingOnyxValue(transactionMetadata)) {
+        return null;
+    }
+
+    return (
+        <EReceipt
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            transaction={transaction}
+        />
+    );
+}

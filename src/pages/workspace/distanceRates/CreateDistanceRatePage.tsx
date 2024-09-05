@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,6 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type CreateDistanceRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -104,8 +105,18 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
 
 CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
 
-export default withOnyx<CreateDistanceRatePageProps, CreateDistanceRatePageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(CreateDistanceRatePage);
+export default function ComponentWithOnyx(props: Omit<CreateDistanceRatePageProps, keyof CreateDistanceRatePageOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata)) {
+        return null;
+    }
+
+    return (
+        <CreateDistanceRatePage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+        />
+    );
+}

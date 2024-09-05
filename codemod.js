@@ -10,6 +10,10 @@ export default function transform(file, api) {
         if (node.type === 'MemberExpression') {
             return `${getKeyName(node.object)}.${getKeyName(node.property)}`;
         }
+        if (node.type === 'ArrowFunctionExpression') {
+            const arrowFunctionBodySource = j(node.body).toSource();
+            return arrowFunctionBodySource.replace(/\}\$\{/g, '}${props.');
+        }
         return '';
     };
 
@@ -43,15 +47,15 @@ export default function transform(file, api) {
         });
     };
 
-    const createReturnComponent = function (hooks, componentName) {
+    const createReturnComponent = function (hooks, componentSource) {
         const jsxProps = createProps(hooks);
         const spreadProps = j.jsxSpreadAttribute(j.identifier('props'));
-        spreadProps.comments = [j.commentLine('eslint-disable-next-line react/jsx-props-no-spreading', false, true)];
+        spreadProps.comments = [j.commentLine(' eslint-disable-next-line react/jsx-props-no-spreading', false, true)];
 
         return j.returnStatement(
             j.jsxElement(
                 j.jsxOpeningElement(
-                    j.jsxIdentifier(componentName),
+                    j.jsxIdentifier(componentSource),
                     [spreadProps, ...jsxProps], // using spread attributes
                     true, // self closing
                 ),
@@ -71,10 +75,10 @@ export default function transform(file, api) {
         );
     };
 
-    const createFunction = function (hooksDeclarations, ifLoadingReturnNull, returnJsx, componentName, componentProps, componentPropsOnyx) {
+    const createFunction = function (hooksDeclarations, ifLoadingReturnNull, returnJsx, componentProps, componentPropsOnyx) {
         const functionParameters = [j.identifier(`props: Omit<${componentProps}, keyof ${componentPropsOnyx}>`)];
         const functionBody = [...hooksDeclarations, ifLoadingReturnNull, returnJsx];
-        return j.functionDeclaration(j.identifier(`${componentName}Onyx`), functionParameters, j.blockStatement(functionBody), false, false);
+        return j.functionDeclaration(j.identifier('ComponentWithOnyx'), functionParameters, j.blockStatement(functionBody), false, false);
     };
 
     const updateImports = function () {
@@ -94,6 +98,8 @@ export default function transform(file, api) {
         root.find(j.Program).get('body').unshift(isLoadingOnyxValueImport);
     };
 
+    let updateFile = false;
+
     root.find(j.ExportDefaultDeclaration)
         .filter((path) => {
             const callExpression = path.value.declaration;
@@ -110,6 +116,7 @@ export default function transform(file, api) {
             });
         })
         .forEach((path) => {
+            updateFile = true;
             const callExpression = path.value.declaration;
             const hocArgs = callExpression.callee.arguments;
 
@@ -118,19 +125,28 @@ export default function transform(file, api) {
                 throw new Error('More than one argument');
             }
 
-            const [componentProps, componentPropsOnyx] = callExpression.callee.typeParameters.params.map((node) => node.typeName.name);
+            const [componentProps, componentPropsOnyx] = callExpression.callee.typeParameters.params.map((node) => {
+                // Check if the type is a intersection type
+                if (node.type === 'TSIntersectionType') {
+                    // Join the types by an & operator
+                    return node.types.map((typeNode) => typeNode.typeName.name).join(' & ');
+                }
+
+                return node.typeName.name;
+            });
 
             if (!componentProps || !componentPropsOnyx) {
                 console.warn(file.path, 'Component props or onyx props not found');
                 throw new Error('Component props or onyx props not found');
             }
 
-            const componentName = callExpression.arguments[callExpression.arguments.length - 1].name;
+            const component = callExpression.arguments[callExpression.arguments.length - 1];
+            const componentSource = j(component).toSource();
             const hooks = [];
 
-            if (!componentName) {
-                console.warn(file.path, 'Component name not found');
-                throw new Error('Component name not found');
+            if (!componentSource) {
+                console.warn(file.path, 'Component source not found');
+                throw new Error('Component source not found');
             }
 
             const hocFirstArgument = hocArgs[0].properties;
@@ -170,8 +186,8 @@ export default function transform(file, api) {
 
             const hooksDeclarations = createHooks(hooks);
             const ifLoadingReturnNull = ifLoadingReturnComponent(hooksDeclarations);
-            const returnJsx = createReturnComponent(hooks, componentName);
-            const functionDeclaration = createFunction(hooksDeclarations, ifLoadingReturnNull, returnJsx, componentName, componentProps, componentPropsOnyx);
+            const returnJsx = createReturnComponent(hooks, componentSource);
+            const functionDeclaration = createFunction(hooksDeclarations, ifLoadingReturnNull, returnJsx, componentProps, componentPropsOnyx);
 
             // Create an export default declaration
             const exportDefaultDeclaration = j.exportDefaultDeclaration(functionDeclaration);
@@ -186,5 +202,7 @@ export default function transform(file, api) {
             }
         });
 
-    return root.toSource();
+    if (updateFile) {
+        return root.toSource();
+    }
 }

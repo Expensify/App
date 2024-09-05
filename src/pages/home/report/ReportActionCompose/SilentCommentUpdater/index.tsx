@@ -1,8 +1,9 @@
 import {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './types';
 
 /**
@@ -41,9 +42,18 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
 
 SilentCommentUpdater.displayName = 'SilentCommentUpdater';
 
-export default withOnyx<SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps>({
-    comment: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        initialValue: '',
-    },
-})(SilentCommentUpdater);
+export default function ComponentWithOnyx(props: Omit<SilentCommentUpdaterProps, keyof SilentCommentUpdaterOnyxProps>) {
+    const [comment, commentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`);
+
+    if (isLoadingOnyxValue(commentMetadata)) {
+        return null;
+    }
+
+    return (
+        <SilentCommentUpdater
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            comment={comment}
+        />
+    );
+}

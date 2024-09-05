@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SelectedTagOption = {
     name: string;
@@ -113,13 +114,22 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
 
 TagPicker.displayName = 'TagPicker';
 
-export default withOnyx<TagPickerProps, TagPickerOnyxProps>({
-    policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-    },
-    policyRecentlyUsedTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-    },
-})(TagPicker);
-
 export type {SelectedTagOption};
+
+export default function ComponentWithOnyx(props: Omit<TagPickerProps, keyof TagPickerOnyxProps>) {
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.policyID}`);
+    const [policyRecentlyUsedTags, policyRecentlyUsedTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${props.policyID}`);
+
+    if (isLoadingOnyxValue(policyTagsMetadata, policyRecentlyUsedTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TagPicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyTags={policyTags}
+            policyRecentlyUsedTags={policyRecentlyUsedTags}
+        />
+    );
+}

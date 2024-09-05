@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -45,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
@@ -688,32 +689,44 @@ function MoneyRequestView({
 
 MoneyRequestView.displayName = 'MoneyRequestView';
 
-export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestViewOnyxPropsWithoutTransaction>({
-    // Fallback to empty string will fetch the whole collection (e.g., policy_), so we need to fallback to -1 (policy_-1)
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`,
-    },
-    policyTagList: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report?.parentReportID : '-1'}`,
+export default function ComponentWithOnyx(props: Omit<MoneyRequestViewPropsWithoutTransaction, keyof MoneyRequestViewOnyxPropsWithoutTransaction>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report?.policyID ?? '-1'}`);
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.report?.policyID ?? '-1'}`);
+    const [policyTagList, policyTagListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.report?.policyID ?? '-1'}`);
+    const [parentReport, parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.report?.parentReportID ?? '-1'}`);
+    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report ? props.report?.parentReportID : '-1'}`, {
         canEvict: false,
-    },
-    distanceRates: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
-    },
-})(
-    withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
-        transactionViolations: {
-            key: ({report, parentReportActions}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`,
-        },
-    })(MoneyRequestView),
-);
+    });
+    const [distanceRates = {}, distanceRatesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report?.policyID}`, {
+        selector: () => DistanceRequestUtils.getMileageRates(policy, true),
+    });
+    const [transactionViolations, transactionViolationsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(props.report, parentReportActions)}`);
+
+    if (
+        isLoadingOnyxValue(
+            policyMetadata,
+            policyCategoriesMetadata,
+            policyTagListMetadata,
+            parentReportMetadata,
+            parentReportActionsMetadata,
+            distanceRatesMetadata,
+            transactionViolationsMetadata,
+        )
+    ) {
+        return null;
+    }
+
+    return (
+        <MoneyRequestView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+            policyCategories={policyCategories}
+            policyTagList={policyTagList}
+            parentReport={parentReport}
+            parentReportActions={parentReportActions}
+            distanceRates={distanceRates}
+            transactionViolations={transactionViolations}
+        />
+    );
+}

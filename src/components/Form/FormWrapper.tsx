@@ -4,7 +4,7 @@ import type {RefObject} from 'react';
 import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -16,6 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FormInputErrors, FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
@@ -189,10 +190,19 @@ function FormWrapper({
 
 FormWrapper.displayName = 'FormWrapper';
 
-export default withOnyx<FormWrapperProps, FormWrapperOnyxProps>({
-    formState: {
-        // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we need to cast the keys to any
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-        key: (props) => props.formID as any,
-    },
-})(FormWrapper);
+export default function ComponentWithOnyx(props: Omit<FormWrapperProps, keyof FormWrapperOnyxProps>) {
+    const [formState, formStateMetadata] = useOnyx(props.formID);
+
+    if (isLoadingOnyxValue(formStateMetadata)) {
+        return null;
+    }
+
+    return (
+        <FormWrapper
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            formState={formState as any}
+        />
+    );
+}

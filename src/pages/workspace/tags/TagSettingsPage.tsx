@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
@@ -165,8 +166,18 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
 TagSettingsPage.displayName = 'TagSettingsPage';
 
-export default withOnyx<TagSettingsPageProps, TagSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(TagSettingsPage);
+export default function ComponentWithOnyx(props: Omit<TagSettingsPageProps, keyof TagSettingsPageOnyxProps>) {
+    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyTagsMetadata)) {
+        return null;
+    }
+
+    return (
+        <TagSettingsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policyTags={policyTags}
+        />
+    );
+}

@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
@@ -172,11 +173,20 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
 
 PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 
-export default withOnyx<PolicyDistanceRatesSettingsPageProps, PolicyDistanceRatesSettingsPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(PolicyDistanceRatesSettingsPage);
+export default function ComponentWithOnyx(props: Omit<PolicyDistanceRatesSettingsPageProps, keyof PolicyDistanceRatesSettingsPageOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
+    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.route.params.policyID}`);
+
+    if (isLoadingOnyxValue(policyMetadata, policyCategoriesMetadata)) {
+        return null;
+    }
+
+    return (
+        <PolicyDistanceRatesSettingsPage
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+            policyCategories={policyCategories}
+        />
+    );
+}

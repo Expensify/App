@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -10,6 +10,7 @@ import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceAvatarOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -38,11 +39,20 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
 
 WorkspaceAvatar.displayName = 'WorkspaceAvatar';
 
-export default withOnyx<WorkspaceAvatarProps, WorkspaceAvatarOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(WorkspaceAvatar);
+export default function ComponentWithOnyx(props: Omit<WorkspaceAvatarProps, keyof WorkspaceAvatarOnyxProps>) {
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID ?? '-1'}`);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    if (isLoadingOnyxValue(policyMetadata, isLoadingAppMetadata)) {
+        return null;
+    }
+
+    return (
+        <WorkspaceAvatar
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            policy={policy}
+            isLoadingApp={isLoadingApp}
+        />
+    );
+}

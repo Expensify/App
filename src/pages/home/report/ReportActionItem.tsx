@@ -1,9 +1,9 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
@@ -67,6 +67,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
@@ -988,60 +989,28 @@ function ReportActionItem({
     );
 }
 
-export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
-    iouReport: {
-        key: ({action}) => {
-            const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? -1}`;
-        },
-        initialValue: {} as OnyxTypes.Report,
-    },
-    emojiReactions: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
-        initialValue: {},
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    linkedTransactionRouteError: {
-        key: ({action}) =>
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
-        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
-    },
-})(
-    memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevProps.parentReportAction;
-        const nextParentReportAction = nextProps.parentReportAction;
-        return (
-            prevProps.displayAsGroup === nextProps.displayAsGroup &&
-            prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-            lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
-            lodashIsEqual(prevProps.action, nextProps.action) &&
-            lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
-            lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            lodashIsEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
-            lodashIsEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
-            prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum &&
-            prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
-            prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
-            // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-            ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
-            prevProps.action.actionName === nextProps.action.actionName &&
-            prevProps.report.reportName === nextProps.report.reportName &&
-            prevProps.report.description === nextProps.report.description &&
-            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
-            prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
-            prevProps.report?.total === nextProps.report?.total &&
-            prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
-            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
-            lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction)
-        );
-    }),
-);
+export default function ComponentWithOnyx(props: Omit<ReportActionItemProps, keyof ReportActionItemOnyxProps>) {
+    const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action);
+    const [iouReport, iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? -1}`);
+    const [emojiReactions, emojiReactionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${props.action.reportActionID}`);
+    const [userWallet, userWalletMetadata] = useOnyx(ONYXKEYS.USER_WALLET);
+    const transactionID = ReportActionsUtils.isMoneyRequestAction(props.action) ? ReportActionsUtils.getOriginalMessage(props.action)?.IOUTransactionID ?? -1 : -1;
+    const [linkedTransactionRouteError = null, linkedTransactionRouteErrorMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route,
+    });
+
+    if (isLoadingOnyxValue(iouReportMetadata, emojiReactionsMetadata, userWalletMetadata, linkedTransactionRouteErrorMetadata)) {
+        return null;
+    }
+
+    return (
+        <ReportActionItem
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            iouReport={iouReport}
+            emojiReactions={emojiReactions}
+            userWallet={userWallet}
+            linkedTransactionRouteError={linkedTransactionRouteError}
+        />
+    );
+}

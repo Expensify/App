@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
+import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps, OnboardingWorkProps} from './types';
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
@@ -122,7 +122,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default function BaseOnboardingWorkOnyx(props: Omit<BaseOnboardingWorkProps, keyof BaseOnboardingWorkOnyxProps>) {
+export default function BaseOnboardingWorkOnyx(props: Omit<BaseOnboardingWorkProps & OnboardingWorkProps, keyof BaseOnboardingWorkOnyxProps>) {
     const [onboardingPurposeSelected, onboardingPurposeSelectedMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID, onboardingPolicyIDMetadata] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
 

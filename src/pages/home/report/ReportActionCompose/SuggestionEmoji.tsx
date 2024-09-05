@@ -1,6 +1,6 @@
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -10,6 +10,7 @@ import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
@@ -237,9 +238,18 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        selector: EmojiUtils.getPreferredSkinToneIndex,
-    },
-})(forwardRef(SuggestionEmoji));
+export default function ComponentWithOnyx(props: Omit<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, keyof SuggestionEmojiOnyxProps>) {
+    const [preferredSkinTone = 0, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
+
+    if (isLoadingOnyxValue(preferredSkinToneMetadata)) {
+        return null;
+    }
+
+    return (
+        <SuggestionEmoji
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            preferredSkinTone={preferredSkinTone}
+        />
+    );
+}
