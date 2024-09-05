@@ -14,6 +14,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
     SET_WORKSPACE_REIMBURSEMENT: 'SetWorkspaceReimbursement',
+    SET_WORKSPACE_DEFAULT_SPEND_CATEGORY: 'SetPolicyDefaultSpendCategory',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     OPEN_APP: 'OpenApp',
@@ -90,6 +91,7 @@ const WRITE_COMMANDS = {
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
+    RESEND_VALIDATE_CODE: 'ResendValidateCode',
     OPT_IN_TO_PUSH_NOTIFICATIONS: 'OptInToPushNotifications',
     OPT_OUT_OF_PUSH_NOTIFICATIONS: 'OptOutOfPushNotifications',
     READ_NEWEST_ACTION: 'ReadNewestAction',
@@ -131,6 +133,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
+    IMPORT_CATEGORIES_SREADSHEET: 'ImportCategoriesSpreadsheet',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
@@ -207,6 +210,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     SET_POLICY_BILLABLE_MODE: ' SetPolicyBillableMode',
+    DISABLE_POLICY_BILLABLE_MODE: 'DisablePolicyBillableExpenses',
     SET_WORKSPACE_ERECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
     SET_POLICY_TAXES_CURRENCY_DEFAULT: 'SetPolicyCurrencyDefaultTax',
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
@@ -219,6 +223,11 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES: 'UpdateQuickbooksOnlineEnableNewCategories',
     UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR: 'UpdateQuickbooksOnlineAutoCreateVendor',
     UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksOnlineReimbursableExpensesAccount',
+    UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX: 'UpdateQuickbooksOnlineSyncTax',
+    UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS: 'UpdateQuickbooksOnlineSyncLocations',
+    UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS: 'UpdateQuickbooksOnlineSyncCustomers',
+    UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES: 'UpdateQuickbooksOnlineSyncClasses',
+    UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'UpdateQuickbooksOnlineNonReimbursableBillDefaultVendor',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
@@ -433,6 +442,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.OPT_IN_TO_PUSH_NOTIFICATIONS]: Parameters.OptInOutToPushNotificationsParams;
+    [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
     [WRITE_COMMANDS.OPT_OUT_OF_PUSH_NOTIFICATIONS]: Parameters.OptInOutToPushNotificationsParams;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
@@ -475,6 +485,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
+    [WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
@@ -540,6 +551,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT]: Parameters.SetWorkspaceReimbursementParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY]: Parameters.SetWorkspaceDefaultSpendCategoryParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
     [WRITE_COMMANDS.TRACK_EXPENSE]: Parameters.TrackExpenseParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
@@ -580,10 +592,16 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT]: Parameters.SetPolicyExpenseMaxAmountNoReceipt;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
-    [WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE]: Parameters.SetPolicyBillableMode;
+    [WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE]: Parameters.SetPolicyBillableModeParams;
+    [WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE]: Parameters.DisablePolicyBillableModeParams;
     [WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED]: Parameters.SetWorkspaceEReceiptsEnabled;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
-    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksOnlineAutoCreateVendorParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;

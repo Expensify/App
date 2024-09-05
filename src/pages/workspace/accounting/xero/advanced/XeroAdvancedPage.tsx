@@ -59,7 +59,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 wrapperStyle={styles.mv3}
                 isActive={!!autoSync?.enabled}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
+                    Connections.updatePolicyConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.AUTO_SYNC,
@@ -82,7 +82,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
+                    Connections.updatePolicyConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.SYNC,

@@ -132,6 +132,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
 }: ConfirmModalProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 

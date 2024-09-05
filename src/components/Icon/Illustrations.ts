@@ -9,6 +9,7 @@ import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '@assets/images/product-illustrations/bank-user--green.svg';
+import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
@@ -113,6 +114,7 @@ import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
@@ -120,6 +122,7 @@ export {
     BankMouseGreen,
     BankUserGreen,
     BigRocket,
+    BrokenMagnifyingGlass,
     ChatBubbles,
     CoffeeMug,
     ConciergeBlue,
@@ -230,4 +233,5 @@ export {
     AmexCompanyCards,
     MasterCardCompanyCards,
     VisaCompanyCards,
+    TurtleInShell,
 };
