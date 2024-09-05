@@ -414,110 +414,14 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-  postSlackMessageOnSuccess:
-    name: Post a Slack message when all platforms deploy successfully
-    runs-on: ubuntu-latest
-    if: ${{ success() }}
-    needs: [android, desktop, iOS, web]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
-      - name: 'Announces the deploy in the #announce Slack room'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-      - name: 'Announces the deploy in the #deployer Slack room'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
-        uses: 8398a7/action-slack@v3
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#expensify-open-source',
-              attachments: [{
-                color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to production 🎉️`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  postGithubComment:
-    name: Post a GitHub comment when platforms are done building and deploying
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    needs: [android, desktop, iOS, web]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
-      - name: Get Release Pull Request List
-        id: getReleasePRList
-        uses: ./.github/actions/javascript/getDeployPullRequestList
-        with:
-          TAG: ${{ env.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-
-      - name: Comment on issues
-        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
-        with:
-          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-          DEPLOY_VERSION: ${{ env.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          ANDROID: ${{ needs.android.result }}
-          DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
-          WEB: ${{ needs.web.result }}
-
-  check-deployment-success:
+  checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYED: ${{ steps.check-success.outputs.IS_DEPLOYED }}
+      IS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
     steps:
       - name: Check deployment success on at least one platform
-        id: check-success
+        id: checkDeploymentSuccess
         run: |
           success="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
@@ -530,8 +434,8 @@ jobs:
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' && needs.check-deployment-success.outputs.IS_DEPLOYED == 'true'
-    needs: [android, desktop, iOS, web, check-deployment-success]
+    if: github.ref == 'refs/heads/staging' && needs.checkDeploymentSuccess.outputs.IS_DEPLOYED == 'true'
+    needs: [checkDeploymentSuccess]
     steps:
       - name: Checkout staging branch
         uses: actions/checkout@v4
@@ -618,8 +522,8 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production' && needs.check-deployment-success.outputs.IS_DEPLOYED == 'true'
-    needs: [android, desktop, iOS, web, check-deployment-success]
+    if: github.ref == 'refs/heads/production' && needs.checkDeploymentSuccess.outputs.IS_DEPLOYED == 'true'
+    needs: [checkDeploymentSuccess]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
@@ -683,3 +587,99 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  postSlackMessageOnSuccess:
+    name: Post a Slack message when all platforms deploy successfully
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    needs: [createPrerelease, finalizeRelease]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+      - name: 'Announces the deploy in the #announce Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: 'Announces the deploy in the #deployer Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
+        uses: 8398a7/action-slack@v3
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#expensify-open-source',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to production 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  postGithubComment:
+    name: Post a GitHub comment when platforms are done building and deploying
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    needs: [createPrerelease, finalizeRelease]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: ./.github/actions/javascript/getDeployPullRequestList
+        with:
+          TAG: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+
+      - name: Comment on issues
+        uses: ./.github/actions/javascript/markPullRequestsAsDeployed
+        with:
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+          DEPLOY_VERSION: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.android.result }}
+          DESKTOP: ${{ needs.desktop.result }}
+          IOS: ${{ needs.iOS.result }}
+          WEB: ${{ needs.web.result }}
