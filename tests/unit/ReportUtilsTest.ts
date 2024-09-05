@@ -208,7 +208,7 @@ describe('ReportUtils', () => {
                 test('as member', () => {
                     expect(
                         ReportUtils.getReportName({
-                            reportID: '',
+                            reportID: '123',
                             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                             policyID: policy.id,
                             isOwnPolicyExpenseChat: true,
@@ -220,7 +220,7 @@ describe('ReportUtils', () => {
                 test('as admin', () => {
                     expect(
                         ReportUtils.getReportName({
-                            reportID: '',
+                            reportID: '123',
                             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                             policyID: policy.id,
                             isOwnPolicyExpenseChat: false,
@@ -232,7 +232,7 @@ describe('ReportUtils', () => {
 
             describe('Archived', () => {
                 const baseArchivedPolicyExpenseChat = {
-                    reportID: '',
+                    reportID: '123',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerAccountID: 1,
                     policyID: policy.id,
