@@ -33,6 +33,7 @@ function SecuritySettingsPage() {
     const theme = useTheme();
     const {canUseNewDotCopilot} = usePermissions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -142,14 +143,16 @@ function SecuritySettingsPage() {
                                     <MenuItemList menuItems={delegateMenuItems} />
                                 </>
                             )}
-                            <MenuItem
-                                title={translate('delegate.addCopilot')}
-                                icon={Expensicons.UserPlus}
-                                iconFill={theme.iconSuccessFill}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                            />
+                            {!isActingAsDelegate && (
+                                <MenuItem
+                                    title={translate('delegate.addCopilot')}
+                                    icon={Expensicons.UserPlus}
+                                    iconFill={theme.iconSuccessFill}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                    shouldShowRightIcon
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                />
+                            )}
                             {hasDelegators && (
                                 <>
                                     <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>

@@ -33,7 +33,7 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegatePersonalDetails?.login);
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
             return;
         }
 

@@ -62,7 +62,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
-    const validateLoginError = ErrorUtils.getEarliestErrorField(currentDelegate, 'addDelegate');
+    const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
 
     const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 
@@ -183,7 +183,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                 <OfflineWithFeedback
                     errorRowStyles={[styles.mt2]}
                     errors={validateLoginError}
-                    onClose={() => Delegate.clearAddDelegateErrors(delegate, 'validateLogin')}
+                    onClose={() => Delegate.clearAddDelegateErrors(delegate, 'addDelegate')}
                 >
                     <Button
                         isDisabled={isOffline}
