@@ -73,7 +73,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategory,
-    RecentlyUsedCurrencies,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -186,8 +185,7 @@ Onyx.connect({
 let allRecentlyUsedCurrencies: string[];
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedCurrencies = val),
+    callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
 /**

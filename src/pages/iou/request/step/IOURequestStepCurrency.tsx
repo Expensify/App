@@ -23,7 +23,7 @@ type IOURequestStepCurrencyOnyxProps = {
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
     /** List of recently used currencies */
-    recentlyUsedCurrencies: string[];
+    recentlyUsedCurrencies: OnyxEntry<string[]>;
 };
 
 type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
