@@ -99,7 +99,7 @@ function ReportFieldsValueSettingsPage({
                 testID={ReportFieldsValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={currentValueName}
+                    title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
