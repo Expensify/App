@@ -4438,7 +4438,7 @@ function getIOUForwardedMessage(reportAction: ReportAction, reportOrID: OnyxInpu
 
 function getSelfDMRejectedTransactionReportActionMessage(reportAction: ReportAction) {
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageSelfDMRejectTransaction;
-    return Localize.translateLocal('iou.declinedExpense', {comment});
+    return Localize.translateLocal('iou.declinedExpense', originalMessage.message);
 }
 
 function getRejectedReportMessage() {
