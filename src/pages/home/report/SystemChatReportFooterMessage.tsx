@@ -10,15 +10,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
-import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy as PolicyType} from '@src/types/onyx';
+import type {OnboardingPurpose, Policy as PolicyType} from '@src/types/onyx';
 
 type SystemChatReportFooterMessageOnyxProps = {
     /** Saved onboarding purpose selected by the user */
-    choice: OnyxEntry<OnboardingPurposeType>;
+    choice: OnyxEntry<OnboardingPurpose>;
 
     /** The list of this user's policies */
     policies: OnyxCollection<PolicyType>;

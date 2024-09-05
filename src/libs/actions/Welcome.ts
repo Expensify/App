@@ -5,9 +5,9 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 
@@ -136,7 +136,7 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
+function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 

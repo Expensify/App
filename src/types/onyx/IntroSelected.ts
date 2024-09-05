@@ -1,9 +1,10 @@
-import type {OnboardingInviteType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingInviteType} from '@src/CONST';
+import type {OnboardingPurpose} from './index';
 
 /** Model of onboarding */
 type IntroSelected = Partial<{
     /** The choice that the user selected in the engagement modal */
-    choice: OnboardingPurposeType;
+    choice: OnboardingPurpose;
 
     /** The invite type */
     inviteType: OnboardingInviteType;

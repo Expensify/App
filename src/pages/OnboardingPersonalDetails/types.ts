@@ -3,14 +3,14 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
-import type {OnboardingPurposeType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {OnboardingPurpose} from '@src/types/onyx';
 
 type OnboardingPersonalDetailsProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
 
 type BaseOnboardingPersonalDetailsOnyxProps = {
     /** Saved onboarding purpose selected by the user */
-    onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
+    onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 
     /** Saved onboarding admin chat report ID */
     onboardingAdminsChatReportID: OnyxEntry<string>;

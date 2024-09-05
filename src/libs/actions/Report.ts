@@ -83,7 +83,6 @@ import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -93,6 +92,7 @@ import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -3367,7 +3367,7 @@ function getReportPrivateNote(reportID: string | undefined) {
 }
 
 function completeOnboarding(
-    engagementChoice: OnboardingPurposeType,
+    engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     {
         firstName,

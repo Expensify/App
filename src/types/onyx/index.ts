@@ -1,3 +1,4 @@
+import type {OnboardingPurpose} from '@src/CONST';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -228,4 +229,5 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     ImportedSpreadsheet,
+    OnboardingPurpose,
 };

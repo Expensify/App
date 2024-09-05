@@ -127,7 +127,7 @@ const onboardingEmployerOrSubmitMessage = {
     ],
 };
 
-type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -137,17 +137,24 @@ const onboardingInviteTypes = {
 
 type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
 
-type OnboardingTaskType = {
+type OnboardingTask = {
     type: string;
     autoCompleted: boolean;
     title: string;
     description: string | ((params: Partial<{adminsRoomLink: string; workspaceCategoriesLink: string; workspaceMoreFeaturesLink: string; workspaceMembersLink: string}>) => string);
 };
 
-type OnboardingMessageType = {
+type OnboardingMessage = {
+    /** Text message that will be displayed first */
     message: string;
+
+    /** Video object to be displayed after initial description message */
     video?: Video;
-    tasks: OnboardingTaskType[];
+
+    /** List of tasks connected with the message, they will have a checkbox and a separate report for more information */
+    tasks: OnboardingTask[];
+
+    /** Type of task described in a string format */
     type?: string;
 };
 
@@ -4642,7 +4649,7 @@ const CONST = {
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
         },
-    } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
+    } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -5714,6 +5721,6 @@ type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurpose, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInviteType};
 
 export default CONST;
