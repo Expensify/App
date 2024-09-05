@@ -417,24 +417,33 @@ jobs:
   checkDeploymentSuccess:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_DEPLOYED }}
+      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
+      IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccess
         run: |
-          success="false"
+          isAtLeastOnePlatformDeployed="false"
+          isAllPlatformsDeployed="false"
           if [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
-            success="true"
+            isAtLeastOnePlatformDeployed="true"
           fi
-          echo "IS_DEPLOYED=\"$success\"" >> "$GITHUB_OUTPUT"
+          if [ "${{ needs.android.result }}" == "success" ] && \
+            [ "${{ needs.iOS.result }}" == "success" ] && \
+            [ "${{ needs.desktop.result }}" == "success" ] && \
+            [ "${{ needs.web.result }}" == "success" ]; then
+            isAllPlatformsDeployed="true"
+          fi
+          echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=\"$isAtLeastOnePlatformDeployed\"" >> "$GITHUB_OUTPUT"
+          echo "IS_ALL_PLATFORMS_DEPLOYED=\"$isAllPlatformsDeployed\"" >> "$GITHUB_OUTPUT"
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' && needs.checkDeploymentSuccess.outputs.IS_DEPLOYED == 'true'
+    if: github.ref == 'refs/heads/staging' && needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
     needs: [checkDeploymentSuccess]
     steps:
       - name: Checkout staging branch
@@ -522,7 +531,7 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production' && needs.checkDeploymentSuccess.outputs.IS_DEPLOYED == 'true'
+    if: github.ref == 'refs/heads/production' && needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
     needs: [checkDeploymentSuccess]
     steps:
       - uses: actions/checkout@v4
@@ -591,8 +600,8 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
-    if: ${{ success() }}
-    needs: [createPrerelease, finalizeRelease]
+    if: needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED == 'true'
+    needs: [checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -652,8 +661,8 @@ jobs:
   postGithubComment:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    needs: [createPrerelease, finalizeRelease]
+    if: needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
+    needs: [checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
