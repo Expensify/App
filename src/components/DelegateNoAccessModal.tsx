@@ -29,6 +29,7 @@ export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = f
         <ConfirmModal
             isVisible={isNoDelegateAccessMenuVisible}
             onConfirm={onConfirm}
+            onCancel={onConfirm}
             title={translate('delegate.notAllowed')}
             prompt={delegateNoAccessPrompt}
             confirmText={translate('common.buttonConfirm')}
