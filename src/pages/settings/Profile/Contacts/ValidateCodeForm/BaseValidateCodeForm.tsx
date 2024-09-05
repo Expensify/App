@@ -88,7 +88,8 @@ function BaseValidateCodeForm({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [validateCodeSentIsPressed, setValidateCodeSentIsPressed] = useState(false);
+    const validateCodeSentIsPressedRef = useRef(false);
+    const [showDotIndicator, setShowDotIndicator] = useState(false);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -144,6 +145,18 @@ function BaseValidateCodeForm({
         inputValidateCodeRef.current?.clear();
     }, [hasMagicCodeBeenSent]);
 
+    useEffect(() => {
+        // `validateCodeSent` is updated asynchronously,
+        // and `validateCodeSentIsPressedRef.current` is updated faster than `hasMagicCodeBeenSent`.
+        // This can cause the component to hide and show the `DotIndicatorMessage` multiple times
+        // in quick succession, leading to a flickering effect.
+        if ((hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && validateCodeSentIsPressedRef.current) {
+            setShowDotIndicator(true);
+        } else {
+            setShowDotIndicator(false);
+        }
+    }, [hasMagicCodeBeenSent, pendingContact, validateCodeSentIsPressedRef]);
+
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
@@ -155,9 +168,8 @@ function BaseValidateCodeForm({
         }
 
         inputValidateCodeRef.current?.clear();
-        setValidateCodeSentIsPressed(true);
+        validateCodeSentIsPressedRef.current = true;
     };
-
     /**
      * Handle text input and clear formError upon text change
      */
@@ -229,7 +241,7 @@ function BaseValidateCodeForm({
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {(hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && validateCodeSentIsPressed && (
+                    {showDotIndicator && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
