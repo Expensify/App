@@ -662,7 +662,7 @@ jobs:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
     if: needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
-    needs: [checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
