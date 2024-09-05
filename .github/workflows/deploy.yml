@@ -5,10 +5,10 @@ on:
     branches: [staging, production]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.event.action == 'released' }}
+  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.action }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: ${{ github.event.action != 'released' }}
+    if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
     needs: validateActor
     secrets: inherit
 
@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -90,17 +90,22 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload Android sourcemaps to GitHub Release
+      - name: Upload Android sourcemaps artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map#android-sourcemap-${{ github.event.release.tag_name }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps
+          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
-      - name: Upload Android build to GitHub Release
+      - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} android/app/build/outputs/bundle/productionRelease/app-production-release.aab
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -113,7 +118,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ env.VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
               }]
             }
         env:
@@ -154,15 +159,17 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
 
-      - name: Upload desktop sourcemaps to GitHub Release
-        run: gh release upload ${{ github.event.release.tag_name }} desktop/dist/www/merged-source-map.js.map#desktop-sourcemap-${{ github.event.release.tag_name }} --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload desktop sourcemaps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-sourcemaps
+          path: ./desktop/dist/www/merged-source-map.js.map
 
-      - name: Upload desktop build to GitHub Release
-        run: gh release upload ${{ github.event.release.tag_name }} desktop-build/NewExpensify.dmg --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload desktop build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-build
+          path: ./desktop-build/NewExpensify.dmg
 
   iOS:
     # WARNING: getDeployPullRequestList depends on this job name. do not change job name without adjusting that action accordingly
@@ -227,8 +234,11 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
       - name: Set iOS version in ENV
-        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
+        run: echo "IOS_VERSION=$(echo '${{ env.VERSION }}' | tr '-' '.')" >> "$GITHUB_ENV"
 
       - name: Run Fastlane
         run: bundle exec fastlane ios ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
@@ -245,17 +255,19 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload iOS sourcemaps to GitHub Release
+      - name: Upload iOS sourcemaps artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} main.jsbundle.map#ios-sourcemap-${{ github.event.release.tag_name }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps
+          path: ./main.jsbundle.map
 
-      - name: Upload iOS build to GitHub Release
-        if:  ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: gh release upload ${{ github.event.release.tag_name }} /Users/runner/work/App/App/New\ Expensify.ipa
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload iOS build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: ./Users/runner/work/App/App/New\ Expensify.ipa
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -328,13 +340,16 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
+      - name: Set current App version in Env
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
       - name: Verify staging deploy
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           sleep 5
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://staging.new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ github.event.release.tag_name }}. Something went wrong..."
+          if [[ '${{ env.VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ env.VERSION }}. Something went wrong..."
             exit 1
           fi
 
@@ -343,23 +358,33 @@ jobs:
         run: |
           sleep 5
           DOWNLOADED_VERSION="$(wget -q -O /dev/stdout https://new.expensify.com/version.json | jq -r '.version')"
-          if [[ '${{ github.event.release.tag_name }}' != "$DOWNLOADED_VERSION" ]]; then
-            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ github.event.release.tag_name }}. Something went wrong..."
+          if [[ '${{ env.VERSION }}' != "$DOWNLOADED_VERSION" ]]; then
+            echo "Error: deployed version $DOWNLOADED_VERSION does not match local version ${{ env.VERSION }}. Something went wrong..."
             exit 1
           fi
 
-      - name: Upload web sourcemaps to GitHub Release
-        run: gh release upload ${{ github.event.release.tag_name }} dist/merged-source-map.js.map#web-sourcemap-${{ github.event.release.tag_name }} --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Upload web sourcemaps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-sourcemaps
+          path: ./dist/merged-source-map.js.map
 
-      - name: Upload web build to GitHub Release
+      - name: Compress web build .tar.gz and .zip
         run: |
           tar -czvf webBuild.tar.gz dist
           zip -r webBuild.zip dist
-          gh release upload ${{ github.event.release.tag_name }} webBuild.tar.gz webBuild.zip --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload .tar.gz web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-tar-gz
+          path: ./webBuild.tar.gz
+
+      - name: Upload .zip web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-zip
+          path: ./webBuild.zip
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
@@ -379,7 +404,7 @@ jobs:
   hybridApp:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.action != 'released' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.ref == 'refs/heads/staging' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -398,7 +423,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version
+      - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: 'Announces the deploy in the #announce Slack room'
@@ -462,7 +487,7 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Set version
+      - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Get Release Pull Request List
@@ -485,9 +510,29 @@ jobs:
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
 
-  deployStaging:
+  check-deployment-success:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging'
+    outputs:
+      IS_DEPLOYED: ${{ steps.check-success.outputs.IS_DEPLOYED }}
+    needs: [android, desktop, iOS, web]
+    steps:
+      - name: Check deployment success on at least one platform
+        id: check-success
+        run: |
+          success="false"
+          if [ "${{ needs.android.result }}" == 'success' ] || \
+             [ "${{ needs.iOS.result }}" == 'success' ] || \
+             [ "${{ needs.desktop.result }}" == 'success' ] || \
+             [ "${{ needs.web.result }}" == 'success' ]; then
+            success="true"
+          fi
+          echo "IS_DEPLOYED=$success" >> $GITHUB_ENV
+          echo "::set-output name=IS_DEPLOYED::$success"
+
+  createPrerelease:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
+    needs: [android, desktop, iOS, web, check-deployment-success]
     steps:
       - name: Checkout staging branch
         uses: actions/checkout@v4
@@ -506,10 +551,53 @@ jobs:
       - name: Get current app version
         run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: 🚀 Create prerelease to trigger staging deploy 🚀
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+
+      - name: 🚀 Create prerelease 🚀
         run: gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease --target staging
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Upload Android sourcemaps to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./android-sourcemaps/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload Android build to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./android-build/app-production-release.aab
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload desktop sourcemaps to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload desktop build to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./desktop-build/NewExpensify.dmg
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload iOS sourcemaps to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./ios-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload iOS build to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./ios-build/New\ Expensify.ipa
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload web sourcemaps to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload web build to GitHub Release
+        run: gh release upload ${{ env.STAGING_VERSION }} ./web-build-tar-gz/webBuild.tar.gz ./web-build-tar-gz/webBuild.zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Warn deployers if staging deploy failed
         if: ${{ failure() }}
@@ -529,9 +617,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  deployProduction:
+  finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production'
+    if: github.ref == 'refs/heads/staging' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
+    needs: [android, desktop, iOS, web, check-deployment-success]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
@@ -547,10 +636,27 @@ jobs:
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
-      - name: Get current app version
-        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+      - name: Upload web sourcemaps to GitHub Release
+        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.PRODUCTION_VERSION }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: 🚀 Edit the release to be no longer a prerelease to deploy production 🚀
+      - name: Upload web build to GitHub Release
+        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./web-build-tar-gz/webBuild.tar.gz ./web-build-tar-gz/webBuild.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload desktop sourcemaps to GitHub Release
+        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.PRODUCTION_VERSION }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload desktop build to GitHub Release
+        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./desktop-build/NewExpensify.dmg --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 🚀 Edit the release to be no longer a prerelease 🚀
         run: |
           LATEST_RELEASE="$(gh release list --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
           gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ env.PRODUCTION_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" >> releaseNotes.md
