@@ -40,7 +40,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
     const {translate} = useLocalize();
 
     const achData = reimbursementAccount?.achData ?? {};
-    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: achData.bankName, styles});
     const isUsingExpensifyCard = user?.isUsingExpensifyCard;
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('bankAccount.accountEnding')} ${achData.accountNumber.slice(-4)}` : '';
     const bankAccountOwnerName = achData.addressName;
@@ -76,11 +76,12 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                             title={bankAccountOwnerName}
                             description={formattedBankAccountNumber}
                             icon={icon}
+                            iconStyles={iconStyles}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}
                             displayInDefaultIconColor
-                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            wrapperStyle={[styles.bankAccountMenuItem, styles.mv3]}
                         />
                         <Text style={[styles.mv3]}>
                             {!isUsingExpensifyCard ? translate('workspace.bankAccount.accountDescriptionNoCards') : translate('workspace.bankAccount.accountDescriptionWithCards')}
