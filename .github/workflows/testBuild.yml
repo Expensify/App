@@ -81,15 +81,14 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.187.0
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '2.7'
           bundler-cache: true
 
       - name: Decrypt keystore
@@ -136,7 +135,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
@@ -158,12 +157,11 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.0.app
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.187.0
+        uses: ruby/setup-ruby@v1.190.0
         with:
-          ruby-version: '2.7'
           bundler-cache: true
 
       - name: Cache Pod dependencies

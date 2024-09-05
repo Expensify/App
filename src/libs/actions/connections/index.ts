@@ -1,3 +1,4 @@
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -5,11 +6,10 @@ import * as API from '@libs/API';
 import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -369,24 +369,24 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-function getSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): string | undefined {
-    const syncError = Localize.translateLocal('workspace.accounting.syncError', connectionName);
+function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         if (
             !isSyncInProgress &&
             (!!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate || policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified === false)
         ) {
-            return syncError;
+            return true;
         }
-        return;
+        return false;
     }
 
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful) {
-        return;
+
+    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
+        return false;
     }
-    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+    return true;
 }
 
 function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
@@ -448,14 +448,29 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
     );
 }
 
+function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, policy?: OnyxEntry<Policy>): boolean {
+    if (!policy || !connectionSyncProgress) {
+        return false;
+    }
+
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    return (
+        !!connectionSyncProgress?.stageInProgress &&
+        (connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE || !policy?.connections?.[connectionSyncProgress.connectionName]) &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES
+    );
+}
+
 export {
     removePolicyConnection,
     updatePolicyConnectionConfig,
     updatePolicyXeroConnectionConfig,
     updateManyPolicyConnectionConfigs,
-    getSynchronizationErrorMessage,
     isAuthenticationError,
     syncConnection,
     copyExistingPolicyConnection,
     isConnectionUnverified,
+    isConnectionInProgress,
+    hasSynchronizationErrorMessage,
 };

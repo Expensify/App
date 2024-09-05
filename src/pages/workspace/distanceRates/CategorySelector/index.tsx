@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,20 +21,36 @@ type CategorySelectorProps = {
 
     /** Any additional styles to apply */
     wrapperStyle: StyleProp<ViewStyle>;
+
+    /** Whether item is focused or active */
+    focused?: boolean;
+
+    /** Whether category item picker is visible */
+    isPickerVisible: boolean;
+
+    /** Callback to show category picker */
+    showPickerModal: () => void;
+
+    /** Callback to hide category picker */
+    hidePickerModal: () => void;
+
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView?: boolean;
 };
 
-function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategory, policyID}: CategorySelectorProps) {
+function CategorySelector({
+    defaultValue = '',
+    wrapperStyle,
+    label,
+    setNewCategory,
+    policyID,
+    focused,
+    isPickerVisible,
+    showPickerModal,
+    hidePickerModal,
+    shouldUseCustomScrollView = false,
+}: CategorySelectorProps) {
     const styles = useThemeStyles();
-
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
-
-    const hidePickerModal = () => {
-        setIsPickerVisible(false);
-    };
 
     const updateCategoryInput = (categoryItem: ListItem) => {
         setNewCategory(categoryItem);
@@ -53,6 +69,7 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
+                focused={focused}
             />
             <CategorySelectorModal
                 policyID={policyID}
@@ -61,6 +78,7 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
                 onClose={hidePickerModal}
                 onCategorySelected={updateCategoryInput}
                 label={label}
+                shouldUseCustomScrollView={shouldUseCustomScrollView}
             />
         </View>
     );

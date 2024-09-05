@@ -1,9 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
@@ -41,9 +42,6 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /** Function for handle on press */
         onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
-
-        /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
-        isUsedInCarousel?: boolean;
 
         isUsedInAttachmentModal?: boolean;
 
@@ -93,7 +91,6 @@ function AttachmentView({
     onToggleKeyboard,
     onPDFLoadError: onPDFLoadErrorProp = () => {},
     isFocused,
-    isUsedInCarousel,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
@@ -107,6 +104,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -114,6 +112,7 @@ function AttachmentView({
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
+    const isUsedInCarousel = !!attachmentCarouselPagerContext?.pagerRef;
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {

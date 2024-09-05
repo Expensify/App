@@ -12,6 +12,7 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -62,9 +63,21 @@ function NetSuiteImportCustomFieldView({
             const filteredRecords = allRecords.filter((_, index) => index !== Number(valueIndex));
 
             if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
-                updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+                updateNetSuiteCustomSegments(
+                    policyID,
+                    filteredRecords as NetSuiteCustomSegment[],
+                    allRecords as NetSuiteCustomSegment[],
+                    `${importCustomField}_${valueIndex}`,
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                );
             } else {
-                updateNetSuiteCustomLists(policyID, filteredRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+                updateNetSuiteCustomLists(
+                    policyID,
+                    filteredRecords as NetSuiteCustomList[],
+                    allRecords as NetSuiteCustomList[],
+                    `${importCustomField}_${valueIndex}`,
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                );
             }
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
@@ -85,13 +98,21 @@ function NetSuiteImportCustomFieldView({
         >
             {customField && (
                 <OfflineWithFeedback
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, importCustomField)}
-                    errorRowStyles={[styles.ph5]}
-                    pendingAction={config?.syncOptions?.pendingFields?.[importCustomField]}
-                    onClose={() => Policy.clearNetSuiteErrorField(policyID, importCustomField)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, `${importCustomField}_${valueIndex}`)}
+                    errorRowStyles={[styles.ph5, styles.pv3]}
+                    pendingAction={settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
+                    onClose={() => {
+                        Policy.clearNetSuiteErrorField(policyID, `${importCustomField}_${valueIndex}`);
+                        const pendingAction = settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields);
+                        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                            Policy.removeNetSuiteCustomFieldByIndex(allRecords, policyID, importCustomField, valueIndex);
+                            Navigation.goBack();
+                        }
+                        Policy.clearNetSuitePendingField(policyID, `${importCustomField}_${valueIndex}`);
+                    }}
                 >
                     {fieldList.map((fieldName) => {
-                        const isEditable = !config?.syncOptions?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
+                        const isEditable = !config?.pendingFields?.[importCustomField] && PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
@@ -113,7 +134,7 @@ function NetSuiteImportCustomFieldView({
                     <MenuItem
                         icon={Expensicons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                        disabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => setIsRemoveModalOpen(true)}
                     />
                 </OfflineWithFeedback>
