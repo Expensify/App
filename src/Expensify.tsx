@@ -1,5 +1,5 @@
 import {Audio} from 'expo-av';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
@@ -19,8 +19,8 @@ import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
+import {handleHybridAppOnboarding} from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import BootSplash from './libs/BootSplash';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
@@ -41,6 +41,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
+import SplashScreenStateContext from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -53,23 +54,17 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-// HybridApp needs access to SetStateAction in order to properly hide SplashScreen when React Native was booted before.
-type SplashScreenHiddenContextType = {isSplashHidden?: boolean; setIsSplashHidden: React.Dispatch<React.SetStateAction<boolean>>};
-
-const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({
-    setIsSplashHidden: () => {},
-});
-
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const [isSplashHidden, setIsSplashHidden] = useState(false);
+    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
     const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, initialValue: true});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
@@ -95,11 +90,21 @@ function Expensify() {
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
 
+    useEffect(() => {
+        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined) {
+            return;
+        }
+
+        handleHybridAppOnboarding();
+    }, [splashScreenState, tryNewDotData]);
+
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash = shouldInit && !isSplashHidden;
+    const shouldHideSplash =
+        shouldInit &&
+        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -117,17 +122,9 @@ function Expensify() {
     }, []);
 
     const onSplashHide = useCallback(() => {
-        setIsSplashHidden(true);
+        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    }, []);
-
-    const contextValue = useMemo(
-        () => ({
-            isSplashHidden,
-            setIsSplashHidden,
-        }),
-        [isSplashHidden, setIsSplashHidden],
-    );
+    }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
@@ -149,24 +146,22 @@ function Expensify() {
 
     useEffect(() => {
         setTimeout(() => {
-            BootSplash.getVisibilityStatus().then((status) => {
-                const appState = AppState.currentState;
-                Log.info('[BootSplash] splash screen status', false, {appState, status});
+            const appState = AppState.currentState;
+            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
 
-                if (status === 'visible') {
-                    const propsToLog = {
-                        isCheckingPublicRoom,
-                        updateRequired,
-                        updateAvailable,
-                        isSidebarLoaded,
-                        screenShareRequest,
-                        focusModeNotification,
-                        isAuthenticated,
-                        lastVisitedPath,
-                    };
-                    Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-                }
-            });
+            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                const propsToLog = {
+                    isCheckingPublicRoom,
+                    updateRequired,
+                    updateAvailable,
+                    isSidebarLoaded,
+                    screenShareRequest,
+                    focusModeNotification,
+                    isAuthenticated,
+                    lastVisitedPath,
+                };
+                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
+            }
         }, 30 * 1000);
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
@@ -276,18 +271,15 @@ function Expensify() {
 
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
-                <SplashScreenHiddenContext.Provider value={contextValue}>
-                    <NavigationRoot
-                        onReady={setNavigationReady}
-                        authenticated={isAuthenticated}
-                        lastVisitedPath={lastVisitedPath as Route}
-                        initialUrl={initialUrl}
-                        shouldShowRequire2FAModal={shouldShowRequire2FAModal}
-                    />
-                </SplashScreenHiddenContext.Provider>
+                <NavigationRoot
+                    onReady={setNavigationReady}
+                    authenticated={isAuthenticated}
+                    lastVisitedPath={lastVisitedPath as Route}
+                    initialUrl={initialUrl}
+                    shouldShowRequire2FAModal={shouldShowRequire2FAModal}
+                />
             )}
-            {/* HybridApp has own middleware to hide SplashScreen */}
-            {!NativeModules.HybridAppModule && shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
@@ -295,5 +287,3 @@ function Expensify() {
 Expensify.displayName = 'Expensify';
 
 export default Expensify;
-
-export {SplashScreenHiddenContext};

@@ -23,13 +23,13 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode(true);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems = sections[0].data.filter((item) => item.isSelected);
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             if (selectedItems.length === 0) {
                 turnOffMobileSelectionMode();
             }
@@ -38,11 +38,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
             turnOnMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth]);
+    }, [sections, selectionMode, shouldUseNarrowLayout]);
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
+        if (!turnOnSelectionModeOnLongPress || !shouldUseNarrowLayout || item?.isDisabled || item?.isDisabledCheckbox) {
             return;
         }
         setLongPressedItem(item);

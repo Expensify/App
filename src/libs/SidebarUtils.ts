@@ -129,7 +129,10 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const shouldOverrideHidden = hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
+        const isSubmittedExpenseReportManagerWithoutParentAccess = ReportUtils.isSubmittedExpenseReportManagerWithoutParentAccess(report);
+        const shouldOverrideHidden =
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned || isSubmittedExpenseReportManagerWithoutParentAccess;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -435,6 +438,8 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
+            result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
