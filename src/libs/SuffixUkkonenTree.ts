@@ -1,10 +1,20 @@
 import enEmojis from '@assets/emojis/en';
-import {DATA} from './test';
 
 const CHAR_CODE_A = 'a'.charCodeAt(0);
 const ALPHABET_SIZE = 28;
 const DELIMITER_CHAR_CODE = ALPHABET_SIZE - 2;
 
+// TODO:
+// make makeTree faster
+// how to deal with unicode characters such as spanish ones?
+
+/**
+ * Converts a string to an array of numbers representing the characters of the string.
+ * The numbers are offset by the character code of 'a' (97). 
+ * - This is so that the numbers from a-z are in the range 0-25.
+ * - 26 is for the delimiter character "{",
+ * - 27 is for the end character "|".
+ */
 function stringToArray(input: string) {
     const res: number[] = [];
     for (let i = 0; i < input.length; i++) {
@@ -16,13 +26,22 @@ function stringToArray(input: string) {
     return res;
 }
 
+/**
+ * Makes a tree from an input string, which has been converted by {@link stringToArray}.
+ * **Important:** As we only support an alphabet of 26 characters, the input string should only contain characters from a-z.
+ * Thus, all input data must be cleaned before being passed to this function.
+ * If you then use this tree for search you should clean your search input as well (so that a search query of "testuser@myEmail.com" becomes "testusermyemailcom").
+ */
 function makeTree(a: number[]) {
     const N = 1000000;
+    const start = performance.now();
     const t = Array.from({length: N}, () => Array(ALPHABET_SIZE).fill(-1)) as number[][];
     const l = Array(N).fill(0) as number[];
     const r = Array(N).fill(0) as number[];
     const p = Array(N).fill(0) as number[];
     const s = Array(N).fill(0) as number[];
+    const end = performance.now();
+    console.log('Allocating memory took:', end - start, 'ms');
 
     let tv = 0;
     let tp = 0;
@@ -113,47 +132,10 @@ function makeTree(a: number[]) {
         }
     }
 
-    function findSubstring(sString: string) {
-        const s = stringToArray(sString);
-        const occurrences: number[] = [];
-        const st: Array<[number, number]> = [[0, 0]];
-
-        while (st.length > 0) {
-            const [node, depth] = st.pop()!;
-
-            let isLeaf = true;
-            const leftRange = l[node];
-            const rightRange = r[node];
-            const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
-
-            let matches = true;
-            for (let i = 0; i < rangeLen && depth + i < s.length; i++) {
-                if (s[depth + i] !== a[leftRange + i]) {
-                    matches = false;
-                    break;
-                }
-            }
-
-            if (!matches) {
-                continue;
-            }
-
-            for (let i = ALPHABET_SIZE - 1; i >= 0; --i) {
-                if (t[node][i] !== -1) {
-                    isLeaf = false;
-                    st.push([t[node][i], depth + rangeLen]);
-                }
-            }
-
-            if (isLeaf && depth + rangeLen >= s.length) {
-                occurrences.push(a.length - (depth + rangeLen));
-            }
-        }
-
-        return occurrences;
-    }
-
-    function findSubstringRecursive(s: string) {
+    /**
+     * Returns all occurrences of the given (sub)string in the input string.
+     */
+    function findSubstring(searchString: string) {
         const occurrences: number[] = [];
 
         function dfs(node: number, depth: number) {
@@ -161,8 +143,8 @@ function makeTree(a: number[]) {
             const rightRange = r[node];
             const rangeLen = node === 0 ? 0 : rightRange - leftRange + 1;
 
-            for (let i = 0; i < rangeLen && depth + i < s.length; i++) {
-                if (s.charCodeAt(depth + i) - CHAR_CODE_A !== a[leftRange + i]) {
+            for (let i = 0; i < rangeLen && depth + i < searchString.length; i++) {
+                if (searchString.charCodeAt(depth + i) - CHAR_CODE_A !== a[leftRange + i]) {
                     return;
                 }
             }
@@ -175,7 +157,7 @@ function makeTree(a: number[]) {
                 }
             }
 
-            if (isLeaf && depth >= s.length) {
+            if (isLeaf && depth >= searchString.length) {
                 occurrences.push(a.length - (depth + rangeLen));
             }
         }
@@ -187,12 +169,12 @@ function makeTree(a: number[]) {
     return {
         build,
         findSubstring,
-        findSubstringRecursive,
     };
 }
 
 function performanceProfile(input: string, search = 'sasha') {
-    const {build, findSubstring, findSubstringRecursive} = makeTree(stringToArray(input));
+    // TODO: For emojis we could precalculate the stringToArray or even the makeTree function during build time using a babel plugin
+    const {build, findSubstring} = makeTree(stringToArray(input));
 
     const buildStart = performance.now();
     build();
@@ -205,30 +187,19 @@ function performanceProfile(input: string, search = 'sasha') {
     console.log('Search time:', searchEnd - searchStart, 'ms');
     console.log(results);
 
-    const recursiveStart = performance.now();
-    const resultsRecursive = findSubstringRecursive(search);
-    const recursiveEnd = performance.now();
-    console.log('Recursive search time:', recursiveEnd - recursiveStart, 'ms');
-    console.log(resultsRecursive);
-
     return {
         buildTime: buildEnd - buildStart,
-        searchTime: searchEnd - searchStart,
-        recursiveSearchTime: recursiveEnd - recursiveStart,
+        recursiveSearchTime: searchEnd - searchStart,
     };
 }
 
+// Demo function testing the performance for emojis
 function testEmojis() {
     let searchString = '';
     Object.values(enEmojis).forEach(({keywords}) => {
         searchString += `${keywords.join('')}{`;
     });
     return performanceProfile(searchString, 'smile');
-}
-
-console.log('Read string of length', DATA.length);
-function runTest() {
-    return performanceProfile(DATA);
 }
 
 export {makeTree, stringToArray, runTest, testEmojis};
