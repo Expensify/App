@@ -180,10 +180,7 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default function TroubleshootPageOnyx(props: Omit<TroubleshootPageProps, keyof TroubleshootPageOnyxProps>) {
     const [shouldStoreLogs, shouldStoreLogsMetadata] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
 
-    /*
-    Selector FIXME: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true
-    */
-    const [shouldMaskOnyxState, shouldMaskOnyxStateMetadata] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+    const [shouldMaskOnyxState = true, shouldMaskOnyxStateMetadata] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
 
     if (isLoadingOnyxValue(shouldStoreLogsMetadata, shouldMaskOnyxStateMetadata)) {
         return null;

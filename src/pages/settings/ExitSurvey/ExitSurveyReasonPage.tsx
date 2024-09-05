@@ -99,10 +99,9 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
 ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 
 export default function ExitSurveyReasonPageOnyx(props: Omit<ExitSurveyReasonPageOnyxProps, keyof ExitSurveyReasonPageOnyxProps>) {
-    /*
-    Selector FIXME: (value) => value?.[INPUT_IDS.REASON] ?? null
-    */
-    const [draftReason, draftReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT);
+    const [draftReason = null, draftReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {
+        selector: (value) => value?.[INPUT_IDS.REASON],
+    });
 
     if (isLoadingOnyxValue(draftReasonMetadata)) {
         return null;

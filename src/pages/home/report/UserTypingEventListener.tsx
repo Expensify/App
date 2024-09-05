@@ -85,10 +85,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
 UserTypingEventListener.displayName = 'UserTypingEventListener';
 
 export default function UserTypingEventListenerOnyx(props: Omit<UserTypingEventListenerProps, keyof UserTypingEventListenerOnyxProps>) {
-    /*
-    Selector FIXME: (path) => path ?? ''
-    */
-    const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [lastVisitedPath = '', lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     if (isLoadingOnyxValue(lastVisitedPathMetadata)) {
         return null;

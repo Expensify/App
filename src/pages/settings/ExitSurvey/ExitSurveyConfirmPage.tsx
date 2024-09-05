@@ -98,10 +98,9 @@ function ExitSurveyConfirmPage({exitReason, route, navigation}: ExitSurveyConfir
 ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
 export default function ExitSurveyConfirmPageOnyx(props: Omit<ExitSurveyConfirmPageProps, keyof ExitSurveyConfirmPageOnyxProps>) {
-    /*
-    Selector FIXME: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null
-    */
-    const [exitReason, exitReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM);
+    const [exitReason = null, exitReasonMetadata] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {
+        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON],
+    });
 
     if (isLoadingOnyxValue(exitReasonMetadata)) {
         return null;

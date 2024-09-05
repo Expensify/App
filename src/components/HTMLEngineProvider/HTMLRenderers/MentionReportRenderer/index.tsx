@@ -121,10 +121,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): Report =>
     }) as Report;
 
 export default function MentionReportRendererOnyx(props: Omit<MentionReportRendererProps, keyof MentionReportOnyxProps>) {
-    /*
-    Selector FIXME: chatReportSelector
-    */
-    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector});
 
     if (isLoadingOnyxValue(reportsMetadata)) {
         return null;

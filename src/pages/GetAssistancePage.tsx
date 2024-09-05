@@ -94,10 +94,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
 GetAssistancePage.displayName = 'GetAssistancePage';
 
 export default function GetAssistancePageOnyx(props: Omit<GetAssistancePageProps, keyof GetAssistanceOnyxProps>) {
-    /*
-    Selector FIXME: (account) => account && {guideCalendarLink: account.guideCalendarLink}
-    */
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (value) => value && {guideCalendarLink: value.guideCalendarLink}});
 
     if (isLoadingOnyxValue(accountMetadata)) {
         return null;
