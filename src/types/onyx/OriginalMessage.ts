@@ -498,7 +498,7 @@ type OriginalMessageRemovedFromApprovalChain = {
 
     /** The accountID of the approver who was removed from the submitter's approval chain */
     whisperedTo: number[];
-}
+};
 
 /**
  * Model of `Add payment card` report action
