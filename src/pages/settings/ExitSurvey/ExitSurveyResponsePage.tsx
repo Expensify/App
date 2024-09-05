@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -14,10 +14,13 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
+import StatusBar from '@libs/StatusBar';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -43,8 +46,19 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
-    const {top: safeAreaInsetsTop} = useSafeAreaInsets();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const [headerTitleHeight, setHeaderTitleHeight] = useState(0);
+
+    // Device safe area top and bottom insets.
+    // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
+    const {top: safeAreaInsetsTop, bottom: safeAreaInsetsBottom} = useSafeAreaInsets();
+    const safeAreaInsetsBottomValue = !keyboardHeight ? safeAreaInsetsBottom : 0;
+    // FormWrapper bottom padding
+    const {paddingBottom: formPaddingBottom} = useStyledSafeAreaInsets();
+    const formPaddingBottomValue = formPaddingBottom || styles.pb5.paddingBottom;
+    // Extra bottom padding in FormAlertWithSubmitButton
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
+    const safePaddingBottomStyleValue = 'paddingBottom' in safePaddingBottomStyle ? (safePaddingBottomStyle.paddingBottom as number) : 0;
 
     const {reason, backTo} = route.params;
     const {isOffline} = useNetwork({
@@ -71,7 +85,10 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const textStyle = styles.headerAnonymousFooter;
     const baseResponseInputContainerStyle = styles.mt7;
     const formMaxHeight = Math.floor(
-        windowHeight -
+        // windowHeight doesn't include status bar height in Android, so we need to add it here.
+        // StatusBar.currentHeight is only available on Android.
+        windowHeight +
+            (StatusBar.currentHeight ?? 0) -
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
@@ -81,16 +98,21 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     );
     const responseInputMaxHeight = NumberUtils.roundDownToLargestMultiple(
         formMaxHeight -
+            safeAreaInsetsBottomValue -
+            safePaddingBottomStyleValue -
+            formPaddingBottomValue -
             // Minus the height of the text component
-            textStyle.lineHeight -
+            headerTitleHeight -
             // Minus the response input margins (multiplied by 2 to create the effect of margins on top and bottom).
             // marginBottom does not work in this case because the TextInput is in a ScrollView and will push the button beneath it out of view,
             // so it's maxHeight is what dictates space between it and the button.
             baseResponseInputContainerStyle.marginTop * 2 -
             // Minus the approximate size of a default button
             variables.componentSizeLarge -
-            // Minus the vertical margins around the form button
-            40,
+            // Minus the height above the button for the form error text, accounting for 2 lines max.
+            variables.lineHeightNormal * 2 -
+            // Minus the margin between the button and the form error text
+            styles.mb3.marginBottom,
 
         // Round down to the largest number of full lines
         styles.baseTextInput.lineHeight,
@@ -120,7 +142,12 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
+                        <Text
+                            style={textStyle}
+                            onLayout={(e) => setHeaderTitleHeight(e.nativeEvent.layout.height)}
+                        >
+                            {translate(`exitSurvey.prompts.${reason}`)}
+                        </Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.RESPONSE}

@@ -58,7 +58,7 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
         onRequestToggleArrows();
     }, [isScrollEnabled.value, onRequestToggleArrows]);
 
-    return {handleTap, handleScaleChange, scale};
+    return {handleTap, handleScaleChange, scale, isScrollEnabled};
 }
 
 export default useCarouselContextEvents;

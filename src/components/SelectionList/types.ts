@@ -5,7 +5,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -18,7 +18,7 @@ import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -125,6 +125,15 @@ type ListItem = {
     /** ID of the report */
     reportID?: string;
 
+    /** ID of the policy */
+    policyID?: string;
+
+    /** ID of the group */
+    groupID?: string;
+
+    /** ID of the category */
+    categoryID?: string;
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
@@ -156,10 +165,10 @@ type ListItem = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -200,10 +209,10 @@ type TransactionListItemType = ListItem &
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
-        from: SearchAccountDetails;
+        from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchAccountDetails;
+        to: SearchPersonalDetails;
 
         transactions: TransactionListItemType[];
     };
@@ -415,6 +424,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
+
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;

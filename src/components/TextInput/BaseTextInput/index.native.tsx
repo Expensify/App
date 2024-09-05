@@ -61,6 +61,7 @@ function BaseTextInput(
         prefixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -74,7 +75,7 @@ function BaseTextInput(
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 

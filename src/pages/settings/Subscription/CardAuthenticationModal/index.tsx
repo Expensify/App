@@ -6,11 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
@@ -20,20 +18,20 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
 
-    const onModalClose = () => {
+    const onModalClose = useCallback(() => {
+        setIsVisible(false);
         PaymentMethods.clearPaymentCard3dsVerification();
-    };
+    }, []);
 
     useEffect(() => {
-        if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
+        if (!authenticationLink) {
             return;
         }
-        PaymentMethods.clearPaymentCard3dsVerification();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-    }, [privateStripeCustomerID]);
+        setIsVisible(!!authenticationLink);
+    }, [authenticationLink]);
 
     const handleGBPAuthentication = useCallback(
         (event: MessageEvent<string>) => {
@@ -43,7 +41,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
                 onModalClose();
             }
         },
-        [session?.accountID],
+        [onModalClose, session?.accountID],
     );
 
     useEffect(() => {
@@ -56,7 +54,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            isVisible={!!authenticationLink}
+            isVisible={isVisible}
             onClose={onModalClose}
             onModalHide={onModalClose}
         >

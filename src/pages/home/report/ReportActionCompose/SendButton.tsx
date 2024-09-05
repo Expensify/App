@@ -23,6 +23,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
         handleSendMessage();
@@ -40,24 +41,26 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                 key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}`}
                 gesture={Tap}
             >
-                <Tooltip text={translate('common.send')}>
-                    <PressableWithFeedback
-                        style={({pressed, isDisabled}) => [
-                            styles.chatItemSubmitButton,
-                            isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                            isDisabledProp ? styles.cursorDisabled : undefined,
-                        ]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.send')}
-                    >
-                        {({pressed}) => (
-                            <Icon
-                                src={Expensicons.Send}
-                                fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
-                            />
-                        )}
-                    </PressableWithFeedback>
-                </Tooltip>
+                <View collapsable={false}>
+                    <Tooltip text={translate('common.send')}>
+                        <PressableWithFeedback
+                            style={({pressed, isDisabled}) => [
+                                styles.chatItemSubmitButton,
+                                isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                isDisabledProp ? styles.cursorDisabled : undefined,
+                            ]}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.send')}
+                        >
+                            {({pressed}) => (
+                                <Icon
+                                    src={Expensicons.Send}
+                                    fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </Tooltip>
+                </View>
             </GestureDetector>
         </View>
     );
