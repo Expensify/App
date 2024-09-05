@@ -347,7 +347,8 @@
     "express": "4.19.2",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
-    "webpack": "^5.94.0"
+    "webpack": "^5.94.0",
+    "@blakeembrey/template": "1.2.0"
   },
   "expo": {
     "autolinking": {
