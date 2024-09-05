@@ -1007,7 +1007,6 @@ function peg$parse(input, options) {
     s0 = peg$currPos;
     if (input.charCodeAt(peg$currPos) === 34) {
       s1 = peg$c27;
-      s1 = peg$c27;
       peg$currPos++;
     } else {
       s1 = peg$FAILED;
@@ -1033,7 +1032,6 @@ function peg$parse(input, options) {
         }
       }
       if (input.charCodeAt(peg$currPos) === 34) {
-        s3 = peg$c27;
         s3 = peg$c27;
         peg$currPos++;
       } else {
