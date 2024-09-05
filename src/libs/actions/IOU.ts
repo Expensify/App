@@ -4,7 +4,6 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -244,6 +243,14 @@ Onyx.connect({
     key: ONYXKEYS.CURRENT_DATE,
     callback: (value) => {
         currentDate = value;
+    },
+});
+
+let delegateEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        delegateEmail = value?.delegatedAccess?.delegate ?? '';
     },
 });
 
@@ -6915,7 +6922,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     if (hasHeldExpenses && !full && !!expenseReport?.unheldTotal) {
         total = expenseReport?.unheldTotal;
     }
-    const {delegateEmail} = useDelegateUserDetails();
 
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '-1', delegateEmail);
 
@@ -7072,7 +7078,6 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     }
 
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const {delegateEmail} = useDelegateUserDetails();
 
     const optimisticUnapprovedReportAction = ReportUtils.buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
@@ -7168,7 +7173,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
-    const {delegateEmail} = useDelegateUserDetails();
 
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(
         expenseReport?.total ?? 0,
