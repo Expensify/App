@@ -14,8 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -38,7 +38,6 @@ import type {SearchColumnType, SearchQueryJSON, SearchStatus, SelectedTransactio
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
-    isCustomQuery: boolean;
 };
 
 const transactionItemMobileHeight = 100;
@@ -75,11 +74,11 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
 }
 
-function Search({queryJSON, isCustomQuery}: SearchProps) {
+function Search({queryJSON}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions} = useSearchContext();
@@ -197,7 +196,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -232,7 +230,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    isCustomQuery={isCustomQuery}
                     queryJSON={queryJSON}
                     hash={hash}
                 />
@@ -325,7 +322,6 @@ function Search({queryJSON, isCustomQuery}: SearchProps) {
     return (
         <>
             <SearchPageHeader
-                isCustomQuery={isCustomQuery}
                 queryJSON={queryJSON}
                 hash={hash}
                 onSelectDeleteOption={handleOnSelectDeleteOption}
