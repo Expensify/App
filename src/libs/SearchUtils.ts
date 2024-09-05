@@ -575,12 +575,12 @@ function getDisplayValue(
     return filter;
 }
 
-function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
+function buildFilterString(filterName: string, queryFilters: QueryFilter[], delimiter = ',') {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeString(queryFilter.value.toString())}`;
         } else {
             filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
@@ -605,7 +605,7 @@ function getSearchHeaderTitle(
             operator: filter.operator,
             value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports, TaxRates),
         }));
-        title += buildFilterString(key, displayQueryFilters);
+        title += buildFilterString(key, displayQueryFilters, ' ');
     });
 
     return title;
