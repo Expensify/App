@@ -11,28 +11,33 @@
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
 // key: rule to match pre-defined search syntax fields, e.g. amount, merchant, etc
+// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
 // quotedString: rule to match a quoted string pattern, e.g. "this is a quoted string"
 // alphanumeric: rule to match unquoted alphanumeric characters, e.g. a-z, 0-9, _, @, etc
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator
 // whitespace: rule to match whitespaces
 
-{
-  const defaultValues = {
-    "type": "expense",
-    "status": "all",
-    "sortBy": "date",
-    "sortOrder": "desc",
-  };
-
+// global initializer (code executed only once)
+{{
   function buildFilter(operator, left, right) {
     return { operator, left, right };
   }
+}}
+
+// per-parser initializer (code executed before every parse)
+{
+  const defaultValues = {
+    type: "expense",
+    status: "all",
+    sortBy: "date",
+    sortOrder: "desc",
+  };
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
-      filters
+      filters,
     };
   }
 
@@ -92,10 +97,10 @@ standardFilter
 operator "operator"
   = (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
-  / ">" { return "gt"; }
   / ">=" { return "gte"; }
-  / "<" { return "lt"; }
+  / ">" { return "gt"; }
   / "<=" { return "lte"; }
+  / "<" { return "lt"; }
 
 key "key"
   = @(
@@ -122,18 +127,21 @@ key "key"
 defaultKey "default key"
   = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
 
-identifier = parts:(quotedString / alphanumeric)+ {
-      const value = parts.flat(); 
+identifier
+  = parts:(quotedString / alphanumeric)+ {
+      const value = parts.flat();
       if (value.length > 1) {
-          return value;
+        return value;
       }
       return value[0];
-  }
+    }
 
 quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 
 alphanumeric "word"
-  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(""); }
+  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ {
+      return chars.join("").trim().split(",").filter(Boolean);
+    }
 
 logicalAnd = _ { return "and"; }
 

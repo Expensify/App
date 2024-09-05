@@ -510,7 +510,6 @@ function getFilters(queryJSON: SearchQueryJSON) {
 
         // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
         const filterArray = filters[nodeKey] ?? [];
-        console.log(node);
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
@@ -529,7 +528,6 @@ function getFilters(queryJSON: SearchQueryJSON) {
     if (queryJSON.filters) {
         traverse(queryJSON.filters);
     }
-    console.log('filters', filters);
 
     return filters;
 }
