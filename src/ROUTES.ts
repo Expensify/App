@@ -67,7 +67,7 @@ const ROUTES = {
     SUBMIT_EXPENSE: 'submit-expense',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
+        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
     },
     CHAT_FINDER: 'chat-finder',
     PROFILE: {

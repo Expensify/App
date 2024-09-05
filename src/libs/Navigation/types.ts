@@ -1045,6 +1045,7 @@ type FlagCommentNavigatorParamList = {
     [SCREENS.FLAG_COMMENT_ROOT]: {
         reportID: string;
         reportActionID: string;
+        backTo?: Routes;
     };
 };
 
