@@ -35,7 +35,8 @@
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "android-build-e2edelta": "bundle exec fastlane android build_e2edelta",
     "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
-    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
+    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc --extendedDiagnostics --incremental false",
+    "trace": "NODE_OPTIONS=--max_old_space_size=8192 tsc --generateTrace trace --incremental false && open trace",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
     "lint-watch": "npx eslint-watch --watch --changed",
@@ -191,6 +192,7 @@
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
     "semver": "^7.5.2",
+    "stream-json": "^1.8.0",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
@@ -318,7 +320,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "type-fest": "4.20.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.4",
     "wait-port": "^0.2.9",
     "webpack": "^5.76.0",
     "webpack-bundle-analyzer": "^4.5.0",
