@@ -8,9 +8,7 @@
 // filter: abstract rule to simplify the filterList rule. It takes all filter types.
 // defaultFilter: rule to process the default values returned by the defaultKey rule. It updates the default values object.
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
-// multiSelectFilter: rule to process the multi-select values returned by the multiselectKey rule. It builds multiselect filter Object.
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
-// policyIDFilter: rule to process the policyID. It builds filter Object.
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
 // key: rule to match pre-defined search syntax fields that aren't multi-select, e.g. amount, merchant, etc
 // defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
@@ -54,8 +52,8 @@ query = _ filters:filterList? _ { return applyDefaults(filters); }
 filterList
   = head:filter tail:(logicalAnd filter)* {
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
-        .filter((filter) => filter !== null)
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((filter) => filter.right);
       if (!allFilters.length) {
         return null;
       }
@@ -69,63 +67,32 @@ filterList
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
 
-      if (!nonKeywords.length) {
-        return keywords.reduce((result, filter) =>
-          buildFilter("or", result, filter)
-        );
+      const keywordFilter = buildFilter(
+        "eq",
+        "keyword",
+        keywords.map((filter) => filter.right).flat()
+      );
+      if (keywordFilter.right.length > 0) {
+        nonKeywords.push(keywordFilter);
       }
-      if (!keywords.length) {
-        return nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        );
-      }
-
-      return buildFilter(
-        "and",
-        keywords.reduce((result, filter) => buildFilter("or", result, filter)),
-        nonKeywords.reduce((result, filter) =>
-          buildFilter("and", result, filter)
-        )
+      return nonKeywords.reduce((result, filter) =>
+        buildFilter("and", result, filter)
       );
     }
 
-filter
-  = @(
-      policyIDFilter
-      / standardFilter
-      / defaultFilter
-      / multiSelectFilter
-      / freeTextFilter
-    )
+filter = @(standardFilter / defaultFilter / freeTextFilter)
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
-      updateDefaultValues(key, value.trim());
+      updateDefaultValues(key, value);
     }
 
 freeTextFilter
-  = _ value:identifier _ { return buildFilter("eq", "keyword", value.trim()); }
-
-multiSelectFilter
-  = _ field:multiselectKey _ op:operator _ value:identifier {
-      return buildFilter(op, field, value);
-    }
+  = _ value:identifier _ { return buildFilter("eq", "keyword", value); }
 
 standardFilter
-  = _ field:key _ op:operator _ value:identifier {
-      const values = value.split(",");
-      return values
-        .slice(1)
-        .reduce(
-          (acc, val) =>
-            buildFilter("or", acc, buildFilter(op, field, val.trim())),
-          buildFilter(op, field, values[0])
-        );
-    }
-
-policyIDFilter "policyID filter"
-  = _ field:"policyID" _ op:operator _ value:identifier {
-      updateDefaultValues(field, value.trim());
+  = _ field:key _ op:operator _ values:identifier {
+      return buildFilter(op, field, values);
     }
 
 operator "operator"
@@ -137,13 +104,14 @@ operator "operator"
   / "<" { return "lt"; }
 
 key "key"
-  = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword")
-
-defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder")
-
-multiselectKey "multiselect key"
   = @(
-      "in"
+      "date"
+      / "amount"
+      / "merchant"
+      / "description"
+      / "reportID"
+      / "keyword"
+      / "in"
       / "currency"
       / "tag"
       / "category"
@@ -152,14 +120,29 @@ multiselectKey "multiselect key"
       / "cardID"
       / "from"
       / "expenseType"
+      / "has"
+      / "in"
+      / "is"
     )
 
-identifier = parts:(quotedString / alphanumeric)+ { return parts.join(""); }
+defaultKey "default key"
+  = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
+
+identifier
+  = parts:(quotedString / alphanumeric)+ {
+      const value = parts.flat();
+      if (value.length > 1) {
+        return value;
+      }
+      return value[0];
+    }
 
 quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join(""); }
 
 alphanumeric "word"
-  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(""); }
+  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ {
+      return chars.join("").trim().split(",").filter(Boolean);
+    }
 
 logicalAnd = _ { return "and"; }
 

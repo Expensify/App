@@ -409,10 +409,11 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    if (str.includes(' ') || str.includes(',')) {
-        return `"${str}"`;
+    const safeStr = str;
+    if (safeStr.includes(' ') || safeStr.includes(',')) {
+        return `"${safeStr}"`;
     }
-    return str;
+    return safeStr;
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
@@ -441,7 +442,7 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
         if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
+                return `${filterValue as string}`;
             }
         }
 
@@ -489,7 +490,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object' && node.right) {
+        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
@@ -504,15 +505,26 @@ function getFilters(queryJSON: SearchQueryJSON) {
 
         // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
         const filterArray = filters[nodeKey] ?? [];
-        filterArray.push({
-            operator: node.operator,
-            value: node.right as string | number,
-        });
+        console.log(node);
+        if (!Array.isArray(node.right)) {
+            filterArray.push({
+                operator: node.operator,
+                value: node.right as string | number,
+            });
+        } else {
+            node.right.forEach((element) => {
+                filterArray.push({
+                    operator: node.operator,
+                    value: element as string | number,
+                });
+            });
+        }
     }
 
     if (queryJSON.filters) {
         traverse(queryJSON.filters);
     }
+    console.log('filters', filters);
 
     return filters;
 }
@@ -544,7 +556,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
             filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
     });
 
