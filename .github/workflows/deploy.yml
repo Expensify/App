@@ -446,12 +446,6 @@ jobs:
     if: github.ref == 'refs/heads/staging' && needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
     needs: [checkDeploymentSuccess]
     steps:
-      - name: Checkout staging branch
-        uses: actions/checkout@v4
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
@@ -471,45 +465,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Upload Android sourcemaps to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./android-sourcemaps/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }}
+      - name: Upload artifacts to GitHub Release
+        run: |
+          gh release upload ${{ env.STAGING_VERSION }} \
+            ./android-sourcemaps/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }} \
+            ./android-build/app-production-release.aab \
+            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-build/NewExpensify.dmg \
+            ./ios-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }} \
+            ./ios-build/New\ Expensify.ipa \
+            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-build-tar-gz/webBuild.tar.gz \
+            ./web-build-zip/webBuild.zip
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload Android build to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./android-build/app-production-release.aab
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload desktop sourcemaps to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload desktop build to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./desktop-build/NewExpensify.dmg
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload iOS sourcemaps to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./ios-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload iOS build to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./ios-build/New\ Expensify.ipa
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload web sourcemaps to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload web build to GitHub Release
-        run: gh release upload ${{ env.STAGING_VERSION }} ./web-build-tar-gz/webBuild.tar.gz ./web-build-tar-gz/webBuild.zip
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }} 
 
       - name: Warn deployers if staging deploy failed
         if: ${{ failure() }}
@@ -531,15 +500,9 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production' && needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
+    if: github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED)
     needs: [checkDeploymentSuccess]
     steps:
-      - uses: actions/checkout@v4
-        name: Checkout
-        with:
-          ref: production
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
@@ -551,25 +514,16 @@ jobs:
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
-      - name: Upload web sourcemaps to GitHub Release
-        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.PRODUCTION_VERSION }} --clobber
+      - name: Upload artifacts to GitHub Release
+        run: |
+          gh release upload ${{ env.STAGING_VERSION }} \
+            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-build/NewExpensify.dmg \
+            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-build-tar-gz/webBuild.tar.gz \
+            ./web-build-zip/webBuild.zip
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload web build to GitHub Release
-        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./web-build-tar-gz/webBuild.tar.gz ./web-build-tar-gz/webBuild.zip --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload desktop sourcemaps to GitHub Release
-        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.PRODUCTION_VERSION }} --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload desktop build to GitHub Release
-        run: gh release upload ${{ env.PRODUCTION_VERSION }} ./desktop-build/NewExpensify.dmg --clobber
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }} 
 
       - name: 🚀 Edit the release to be no longer a prerelease 🚀
         run: |
@@ -659,9 +613,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   postGithubComment:
-    name: Post a GitHub comment when platforms are done building and deploying
+    name: Post a GitHub comments on all deployed PRs when platforms are done building and deploying
     runs-on: ubuntu-latest
-    if: needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED == 'true'
+    if: fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED)
     needs: [android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: Checkout
