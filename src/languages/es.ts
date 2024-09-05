@@ -3933,6 +3933,10 @@ export default {
             currency: 'Divisa',
             has: 'Tiene',
             link: 'Enlace',
+            is: 'Está',
+            pinned: 'Fijado',
+            unread: 'No leído',
+            draft: 'Borrador',
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
