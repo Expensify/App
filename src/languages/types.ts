@@ -284,9 +284,9 @@ type TranslationBaseValue<T> = T extends string
     ? string
     : // eslint-disable-next-line @typescript-eslint/no-explicit-any
     T extends (...args: any[]) => string | PluralizeValue
-    ? (arg: ArgumentType<T, string | PluralizeValue> extends Primitive ? Record<string, unknown> : ArgumentType<T, string | PluralizeValue>) => string | PluralizeValue
+    ? (arg: ArgumentType<T, string | PluralizeValue> extends Primitive ? Record<string, unknown> : ArgumentType<T, string | PluralizeValue>, ...args: unknown[]) => string | PluralizeValue
     : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>) => string | PluralizeValue;
+      (arg: ArgumentType<T, any> extends Primitive ? Record<string, unknown> : ArgumentType<T, any>, ...args: unknown[]) => string | PluralizeValue;
 type TranslationBase<T = unknown> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [K in keyof T]: T[K] extends string | ((...args: any[]) => any) ? TranslationBaseValue<T[K]> : TranslationBase<T[K]>;
