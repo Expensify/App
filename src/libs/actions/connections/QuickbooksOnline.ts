@@ -271,23 +271,23 @@ function updateQuickbooksOnlineReceivableAccount<TSettingValue extends QBOConnec
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue, oldSettingValue);
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.RECEIVABLE_ACCOUNT),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
 function updateQuickbooksOnlineExportDate<TSettingValue extends QBOConnectionConfig['exportDate']>(policyID: string, settingValue: TSettingValue, oldSettingValue?: TSettingValue) {
-    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.EXPORT_DATE),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
 }
@@ -297,12 +297,17 @@ function updateQuickbooksOnlineNonReimbursableExpensesAccount<TSettingValue exte
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, settingValue, oldSettingValue);
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(
+        policyID,
+        CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT,
+        settingValue,
+        oldSettingValue,
+    );
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
@@ -312,12 +317,12 @@ function updateQuickbooksOnlineCollectionAccountID<TSettingValue extends QBOConn
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, settingValue, oldSettingValue);
+    const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
