@@ -145,6 +145,7 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
+                    shouldDisableOpacity={!sections.length}
                 >
                     <SelectionList
                         onSelectRow={onSelectRow}

@@ -1,10 +1,21 @@
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
+import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+
+type InitialUrlContextType = {
+    initialURL: Route | undefined;
+    setInitialURL: React.Dispatch<React.SetStateAction<Route | undefined>>;
+};
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
-const InitialURLContext = createContext<Route | undefined>(undefined);
+const InitialURLContext = createContext<InitialUrlContextType>({
+    initialURL: undefined,
+    setInitialURL: () => {},
+});
 
 type InitialURLContextProviderProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
@@ -15,17 +26,30 @@ type InitialURLContextProviderProps = {
 };
 
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState(url);
+    const [initialURL, setInitialURL] = useState<Route | undefined>(url);
+    const {setSplashScreenState} = useSplashScreenStateContext();
+
     useEffect(() => {
         if (url) {
-            setInitialURL(url);
+            const route = signInAfterTransitionFromOldDot(url);
+            setInitialURL(route);
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             return;
         }
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [url]);
-    return <InitialURLContext.Provider value={initialURL}>{children}</InitialURLContext.Provider>;
+    }, [setSplashScreenState, url]);
+
+    const initialUrlContext = useMemo(
+        () => ({
+            initialURL,
+            setInitialURL,
+        }),
+        [initialURL],
+    );
+
+    return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;
 }
 
 InitialURLContextProvider.displayName = 'InitialURLContextProvider';
