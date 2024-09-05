@@ -8,7 +8,7 @@ import type ReportActionName from './ReportActionName';
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
 
 /** Types of payments methods */
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE | typeof CONST.PAYMENT_METHODS>;
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 /** Types of sources of original message */
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
