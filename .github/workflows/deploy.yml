@@ -32,7 +32,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+    if: github.ref == 'refs/heads/staging'
     needs: validateActor
     secrets: inherit
 
@@ -520,18 +520,17 @@ jobs:
         id: check-success
         run: |
           success="false"
-          if [ "${{ needs.android.result }}" == 'success' ] || \
-             [ "${{ needs.iOS.result }}" == 'success' ] || \
-             [ "${{ needs.desktop.result }}" == 'success' ] || \
-             [ "${{ needs.web.result }}" == 'success' ]; then
+          if [ "${{ needs.android.result }}" == "success" ] || \
+            [ "${{ needs.iOS.result }}" == "success" ] || \
+            [ "${{ needs.desktop.result }}" == "success" ] || \
+            [ "${{ needs.web.result }}" == "success" ]; then
             success="true"
           fi
-          echo "IS_DEPLOYED=$success" >> $GITHUB_ENV
-          echo "::set-output name=IS_DEPLOYED::$success"
+          echo "IS_DEPLOYED=\"$success\"" >> "$GITHUB_OUTPUT"
 
   createPrerelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
+    if: github.ref == 'refs/heads/staging' && needs.check-deployment-success.outputs.IS_DEPLOYED == 'true'
     needs: [android, desktop, iOS, web, check-deployment-success]
     steps:
       - name: Checkout staging branch
@@ -619,7 +618,7 @@ jobs:
 
   finalizeRelease:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/production' && ${{ needs.check-deployment-success.outputs.IS_DEPLOYED }} == 'true'
+    if: github.ref == 'refs/heads/production' && needs.check-deployment-success.outputs.IS_DEPLOYED == 'true'
     needs: [android, desktop, iOS, web, check-deployment-success]
     steps:
       - uses: actions/checkout@v4
