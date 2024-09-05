@@ -95,7 +95,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                 accessibilityLabel={translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
-                    <View style={[styles.taskCheckboxWrapper]}>
+                    <View style={[styles.taskCheckboxWrapper, styles.alignSelfCenter]}>
                         <Checkbox
                             style={[styles.mr2]}
                             containerStyle={[styles.taskCheckbox]}
@@ -113,14 +113,16 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                     </View>
                     {taskAssigneeAccountID > 0 && (
                         <Avatar
-                            containerStyles={[styles.mr2]}
+                            containerStyles={[styles.mr2, styles.alignSelfCenter]}
                             source={avatar}
-                            size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                            size={CONST.AVATAR_SIZE.SMALL}
                             avatarID={taskAssigneeAccountID}
                             type={CONST.ICON_TYPE_AVATAR}
                         />
                     )}
-                    <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
+                    <View style={[styles.alignSelfCenter]}>
+                        <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
+                    </View>
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}
