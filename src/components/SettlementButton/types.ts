@@ -73,6 +73,9 @@ type SettlementButtonProps = {
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
 
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption?: boolean;
+
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
