@@ -68,6 +68,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
+            onBackdropPress={() => {
+                setShowModal(false);
+                resetPermissionFlow();
+            }}
             confirmText={hasError ? translate('common.settings') : translate('common.continue')}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
