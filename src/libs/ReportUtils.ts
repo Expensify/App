@@ -4137,7 +4137,7 @@ function buildOptimisticAddCommentReportAction(
             originalMessage: {
                 html: htmlForNewComment,
                 whisperedTo: [],
-                delegate: delegate,
+                delegate,
             },
             isFirstItem: false,
             isAttachmentOnly,
@@ -4224,7 +4224,7 @@ function buildOptimisticTaskCommentReportAction(
         html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
         whisperedTo: [],
-        delegate: delegate,
+        delegate,
     };
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;

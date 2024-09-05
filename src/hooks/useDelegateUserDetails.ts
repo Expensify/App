@@ -1,5 +1,4 @@
 import {useOnyx} from 'react-native-onyx';
-import AccountUtils from '@libs/AccountUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
@@ -11,7 +10,7 @@ function useDelegateUserDetails() {
 
     return {
         delegatorEmail,
-        delegateEmail
+        delegateEmail,
     };
 }
 

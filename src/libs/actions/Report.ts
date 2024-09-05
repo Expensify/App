@@ -5,10 +5,10 @@ import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails'
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -281,7 +281,6 @@ registerPaginationConfig({
     isLastItem: (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
 });
 
-const { delegateEmail } = useDelegateUserDetails()
 
 function clearGroupChat() {
     Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
@@ -454,6 +453,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
+    const {delegateEmail} = useDelegateUserDetails();
 
     if (text && !file) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(delegateEmail, text, undefined, undefined, undefined, undefined, reportID);
@@ -3341,7 +3341,8 @@ function completeOnboarding(
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-
+    const {delegateEmail} = useDelegateUserDetails();
+    
     // Introductory message
     const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(delegateEmail, CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
     const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
