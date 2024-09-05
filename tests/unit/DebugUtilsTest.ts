@@ -2,114 +2,18 @@ import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
+import type ReportActionName from '../../src/types/onyx/ReportActionName';
+import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReport from '../utils/collections/reports';
 
 const MOCK_REPORT: Report = {
-    reportName: 'Chat Report',
-    isOptimisticReport: false,
-    type: 'chat',
-    isOwnPolicyExpenseChat: false,
-    isPinned: false,
-    lastActorAccountID: 2,
-    lastMessageTranslationKey: '',
-    lastMessageHtml: '',
-    lastReadTime: '2024-08-08 18:20:44.175',
-    lastVisibleActionCreated: '2024-08-08 18:20:44.171',
-    notificationPreference: 'hidden',
-    oldPolicyName: '',
-    ownerAccountID: 0,
-    participants: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        '14365522': {
-            hidden: true,
-            role: 'member',
-        },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        '15083345': {
-            hidden: true,
-            role: 'admin',
-        },
-    },
-    policyID: '_FAKE_',
-    reportID: '2305929876534021',
-    stateNum: 0,
-    statusNum: 0,
-    description: '',
-    pendingFields: {},
-    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-    currency: 'USD',
-    errorFields: {},
-    hasOutstandingChildRequest: false,
-    hasOutstandingChildTask: false,
-    isCancelledIOU: false,
-    isWaitingOnBankAccount: false,
-    lastActionType: 'CREATED',
-    lastMessageText: '',
-    lastReadSequenceNumber: 0,
-    lastVisibleActionLastModified: '2024-08-08 18:20:44.171',
-    managerID: 0,
-    nonReimbursableTotal: 0,
-    permissions: ['read', 'write'],
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    private_isArchived: '',
-    total: 0,
-    unheldTotal: 0,
-    writeCapability: 'all',
-    visibility: CONST.REPORT.VISIBILITY.PUBLIC,
-    tripData: {
-        startDate: '2024-08-08 18:20:44.171',
-        endDate: '2024-08-08 20:20:44.171',
-        tripID: '1',
-    },
-    pendingChatMembers: [
-        {
-            accountID: '1',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
-    ],
-    privateNotes: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        1: {
-            note: 'Hello world!',
-        },
-    },
-} satisfies Report;
+    ...createRandomReport(0),
+};
 
 const MOCK_REPORT_ACTION: ReportAction = {
-    reportActionID: '3035455786832804210',
-    actionName: 'CREATED',
-    actorAccountID: 15083345,
-    message: [
-        {
-            type: 'TEXT',
-            style: 'strong',
-            text: '__fake__',
-        },
-        {
-            type: 'TEXT',
-            style: 'normal',
-            text: ' created this report',
-        },
-    ],
-    person: [
-        {
-            type: 'TEXT',
-            style: 'strong',
-            text: '__fake__',
-        },
-    ],
-    automatic: false,
-    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_1.png',
-    created: '2024-08-08 18:20:44.171',
-    shouldShow: true,
-    sequenceNumber: 0,
-    lastModified: '2024-08-08 18:20:44.171',
-    errors: {},
-    whisperedToAccountIDs: [],
-    isLoading: false,
-    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
-    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-    childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-} satisfies ReportAction;
+    ...createRandomReportAction(0),
+    originalMessage: undefined,
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
@@ -674,10 +578,10 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid number', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
                 ...MOCK_REPORT_ACTION,
-                accountID: '2',
-            } as unknown as ReportAction;
+                accountID: '2' as unknown as number,
+            };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
@@ -692,10 +596,10 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid date', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
                 ...MOCK_REPORT_ACTION,
-                created: 2,
-            } as unknown as ReportAction;
+                created: 2 as unknown as string,
+            };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
@@ -710,10 +614,10 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid boolean', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
                 ...MOCK_REPORT_ACTION,
-                isLoading: 2,
-            } as unknown as ReportAction;
+                isLoading: 2 as unknown as boolean,
+            };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
@@ -728,10 +632,10 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is missing', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
                 ...MOCK_REPORT_ACTION,
-                actionName: undefined,
-            } as unknown as ReportAction;
+                actionName: undefined as unknown as ReportActionName,
+            };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
                 DebugUtils.validateReportActionJSON(draftReportAction);
