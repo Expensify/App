@@ -3790,7 +3790,7 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
-        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: Array<string>}) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames: string = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames[0];
@@ -3801,7 +3801,7 @@ export default {
             }
             const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
             const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
-            return `removed you from ${submittersNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+            return `removed you from ${joinedNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
         },
     },
     roomMembersPage: {

@@ -3841,7 +3841,7 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
-        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: Array<string>}) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames: string = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames[0];
