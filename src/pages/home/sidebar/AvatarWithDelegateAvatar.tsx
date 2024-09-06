@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithDelegateAvatarProps = {
-    /** Emoji status */
+    /** Original account of delegate */
     delegateEmail: string;
 
     /** Whether the avatar is selected */
