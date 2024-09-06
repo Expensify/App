@@ -24,6 +24,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout https://github.com/Expensify/App/issues/48675
+    // Because there is a race condition somewhere in the app that causes shouldUseNarrowLayout to change indefinitely in this component
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode(true);
 

@@ -59,7 +59,7 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout https://github.com/Expensify/App/issues/48724
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use selection mode on small screens only https://github.com/Expensify/App/issues/48724
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {selectionMode} = useMobileSelectionMode();
