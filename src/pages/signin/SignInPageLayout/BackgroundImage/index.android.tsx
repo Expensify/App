@@ -4,13 +4,19 @@ import {InteractionManager} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLastRouteRHP from '@libs/Navigation/isLastRouteRHP';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({pointerEvents, width, transitionDuration}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
+    const isLastRouteInRHP = isLastRouteRHP();
 
     useEffect(() => {
+        if (!isLastRouteInRHP) {
+            return;
+        }
+
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -21,7 +27,7 @@ function BackgroundImage({pointerEvents, width, transitionDuration}: BackgroundI
     }, []);
 
     // load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
-    if (!isInteractionComplete) {
+    if (!isInteractionComplete && isLastRouteInRHP) {
         return;
     }
 

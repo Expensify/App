@@ -7,6 +7,7 @@ import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg'
 import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLastRouteRHP from '@libs/Navigation/isLastRouteRHP';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
@@ -28,7 +29,13 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         });
     }
 
+    const isLastRouteInRHP = isLastRouteRHP();
+
     useEffect(() => {
+        if (!isLastRouteInRHP) {
+            return;
+        }
+
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -36,12 +43,13 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         return () => {
             interactionTask.cancel();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const {splashScreenState} = useSplashScreenStateContext();
     // Prevent rendering the background image until the splash screen is hidden.
     // See issue: https://github.com/Expensify/App/issues/34696
-    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || !isInteractionComplete) {
+    if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && isLastRouteInRHP)) {
         return;
     }
 

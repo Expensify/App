@@ -4,6 +4,7 @@ import * as Animatable from 'react-native-animatable';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLastRouteRHP from '@libs/Navigation/isLastRouteRHP';
 import type BackgroundImageProps from './types';
 
 function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
@@ -18,8 +19,13 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     };
 
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
+    const isLastRouteInRHP = isLastRouteRHP();
 
     useEffect(() => {
+        if (!isLastRouteInRHP) {
+            return;
+        }
+
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -27,10 +33,10 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         return () => {
             interactionTask.cancel();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    // load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.
-    if (!isInteractionComplete) {
+    if (!isInteractionComplete && isLastRouteInRHP && isSmallScreen) {
         return;
     }
 
