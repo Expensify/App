@@ -775,7 +775,7 @@ const emojis: PickerEmojis = [
         types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻'],
     },
     {
-        name: 'hand_with_index_finger_and_thumb_crossed',
+        name: 'finger_heart',
         code: '🫰',
         types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
     },
