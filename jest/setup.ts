@@ -12,7 +12,7 @@ setupMockImages();
 mockFSLibrary();
 
 // This mock is required as per setup instructions for react-navigation testing
-// https://reactnavigation.org/docs/testing/#mocking-native-modules
+// https://reactnavigdsdsdation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
