@@ -548,7 +548,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     }
 
     // Do not group if the delegate account ID is different
-    if (previousAction.originalMessage?.delegate !== currentAction.originalMessage?.delegate) {
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
         return false;
     }
 
