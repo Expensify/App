@@ -60,8 +60,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 Policy.enablePolicyReportFields(policyID, true, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 Policy.enablePolicyRules(policyID, true, true);
+                break;
+            default:
         }
     }, [feature, policyID]);
 
