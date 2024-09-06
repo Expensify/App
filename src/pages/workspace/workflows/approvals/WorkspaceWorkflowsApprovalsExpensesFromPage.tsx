@@ -142,7 +142,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
     }, [approvalWorkflow, route.params.backTo, route.params.policyID, selectedMembers]);
 
@@ -188,6 +188,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
                 subtitleStyle={styles.textSupporting}
                 containerStyle={styles.pb10}
+                contentFitImage="contain"
             />
         ),
         [translate, styles.textSupporting, styles.pb10],

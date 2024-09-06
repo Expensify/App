@@ -65,6 +65,6 @@ function SearchFiltersExpenseTypePage() {
     );
 }
 
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersCategoryPage';
+SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
 
 export default SearchFiltersExpenseTypePage;
