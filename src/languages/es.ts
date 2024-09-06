@@ -2929,8 +2929,6 @@ export default {
             disableCategory: 'Desactivar categoría',
             enableCategories: 'Activar categorías',
             enableCategory: 'Activar categoría',
-            defaultSpendCategories: 'Categorías de gasto predeterminadas',
-            spendCategoriesDescription: 'Personaliza cómo se categorizan los gastos de los comerciantes para las transacciones con tarjeta de crédito y los recibos escaneados.',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',

@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -44,7 +44,6 @@ type PolicyDistanceRatesSettingsPageProps = PolicyDistanceRatesSettingsPageOnyxP
 
 function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: PolicyDistanceRatesSettingsPageProps) {
     const styles = useThemeStyles();
-    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const customUnits = policy?.customUnits ?? {};
@@ -127,9 +126,6 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         setNewCategory={setNewCategory}
-                                        isPickerVisible={isCategoryPickerVisible}
-                                        showPickerModal={() => setIsCategoryPickerVisible(true)}
-                                        hidePickerModal={() => setIsCategoryPickerVisible(false)}
                                     />
                                 </OfflineWithFeedback>
                             )}

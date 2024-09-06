@@ -125,15 +125,6 @@ type ListItem = {
     /** ID of the report */
     reportID?: string;
 
-    /** ID of the policy */
-    policyID?: string;
-
-    /** ID of the group */
-    groupID?: string;
-
-    /** ID of the category */
-    categoryID?: string;
-
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean | null;
 
@@ -424,9 +415,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
-
-    /** Whether SectionList should use custom ScrollView */
-    shouldUseCustomScrollView?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;

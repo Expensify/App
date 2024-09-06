@@ -2881,8 +2881,6 @@ export default {
             disableCategory: 'Disable category',
             enableCategories: 'Enable categories',
             enableCategory: 'Enable category',
-            defaultSpendCategories: 'Default spend categories',
-            spendCategoriesDescription: 'Customize how merchant spend is categorized for credit card transactions and scanned receipts.',
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
