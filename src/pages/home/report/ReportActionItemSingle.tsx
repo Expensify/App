@@ -85,8 +85,9 @@ function ReportActionItemSingle({
 
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
-    const message = getOriginalMessage(action);
-    const delegateEmail = (message as any)?.delegate;
+    const delegatePersonalDetails = personalDetails[action?.delegateAccountID ?? ''];
+
+    const delegateEmail = delegatePersonalDetails?.login;
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
@@ -110,12 +111,9 @@ function ReportActionItemSingle({
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateAccount = getPersonalDetailByEmail(delegateEmail);
-        const delegateDetails = delegateAccount;
-        const delegateDisplayName = delegateDetails?.displayName;
-        displayName = delegateDisplayName ?? '';
-        avatarSource = delegateDetails?.avatar;
-        avatarId = delegateAccount?.accountID;
+        displayName = delegatePersonalDetails?.displayName ?? '';
+        avatarSource = delegatePersonalDetails?.avatar;
+        avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
     }
