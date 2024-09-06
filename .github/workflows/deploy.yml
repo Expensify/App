@@ -99,10 +99,13 @@ jobs:
       - name: Set version in ENV
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
 
-      - name: Run Fastlane
-        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
+      - name: Build Android app
+        if: fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+        run: bundle exec fastlane android build
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
         env:
-          RUBYOPT: '-rostruct'
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
           VERSION: ${{ env.VERSION_CODE }}
