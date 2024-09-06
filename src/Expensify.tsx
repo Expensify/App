@@ -2,7 +2,8 @@ import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -42,6 +43,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
+import type {ScreenShareRequest} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -54,7 +56,40 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-function Expensify() {
+type ExpensifyOnyxProps = {
+    /** Whether the app is waiting for the server's response to determine if a room is public */
+    isCheckingPublicRoom: OnyxEntry<boolean>;
+
+    /** Whether a new update is available and ready to install. */
+    updateAvailable: OnyxEntry<boolean>;
+
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: OnyxEntry<boolean>;
+
+    /** Information about a screen share call requested by a GuidesPlus agent */
+    screenShareRequest: OnyxEntry<ScreenShareRequest>;
+
+    /** True when the user must update to the latest minimum version of the app */
+    updateRequired: OnyxEntry<boolean>;
+
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
+    focusModeNotification: OnyxEntry<boolean>;
+
+    /** Last visited path in the app */
+    lastVisitedPath: OnyxEntry<string | undefined>;
+};
+
+type ExpensifyProps = ExpensifyOnyxProps;
+
+function Expensify({
+    isCheckingPublicRoom = true,
+    updateAvailable,
+    isSidebarLoaded = false,
+    screenShareRequest,
+    updateRequired = false,
+    focusModeNotification = false,
+    lastVisitedPath,
+}: ExpensifyProps) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
@@ -66,13 +101,6 @@ function Expensify() {
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, initialValue: true});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, initialValue: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, initialValue: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {
         if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
@@ -150,7 +178,7 @@ function Expensify() {
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
 
             if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog = {
+                const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
                     isCheckingPublicRoom,
                     updateRequired,
                     updateAvailable,
@@ -286,4 +314,30 @@ function Expensify() {
 
 Expensify.displayName = 'Expensify';
 
-export default Expensify;
+export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
+    isCheckingPublicRoom: {
+        key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+        initWithStoredValues: false,
+    },
+    updateAvailable: {
+        key: ONYXKEYS.UPDATE_AVAILABLE,
+        initWithStoredValues: false,
+    },
+    updateRequired: {
+        key: ONYXKEYS.UPDATE_REQUIRED,
+        initWithStoredValues: false,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    screenShareRequest: {
+        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+    },
+    focusModeNotification: {
+        key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+        initWithStoredValues: false,
+    },
+    lastVisitedPath: {
+        key: ONYXKEYS.LAST_VISITED_PATH,
+    },
+})(Expensify);
