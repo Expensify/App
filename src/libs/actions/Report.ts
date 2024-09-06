@@ -4088,6 +4088,16 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
+function subscribeToActiveGuides() {
+    Pusher.subscribe(`activeGuides`).catch((error: ReportError) => {
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChanelName: 'activeGuides'});
+    });
+}
+
+function unsubscribeToActiveGuides() {
+    Pusher.unsubscribe(`activeGuides`);
+}
+
 export {
     searchInServer,
     addComment,
@@ -4175,4 +4185,6 @@ export {
     exportToIntegration,
     markAsManuallyExported,
     handleReportChanged,
+    subscribeToActiveGuides,
+    unsubscribeToActiveGuides,
 };

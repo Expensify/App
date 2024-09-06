@@ -29,6 +29,9 @@ type User = {
 
     /** Whether the form is being submitted */
     loading?: boolean;
+
+    /** Whether the user is Expensify Guide */
+    isGuide?: boolean;
 };
 
 export default User;
