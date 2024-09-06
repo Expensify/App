@@ -5339,6 +5339,11 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
         },
+        CHAT_STATUS: {
+            UNREAD: 'unread',
+            PINNED: 'pinned',
+            DRAFT: 'draft',
+        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             HOLD: 'hold',
@@ -5427,6 +5432,7 @@ const CONST = {
             KEYWORD: 'keyword',
             IN: 'in',
             HAS: 'has',
+            IS: 'is',
         },
     },
 
