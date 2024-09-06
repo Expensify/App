@@ -18,6 +18,17 @@ opt_out_usage
 platform :android do
   desc "Generate a new local APK for e2e testing"
 
+  desc "Generate a new local APK"
+  lane :build do
+    ENV["ENVFILE"]=".env.production"
+    gradle(
+      project_dir: './android',
+      task: 'assemble',
+      flavor: 'Production',
+      build_type: 'Release',
+    )
+  end
+
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
@@ -44,66 +55,45 @@ platform :android do
     )
   end
 
-  desc "Generate a new local APK"
-  lane :build do
-    ENV["ENVFILE"]=".env.production"
-
+  desc "Build AdHoc testing build"
+  lane :build_adhoc do
+    ENV["ENVFILE"]=".env.adhoc"
     gradle(
       project_dir: './android',
       task: 'assemble',
-      flavor: 'Production',
+      flavor: 'Adhoc',
       build_type: 'Release',
     )
   end
 
-  desc "Build app for testing"
-  lane :build_internal do
-    ENV["ENVFILE"]=".env.adhoc"
-
-    gradle(
-        project_dir: './android',
-        task: 'assemble',
-        flavor: 'Adhoc',
-        build_type: 'Release',
-    )
-
+  desc "Upload build to S3"
+  lane :upload_s3 do
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-
       apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
-
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
   end
 
-  desc "Build and upload app to Google Play"
-  lane :beta do
-    ENV["ENVFILE"]=".env.production"
+  desc "Upload app to Google Play for internal testing"
+  lane :upload_google_play_internal do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-
-    gradle(
-        project_dir: './android',
-        task: 'bundle',
-        flavor: 'Production',
-        build_type: 'Release',
-    )
-
     upload_to_play_store(
-        package_name: "com.expensify.chat",
-        json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
-        track: 'internal',
-        rollout: '1.0'
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
+      track: 'internal',
+      rollout: '1.0'
     )
   end
 
   desc "Deploy app to Google Play production"
-  lane :production do
+  lane :upload_google_play_production do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
@@ -111,7 +101,6 @@ platform :android do
       json_key: './android/app/android-fastlane-json-key.json',
       track: 'internal'
     )
-
     upload_to_play_store(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
