@@ -10,6 +10,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addOptimisticDelegate} from '@libs/actions/Delegate';
 import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -89,7 +90,7 @@ function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const {userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -106,6 +107,14 @@ function AddDelegatePage() {
             shouldShow: personalDetails?.length > 0,
         });
 
+        if (userToInvite) {
+            sectionsList.push({
+                title: undefined,
+                data: [userToInvite],
+                shouldShow: true,
+            });
+        }
+
         return sectionsList.map((section) => ({
             ...section,
             data: section.data.map((option) => ({
@@ -118,9 +127,17 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [personalDetails, recentReports, translate]);
+    }, [personalDetails, recentReports, translate, userToInvite]);
 
-    const onSelectRow = useCallback((option: Participant) => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1)), []);
+    const onSelectRow = useCallback(
+        (option: Participant) => {
+            if (option.login === userToInvite?.login) {
+                addOptimisticDelegate(option.accountID ?? -1, option.login ?? '');
+            }
+            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.accountID ?? -1));
+        },
+        [userToInvite?.login],
+    );
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
