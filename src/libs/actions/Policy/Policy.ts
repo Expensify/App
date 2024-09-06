@@ -209,7 +209,6 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 /**
  * Returns a primary policy for the user
  */
-// TODO: Use getInvoicePrimaryWorkspace when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
 function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
@@ -219,9 +218,7 @@ function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: s
 /** Check if the policy has invoicing company details */
 // eslint-disable-next-line react/no-unused-prop-types,@typescript-eslint/no-unused-vars
 function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
-    // TODO: uncomment when invoicing details inside a policy are supported.
-    // return !!policy.invoice.companyName && !!policy.invoice.companyWebsite;
-    return true;
+    return !!policy?.invoice?.companyName && !!policy?.invoice?.companyWebsite;
 }
 
 /**

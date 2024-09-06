@@ -42,9 +42,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
-        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
-        // .filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
+        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 
         return availableWorkspaces
             .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
