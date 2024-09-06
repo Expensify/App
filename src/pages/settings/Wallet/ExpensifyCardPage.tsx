@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -82,6 +82,7 @@ function ExpensifyCardPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -317,9 +318,8 @@ function ExpensifyCardPage({
                         clearError={() => {}}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
-                        // TODO: replace with translation
-                        title="Verify it is you"
-                        description="Please enter the code that sent to your email"
+                        title={translate('cardPage.validateCardTitle')}
+                        description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
                     />
                 </>
             )}
