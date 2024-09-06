@@ -12833,7 +12833,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getStringInput = exports.getJSONInput = void 0;
+exports.getJSONInput = getJSONInput;
+exports.getStringInput = getStringInput;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
@@ -12850,7 +12851,6 @@ function getJSONInput(name, options, defaultValue) {
     }
     return defaultValue;
 }
-exports.getJSONInput = getJSONInput;
 /**
  * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
  */
@@ -12861,7 +12861,6 @@ function getStringInput(name, options, defaultValue) {
     }
     return input;
 }
-exports.getStringInput = getStringInput;
 
 
 /***/ }),
@@ -13380,11 +13379,10 @@ exports["default"] = GithubUtils;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

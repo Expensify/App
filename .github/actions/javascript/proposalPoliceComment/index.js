@@ -18659,11 +18659,10 @@ exports["default"] = OpenAIUtils;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

@@ -11652,7 +11652,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getStringInput = exports.getJSONInput = void 0;
+exports.getJSONInput = getJSONInput;
+exports.getStringInput = getStringInput;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
@@ -11669,7 +11670,6 @@ function getJSONInput(name, options, defaultValue) {
     }
     return defaultValue;
 }
-exports.getJSONInput = getJSONInput;
 /**
  * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
  */
@@ -11680,7 +11680,6 @@ function getStringInput(name, options, defaultValue) {
     }
     return input;
 }
-exports.getStringInput = getStringInput;
 
 
 /***/ }),
@@ -12451,7 +12450,9 @@ exports["default"] = sanitizeStringForJSONParse;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
+exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.isValidSemverLevel = isValidSemverLevel;
+exports.getPreviousVersion = getPreviousVersion;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -12464,7 +12465,6 @@ exports.MAX_INCREMENTS = MAX_INCREMENTS;
 function isValidSemverLevel(str) {
     return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
 }
-exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */
@@ -12545,7 +12545,6 @@ function getPreviousVersion(currentVersion, level) {
     }
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
-exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
@@ -12556,11 +12555,10 @@ exports.getPreviousVersion = getPreviousVersion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

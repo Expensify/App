@@ -15099,7 +15099,9 @@ exports["default"] = sanitizeStringForJSONParse;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
+exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.isValidSemverLevel = isValidSemverLevel;
+exports.getPreviousVersion = getPreviousVersion;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -15112,7 +15114,6 @@ exports.MAX_INCREMENTS = MAX_INCREMENTS;
 function isValidSemverLevel(str) {
     return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
 }
-exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */
@@ -15193,7 +15194,6 @@ function getPreviousVersion(currentVersion, level) {
     }
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
-exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
@@ -15204,11 +15204,10 @@ exports.getPreviousVersion = getPreviousVersion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

@@ -16899,7 +16899,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.detectReactComponent = void 0;
+exports.detectReactComponent = detectReactComponent;
 const github = __importStar(__nccwpck_require__(5438));
 const parser_1 = __nccwpck_require__(5026);
 const traverse_1 = __importDefault(__nccwpck_require__(1380));
@@ -16958,7 +16958,6 @@ function detectReactComponent(code, filename) {
     });
     return isReactComponent;
 }
-exports.detectReactComponent = detectReactComponent;
 function nodeBase64ToUtf8(data) {
     return Buffer.from(data, 'base64').toString('utf-8');
 }
@@ -17511,6 +17510,7 @@ exports["default"] = GithubUtils;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = promiseSome;
 /**
  * Like _.some but for promises. It short-circuts after a promise fulfills with a value that passes the test implemented by provided function.
  * It does not wait for the other promises to complete once it finds one.
@@ -17531,7 +17531,6 @@ function promiseSome(promises, callbackFn) {
         Promise.allSettled(promises).then(() => reject());
     });
 }
-exports["default"] = promiseSome;
 
 
 /***/ }),
@@ -17542,11 +17541,10 @@ exports["default"] = promiseSome;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
+exports.isEmptyObject = isEmptyObject;
 function isEmptyObject(obj) {
     return Object.keys(obj ?? {}).length === 0;
 }
-exports.isEmptyObject = isEmptyObject;
 
 
 /***/ }),

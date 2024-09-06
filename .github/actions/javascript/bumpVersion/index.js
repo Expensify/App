@@ -3510,7 +3510,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PLIST_PATH_TEST = exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroidVersion = exports.updateiOSVersion = void 0;
+exports.PLIST_PATH_TEST = exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = void 0;
+exports.updateiOSVersion = updateiOSVersion;
+exports.updateAndroidVersion = updateAndroidVersion;
+exports.generateAndroidVersionCode = generateAndroidVersionCode;
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __importDefault(__nccwpck_require__(1017));
@@ -3545,7 +3548,6 @@ function generateAndroidVersionCode(npmVersion) {
     const prefix = '10';
     return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
 }
-exports.generateAndroidVersionCode = generateAndroidVersionCode;
 /**
  * Update the Android app versionName and versionCode.
  */
@@ -3559,7 +3561,6 @@ function updateAndroidVersion(versionName, versionCode) {
     })
         .then((updatedContent) => fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' }));
 }
-exports.updateAndroidVersion = updateAndroidVersion;
 /**
  * Update the iOS app version.
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
@@ -3578,7 +3579,6 @@ function updateiOSVersion(version) {
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
 }
-exports.updateiOSVersion = updateiOSVersion;
 
 
 /***/ }),
@@ -3589,7 +3589,9 @@ exports.updateiOSVersion = updateiOSVersion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
+exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.isValidSemverLevel = isValidSemverLevel;
+exports.getPreviousVersion = getPreviousVersion;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -3602,7 +3604,6 @@ exports.MAX_INCREMENTS = MAX_INCREMENTS;
 function isValidSemverLevel(str) {
     return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
 }
-exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */
@@ -3683,7 +3684,6 @@ function getPreviousVersion(currentVersion, level) {
     }
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
-exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
