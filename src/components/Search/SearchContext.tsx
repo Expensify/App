@@ -17,6 +17,17 @@ const defaultSearchContext = {
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
+function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[], selectedTransactions: SelectedTransactions) {
+    return (data ?? [])
+        .filter(
+            (item) =>
+                !isTransactionListItemType(item) &&
+                item.reportID &&
+                item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+        )
+        .map((item) => item.reportID);
+}
+
 function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'selectedReports'>>({
         currentSearchHash: defaultSearchContext.currentSearchHash,
@@ -33,14 +44,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[]) => {
         // When selecting transaction we also have to manage reports to which these transactions belong to. We do this for sake of properly exporting to CSV.
-        const selectedReports = (data ?? [])
-            .filter(
-                (item) =>
-                    !isTransactionListItemType(item) &&
-                    item.reportID &&
-                    item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
-            )
-            .map((item) => item.reportID);
+        const selectedReports = getReportsFromSelectedTransactions(data, selectedTransactions);
 
         setSearchContextData((prevState) => ({
             ...prevState,

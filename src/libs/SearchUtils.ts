@@ -583,17 +583,6 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
-function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[], selectedTransactions: SelectedTransactions) {
-    return (data ?? [])
-        .filter(
-            (item) =>
-                !isTransactionListItemType(item) &&
-                item.reportID &&
-                item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
-        )
-        .map((item) => item.reportID);
-}
-
 function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
     return normalizeQuery(`type:${type} status:${status}`);
 }
