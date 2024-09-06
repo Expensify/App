@@ -79,6 +79,11 @@ const DotLottieAnimations = {
         w: 180,
         h: 200,
     },
+    TripsEmptyState: {
+        file: require<LottieViewProps['source']>('@assets/animations/TripsEmptyState.lottie'),
+        w: 335,
+        h: 220,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimation from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
@@ -84,9 +85,10 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
-                    headerMedia: Illustrations.EmptyStateTravel,
+                    headerMedia: LottieAnimation.TripsEmptyState,
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w191, variables.h172),
+                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(335, 220),
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
@@ -98,6 +100,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             default:
                 return {
                     headerMedia: Illustrations.EmptyState,
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
                     headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
                     headerContentStyles: StyleUtils.getWidthAndHeightStyle(variables.w184, variables.h112),
                     title: translate('search.searchResults.emptyResults.title'),
@@ -111,7 +114,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
     return (
         <EmptyStateComponent
             SkeletonComponent={SearchRowSkeleton}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+            headerMediaType={content.headerMediaType}
             headerMedia={content.headerMedia}
             headerStyles={content.headerStyles}
             headerContentStyles={content.headerContentStyles}
