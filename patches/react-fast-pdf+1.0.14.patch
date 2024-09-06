@@ -7,7 +7,7 @@ index 4407807..ea3964d 100644
  // @ts-expect-error - This line imports a module from 'pdfjs-dist' package which lacks TypeScript typings.
  // eslint-disable-next-line import/no-extraneous-dependencies
 -const pdf_worker_1 = __importDefault(require("pdfjs-dist/legacy/build/pdf.worker"));
-+const pdf_worker_1 = __importDefault(require("pdfjs-dist/build/pdf.worker.mjs"));
++const pdf_worker_1 = __importDefault(require("pdfjs-dist/legacy/build/pdf.worker.mjs"));
  const react_1 = __importStar(require("react"));
  const times_1 = __importDefault(require("lodash/times"));
  const prop_types_1 = __importDefault(require("prop-types"));
