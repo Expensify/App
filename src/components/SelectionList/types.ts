@@ -5,10 +5,11 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type ReportListItem from './Search/ReportListItem';
@@ -206,6 +207,21 @@ type TransactionListItemType = ListItem &
         keyForList: string;
     };
 
+type ReportActionListItemType = ListItem &
+    SearchReportAction & {
+        /** The personal details of the user posting comment */
+        from: SearchPersonalDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final "date" value used for sorting */
+        date: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
@@ -277,7 +293,16 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof UserListItem
+    | typeof TableListItem
+    | typeof InviteMemberListItem
+    | typeof TransactionListItem
+    | typeof ReportListItem
+    | typeof ChatListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -556,4 +581,6 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    ReportActionListItemType,
+    ChatListItemProps,
 };

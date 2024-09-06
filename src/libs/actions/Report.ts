@@ -110,6 +110,7 @@ import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import * as OnboardingFlow from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -2692,7 +2693,9 @@ function openReportFromDeepLink(url: string) {
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {
-                            Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT.getRoute())});
+                            Welcome.isOnboardingFlowCompleted({
+                                onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
+                            });
                             return;
                         }
 
