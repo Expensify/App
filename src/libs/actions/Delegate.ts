@@ -230,7 +230,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                             },
                             isLoading: false,
                             pendingFields: {email: null, role: null},
-                            pendingAction: null,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
                     ],
                 },
