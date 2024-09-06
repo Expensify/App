@@ -55,7 +55,6 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
@@ -6002,7 +6001,10 @@ function shouldReportBeInOptionList({
         return false;
     }
 
-    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
+    // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
+    // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
+    // show that chat
+    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report)) {
         return false;
     }
 
@@ -7641,8 +7643,9 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
 }
 
 /**
- * Whether the report is a system chat or concierge chat, depending on the onboarding report ID or fallbacking
- * to the user's account ID (used for A/B testing purposes).
+ * Whether a given report is used for onboarding tasks. In the past, it could be either the Concierge chat or the system
+ * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
+ * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
     // onboarding can be an array for old accounts and accounts created from olddot
@@ -7650,13 +7653,12 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData)
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
-    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
-        ? isSystemChat(optionOrReport)
-        : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
+    return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
- * Get the report (system or concierge chat) used for the user's onboarding process.
+ * Get the report used for the user's onboarding process. For most users it is the Concierge chat, however in the past
+ * we also used the system DM for A/B tests.
  */
 function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(ReportConnection.getAllReports() ?? {}).find(isChatUsedForOnboarding);
