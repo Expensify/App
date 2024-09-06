@@ -386,6 +386,7 @@ export default {
         enabled: 'Enabled',
         import: 'Import',
         importSpreadsheet: 'Import spreadsheet',
+        downloadCSV: 'Download CSV',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         days: 'days',
