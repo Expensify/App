@@ -86,7 +86,7 @@ function ReportActionItemSingle({
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     const message = getOriginalMessage(action);
-    const delegateEmail = message?.delegate;
+    const delegateEmail = (message as any)?.delegate;
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
@@ -240,14 +240,6 @@ function ReportActionItemSingle({
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const actionTypes = [
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        CONST.REPORT.ACTIONS.TYPE.APPROVED,
-        CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
-        CONST.REPORT.ACTIONS.TYPE.HOLD,
-        CONST.REPORT.ACTIONS.TYPE.UNHOLD,
-    ];
 
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
@@ -298,9 +290,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {delegateEmail && actionTypes.includes(action?.actionName) && (
-                    <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>
-                )}
+                {delegateEmail && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
