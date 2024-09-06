@@ -6,6 +6,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
+  RUBYOPT: '-rostruct'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
