@@ -66,22 +66,24 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
+    const delegateMenuItems: MenuItemProps[] = delegates
+        .filter((delegate) => delegate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .map(({email, role}) => {
+            const personalDetail = getPersonalDetailByEmail(email);
 
-        return {
-            title: personalDetail?.displayName ?? email,
-            description: personalDetail?.displayName ? email : '',
-            badgeText: translate('delegate.role', role),
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            iconRight: Expensicons.ThreeDots,
-            shouldShowRightIcon: true,
-        };
-    });
+            return {
+                title: personalDetail?.displayName ?? email,
+                description: personalDetail?.displayName ? email : '',
+                badgeText: translate('delegate.role', role),
+                avatarID: personalDetail?.accountID ?? -1,
+                icon: personalDetail?.avatar ?? '',
+                iconType: CONST.ICON_TYPE_AVATAR,
+                numberOfLinesDescription: 1,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
+            };
+        });
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
