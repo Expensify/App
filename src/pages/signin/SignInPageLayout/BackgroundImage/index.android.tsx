@@ -24,6 +24,7 @@ function BackgroundImage({pointerEvents, width, transitionDuration}: BackgroundI
         return () => {
             interactionTask.cancel();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     // load the background image and Lottie animation only after user interactions to ensure smooth navigation transitions.

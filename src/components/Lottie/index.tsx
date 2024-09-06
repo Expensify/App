@@ -45,6 +45,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         return () => {
             interactionTask.cancel();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
