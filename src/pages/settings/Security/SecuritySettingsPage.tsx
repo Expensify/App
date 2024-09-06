@@ -66,9 +66,7 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates
-            .filter((delegate) => delegate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-           .map(({email, role}) => {
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
 
         return {
