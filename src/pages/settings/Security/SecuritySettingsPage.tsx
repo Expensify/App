@@ -129,7 +129,7 @@ function SecuritySettingsPage() {
                         />
                     </Section>
                     {canUseNewDotCopilot && (
-                        <View style={styles.mb8}>
+                        <View style={styles.mb5}>
                             <Section
                                 title={translate('delegate.copilotDelegatedAccess')}
                                 subtitle={translate('delegate.copilotDelegatedAccessDescription')}
