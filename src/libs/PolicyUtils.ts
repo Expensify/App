@@ -201,11 +201,6 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
 
-/**
- * Checks if the policy is a free group policy.
- */
-const isFreeGroupPolicy = (policy: OnyxEntry<Policy>): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
-
 const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
@@ -370,7 +365,7 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  * Note: Free policies have "instant" submit always enabled.
  */
 function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+    return policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
 }
 
 /**
@@ -1024,7 +1019,6 @@ export {
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
-    isFreeGroupPolicy,
     isInstantSubmitEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,

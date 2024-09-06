@@ -1086,9 +1086,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                 },
                 [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
-                [SCREENS.WORKSPACE.CARD]: {
-                    path: ROUTES.WORKSPACE_CARD.route,
-                },
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
@@ -1101,14 +1098,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.REIMBURSE]: {
                     path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
-                [SCREENS.WORKSPACE.BILLS]: {
-                    path: ROUTES.WORKSPACE_BILLS.route,
-                },
                 [SCREENS.WORKSPACE.INVOICES]: {
                     path: ROUTES.WORKSPACE_INVOICES.route,
-                },
-                [SCREENS.WORKSPACE.TRAVEL]: {
-                    path: ROUTES.WORKSPACE_TRAVEL.route,
                 },
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,

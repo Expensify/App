@@ -51,11 +51,8 @@ type WorkspaceMenuItem = {
     routeName?:
         | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
         | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.CARD
         | typeof SCREENS.WORKSPACE.REIMBURSE
-        | typeof SCREENS.WORKSPACE.BILLS
         | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.TRAVEL
         | typeof SCREENS.WORKSPACE.DISTANCE_RATES
         | typeof SCREENS.WORKSPACE.WORKFLOWS
         | typeof SCREENS.WORKSPACE.CATEGORIES
@@ -165,51 +162,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
-
-    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.card',
-            icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CARD,
-        },
-        {
-            translationKey: 'workspace.common.reimburse',
-            icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REIMBURSE,
-        },
-        {
-            translationKey: 'workspace.common.bills',
-            icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.BILLS,
-        },
-        {
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-        },
-        {
-            translationKey: 'workspace.common.travel',
-            icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TRAVEL,
-        },
-        {
-            translationKey: 'workspace.common.bankAccount',
-            icon: Expensicons.Bank,
-            action: () =>
-                policy?.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policyID, Navigation.getActiveRouteWithoutParams())))()
-                    : setIsCurrencyModalOpen(true),
-            brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
-
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
@@ -346,7 +299,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);

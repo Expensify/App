@@ -658,10 +658,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
     },
-    WORKSPACE_CARD: {
-        route: 'settings/workspaces/:policyID/card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/card` as const,
-    },
     WORKSPACE_REIMBURSE: {
         route: 'settings/workspaces/:policyID/reimburse',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reimburse` as const,
@@ -678,10 +674,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/rateandunit/unit',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rateandunit/unit` as const,
     },
-    WORKSPACE_BILLS: {
-        route: 'settings/workspaces/:policyID/bills',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/bills` as const,
-    },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
@@ -693,10 +685,6 @@ const ROUTES = {
     WORKSPACE_INVOICES_COMPANY_WEBSITE: {
         route: 'settings/workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
-    },
-    WORKSPACE_TRAVEL: {
-        route: 'settings/workspaces/:policyID/travel',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/travel` as const,
     },
     WORKSPACE_MEMBERS: {
         route: 'settings/workspaces/:policyID/members',

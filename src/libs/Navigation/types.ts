@@ -1134,9 +1134,6 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
@@ -1176,13 +1173,7 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
