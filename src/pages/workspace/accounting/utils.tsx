@@ -48,7 +48,7 @@ function getAccountingIntegrationData(
     canUseNetSuiteUSATax?: boolean,
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const netsuiteConfig = policy?.connections?.netsuite?.options.config;
+    const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
 
     switch (connectionName) {

@@ -82,28 +82,16 @@ const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: Translat
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.DRAFTS,
-        icon: Expensicons.Pencil,
-        text: 'common.drafts',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.DRAFTS),
+        key: CONST.SEARCH.STATUS.TRIP.CURRENT,
+        icon: Expensicons.Calendar,
+        text: 'search.filters.current',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.CURRENT),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.OUTSTANDING,
-        icon: Expensicons.Hourglass,
-        text: 'common.outstanding',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.OUTSTANDING),
-    },
-    {
-        key: CONST.SEARCH.STATUS.TRIP.APPROVED,
-        icon: Expensicons.ThumbsUp,
-        text: 'iou.approved',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.APPROVED),
-    },
-    {
-        key: CONST.SEARCH.STATUS.TRIP.PAID,
-        icon: Expensicons.MoneyBag,
-        text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAID),
+        key: CONST.SEARCH.STATUS.TRIP.PAST,
+        icon: Expensicons.History,
+        text: 'search.filters.past',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAST),
     },
 ];
 
