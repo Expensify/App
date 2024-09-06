@@ -492,8 +492,8 @@ jobs:
 
       - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         run: |
-          mv ./desktop-sourcemaps/merged-source-map.js.map ./desktop-sourcemaps/desktop-merged-source-map.js.map
-          mv ./web-sourcemaps/merged-source-map.js.map ./web-sourcemaps/web-merged-source-map.js.map
+          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
+          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
         run: |
@@ -544,8 +544,8 @@ jobs:
 
       - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         run: |
-          mv ./desktop-sourcemaps/merged-source-map.js.map ./desktop-sourcemaps/desktop-merged-source-map.js.map
-          mv ./web-sourcemaps/merged-source-map.js.map ./web-sourcemaps/web-merged-source-map.js.map
+          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
+          mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
         run: |
