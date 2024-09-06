@@ -56,6 +56,11 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const previousApprovalMode = policy.approvalMode;
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
 
+    // If there are no changes to the employees list, we can exit early
+    if (isEmptyObject(updatedEmployees)) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -127,6 +132,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         approversToRemove,
     });
 
+    // If there are no changes to the employees list, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
         return;
     }
