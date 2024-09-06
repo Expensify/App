@@ -11,8 +11,8 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -74,7 +74,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
 function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading} = useSearchContext();

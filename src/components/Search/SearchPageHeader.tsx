@@ -120,7 +120,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [deleteExpensesConfirmModalVisible, setDeleteExpensesConfirmModalVisible] = useState(false);
@@ -277,7 +277,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         selectionMode?.isEnabled,
     ]);
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         if (selectionMode?.isEnabled) {
             return (
                 <SearchSelectedNarrow
