@@ -3790,7 +3790,7 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
-        removedFromApprovalWorkflow: ({submittersNames}) => {
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: Array<string>}) => {
             let joinedNames: string = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames[0];
