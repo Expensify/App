@@ -224,7 +224,8 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                         delegate.email !== email
                             ? delegate
                             : {
-                                  ...delegate,
+                                  email,
+                                  role,
                                   errorFields: {
                                       addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                                   },
