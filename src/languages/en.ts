@@ -2218,8 +2218,8 @@ export default {
             existingConnections: 'Existing connections',
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Last synced ${formattedDate}`,
             memberAlternateText: 'Members can submit and approve reports.',
-            adminAlternateText: 'Auditors can view and comment on reports.',
-            auditorAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
+            auditorAlternateText: 'Auditors can view and comment on reports.',
             roleName: (role?: string): string => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

@@ -2251,8 +2251,8 @@ export default {
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
-            adminAlternateText: 'Los auditores pueden ver y comentar los informes.',
-            auditorAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
             roleName: (role?: string): string => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

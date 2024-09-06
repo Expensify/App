@@ -1394,7 +1394,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if the user can only comment in the provided report (auditor role)
+ * Checks if the user has auditor permission in the provided report
  */
 
 function isAuditor(report: OnyxEntry<Report>): boolean {
