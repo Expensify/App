@@ -102,7 +102,6 @@ function SecuritySettingsPage() {
     return (
         <ScreenWrapper
             testID={SecuritySettingsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
