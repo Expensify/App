@@ -479,7 +479,14 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: 🚀 Create prerelease 🚀
-        run: gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease --target staging
+        run: |
+          gh release create ${{ env.STAGING_VERSION }} --title ${{ env.STAGING_VERSION }} --generate-notes --prerelease --target staging
+          RETRIES=0
+          MAX_RETRIES=10
+          until [[ $(gh release view ${{ env.STAGING_VERSION }}) || $RETRIES -ge $MAX_RETRIES ]]; do
+            echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
+            sleep 1
+          done
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
