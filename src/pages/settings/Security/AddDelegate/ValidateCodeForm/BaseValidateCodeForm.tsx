@@ -161,7 +161,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                     name="validateCode"
                     value={validateCode}
                     onChangeText={onTextInput}
-                    errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(validateLoginError)}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : Object.values(validateLoginError ?? {})[0] ?? ''}
                     hasError={!isEmptyObject(validateLoginError)}
                     onFulfill={validateAndSubmitForm}
                     autoFocus={false}
@@ -184,11 +184,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                 </OfflineWithFeedback>
             </View>
             <FixedFooter>
-                <OfflineWithFeedback
-                    errorRowStyles={[styles.mt2]}
-                    errors={validateLoginError}
-                    onClose={() => Delegate.clearAddDelegateErrors(delegate, 'addDelegate')}
-                >
+                <OfflineWithFeedback>
                     <Button
                         isDisabled={isOffline}
                         text={translate('common.verify')}
