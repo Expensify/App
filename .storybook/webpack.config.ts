@@ -68,7 +68,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
     const definePluginIndex = config.plugins.findIndex((plugin) => plugin instanceof DefinePlugin);
     if (definePluginIndex !== -1 && config.plugins[definePluginIndex] instanceof DefinePlugin) {
-        const definePlugin = config.plugins[definePluginIndex] as DefinePlugin;
+        const definePlugin = config.plugins[definePluginIndex];
         if (definePlugin.definitions) {
             definePlugin.definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
         }

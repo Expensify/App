@@ -247,4 +247,4 @@ function ComponentWithOnyx(props: Omit<WorkspaceInviteMessagePageProps, keyof Wo
     );
 }
 
-export default withPolicyAndFullscreenLoading(ComponentWithOnyx);
+export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(ComponentWithOnyx));

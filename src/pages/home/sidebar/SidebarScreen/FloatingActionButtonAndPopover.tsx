@@ -1,7 +1,7 @@
 import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -485,10 +485,11 @@ function FloatingActionButtonAndPopover(
 
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
-export type {PolicySelector};
+const FloatingActionButtonAndPopoverWithRef = forwardRef(FloatingActionButtonAndPopover);
 
-export default function ComponentWithOnyx(
+function ComponentWithOnyx(
     props: Omit<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, keyof FloatingActionButtonAndPopoverOnyxProps>,
+    ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
     const [isLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -515,7 +516,8 @@ export default function ComponentWithOnyx(
     }
 
     return (
-        <FloatingActionButtonAndPopover
+        <FloatingActionButtonAndPopoverWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             allPolicies={allPolicies}
@@ -529,3 +531,7 @@ export default function ComponentWithOnyx(
         />
     );
 }
+
+export default forwardRef(ComponentWithOnyx);
+
+export type {PolicySelector};

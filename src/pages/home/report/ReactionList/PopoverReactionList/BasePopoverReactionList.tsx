@@ -1,4 +1,4 @@
-import React, {useImperativeHandle} from 'react';
+import React, {forwardRef, useImperativeHandle} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -51,7 +51,9 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
     );
 }
 
-function ComponentWithOnyx(props: Omit<BasePopoverReactionListPropsWithLocalWithOnyx, keyof BasePopoverReactionListOnyxProps>) {
+const BasePopoverReactionListWithRef = React.forwardRef(BasePopoverReactionList);
+
+function ComponentWithOnyx(props: Omit<BasePopoverReactionListPropsWithLocalWithOnyx, keyof BasePopoverReactionListOnyxProps>, ref: ForwardedRef<Partial<ReactionListRef>>) {
     const [emojiReactions, emojiReactionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${props.reportActionID}`);
 
     if (isLoadingOnyxValue(emojiReactionsMetadata)) {
@@ -59,7 +61,8 @@ function ComponentWithOnyx(props: Omit<BasePopoverReactionListPropsWithLocalWith
     }
 
     return (
-        <BasePopoverReactionList
+        <BasePopoverReactionListWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             emojiReactions={emojiReactions}
@@ -67,4 +70,4 @@ function ComponentWithOnyx(props: Omit<BasePopoverReactionListPropsWithLocalWith
     );
 }
 
-export default withCurrentUserPersonalDetails(ComponentWithOnyx);
+export default withCurrentUserPersonalDetails(forwardRef(ComponentWithOnyx));

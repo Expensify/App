@@ -824,7 +824,7 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
-export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, keyof ComposerWithSuggestionsOnyxProps>) {
+function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, keyof ComposerWithSuggestionsOnyxProps>, ref: ForwardedRef<ComposerRef>) {
     const [modal, modalMetadata] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = 0, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
     const [editFocused = false, editFocusedMetadata] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
@@ -839,6 +839,7 @@ export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsPro
 
     return (
         <ComposerWithSuggestionsWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             modal={modal}
@@ -849,4 +850,5 @@ export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsPro
     );
 }
 
+export default forwardRef(ComponentWithOnyx);
 export type {ComposerWithSuggestionsProps};

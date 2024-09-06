@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';

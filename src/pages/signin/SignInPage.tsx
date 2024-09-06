@@ -343,28 +343,7 @@ type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
-function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
-    return (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <ColorSchemeWrapper>
-                    <CustomStatusBarAndBackground isNested />
-                    <SignInPageWithRef
-                        ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
-                </ColorSchemeWrapper>
-            </ThemeStylesProvider>
-        </ThemeProvider>
-    );
-}
-
-SignInPageThemeWrapper.displayName = 'SignInPage';
-
-export type {SignInPageRef};
-
-export default function ComponentWithOnyx(props: Omit<SignInPageProps & RefAttributes<SignInPageRef>, keyof SignInPageOnyxProps>) {
+export default function SignInPageThemeWrapper(props: Omit<SignInPageProps & RefAttributes<SignInPageRef>, keyof SignInPageOnyxProps>, ref: ForwardedRef<SignInPageRef>) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [activeClients, activeClientsMetadata] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
@@ -375,13 +354,25 @@ export default function ComponentWithOnyx(props: Omit<SignInPageProps & RefAttri
     }
 
     return (
-        <SignInPageThemeWrapper
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            account={account}
-            credentials={credentials}
-            activeClients={activeClients}
-            preferredLocale={preferredLocale}
-        />
+        <ThemeProvider theme={CONST.THEME.DARK}>
+            <ThemeStylesProvider>
+                <ColorSchemeWrapper>
+                    <CustomStatusBarAndBackground isNested />
+                    <SignInPageWithRef
+                        ref={ref}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        account={account}
+                        credentials={credentials}
+                        activeClients={activeClients}
+                        preferredLocale={preferredLocale}
+                    />
+                </ColorSchemeWrapper>
+            </ThemeStylesProvider>
+        </ThemeProvider>
     );
 }
+
+SignInPageThemeWrapper.displayName = 'SignInPage';
+
+export type {SignInPageRef};

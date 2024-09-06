@@ -1,5 +1,5 @@
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -238,7 +238,9 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default function ComponentWithOnyx(props: Omit<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, keyof SuggestionEmojiOnyxProps>) {
+const SuggestionEmojiWithRef = forwardRef(SuggestionEmoji);
+
+function ComponentWithOnyx(props: Omit<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, keyof SuggestionEmojiOnyxProps>, ref: ForwardedRef<SuggestionsRef>) {
     const [preferredSkinTone = 0, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
 
     if (isLoadingOnyxValue(preferredSkinToneMetadata)) {
@@ -246,10 +248,13 @@ export default function ComponentWithOnyx(props: Omit<SuggestionEmojiProps & Ref
     }
 
     return (
-        <SuggestionEmoji
+        <SuggestionEmojiWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             preferredSkinTone={preferredSkinTone}
         />
     );
 }
+
+export default forwardRef(ComponentWithOnyx);
