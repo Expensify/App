@@ -23,6 +23,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
         value: role,
         text: translate('delegate.role', role),
         keyForList: role,
+        alternateText: translate('delegate.roleDescription', role),
         isSelected: role === route.params.role,
     }));
 
@@ -36,6 +37,8 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
             />
             <SelectionList
+                isAlternateTextMultilineSupported
+                alternateTextNumberOfLines={4}
                 headerContent={<Text style={[styles.ph5, styles.pb5, styles.pt3]}>{translate('delegate.accessLevelDescription')}</Text>}
                 onSelectRow={(option) => {
                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(Number(route.params.accountID), option.value));
