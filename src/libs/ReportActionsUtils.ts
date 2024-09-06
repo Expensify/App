@@ -152,6 +152,13 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
+function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+}
+
+function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
@@ -397,6 +404,7 @@ function getCombinedReportActions(
     transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
+    shouldFilterIOUAction = true,
 ): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
@@ -424,7 +432,7 @@ function getCombinedReportActions(
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action)) {
+        if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
@@ -1730,6 +1738,9 @@ export {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
+    isSubmittedAction,
+    isApprovedAction,
+    isForwardedAction,
     isWhisperActionTargetedToOthers,
     shouldHideNewMarker,
     shouldReportActionBeVisible,

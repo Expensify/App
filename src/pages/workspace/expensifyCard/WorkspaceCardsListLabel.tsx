@@ -19,8 +19,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,9 +52,12 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
 
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
-    // TODO: instead of the first bankAccount on the list get settlementBankAccountID from the private_expensifyCardSettings NVP and check if that is connected via Plaid.
-    const isConnectedWithPlaid = useMemo(() => !!Object.values(bankAccountList ?? {})[0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList]);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+
+    const isConnectedWithPlaid = useMemo(() => !!bankAccountList?.[paymentBankAccountID ?? 0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList, paymentBankAccountID]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -69,8 +74,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        // TODO: uncomment when RequestExpensifyCardLimitIncrease API call is supported
-        // Policy.requestExpensifyCardLimitIncrease(settlementBankAccountID);
+        Policy.requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
         Report.navigateToConciergeChat();
     };

@@ -187,7 +187,7 @@ function Button(
 
         small = false,
         large = false,
-        medium = true,
+        medium = !small && !large,
 
         isLoading = false,
         isDisabled = false,
@@ -262,6 +262,8 @@ function Button(
             </Text>
         );
 
+        const defaultFill = success || danger ? theme.textLight : theme.icon;
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
@@ -272,28 +274,29 @@ function Button(
                                 <Icon
                                     src={icon}
                                     hasText={!!text}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
                                 />
                             </View>
                         )}
-                        {textComponent}
+                        {!!text && textComponent}
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             {!isSplitButton ? (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                    small={medium}
-                                    medium={large}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
                                 />
                             ) : (
                                 <Icon
                                     src={iconRight}
-                                    fill={isHovered ? iconHoverFill : iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}

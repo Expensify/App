@@ -67,7 +67,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== config?.export?.exporter) {
-                Connections.updatePolicyXeroConnectionConfig(
+                Connections.updatePolicyConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,
