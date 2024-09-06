@@ -164,6 +164,10 @@ function Search({queryJSON}: SearchProps) {
         [isLargeScreenWidth],
     );
 
+    const resetOffset = useCallback(() => {
+        setOffset(0);
+    }, []);
+
     const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
             // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
@@ -208,6 +212,7 @@ function Search({queryJSON}: SearchProps) {
                     <SearchStatusBar
                         type={type}
                         status={status}
+                        resetOffset={resetOffset}
                     />
                 ) : (
                     <SearchStatusSkeleton shouldAnimate />
@@ -239,6 +244,7 @@ function Search({queryJSON}: SearchProps) {
                 <SearchStatusBar
                     type={type}
                     status={status}
+                    resetOffset={resetOffset}
                 />
                 <EmptySearchView type={type} />
             </>
@@ -344,6 +350,7 @@ function Search({queryJSON}: SearchProps) {
             <SearchStatusBar
                 type={type}
                 status={status}
+                resetOffset={resetOffset}
             />
             <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
                 sections={[{data: sortedSelectedData, isDisabled: false}]}
