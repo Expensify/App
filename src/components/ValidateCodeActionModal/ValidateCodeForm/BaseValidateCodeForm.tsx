@@ -133,9 +133,8 @@ function BaseValidateCodeForm({
             return;
         }
         clearError();
-        // contactMethod is not added as a dependency since it does not change between renders
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [clearError]);
+    }, [clearError, validateError]);
 
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {
