@@ -450,7 +450,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFiltersValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildQueryStringFromFilterValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
         if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -641,7 +641,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 export {
-    buildQueryStringFromFiltersValues,
+    buildQueryStringFromFilterValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,

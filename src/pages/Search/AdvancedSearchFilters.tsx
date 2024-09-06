@@ -261,7 +261,7 @@ function AdvancedSearchFilters() {
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFiltersValues(searchAdvancedFilters);
+        const query = SearchUtils.buildQueryStringFromFilterValues(searchAdvancedFilters);
         SearchActions.clearAdvancedFilters();
         Navigation.dismissModal();
         Navigation.navigate(
