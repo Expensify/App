@@ -2,6 +2,7 @@ import React, {memo, useEffect, useRef} from 'react';
 import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps} from '@components/Tooltip/types';
+import measureTooltipCoordinate from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
@@ -50,15 +51,7 @@ function BaseEducationalTooltip({children, shouldAutoDismiss = false, ...props}:
                         const target = e.target || e.nativeEvent.target;
                         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
                         setTimeout(() => {
-                            target?.measureInWindow((fx, fy, width, height) => {
-                                updateTargetBounds({
-                                    height,
-                                    width,
-                                    x: fx,
-                                    y: fy,
-                                });
-                                showTooltip();
-                            });
+                            measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
                         }, 500);
                     },
                 });
