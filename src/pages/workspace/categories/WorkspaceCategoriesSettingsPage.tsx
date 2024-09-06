@@ -58,7 +58,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             <SpendCategorySelectorListItem
                 key={item.keyForList}
                 item={item}
-                onSelectRow={() => {}}
                 showTooltip
             />
         ));

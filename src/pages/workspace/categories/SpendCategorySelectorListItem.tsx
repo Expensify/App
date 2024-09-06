@@ -1,11 +1,14 @@
 import React, {useState} from 'react';
+import type {SetOptional} from 'type-fest';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CategorySelector from '@pages/workspace/distanceRates/CategorySelector';
 import * as Policy from '@userActions/Policy/Policy';
 
-function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: BaseListItemProps<TItem>) {
+type SpendCategorySelectorListItemProps<TItem extends ListItem> = SetOptional<BaseListItemProps<TItem>, 'onSelectRow'>;
+
+function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow = () => {}, isFocused}: SpendCategorySelectorListItemProps<TItem>) {
     const styles = useThemeStyles();
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {policyID, groupID, categoryID} = item;
