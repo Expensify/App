@@ -99,7 +99,7 @@ type TransactionCustomUnit = {
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
-    defaultP2PRate?: number;
+    defaultP2PRate: number | null;
 };
 
 /** Types of geometry */

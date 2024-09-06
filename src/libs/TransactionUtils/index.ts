@@ -257,6 +257,16 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
         updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
+        if (!updatedTransaction.comment) {
+            updatedTransaction.comment = {};
+        }
+        updatedTransaction.comment = {
+            ...updatedTransaction?.comment,
+            customUnit: {
+                ...updatedTransaction?.comment?.customUnit,
+                defaultP2PRate: null,
+            },
+        };
         shouldStopSmartscan = true;
     }
 
