@@ -308,50 +308,6 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString) {
-    try {
-        const result = searchParser.parse(query) as SearchQueryJSON;
-
-        // Add the full input and hash to the results
-        result.inputQuery = query;
-        result.hash = getQueryHashFromString(query);
-        return result;
-    } catch (e) {
-        console.error(`Error when parsing SearchQuery: "${query}"`, e);
-    }
-}
-
-function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
-    const queryParts: string[] = [];
-    const defaultQueryJSON = buildSearchQueryJSON('');
-
-    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        const existingFieldValue = queryJSON?.[key];
-        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
-
-        if (queryFieldValue) {
-            queryParts.push(`${key}:${queryFieldValue}`);
-        }
-    }
-
-    if (!queryJSON) {
-        return queryParts.join(' ');
-    }
-
-    const filters = getFilters(queryJSON);
-
-    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
-        const queryFilter = filters[filterKey];
-
-        if (queryFilter) {
-            const filterValueString = buildFilterString(filterKey, queryFilter);
-            queryParts.push(filterValueString);
-        }
-    }
-
-    return queryParts.join(' ');
-}
-
 /**
  * Update string query with all the default params that are set by parser
  */
@@ -433,10 +389,56 @@ function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPE
     }
 }
 
+function buildSearchQueryJSON(query: SearchQueryString) {
+    try {
+        const result = searchParser.parse(query) as SearchQueryJSON;
+        const flatFilters = getFilters(result);
+
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
+        result.flatFilters = flatFilters;
+        return result;
+    } catch (e) {
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
+    }
+}
+
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
+    const queryParts: string[] = [];
+    const defaultQueryJSON = buildSearchQueryJSON('');
+
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
+        }
+    }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = queryJSON.flatFilters;
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
+        }
+    }
+
+    return queryParts.join(' ');
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
-function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
+function buildQueryStringFromFiltersValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
         if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -484,6 +486,11 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
     return filtersString.filter(Boolean).join(' ');
 }
 
+/**
+ *
+ * @private
+ * traverses the AST and returns filters as a QueryFilters object
+ */
 function getFilters(queryJSON: SearchQueryJSON) {
     const filters = {} as QueryFilters;
     const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
@@ -579,7 +586,7 @@ function getSearchHeaderTitle(
     reports: OnyxCollection<OnyxTypes.Report>,
     TaxRates: Record<string, string[]>,
 ) {
-    const filters = getFilters(queryJSON) ?? {};
+    const filters = queryJSON.flatFilters ?? {};
     let title = '';
 
     Object.keys(filters).forEach((key) => {
@@ -621,11 +628,10 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 export {
-    buildQueryStringFromFilters,
+    buildQueryStringFromFiltersValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
-    getFilters,
     getPolicyIDFromSearchQuery,
     getListItem,
     getSearchHeaderTitle,
