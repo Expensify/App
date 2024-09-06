@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -114,6 +114,11 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
+const ImageRendererMemo = memo(
+    ImageRenderer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
+);
+
 export default function ComponentWithOnyx(props: Omit<ImageRendererProps, keyof ImageRendererWithOnyxProps>) {
     const [user, userMetadata] = useOnyx(ONYXKEYS.USER);
 
@@ -122,7 +127,7 @@ export default function ComponentWithOnyx(props: Omit<ImageRendererProps, keyof 
     }
 
     return (
-        <ImageRenderer
+        <ImageRendererMemo
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             user={user}

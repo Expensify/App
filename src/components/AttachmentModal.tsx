@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -634,8 +634,6 @@ function AttachmentModal({
 
 AttachmentModal.displayName = 'AttachmentModal';
 
-export type {Attachment, FileObject, ImagePickerResponse};
-
 export default function ComponentWithOnyx(props: Omit<AttachmentModalProps, keyof AttachmentModalOnyxProps>) {
     const parentReportAction = ReportActionsUtils.getReportAction(props.report?.parentReportID ?? '-1', props.report?.parentReportActionID ?? '-1');
     const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
@@ -653,3 +651,5 @@ export default function ComponentWithOnyx(props: Omit<AttachmentModalProps, keyo
         />
     );
 }
+
+export type {Attachment, FileObject, ImagePickerResponse};

@@ -35,8 +35,7 @@
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "android-build-e2edelta": "bundle exec fastlane android build_e2edelta",
     "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
-    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc --extendedDiagnostics --incremental false",
-    "trace": "NODE_OPTIONS=--max_old_space_size=8192 tsc --generateTrace trace --incremental false && open trace",
+    "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
     "lint-watch": "npx eslint-watch --watch --changed",
@@ -192,7 +191,6 @@
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
     "semver": "^7.5.2",
-    "stream-json": "^1.8.0",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
