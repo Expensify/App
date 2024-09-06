@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
@@ -21,6 +22,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAddDelegateErrors} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -69,28 +71,46 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction, errorFields}) => {
-        const personalDetail = getPersonalDetailByEmail(email);
-        const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
+    const delegateMenuItems: MenuItemProps[] = delegates
+        .filter((d) => !d.optimisticAccountID)
+        .map(({email, role, pendingAction, errorFields}) => {
+            const personalDetail = getPersonalDetailByEmail(email);
+            const optimisticDelegateData = OptionsListUtils.getUserToInviteOption({
+                searchValue: email,
+            });
 
-        return {
-            title: personalDetail?.displayName ?? email,
-            description: personalDetail?.displayName ? email : '',
-            badgeText: translate('delegate.role', role),
-            avatarID: personalDetail?.accountID ?? -1,
-            icon: personalDetail?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            numberOfLinesDescription: 1,
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            iconRight: Expensicons.ThreeDots,
-            shouldShowRightIcon: true,
-            pendingAction,
-            shouldForceOpacity: !!pendingAction,
-            onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
-            error,
-            onPress: () => (!isEmptyObject(pendingAction) ? Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(personalDetail?.accountID ?? -1, role ?? '')) : undefined),
-        };
-    });
+            const accountID = personalDetail?.accountID ?? optimisticDelegateData?.accountID ?? -1;
+            const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
+
+            const onPress = () => {
+                if (isEmptyObject(pendingAction)) {
+                    return;
+                }
+                if (!role) {
+                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(accountID));
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(accountID, role));
+            };
+
+            return {
+                title: personalDetail?.displayName ?? email,
+                description: personalDetail?.displayName ? email : '',
+                badgeText: translate('delegate.role', role),
+                avatarID: accountID,
+                icon: personalDetail?.avatar ?? FallbackAvatar,
+                iconType: CONST.ICON_TYPE_AVATAR,
+                numberOfLinesDescription: 1,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
+                pendingAction,
+                shouldForceOpacity: !!pendingAction,
+                onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
+                error,
+                onPress,
+            };
+        });
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
