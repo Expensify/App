@@ -7,7 +7,6 @@ const isLastRouteRHP = (): boolean => {
     }
     const state = navigationRef.getState();
 
-
     const lastRoute = state.routes.at(-1);
     return lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 };
