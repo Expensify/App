@@ -67,9 +67,6 @@ type WorkspaceMenuItem = {
 };
 
 type WorkspaceInitialPageOnyxProps = {
-    /** Bank account attached to free plan */
-    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
-
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
@@ -87,7 +84,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -426,10 +423,6 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         policyCategories: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
         },
