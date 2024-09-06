@@ -152,8 +152,8 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
                 clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
-                title="Verify it is you"
-                description="Please enter the code that sent to your email"
+                title={contactMethod}
+                description={translate('contacts.enterMagicCode', {contactMethod})}
             />
         </ScreenWrapper>
     );
