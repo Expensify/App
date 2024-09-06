@@ -209,10 +209,6 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getOriginalMessageForDelegate(reportAction: OnyxInputOrEntry<ReportAction>) {
-    return reportAction?.originalMessage ?? {};
-}
-
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -1741,7 +1737,6 @@ export {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
-    getOriginalMessageForDelegate,
     isSubmittedAction,
     isApprovedAction,
     isForwardedAction,
