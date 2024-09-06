@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +11,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -103,6 +104,8 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const {translate} = useLocalize();
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
+    const {setInitialURL} = useContext(InitialURLContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -144,7 +147,16 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                    ...(NativeModules.HybridAppModule
+                        ? {
+                              action: () => {
+                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  setInitialURL(undefined);
+                              },
+                          }
+                        : {
+                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                          }),
                 },
                 {
                     translationKey: 'common.profile',
@@ -175,7 +187,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, setInitialURL]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -187,7 +199,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -217,7 +229,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate]);
+    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, allConnectionSyncProgresses]);
 
     /**
      * Retuns a list of menu items data for general section
