@@ -527,7 +527,7 @@ function ReportPreview({
             </View>
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 delegatorEmail={delegatorEmail ?? ''}
             />
 

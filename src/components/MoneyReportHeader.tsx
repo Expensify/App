@@ -412,7 +412,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 delegatorEmail={delegatorEmail ?? ''}
             />
 

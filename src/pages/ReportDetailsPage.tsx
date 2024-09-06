@@ -823,7 +823,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onConfirm={() => setIsNoDelegateAccessMenuVisible(false)}
+                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                     delegatorEmail={delegatorEmail ?? ''}
                 />
                 <ConfirmModal

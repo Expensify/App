@@ -7,29 +7,29 @@ import TextLink from './TextLink';
 
 type DelegateNoAccessModalProps = {
     isNoDelegateAccessMenuVisible: boolean;
-    onConfirm: () => void;
+    onClose: () => void;
     delegatorEmail: string;
 };
 
-export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = false, onConfirm, delegatorEmail = ''}: DelegateNoAccessModalProps) {
+export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = false, onClose, delegatorEmail = ''}: DelegateNoAccessModalProps) {
     const {translate} = useLocalize();
-    const basicnoDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: delegatorEmail});
-    const basicnoDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-    const basicnoDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
+    const noDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: delegatorEmail});
+    const noDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
+    const noDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
 
     const delegateNoAccessPrompt = (
         <Text>
-            {basicnoDelegateAccessPromptStart}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{basicnoDelegateAccessHyperLinked}</TextLink>
-            {basicnoDelegateAccessPromptEnd}
+            {noDelegateAccessPromptStart}
+            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{noDelegateAccessHyperLinked}</TextLink>
+            {noDelegateAccessPromptEnd}
         </Text>
     );
 
     return (
         <ConfirmModal
             isVisible={isNoDelegateAccessMenuVisible}
-            onConfirm={onConfirm}
-            onCancel={onConfirm}
+            onConfirm={onClose}
+            onCancel={onClose}
             title={translate('delegate.notAllowed')}
             prompt={delegateNoAccessPrompt}
             confirmText={translate('common.buttonConfirm')}

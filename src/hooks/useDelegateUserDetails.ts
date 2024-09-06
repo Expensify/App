@@ -4,10 +4,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 function useDelegateUserDetails() {
-    const currentUserDeatils = useCurrentUserPersonalDetails();
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const [currentUserAccountDetails] = useOnyx(ONYXKEYS.ACCOUNT);
     const isDelegateAccessRestricted = AccountUtils.isDelegateOnlySubmitter(currentUserAccountDetails);
-    const delegatorEmail = currentUserDeatils?.login;
+    const delegatorEmail = currentUserDetails?.login;
 
     return {
         isDelegateAccessRestricted,
