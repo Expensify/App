@@ -66,7 +66,9 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
+    console.log('[currentDelegate]: ', currentDelegate);
     const validateLoginError = ErrorUtils.getLatestErrorField(currentDelegate, 'addDelegate');
+    console.log('[validateLoginError]: ', validateLoginError);
 
     const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 

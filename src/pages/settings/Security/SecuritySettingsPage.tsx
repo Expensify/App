@@ -70,9 +70,9 @@ function SecuritySettingsPage() {
     }, [translate, waitForNavigate, styles]);
 
     const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction, errorFields}) => {
-        console.log('[pendingAction]: ', email, pendingAction);
         const personalDetail = getPersonalDetailByEmail(email);
         const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
+        console.log('[error]: ', email, error);
 
         return {
             title: personalDetail?.displayName ?? email,
