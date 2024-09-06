@@ -21,10 +21,10 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
     };
 
     const setNewCategory = (selectedCategory: ListItem) => {
-        if (!selectedCategory.text) {
+        if (!selectedCategory.keyForList) {
             return;
         }
-        Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.text);
+        Policy.setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
     };
 
     return (
