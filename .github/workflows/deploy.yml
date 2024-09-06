@@ -6,7 +6,6 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
-  RUBYOPT: '-rostruct'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -66,6 +65,8 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest-xl
+    env:
+      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

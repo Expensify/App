@@ -10,9 +10,6 @@ on:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
-env:
-  RUBYOPT: '-rostruct'
-
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -68,6 +65,7 @@ jobs:
     runs-on: ubuntu-latest-xl
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
