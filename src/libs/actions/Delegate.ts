@@ -220,20 +220,19 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: delegatedAccess.delegates?.map((delegate) =>
-                        delegate.email !== email
-                            ? delegate
-                            : {
-                                  email,
-                                  role,
-                                  errorFields: {
-                                      addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
-                                  },
-                                  isLoading: false,
-                                  pendingFields: {email: null, role: null},
-                                  pendingAction: null,
-                              },
-                    ),
+                    delegates: [
+                        ...(delegatedAccess.delegates ?? []),
+                        {
+                            email,
+                            role,
+                            errorFields: {
+                                addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
+                            },
+                            isLoading: false,
+                            pendingFields: {email: null, role: null},
+                            pendingAction: null,
+                        },
+                    ],
                 },
             },
         },
