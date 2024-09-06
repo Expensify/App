@@ -725,6 +725,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
         cardID: string;
     };
+    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
         policyID: string;
     };
@@ -1155,6 +1167,10 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+        policyID: string;
+        feed: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;

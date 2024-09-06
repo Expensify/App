@@ -178,6 +178,7 @@ export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './Se
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
+export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
@@ -275,6 +276,15 @@ export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, Remov
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
 export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
+export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
+export type {default as SetPolicyPreventSelfApprovalParams} from './SetPolicyPreventSelfApproval';
+export type {default as SetPolicyAutomaticApprovalLimitParams} from './SetPolicyAutomaticApprovalLimit';
+export type {default as SetPolicyAutomaticApprovalRateParams} from './SetPolicyAutomaticApprovalRate';
+export type {default as SetPolicyPreventMemberCreatedTitleParams} from './SetPolicyPreventMemberCreatedTitleParams';
+export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicyAutoReimbursementLimit';
+export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
+export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
+export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePolicyDefaultReportTitle';
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
