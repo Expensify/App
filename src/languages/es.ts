@@ -369,6 +369,7 @@ export default {
         network: 'La red',
         reportID: 'ID del informe',
         importSpreadsheet: 'Importar hoja de cálculo',
+        downloadCSV: 'Descargar CSV',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',

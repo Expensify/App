@@ -4,10 +4,13 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams, UpdatePolicyCategoryGLCodeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -307,7 +310,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
         categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': String(category['GL Code'])}))]),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET, parameters, onyxData);
+    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
@@ -793,6 +796,19 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
+function downloadCategoriesCSV(policyID: string) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
+        policyID,
+    });
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), 'Categories.csv', '', false, formData, CONST.NETWORK.METHOD.POST);
+}
+
 export {
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
@@ -808,4 +824,5 @@ export {
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
     importPolicyCategories,
+    downloadCategoriesCSV,
 };

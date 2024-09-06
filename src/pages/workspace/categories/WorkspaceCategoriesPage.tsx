@@ -309,6 +309,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
                 },
             },
+            {
+                icon: Expensicons.Download,
+                text: translate('common.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    Category.downloadCategoriesCSV(policyId);
+                },
+            },
         ];
 
         return menuItems;
