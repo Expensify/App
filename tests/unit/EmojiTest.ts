@@ -195,11 +195,6 @@ describe('EmojiTest', () => {
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
-                name: 'mano_con_dedos_cruzados',
-                code: '🫰',
-                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
-            },
-            {
                 code: '🤙',
                 name: 'mano_llámame',
                 types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
@@ -213,6 +208,11 @@ describe('EmojiTest', () => {
                 code: '👎',
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ]);
     });
