@@ -467,20 +467,15 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            const isCreateChatErrored = !!report?.errorFields?.createChat;
-                            if ((isCreateChatErrored || !!report?.isOptimisticReport) && parentReportAction) {
-                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                Navigation.goBack(urlToNavigateBack);
-                                return;
-                            }
-
                             if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                                 if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
                                     Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                                     return;
                                 }
-                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
-                                    deleteTransaction(parentReport, parentReportAction);
+                                if (parentReportAction) {
+                                    const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                                    Navigation.goBack(urlToNavigateBack);
+                                    return;
                                 }
                             }
                             Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
