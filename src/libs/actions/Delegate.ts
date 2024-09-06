@@ -9,7 +9,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type {DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 
@@ -214,44 +214,25 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         },
     ];
 
-    const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
-    const failureDelegateData = (): Delegate[] => {
-        if (existingDelegate) {
-            return (
-                delegatedAccess.delegates?.map((delegate) =>
-                    delegate.email !== email
-                        ? delegate
-                        : {
-                              ...delegate,
-                              isLoading: false,
-                              errorFields: {addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin')},
-                          },
-                ) ?? []
-            );
-        }
-
-        return [
-            ...(delegatedAccess.delegates ?? []),
-            {
-                email,
-                role,
-                errorFields: {
-                    addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
-                },
-                isLoading: false,
-                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        ];
-    };
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: failureDelegateData(),
+                    delegates: [
+                        ...(delegatedAccess.delegates ?? []),
+                        {
+                            email,
+                            role,
+                            errorFields: {
+                                addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
+                            },
+                            isLoading: false,
+                            pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    ],
                 },
             },
         },
