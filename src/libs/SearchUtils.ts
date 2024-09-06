@@ -545,14 +545,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
     return policyID;
 }
 
-function getDisplayValue(
-    filterName: string,
-    filter: string,
-    personalDetails: OnyxTypes.PersonalDetailsList,
-    cardList: OnyxTypes.CardList,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-) {
+function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         return PersonalDetailsUtils.createDisplayName(personalDetails[filter]?.login ?? '', personalDetails[filter]);
     }
@@ -561,12 +554,6 @@ function getDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]);
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-        const result = Object.entries(taxRates)
-            .filter(([, taxRateKeys]) => taxRateKeys.includes(filter))
-            .map(([taxRate]) => taxRate);
-        return [...new Set<string>(result)].map((taxRate) => sanitizeString(taxRate)).join(' ');
     }
     return filter;
 }
@@ -597,10 +584,22 @@ function getSearchHeaderTitle(
 
     Object.keys(filters).forEach((key) => {
         const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
-        const displayQueryFilters: QueryFilter[] = queryFilter.map((filter) => ({
-            operator: filter.operator,
-            value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports, TaxRates),
-        }));
+        let displayQueryFilters: QueryFilter[] = [];
+        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
+            const taxRateNames = Object.entries(TaxRates)
+                .filter(([, taxRateKeys]) => taxRateKeys.some((taxID) => taxRateIDs.includes(taxID)))
+                .map(([taxRate]) => taxRate);
+            displayQueryFilters = taxRateNames.map((taxRate) => ({
+                operator: queryFilter[0].operator,
+                value: taxRate,
+            }));
+        } else {
+            displayQueryFilters = queryFilter.map((filter) => ({
+                operator: filter.operator,
+                value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
+            }));
+        }
         title += buildFilterString(key, displayQueryFilters, ' ');
     });
 
