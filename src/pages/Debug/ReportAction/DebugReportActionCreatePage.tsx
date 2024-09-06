@@ -29,19 +29,15 @@ import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 type DebugReportActionCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
-    JSON.stringify(
-        {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            reportID,
-            reportActionID: NumberUtils.rand64(),
-            created: DateUtils.getDBTime(),
-            actorAccountID: session?.accountID,
-            avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
-            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
-        } satisfies ReportAction,
-        null,
-        6,
-    );
+    DebugUtils.stringifyJSON({
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        reportID,
+        reportActionID: NumberUtils.rand64(),
+        created: DateUtils.getDBTime(),
+        actorAccountID: session?.accountID,
+        avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
+    } satisfies ReportAction);
 
 function DebugReportActionCreatePage({
     route: {
@@ -54,6 +50,7 @@ function DebugReportActionCreatePage({
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [draftReportAction, setDraftReportAction] = useState<string>(getInitialReportAction(reportID, session, personalDetailsList));
     const [error, setError] = useState<string>();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
