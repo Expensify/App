@@ -490,16 +490,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Rename web and desktop sourcemaps artifacts before upload in order to have unique ReleaseAsset.name
+        run: |
+          mv ./desktop-sourcemaps/merged-source-map.js.map ./desktop-sourcemaps/desktop-merged-source-map.js.map
+          mv ./web-sourcemaps/merged-source-map.js.map ./web-sourcemaps/web-merged-source-map.js.map
+
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ env.STAGING_VERSION }} \
             ./android-sourcemaps/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }} \
             ./android-build/app-production-release.aab \
-            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-sourcemaps/desktop-merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
             ./desktop-build/NewExpensify.dmg \
             ./ios-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }} \
             ./ios-build/New\ Expensify.ipa \
-            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-sourcemaps/web-merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
             ./web-build-tar-gz/webBuild.tar.gz \
             ./web-build-zip/webBuild.zip
         env:
@@ -528,18 +533,26 @@ jobs:
     if: ${{ github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [checkDeploymentSuccess]
     steps:
-      - uses: actions/checkout@v4
-        name: Checkout
+      - name: Checkout production branch
+        uses: actions/checkout@v4
 
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Rename web and desktop sourcemaps artifacts before upload in order to have unique ReleaseAsset.name
+        run: |
+          mv ./desktop-sourcemaps/merged-source-map.js.map ./desktop-sourcemaps/desktop-merged-source-map.js.map
+          mv ./web-sourcemaps/merged-source-map.js.map ./web-sourcemaps/web-merged-source-map.js.map
+
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ env.STAGING_VERSION }} \
-            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-sourcemaps/desktop-merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
             ./desktop-build/NewExpensify.dmg \
-            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-sourcemaps/web-merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
             ./web-build-tar-gz/webBuild.tar.gz \
             ./web-build-zip/webBuild.zip
         env:
