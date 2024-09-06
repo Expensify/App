@@ -618,6 +618,5 @@ export {
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getChatFiltersTranslationKey,
-    getReportsFromSelectedTransactions,
     getChatStatusTranslationKey,
 };
