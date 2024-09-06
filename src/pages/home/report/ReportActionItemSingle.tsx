@@ -20,7 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, getOriginalMessageForDelegate, getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getOriginalMessage, getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,8 +31,6 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import { getAccountIDsByLogins, getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
-import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -86,12 +85,12 @@ function ReportActionItemSingle({
 
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
-    const message = getOriginalMessage(action)
-    const delegateEmail = message?.delegate
+    const message = getOriginalMessage(action);
+    const delegateEmail = message?.delegate;
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
-    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '')
+    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
@@ -111,7 +110,7 @@ function ReportActionItemSingle({
     } else if (delegateEmail) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateAccount = getPersonalDetailByEmail(delegateEmail)
+        const delegateAccount = getPersonalDetailByEmail(delegateEmail);
         const delegateDetails = delegateAccount;
         const delegateDisplayName = delegateDetails?.displayName;
         displayName = delegateDisplayName ?? '';
@@ -248,9 +247,8 @@ function ReportActionItemSingle({
         CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
         CONST.REPORT.ACTIONS.TYPE.HOLD,
         CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+    ];
 
-      ];
-      
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -300,7 +298,9 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {(delegateEmail && actionTypes.includes(action?.actionName)) && (<ReportActionItemBasicMessage message={translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')} />)}
+                {delegateEmail && actionTypes.includes(action?.actionName) && (
+                    <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>
+                )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>

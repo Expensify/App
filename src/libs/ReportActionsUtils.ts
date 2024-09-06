@@ -209,8 +209,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getOriginalMessageForDelegate(reportAction: OnyxInputOrEntry<ReportAction>){
-
+function getOriginalMessageForDelegate(reportAction: OnyxInputOrEntry<ReportAction>) {
     return reportAction?.originalMessage ?? {};
 }
 
