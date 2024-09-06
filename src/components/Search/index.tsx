@@ -164,9 +164,7 @@ function Search({queryJSON}: SearchProps) {
         [isLargeScreenWidth],
     );
 
-    const resetOffset = useCallback(() => {
-        setOffset(0);
-    }, []);
+    const resetOffset = () => setOffset(0);
 
     const getItemHeightMemoized = memoize(getItemHeight, {
         transformKey: ([item]) => {
