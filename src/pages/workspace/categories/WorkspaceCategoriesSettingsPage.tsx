@@ -37,22 +37,32 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         setWorkspaceRequiresCategory(policyID, value);
     };
 
-    const data = useMemo(() => {
-        if (!(currentPolicy && currentPolicy.mccGroup)) {
-            return [];
+    const policyMccGroup = currentPolicy?.mccGroup;
+    const listItems = useMemo(() => {
+        let data: ListItem[] = [];
+
+        if (policyMccGroup) {
+            data = Object.entries(policyMccGroup).map(
+                ([mccKey, mccGroup]) =>
+                    ({
+                        categoryID: mccGroup.category,
+                        keyForList: mccKey,
+                        groupID: mccKey,
+                        policyID,
+                        tabIndex: -1,
+                    } as ListItem),
+            );
         }
 
-        return Object.entries(currentPolicy.mccGroup).map(
-            ([mccKey, mccGroup]) =>
-                ({
-                    categoryID: mccGroup.category,
-                    keyForList: mccKey,
-                    groupID: mccKey,
-                    policyID,
-                    tabIndex: -1,
-                } as ListItem),
-        );
-    }, [currentPolicy, policyID]);
+        return data.map((item) => (
+            <SpendCategorySelectorListItem
+                key={item.keyForList}
+                item={item}
+                onSelectRow={() => {}}
+                showTooltip
+            />
+        ));
+    }, [policyMccGroup, policyID]);
 
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting;
@@ -83,22 +93,13 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && data.length > 0 && (
+                    {!!currentPolicy && listItems && (
                         <>
                             <View style={[styles.mh5, styles.mt2, styles.mb1]}>
                                 <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
                                 <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
                             </View>
-                            <ScrollView>
-                                {data.map((item) => (
-                                    <SpendCategorySelectorListItem
-                                        key={item.keyForList}
-                                        item={item}
-                                        onSelectRow={() => {}}
-                                        showTooltip
-                                    />
-                                ))}
-                            </ScrollView>
+                            <ScrollView>{listItems}</ScrollView>
                         </>
                     )}
                 </View>
