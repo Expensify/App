@@ -639,7 +639,7 @@ const CONST = {
     SAGE_INTACCT_HELP_LINK:
         "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
     PRICING: `https://www.expensify.com/pricing`,
-
+    CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -2055,11 +2055,18 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
+        FIELD_LIST_TITLE_FIELD_ID: 'text_title',
+        DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
         },
+        AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
+        AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
+        AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 5,
+
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
             IMMEDIATE: 'immediate',
