@@ -525,7 +525,7 @@ function findPreviousAction(reportActions: ReportAction[] | undefined, actionInd
 function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | undefined, actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions?.[actionIndex];
-   
+
     // It's OK for there to be no previous action, and in that case, false will be returned
     // so that the comment isn't grouped
     if (!currentAction || !previousAction) {
