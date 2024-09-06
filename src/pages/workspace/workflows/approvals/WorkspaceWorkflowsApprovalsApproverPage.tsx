@@ -57,7 +57,7 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    const approverIndex = route.params.approverIndex;
+    const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
 
