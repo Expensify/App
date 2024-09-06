@@ -5166,7 +5166,7 @@ export default {
                     return '';
             }
         },
-        makeSureItIsYou: "Let's make sure it's you",
+        makeSureItIsYou: "Vamos a asegurarnos de que eres tú",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
     },
 } satisfies EnglishTranslation;
