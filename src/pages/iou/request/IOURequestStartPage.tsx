@@ -90,7 +90,7 @@ function IOURequestStartPage({
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
     const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
+        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     if (!transaction?.transactionID) {

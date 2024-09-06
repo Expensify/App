@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -824,8 +824,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
-export type {ComposerWithSuggestionsProps};
-
 export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, keyof ComposerWithSuggestionsOnyxProps>) {
     const [modal, modalMetadata] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = 0, preferredSkinToneMetadata] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
@@ -850,3 +848,5 @@ export default function ComponentWithOnyx(props: Omit<ComposerWithSuggestionsPro
         />
     );
 }
+
+export type {ComposerWithSuggestionsProps};

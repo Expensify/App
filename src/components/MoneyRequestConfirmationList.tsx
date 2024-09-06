@@ -965,6 +965,42 @@ function MoneyRequestConfirmationList({
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
+const MoneyRequestConfirmationListMemo = memo(
+    MoneyRequestConfirmationList,
+    (prevProps, nextProps) =>
+        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+        prevProps.onSendMoney === nextProps.onSendMoney &&
+        prevProps.onConfirm === nextProps.onConfirm &&
+        prevProps.iouType === nextProps.iouType &&
+        prevProps.iouAmount === nextProps.iouAmount &&
+        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
+        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
+        prevProps.iouCategory === nextProps.iouCategory &&
+        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
+        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
+        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
+        prevProps.iouMerchant === nextProps.iouMerchant &&
+        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
+        lodashIsEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
+        prevProps.isReadOnly === nextProps.isReadOnly &&
+        prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
+        prevProps.policyID === nextProps.policyID &&
+        prevProps.reportID === nextProps.reportID &&
+        prevProps.receiptPath === nextProps.receiptPath &&
+        prevProps.iouComment === nextProps.iouComment &&
+        prevProps.receiptFilename === nextProps.receiptFilename &&
+        prevProps.iouCreated === nextProps.iouCreated &&
+        prevProps.iouIsBillable === nextProps.iouIsBillable &&
+        prevProps.onToggleBillable === nextProps.onToggleBillable &&
+        prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
+        prevProps.reportActionID === nextProps.reportActionID &&
+        lodashIsEqual(prevProps.defaultMileageRate, nextProps.defaultMileageRate) &&
+        lodashIsEqual(prevProps.lastSelectedDistanceRates, nextProps.lastSelectedDistanceRates) &&
+        lodashIsEqual(prevProps.action, nextProps.action) &&
+        lodashIsEqual(prevProps.currencyList, nextProps.currencyList) &&
+        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+);
+
 export default function ComponentWithOnyx(props: Omit<MoneyRequestConfirmationListProps, keyof MoneyRequestConfirmationListOnyxProps>) {
     const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.policyID}`);
     const [policyCategoriesDraft, policyCategoriesDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${props.policyID}`);
@@ -995,7 +1031,7 @@ export default function ComponentWithOnyx(props: Omit<MoneyRequestConfirmationLi
     }
 
     return (
-        <MoneyRequestConfirmationList
+        <MoneyRequestConfirmationListMemo
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             policyCategories={policyCategories}

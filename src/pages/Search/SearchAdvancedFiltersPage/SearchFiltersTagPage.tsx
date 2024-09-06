@@ -26,7 +26,7 @@ function SearchFiltersTagPage() {
     const tagItems = useMemo(() => {
         if (!singlePolicyTagsList) {
             const uniqueTagNames = new Set<string>();
-            const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+            const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
             tagListsUnpacked
                 .map((policyTagLists) => {
                     return getTagNamesFromTagsLists(policyTagLists);
