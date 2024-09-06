@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import BaseLoginForm from './BaseLoginForm';
@@ -33,7 +33,7 @@ function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             scrollPageToTop={scrollPageToTop}
-            ref={loginFormRef}
+            ref={loginFormRef as MutableRefObject<InputHandle>}
         />
     );
 }
