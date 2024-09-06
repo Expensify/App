@@ -884,7 +884,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
         });
 
-        it('should return true if the user account ID is odd and report is the system chat', async () => {
+        it('should return false if the user account ID is odd and report is the system chat - only the Concierge chat chat should be the onboarding chat for users without the onboarding NVP', async () => {
             const accountID = 1;
 
             await Onyx.multiSet({
@@ -901,7 +901,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeFalsy();
         });
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
