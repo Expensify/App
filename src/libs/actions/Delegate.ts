@@ -9,7 +9,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 
@@ -162,33 +162,83 @@ function clearDelegatorErrors() {
 }
 
 function requestValidationCode() {
-    // API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
 }
 
 function addDelegate(email: string, role: DelegateRole, validateCode: string) {
+    const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
+
+    const optimisticDelegateData = (): Delegate[] => {
+        if (existingDelegate) {
+            return (
+                delegatedAccess.delegates?.map((delegate) =>
+                    delegate.email !== email
+                        ? delegate
+                        : {
+                              ...delegate,
+                              isLoading: true,
+                              errorFields: {addDelegate: null},
+                              pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          },
+                ) ?? []
+            );
+        }
+
+        return [
+            ...(delegatedAccess.delegates ?? []),
+            {
+                email,
+                role,
+                isLoading: true,
+                errorFields: {addDelegate: null},
+                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        ];
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: [
-                        ...(delegatedAccess.delegates ?? []),
-                        {
-                            email,
-                            role,
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            errorFields: {
-                                addDelegate: null,
-                            },
-                            isLoading: true,
-                            pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                        },
-                    ],
+                    delegates: optimisticDelegateData(),
                 },
             },
         },
     ];
+
+    const successDelegateData = (): Delegate[] => {
+        if (existingDelegate) {
+            return (
+                delegatedAccess.delegates?.map((delegate) =>
+                    delegate.email !== email
+                        ? delegate
+                        : {
+                              ...delegate,
+                              isLoading: false,
+                              errorFields: {addDelegate: null},
+                              pendingAction: null,
+                              pendingFields: {email: null, role: null},
+                          },
+                ) ?? []
+            );
+        }
+
+        return [
+            ...(delegatedAccess.delegates ?? []),
+            {
+                email,
+                role,
+                errorFields: {addDelegate: null},
+                isLoading: false,
+                pendingAction: null,
+                pendingFields: {email: null, role: null},
+            },
+        ];
+    };
 
     const successData: OnyxUpdate[] = [
         {
@@ -196,23 +246,41 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: [
-                        ...(delegatedAccess.delegates ?? []),
-                        {
-                            email,
-                            role,
-                            errorFields: {
-                                addDelegate: null,
-                            },
-                            isLoading: false,
-                            pendingAction: null,
-                            pendingFields: {email: null, role: null},
-                        },
-                    ],
+                    delegates: successDelegateData(),
                 },
             },
         },
     ];
+
+    const failureDelegateData = (): Delegate[] => {
+        if (existingDelegate) {
+            return (
+                delegatedAccess.delegates?.map((delegate) =>
+                    delegate.email !== email
+                        ? delegate
+                        : {
+                              ...delegate,
+                              isLoading: false,
+                              errorFields: {addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin')},
+                          },
+                ) ?? []
+            );
+        }
+
+        return [
+            ...(delegatedAccess.delegates ?? []),
+            {
+                email,
+                role,
+                errorFields: {
+                    addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
+                },
+                isLoading: false,
+                pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        ];
+    };
 
     const failureData: OnyxUpdate[] = [
         {
@@ -220,19 +288,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: [
-                        ...(delegatedAccess.delegates ?? []),
-                        {
-                            email,
-                            role,
-                            errorFields: {
-                                addDelegate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
-                            },
-                            isLoading: false,
-                            pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    ],
+                    delegates: failureDelegateData(),
                 },
             },
         },
