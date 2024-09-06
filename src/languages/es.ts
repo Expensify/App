@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AccountOwnerParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -5154,5 +5155,9 @@ export default {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        notAllowed: 'No tan rápido...',
+        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        notAllowedMessageHyperLinked: ' copiloto con acceso',
+        notAllowedMessageEnd: ' limitado',
     },
 } satisfies EnglishTranslation;
