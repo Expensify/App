@@ -9,11 +9,10 @@ const isValidateCodeFormSubmitting = (account: OnyxEntry<Account>) =>
 const isAccountIDOddNumber = (accountID: number) => accountID % 2 === 1;
 
 function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
-    const [delegate] = account?.delegatedAccess?.delegates ?? [];
-    if (!delegate) {
-        return false;
-    }
-    return delegate?.role === CONST.DELEGATE_ROLE.SUBMITTER;
+    const delegateEmail = account?.delegatedAccess?.delegate;
+    const delegateRole = account?.delegatedAccess?.delegates?.find((delegate) => delegate.email === delegateEmail)?.role;
+
+    return delegateRole === CONST.DELEGATE_ROLE.SUBMITTER;
 }
 
 export default {isValidateCodeFormSubmitting, isAccountIDOddNumber, isDelegateOnlySubmitter};
