@@ -51,7 +51,6 @@ type WorkspaceMenuItem = {
     routeName?:
         | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
         | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.REIMBURSE
         | typeof SCREENS.WORKSPACE.INVOICES
         | typeof SCREENS.WORKSPACE.DISTANCE_RATES
         | typeof SCREENS.WORKSPACE.WORKFLOWS
