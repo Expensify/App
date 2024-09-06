@@ -1263,6 +1263,7 @@ const CONST = {
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
+        SEARCH: 's',
     },
 
     IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
@@ -3990,6 +3991,7 @@ const CONST = {
         ALL: 'all',
         SUBMITTER: 'submitter',
     },
+    DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
@@ -5384,6 +5386,13 @@ const CONST = {
                 ALL: 'all',
                 CURRENT: 'current',
                 PAST: 'past',
+            },
+            CHAT: {
+                ALL: 'all',
+                UNREAD: 'unread',
+                SENT: 'sent',
+                ATTACHMENTS: 'attachments',
+                LINKS: 'links',
             },
         },
         CHAT_TYPES: {

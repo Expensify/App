@@ -1357,6 +1357,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
+        reportActionID?: string;
     };
 };
 

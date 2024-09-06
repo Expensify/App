@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AccountOwnerParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -146,6 +147,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        attachments: 'Attachments',
         center: 'Center',
         from: 'From',
         to: 'To',
@@ -389,6 +391,10 @@ export default {
         importSpreadsheet: 'Import spreadsheet',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
+        chats: 'Chats',
+        unread: 'Unread',
+        sent: 'Sent',
+        links: 'Links',
         days: 'days',
     },
     location: {
@@ -4651,5 +4657,9 @@ export default {
         },
         makeSureItIsYou: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot.`,
+        notAllowed: 'Not so fast...',
+        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        notAllowedMessageHyperLinked: ' limited access',
+        notAllowedMessageEnd: ' copilot',
     },
 } satisfies TranslationBase;

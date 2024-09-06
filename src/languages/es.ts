@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
+    AccountOwnerParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -136,6 +137,7 @@ export default {
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
+        attachments: 'Archivos adjuntos',
         from: 'De',
         to: 'A',
         in: 'En',
@@ -379,6 +381,10 @@ export default {
         import: 'Importar',
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
+        chats: 'Chats',
+        unread: 'No leído',
+        sent: 'Enviado',
+        links: 'Enlaces',
         days: 'días',
     },
     connectionComplete: {
@@ -5168,5 +5174,9 @@ export default {
         },
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto.`,
+        notAllowed: 'No tan rápido...',
+        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        notAllowedMessageHyperLinked: ' copiloto con acceso',
+        notAllowedMessageEnd: ' limitado',
     },
 } satisfies EnglishTranslation;
