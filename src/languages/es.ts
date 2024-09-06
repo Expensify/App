@@ -3842,13 +3842,13 @@ export default {
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
         removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
-            let joinedNames: string = '';
+            let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = submittersNames[0];
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = submittersNames.slice(0, submittersNames.length - 1).join(', ') + ' y ' + submittersNames[submittersNames.length - 1];
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
             }
             const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
             const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
