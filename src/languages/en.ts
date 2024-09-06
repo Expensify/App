@@ -385,8 +385,6 @@ export default {
         ignore: 'Ignore',
         enabled: 'Enabled',
         import: 'Import',
-        importSpreadsheet: 'Import spreadsheet',
-        downloadCSV: 'Download CSV',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         days: 'days',
@@ -690,6 +688,8 @@ export default {
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
+        importSpreadsheet: 'Import spreadsheet',
+        downloadCSV: 'Download CSV',
     },
     receipt: {
         upload: 'Upload receipt',
