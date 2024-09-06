@@ -520,15 +520,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
-                        },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.route,
-                        },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
-                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.route,
-                        },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -1094,9 +1085,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
-                },
-                [SCREENS.WORKSPACE.REIMBURSE]: {
-                    path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
                 [SCREENS.WORKSPACE.INVOICES]: {
                     path: ROUTES.WORKSPACE_INVOICES.route,
