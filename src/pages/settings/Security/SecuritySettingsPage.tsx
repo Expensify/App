@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {removePendingDelegate} from '@libs/actions/Delegate';
+import {clearAddDelegateErrors} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -69,6 +70,7 @@ function SecuritySettingsPage() {
     }, [translate, waitForNavigate, styles]);
 
     const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction, errorFields}) => {
+        console.log('[pendingAction]: ', email, pendingAction);
         const personalDetail = getPersonalDetailByEmail(email);
         const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
@@ -84,9 +86,10 @@ function SecuritySettingsPage() {
             iconRight: Expensicons.ThreeDots,
             shouldShowRightIcon: true,
             pendingAction,
-            onPendingActionDismiss: () => removePendingDelegate(email),
+            shouldForceOpacity: !!pendingAction,
+            onPendingActionDismiss: () => clearAddDelegateErrors(email, 'addDelegate'),
             error,
-            onPress: () => (error ? Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(personalDetail?.accountID ?? -1, role ?? '')) : undefined),
+            onPress: () => (!isEmptyObject(pendingAction) ? Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(personalDetail?.accountID ?? -1, role ?? '')) : undefined),
         };
     });
 

@@ -20,9 +20,14 @@ type MenuItemWithLink = MenuItemProps & {
     /** The pending action for the menu item */
     pendingAction?: OnyxCommon.PendingAction | null;
 
+    /** A function to dismiss the pending action */
     onPendingActionDismiss?: () => void;
 
+    /** The error for the menu item */
     error?: OnyxCommon.Errors | null;
+
+    /** Whether we should force opacity */
+    shouldForceOpacity?: boolean;
 };
 
 type MenuItemListProps = {
@@ -58,6 +63,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
                     pendingAction={menuItemProps.pendingAction}
                     onClose={menuItemProps.onPendingActionDismiss}
                     errors={menuItemProps.error}
+                    shouldForceOpacity={menuItemProps.shouldForceOpacity}
                 >
                     <MenuItem
                         key={menuItemProps.key ?? menuItemProps.title}
