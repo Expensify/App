@@ -448,12 +448,7 @@ function MoneyRequestView({
             </OfflineWithFeedback>
         );
     });
-    console.log(
-        'LOG: ',
-        transactionAttendees?.map((x) => x.displayName ?? x.login),
-    );
 
-    console.log('transaction: ', transaction?.attendees);
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}

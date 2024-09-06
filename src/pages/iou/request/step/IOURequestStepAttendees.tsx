@@ -36,17 +36,16 @@ function IOURequestStepAttendees({
     route: {
         params: {transactionID, reportID, iouType, backTo, action},
     },
-    transaction,
     policy,
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    // const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${route?.params.transactionID || -1}`);
+    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
     const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    console.log('SELECTED', attendees);
+
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
             return;
