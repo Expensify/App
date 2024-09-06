@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import CategorySelector from '@pages/workspace/distanceRates/CategorySelector';
 import * as Policy from '@userActions/Policy/Policy';
 
@@ -48,9 +47,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
                 showPickerModal={() => setIsCategoryPickerVisible(true)}
                 hidePickerModal={() => {
                     setIsCategoryPickerVisible(false);
-                    blurActiveElement();
                 }}
-                shouldUseCustomScrollView
             />
         </BaseListItem>
     );

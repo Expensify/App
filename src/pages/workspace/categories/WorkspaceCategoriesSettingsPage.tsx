@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -37,27 +38,21 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         setWorkspaceRequiresCategory(policyID, value);
     };
 
-    const {sections} = useMemo(() => {
+    const data = useMemo(() => {
         if (!(currentPolicy && currentPolicy.mccGroup)) {
-            return {sections: [{data: []}]};
+            return [];
         }
 
-        return {
-            sections: [
-                {
-                    data: Object.entries(currentPolicy.mccGroup).map(
-                        ([mccKey, mccGroup]) =>
-                            ({
-                                categoryID: mccGroup.category,
-                                keyForList: mccKey,
-                                groupID: mccKey,
-                                policyID,
-                                tabIndex: -1,
-                            } as ListItem),
-                    ),
-                },
-            ],
-        };
+        return Object.entries(currentPolicy.mccGroup).map(
+            ([mccKey, mccGroup]) =>
+                ({
+                    categoryID: mccGroup.category,
+                    keyForList: mccKey,
+                    groupID: mccKey,
+                    policyID,
+                    tabIndex: -1,
+                } as ListItem),
+        );
     }, [currentPolicy, policyID]);
 
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
@@ -89,18 +84,23 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && sections[0].data.length > 0 && (
-                        <SelectionList
-                            headerContent={
-                                <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-                                    <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
-                                    <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
-                                </View>
-                            }
-                            sections={sections}
-                            ListItem={SpendCategorySelectorListItem}
-                            onSelectRow={() => {}}
-                        />
+                    {!!currentPolicy && data.length > 0 && (
+                        <>
+                            <View style={[styles.mh5, styles.mt2, styles.mb1]}>
+                                <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+                                <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
+                            </View>
+                            <ScrollView>
+                                {data.map((item) => (
+                                    <SpendCategorySelectorListItem
+                                        key={item.keyForList}
+                                        item={item}
+                                        onSelectRow={() => {}}
+                                        showTooltip
+                                    />
+                                ))}
+                            </ScrollView>
+                        </>
                     )}
                 </View>
             </ScreenWrapper>
