@@ -117,14 +117,14 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-sourcemaps
+          name: android-sourcemaps-artifact
           path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-build
+          name: android-build-artifact
           path: ./android/app/build/outputs/bundle/productionRelease/app-production-release.aab
 
       - name: Set current App version in Env
@@ -185,13 +185,13 @@ jobs:
       - name: Upload desktop sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-sourcemaps
+          name: desktop-sourcemaps-artifact
           path: ./desktop/dist/www/merged-source-map.js.map
 
       - name: Upload desktop build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-build
+          name: desktop-build-artifact
           path: ./desktop-build/NewExpensify.dmg
 
   iOS:
@@ -282,14 +282,14 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-sourcemaps
+          name: ios-sourcemaps-artifact
           path: ./main.jsbundle.map
 
       - name: Upload iOS build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build
+          name: ios-build-artifact
           path: /Users/runner/work/App/App/New\ Expensify.ipa
 
       - name: Warn deployers if iOS production deploy failed
@@ -389,7 +389,7 @@ jobs:
       - name: Upload web sourcemaps artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-sourcemaps
+          name: web-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
 
       - name: Compress web build .tar.gz and .zip
@@ -400,13 +400,13 @@ jobs:
       - name: Upload .tar.gz web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-build-tar-gz
+          name: web-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-build-zip
+          name: web-build-zip-artifact
           path: ./webBuild.zip
 
   postSlackMessageOnFailure:
@@ -493,15 +493,15 @@ jobs:
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ env.STAGING_VERSION }} \
-            ./android-sourcemaps/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }} \
-            ./android-build/app-production-release.aab \
-            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
-            ./desktop-build/NewExpensify.dmg \
-            ./ios-sourcemaps/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }} \
-            ./ios-build/New\ Expensify.ipa \
-            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
-            ./web-build-tar-gz/webBuild.tar.gz \
-            ./web-build-zip/webBuild.zip
+            ./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap-${{ env.STAGING_VERSION }} \
+            ./android-build-artifact/app-production-release.aab \
+            ./desktop-sourcemaps-artifact/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-build-artifact/NewExpensify.dmg \
+            ./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap-${{ env.STAGING_VERSION }} \
+            ./ios-build-artifact/New\ Expensify.ipa \
+            ./web-sourcemaps-artifact/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-build-tar-gz-artifact/webBuild.tar.gz \
+            ./web-build-zip-artifact/webBuild.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -537,11 +537,11 @@ jobs:
       - name: Upload artifacts to GitHub Release
         run: |
           gh release upload ${{ env.STAGING_VERSION }} \
-            ./desktop-sourcemaps/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
-            ./desktop-build/NewExpensify.dmg \
-            ./web-sourcemaps/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
-            ./web-build-tar-gz/webBuild.tar.gz \
-            ./web-build-zip/webBuild.zip
+            ./desktop-sourcemaps-artifact/merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
+            ./desktop-build-artifact/NewExpensify.dmg \
+            ./web-sourcemaps-artifact/merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
+            ./web-build-tar-gz-artifact/webBuild.tar.gz \
+            ./web-build-zip-artifact/webBuild.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
