@@ -7,6 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
@@ -222,6 +223,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                               errorFields: {addDelegate: null},
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
+                              optimisticAccountID: undefined,
                           },
                 ) ?? []
             );
@@ -236,6 +238,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                 isLoading: false,
                 pendingAction: null,
                 pendingFields: {email: null, role: null},
+                optimisticAccountID: undefined,
             },
         ];
     };
@@ -323,4 +326,20 @@ function removePendingDelegate(email: string) {
     });
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate};
+function addOptimisticDelegate(accountID: number, email: string) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        delegatedAccess: {
+            delegates: [
+                ...(delegatedAccess?.delegates ?? []),
+                {
+                    email: addSMSDomainIfPhoneNumber(email),
+                    optimisticAccountID: accountID,
+                    pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            ],
+        },
+    });
+}
+
+export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate, addOptimisticDelegate};
