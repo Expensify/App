@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,20 +21,27 @@ import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeFo
 type DelegateMagicCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
+    const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
 
     const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
-    const {translate} = useLocalize();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const optimisticDelegateEmail = account?.delegatedAccess?.delegates?.find((delegate) => delegate.optimisticAccountID === accountID)?.email;
+    const optimisticDelegateData = OptionsListUtils.getUserToInviteOption({
+        searchValue: optimisticDelegateEmail ?? '',
+    });
+
+    const login = delegatePersonalDetails?.login ?? optimisticDelegateData?.login ?? '';
+
     const styles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
-    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegatePersonalDetails?.login);
+    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.errorFields?.addDelegate) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!currentDelegate.pendingFields?.role || !!currentDelegate.errorFields?.addDelegate) {
             return;
         }
 
@@ -61,7 +69,7 @@ function DelegateMagicCodePage({route}: DelegateMagicCodePageProps) {
                     <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}</Text>
                     <ValidateCodeForm
                         ref={validateCodeFormRef}
-                        delegate={delegatePersonalDetails?.login ?? ''}
+                        delegate={login}
                         role={role}
                         wrapperStyle={safeAreaPaddingBottomStyle}
                     />

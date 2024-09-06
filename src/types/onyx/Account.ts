@@ -25,6 +25,9 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the user is loading */
     isLoading?: boolean;
+
+    /** The accountID of a delegate when they aren't in the personalDetails. */
+    optimisticAccountID?: number;
 }>;
 
 /** Model of delegated access data */

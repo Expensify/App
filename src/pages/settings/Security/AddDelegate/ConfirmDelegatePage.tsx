@@ -1,8 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -12,8 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidationCode} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -26,8 +30,18 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const accountID = Number(route.params.accountID);
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([accountID], -1)[0];
+
+    const optimisticDelegateEmail = account?.delegatedAccess?.delegates?.find((delegate) => delegate.optimisticAccountID === accountID)?.email;
+    const optimisticDelegateData = OptionsListUtils.getUserToInviteOption({
+        searchValue: optimisticDelegateEmail ?? '',
+    });
+
+    const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
+    const login = personalDetails?.login ?? optimisticDelegateData?.login;
+    const displayName = personalDetails?.displayName ?? login;
 
     const submitButton = (
         <Button
@@ -55,10 +69,10 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
             <MenuItem
                 avatarID={route.params.accountID}
-                icon={personalDetails.avatar ?? ''}
                 iconType={CONST.ICON_TYPE_AVATAR}
-                title={personalDetails.displayName ?? personalDetails.login}
-                description={personalDetails.login}
+                icon={avatarIcon}
+                title={displayName}
+                description={login}
                 interactive={false}
             />
             <MenuItemWithTopDescription
