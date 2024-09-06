@@ -78,8 +78,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
-        Card.updateSettlementAccount(workspaceAccountID, domainName, value, paymentBankAccountID);
+        Card.updateSettlementAccount(workspaceAccountID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 

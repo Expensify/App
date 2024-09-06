@@ -3666,6 +3666,7 @@ function trackExpense(
     actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
+    customUnitRateID?: string,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report.chatReportID) : report;
@@ -3805,6 +3806,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
+                customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -6717,6 +6719,31 @@ function getPayMoneyRequestParams(
                 },
             },
         });
+    }
+
+    // Optimistically unhold all transactions if we pay all requests
+    if (full) {
+        const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+        for (const transaction of reportTransactions) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: null,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: transaction.comment?.hold,
+                    },
+                },
+            });
+        }
     }
 
     let optimisticHoldReportID;
