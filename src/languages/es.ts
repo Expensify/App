@@ -5117,5 +5117,6 @@ export default {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        onBehalfOfMessage: ({delegator}: string) => `on behalf of ${delegator}`,
     },
 } satisfies EnglishTranslation;

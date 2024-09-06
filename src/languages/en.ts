@@ -4600,5 +4600,6 @@ export default {
             }
         },
         genericError: 'Oops, something went wrong. Please try again.',
+        onBehalfOfMessage: (delegator: string) => `on behalf of ${delegator}`,
     },
 } satisfies TranslationBase;

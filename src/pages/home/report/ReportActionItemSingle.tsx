@@ -83,14 +83,15 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
     const message = getOriginalMessage(action)
     const delegateEmail = message?.delegate
 
-    console.log('delegateEmail::::', delegateEmail)
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
+    const accountOwnerDetails = getPersonalDetailByEmail(login ?? '')
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = ReportUtils.isTripRoom(report);
@@ -299,7 +300,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {actionTypes.includes(action?.actionName) && (<ReportActionItemBasicMessage message={'on behalf of Gandalf Gwaihir'} />)}
+                {(delegateEmail && actionTypes.includes(action?.actionName)) && (<ReportActionItemBasicMessage message={translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')} />)}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
