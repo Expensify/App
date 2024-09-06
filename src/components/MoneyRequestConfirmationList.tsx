@@ -483,8 +483,14 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        // Amounts should be bigger than 0 for the split bill creator (yourself)
+        if (transaction?.splitShares[currentUserPersonalDetails.accountID] && (transaction.splitShares[currentUserPersonalDetails.accountID]?.amount ?? 0) === 0) {
+            setFormError('iou.error.invalidSplitYourself');
+            return;
+        }
+
         setFormError('');
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -837,6 +843,7 @@ function MoneyRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
+                shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}

@@ -12,6 +12,7 @@ import type {
     CreateWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    DisablePolicyBillableModeParams,
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
@@ -32,6 +33,7 @@ import type {
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
     RequestExpensifyCardLimitIncreaseParams,
+    SetPolicyBillableModeParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -78,7 +80,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CompanyAddress, CustomUnit, Rate, TaxRate, Unit} from '@src/types/onyx/Policy';
+import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticPolicyCategories} from './Category';
@@ -375,6 +377,8 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: null,
             },
         });
     });
@@ -600,6 +604,28 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
 
 function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
+}
+
+function clearNetSuitePendingField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {pendingFields: {[fieldName]: null}}}}}});
+}
+
+function removeNetSuiteCustomFieldByIndex(allRecords: NetSuiteCustomSegment[] | NetSuiteCustomList[], policyID: string, importCustomField: string, valueIndex: number) {
+    // We allow multiple custom list records with the same internalID. Hence it is safe to remove by index.
+    const filteredRecords = allRecords.filter((_, index) => index !== Number(valueIndex));
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            netsuite: {
+                options: {
+                    config: {
+                        syncOptions: {
+                            [importCustomField]: filteredRecords,
+                        },
+                    },
+                },
+            },
+        },
+    });
 }
 
 function clearSageIntacctErrorField(policyID: string, fieldName: string) {
@@ -1708,6 +1734,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     name: null,
                     outputCurrency: null,
                     address: null,
+                    description: null,
                 },
             },
         },
@@ -3458,6 +3485,46 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
+    const policy = getPolicy(policyID);
+    if (!policy) {
+        return;
+    }
+
+    const {mccGroup} = policy;
+
+    const optimisticData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup: {
+                          ...mccGroup,
+                          [groupID]: {
+                              category,
+                              groupID,
+                          },
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    const failureData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup,
+                  },
+              },
+          ]
+        : [];
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData: [], failureData});
+}
 /**
  * Call the API to set the receipt required amount for the given policy
  * @param policyID - id of the policy to set the receipt required amount
@@ -3644,6 +3711,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                     },
                     pendingFields: {
                         defaultBillable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        disabledFields: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -3655,6 +3723,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                 value: {
                     pendingFields: {
                         defaultBillable: null,
+                        disabledFields: null,
                     },
                     errorFields: null,
                 },
@@ -3667,14 +3736,14 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
                 value: {
                     disabledFields: {defaultBillable: originalDefaultBillableDisabled},
                     defaultBillable: originalDefaultBillable,
-                    pendingFields: {defaultBillable: null},
+                    pendingFields: {defaultBillable: null, disabledFields: null},
                     errorFields: {defaultBillable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyBillableModeParams = {
         policyID,
         defaultBillable,
         disabledFields: JSON.stringify({
@@ -3683,6 +3752,59 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
+}
+
+/**
+ * Call the API to disable the billable mode for the given policy
+ * @param policyID - id of the policy to enable or disable the bilable mode
+ */
+function disableWorkspaceBillableExpenses(policyID: string) {
+    const policy = getPolicy(policyID);
+    const originalDefaultBillableDisabled = policy?.disabledFields?.defaultBillable;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    disabledFields: {
+                        defaultBillable: true,
+                    },
+                    pendingFields: {
+                        disabledFields: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        disabledFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {disabledFields: null},
+                    disabledFields: {defaultBillable: originalDefaultBillableDisabled},
+                },
+            },
+        ],
+    };
+
+    const parameters: DisablePolicyBillableModeParams = {
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
 function setWorkspaceEReceiptsEnabled(policyID: string, eReceipts: boolean) {
@@ -3845,6 +3967,7 @@ export {
     openWorkspaceReimburseView,
     setPolicyIDForReimburseView,
     clearOnyxDataForReimburseView,
+    setWorkspaceDefaultSpendCategory,
     setRateForReimburseView,
     setUnitForReimburseView,
     generateDefaultWorkspaceName,
@@ -3886,7 +4009,9 @@ export {
     clearXeroErrorField,
     clearSageIntacctErrorField,
     clearNetSuiteErrorField,
+    clearNetSuitePendingField,
     clearNetSuiteAutoSyncErrorField,
+    removeNetSuiteCustomFieldByIndex,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
@@ -3913,6 +4038,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     setPolicyBillableMode,
+    disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,

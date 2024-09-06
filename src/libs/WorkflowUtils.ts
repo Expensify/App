@@ -116,12 +116,17 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
 
     // Add each employee to the appropriate workflow
     Object.values(employees).forEach((employee) => {
-        const {email, submitsTo} = employee;
+        const {email, submitsTo, pendingAction} = employee;
         if (!email || !submitsTo) {
             return;
         }
 
-        const member: Member = {email, avatar: personalDetailsByEmail[email]?.avatar, displayName: personalDetailsByEmail[email]?.displayName ?? email};
+        const member: Member = {
+            email,
+            avatar: personalDetailsByEmail[email]?.avatar,
+            displayName: personalDetailsByEmail[email]?.displayName ?? email,
+        };
+
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
             if (submitsTo !== firstApprover) {
@@ -132,9 +137,14 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
+                pendingAction,
             };
         }
+
         approvalWorkflows[submitsTo].members.push(member);
+        if (pendingAction) {
+            approvalWorkflows[submitsTo].pendingAction = pendingAction;
+        }
     });
 
     // Sort the workflows by the first approver's name (default workflow has priority)
@@ -170,9 +180,19 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     approvalWorkflow: ApprovalWorkflow;
 
     /**
+     * The previous employee list before the approval workflow was created
+     */
+    previousEmployeeList: PolicyEmployeeList;
+
+    /**
      * Members to remove from the approval workflow
      */
     membersToRemove?: Member[];
+
+    /**
+     * Approvers to remove from the approval workflow
+     */
+    approversToRemove?: Approver[];
 
     /**
      * Mode to use when converting the approval workflow
@@ -181,7 +201,13 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
 };
 
 /** Convert an approval workflow to a list of policy employees */
-function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRemove, type}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
+function convertApprovalWorkflowToPolicyEmployees({
+    approvalWorkflow,
+    previousEmployeeList,
+    membersToRemove,
+    approversToRemove,
+    type,
+}: ConvertApprovalWorkflowToPolicyEmployeesParams): PolicyEmployeeList {
     const updatedEmployeeList: PolicyEmployeeList = {};
     const firstApprover = approvalWorkflow.approvers.at(0);
 
@@ -189,18 +215,34 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
         throw new Error('Approval workflow must have at least one approver');
     }
 
+    const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
+        const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '';
+
+        if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
+            return;
+        }
+
         updatedEmployeeList[approver.email] = {
             email: approver.email,
-            forwardsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '',
+            forwardsTo,
+            pendingAction,
         };
     });
 
     approvalWorkflow.members.forEach(({email}) => {
+        const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '';
+
+        if (previousEmployeeList[email]?.submitsTo === submitsTo) {
+            return;
+        }
+
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
-            submitsTo: type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '',
+            submitsTo,
+            pendingAction,
         };
     });
 
@@ -208,6 +250,15 @@ function convertApprovalWorkflowToPolicyEmployees({approvalWorkflow, membersToRe
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo: '',
+            pendingAction,
+        };
+    });
+
+    approversToRemove?.forEach(({email}) => {
+        updatedEmployeeList[email] = {
+            ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+            forwardsTo: '',
+            pendingAction,
         };
     });
 

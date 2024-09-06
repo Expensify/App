@@ -178,6 +178,7 @@ export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './Se
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
+export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
@@ -278,7 +279,8 @@ export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabl
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
-export type {default as SetPolicyBillableMode} from './SetPolicyBillableMode';
+export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
+export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
