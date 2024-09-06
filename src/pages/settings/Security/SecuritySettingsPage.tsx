@@ -72,7 +72,6 @@ function SecuritySettingsPage() {
     const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction, errorFields}) => {
         const personalDetail = getPersonalDetailByEmail(email);
         const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
-        console.log('[error]: ', email, error);
 
         return {
             title: personalDetail?.displayName ?? email,
