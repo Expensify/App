@@ -102,12 +102,13 @@ jobs:
       - name: Build Android app
         if: fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
         run: bundle exec fastlane android build
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
         env:
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
           VERSION: ${{ env.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
