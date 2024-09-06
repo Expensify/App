@@ -18,6 +18,7 @@ import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import usePermissions from '@hooks/usePermissions';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps;
@@ -25,6 +26,7 @@ type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps;
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseWorkspaceRules} = usePermissions();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -92,7 +94,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && listItems && (
+                    {!!currentPolicy && listItems && canUseWorkspaceRules && (
                         <>
                             <View style={[styles.mh5, styles.mt2, styles.mb1]}>
                                 <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
