@@ -3,8 +3,10 @@ import type {GestureResponderEvent, View} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import OfflineWithFeedback from './OfflineWithFeedback';
 
 type MenuItemLink = string | (() => Promise<string>);
 
@@ -14,6 +16,13 @@ type MenuItemWithLink = MenuItemProps & {
 
     /** A unique key for the menu item */
     key?: string;
+
+    /** The pending action for the menu item */
+    pendingAction?: OnyxCommon.PendingAction | null;
+
+    onPendingActionDismiss?: () => void;
+
+    error?: OnyxCommon.Errors | null;
 };
 
 type MenuItemListProps = {
@@ -45,16 +54,22 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
     return (
         <>
             {menuItems.map((menuItemProps) => (
-                <MenuItem
-                    key={menuItemProps.key ?? menuItemProps.title}
-                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                    ref={popoverAnchor}
-                    shouldBlockSelection={!!menuItemProps.link}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...menuItemProps}
-                    disabled={!!menuItemProps.disabled || isExecuting}
-                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
-                />
+                <OfflineWithFeedback
+                    pendingAction={menuItemProps.pendingAction}
+                    onClose={menuItemProps.onPendingActionDismiss}
+                    errors={menuItemProps.error}
+                >
+                    <MenuItem
+                        key={menuItemProps.key ?? menuItemProps.title}
+                        onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                        ref={popoverAnchor}
+                        shouldBlockSelection={!!menuItemProps.link}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...menuItemProps}
+                        disabled={!!menuItemProps.disabled || isExecuting}
+                        onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    />
+                </OfflineWithFeedback>
             ))}
         </>
     );

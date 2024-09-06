@@ -230,7 +230,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
                             },
                             isLoading: false,
                             pendingFields: {email: null, role: null},
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            pendingAction: null,
                         },
                     ],
                 },
@@ -255,4 +255,16 @@ function clearAddDelegateErrors(email: string, fieldName: string) {
     });
 }
 
-export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors};
+function removePendingDelegate(email: string) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.ACCOUNT, {
+        delegatedAccess: {
+            delegates: delegatedAccess.delegates.filter((delegate) => delegate.email !== email),
+        },
+    });
+}
+
+export {connect, disconnect, clearDelegatorErrors, addDelegate, requestValidationCode, clearAddDelegateErrors, removePendingDelegate};

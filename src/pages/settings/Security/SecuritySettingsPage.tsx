@@ -18,6 +18,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {removePendingDelegate} from '@libs/actions/Delegate';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -66,24 +68,27 @@ function SecuritySettingsPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
-    const delegateMenuItems: MenuItemProps[] = delegates
-        .filter((delegate) => delegate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .map(({email, role}) => {
-            const personalDetail = getPersonalDetailByEmail(email);
+    const delegateMenuItems: MenuItemProps[] = delegates.map(({email, role, pendingAction, errorFields}) => {
+        const personalDetail = getPersonalDetailByEmail(email);
+        const error = ErrorUtils.getLatestErrorField({errorFields}, 'addDelegate');
 
-            return {
-                title: personalDetail?.displayName ?? email,
-                description: personalDetail?.displayName ? email : '',
-                badgeText: translate('delegate.role', role),
-                avatarID: personalDetail?.accountID ?? -1,
-                icon: personalDetail?.avatar ?? '',
-                iconType: CONST.ICON_TYPE_AVATAR,
-                numberOfLinesDescription: 1,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
-            };
-        });
+        return {
+            title: personalDetail?.displayName ?? email,
+            description: personalDetail?.displayName ? email : '',
+            badgeText: translate('delegate.role', role),
+            avatarID: personalDetail?.accountID ?? -1,
+            icon: personalDetail?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            numberOfLinesDescription: 1,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            iconRight: Expensicons.ThreeDots,
+            shouldShowRightIcon: true,
+            pendingAction,
+            onPendingActionDismiss: () => removePendingDelegate(email),
+            error,
+            onPress: () => (error ? Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(personalDetail?.accountID ?? -1, role ?? '')) : undefined),
+        };
+    });
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
