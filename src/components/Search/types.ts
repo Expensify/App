@@ -28,7 +28,8 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus;
+type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
+type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -88,4 +89,5 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
+    ChatSearchStatus,
 };

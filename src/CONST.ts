@@ -1263,6 +1263,7 @@ const CONST = {
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
+        SEARCH: 's',
     },
 
     IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
@@ -5384,6 +5385,13 @@ const CONST = {
                 ALL: 'all',
                 CURRENT: 'current',
                 PAST: 'past',
+            },
+            CHAT: {
+                ALL: 'all',
+                UNREAD: 'unread',
+                SENT: 'sent',
+                ATTACHMENTS: 'attachments',
+                LINKS: 'links',
             },
         },
         CHAT_TYPES: {
