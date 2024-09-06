@@ -2,7 +2,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import navigationRef from './navigationRef';
 
 const isLastRouteRHP = (): boolean => {
-    if (!navigationRef.isReady()) {
+    if (!navigationRef || !navigationRef.isReady()) {
         return false;
     }
     const state = navigationRef.getState();
