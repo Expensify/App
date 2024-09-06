@@ -108,65 +108,69 @@ function SecuritySettingsPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('initialSettingsPage.security')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack()}
-                icon={Illustrations.LockClosed}
-            />
-            <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('securityPage.title')}
-                        subtitle={translate('securityPage.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        illustration={LottieAnimations.Safe}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        childrenStyles={styles.pt5}
-                    >
-                        <MenuItemList
-                            menuItems={securityMenuItems}
-                            shouldUseSingleExecution
-                        />
-                    </Section>
-                    {canUseNewDotCopilot && (
-                        <View style={styles.mb5}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('initialSettingsPage.security')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        onBackButtonPress={() => Navigation.goBack()}
+                        icon={Illustrations.LockClosed}
+                    />
+                    <ScrollView contentContainerStyle={styles.pt3}>
+                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <Section
-                                title={translate('delegate.copilotDelegatedAccess')}
-                                subtitle={translate('delegate.copilotDelegatedAccessDescription')}
+                                title={translate('securityPage.title')}
+                                subtitle={translate('securityPage.subtitle')}
                                 isCentralPane
                                 subtitleMuted
+                                illustration={LottieAnimations.Safe}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
                             >
-                                {hasDelegates && (
-                                    <>
-                                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
-                                        <MenuItemList menuItems={delegateMenuItems} />
-                                    </>
-                                )}
-                                {!isActingAsDelegate && (
-                                    <MenuItem
-                                        title={translate('delegate.addCopilot')}
-                                        icon={Expensicons.UserPlus}
-                                        iconFill={theme.iconSuccessFill}
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                                    />
-                                )}
-                                {hasDelegators && (
-                                    <>
-                                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                                        <MenuItemList menuItems={delegatorMenuItems} />
-                                    </>
-                                )}
+                                <MenuItemList
+                                    menuItems={securityMenuItems}
+                                    shouldUseSingleExecution
+                                />
                             </Section>
+                            {canUseNewDotCopilot && (
+                                <View style={safeAreaPaddingBottomStyle}>
+                                    <Section
+                                        title={translate('delegate.copilotDelegatedAccess')}
+                                        subtitle={translate('delegate.copilotDelegatedAccessDescription')}
+                                        isCentralPane
+                                        subtitleMuted
+                                        titleStyles={styles.accountSettingsSectionTitle}
+                                        childrenStyles={styles.pt5}
+                                    >
+                                        {hasDelegates && (
+                                            <>
+                                                <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                                                <MenuItemList menuItems={delegateMenuItems} />
+                                            </>
+                                        )}
+                                        {!isActingAsDelegate && (
+                                            <MenuItem
+                                                title={translate('delegate.addCopilot')}
+                                                icon={Expensicons.UserPlus}
+                                                iconFill={theme.iconSuccessFill}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                                shouldShowRightIcon
+                                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                            />
+                                        )}
+                                        {hasDelegators && (
+                                            <>
+                                                <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                                                <MenuItemList menuItems={delegatorMenuItems} />
+                                            </>
+                                        )}
+                                    </Section>
+                                </View>
+                            )}
                         </View>
-                    )}
-                </View>
-            </ScrollView>
+                    </ScrollView>
+                </>
+            )}
         </ScreenWrapper>
     );
 }
