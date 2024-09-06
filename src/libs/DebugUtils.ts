@@ -558,6 +558,7 @@ function validateReportActionJSON(json: string) {
 }
 
 const DebugUtils = {
+    stringifyJSON,
     onyxDataToDraftData,
     onyxDataToString,
     stringToOnyxData,

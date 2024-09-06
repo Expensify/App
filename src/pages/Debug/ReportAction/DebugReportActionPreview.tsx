@@ -7,11 +7,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type DebugReportActionPreviewProps = {
+    /** The report action to be previewed. */
     reportAction: OnyxEntry<ReportAction>;
 };
 
 function DebugReportActionPreview({reportAction}: DebugReportActionPreviewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.reportID}`);
+
     return (
         <ScrollView>
             <ReportActionItem

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -23,35 +24,51 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {DETAILS_DROPDOWN_OPTIONS, DETAILS_SELECTION_LIST} from './const';
 
 type DebugDetailsProps = {
-    data: Record<string, unknown>;
-    /** A unique Onyx key identifying the form */
-    formId: DebugDetailsFormID;
+    /** The report or report action data to be displayed and editted. */
+    data: OnyxEntry<Report> | OnyxEntry<ReportAction>;
+
+    /** A unique Onyx key identifying the form . */
+    formID: DebugDetailsFormID;
+
+    /** The ID of the report */
     reportID: string;
-    reportActionId?: string;
+
+    /** The ID of the report action */
+    reportActionID?: string;
+
+    /** Callback to be called when user saves the debug data. */
     onSave: (values: FormOnyxValues<DebugDetailsFormID>) => void;
+
+    /** Callback to be called when user deletes the debug data. */
     onDelete: () => void;
+
+    /** Callback to be called every time the debug data form is validated. */
     validate: (key: never, value: string) => void;
 };
 
-const DropdownOptionsArrays: Record<string, Array<DropdownOption<string>>> = Object.entries(DETAILS_DROPDOWN_OPTIONS).reduce((acc, [key, value]) => {
-    acc[key] = Object.values(value).map((option) => ({value: option, text: option}));
-    return acc;
-}, {} as Record<string, Array<DropdownOption<string>>>);
+const dropdownOptionsMap: Record<string, Array<DropdownOption<string>>> = Object.entries(DETAILS_DROPDOWN_OPTIONS).reduce(
+    (acc: Record<string, Array<DropdownOption<string>>>, [key, value]) => {
+        acc[key] = Object.values(value).map((option) => ({value: option, text: option}));
+        return acc;
+    },
+    {},
+);
 
-function DebugDetails({data, reportID, onSave, onDelete, validate, formId, reportActionId}: DebugDetailsProps) {
+function DebugDetails({data, reportID, onSave, onDelete, validate, formID, reportActionID}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onyxDraftDataKey = formId === ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM ? ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT : ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT;
+    const onyxDraftDataKey = formID === ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM ? ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT : ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT;
     const [formDraftData] = useOnyx(onyxDraftDataKey);
     const [dropdownsState, setDropdownsState] = useState<Record<string, string>>({});
 
     const validator = useCallback(
-        (values: Record<string, unknown>): FormInputErrors<DebugDetailsFormID> => {
+        (values: FormOnyxValues<DebugDetailsFormID>): FormInputErrors<DebugDetailsFormID> => {
             const newErrors: Record<string, string | undefined> = {};
             Object.entries(values).forEach(([key, value]) => {
                 try {
@@ -72,21 +89,21 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
     );
 
     useEffect(() => {
-        Debug.resetDebugDetailsDraftForm(formId);
-    }, [formId]);
+        Debug.resetDebugDetailsDraftForm(formID);
+    }, [formID]);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<DebugDetailsFormID>) => {
             const dataToSave = {...values, ...dropdownsState};
 
-            const dataPreparedToSave = Object.entries(dataToSave).reduce((acc, [key, value]) => {
+            const dataPreparedToSave = Object.entries(dataToSave).reduce((acc: FormOnyxValues<DebugDetailsFormID>, [key, value]) => {
                 if (typeof value === 'boolean') {
                     acc[key] = value;
                 } else {
-                    acc[key] = DebugUtils.stringToOnyxData(value as string, typeof data[key] as OnyxDataType);
+                    acc[key] = DebugUtils.stringToOnyxData(value as string, typeof data?.[key as keyof Report & keyof ReportAction] as OnyxDataType);
                 }
                 return acc;
-            }, {} as Record<string, unknown>);
+            }, {});
 
             onSave(dataPreparedToSave);
         },
@@ -104,7 +121,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
         >
             <FormProvider
                 style={styles.flexGrow1}
-                formID={formId}
+                formID={formID}
                 validate={validator}
                 shouldValidateOnChange
                 isSubmitDisabled={isEmptyObject(formDraftData) && isEmptyObject(dropdownsState)}
@@ -138,7 +155,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
                                 style={styles.mb5}
                                 title={(formDraftData?.[key] as string) ?? (defaultData as string)}
                                 description={key}
-                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_TYPE_LIST.getRoute(reportID ?? '', reportActionId))}
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_TYPE_LIST.getRoute(reportID ?? '-1', reportActionID))}
                                 shouldShowRightIcon
                             />
                         );
@@ -164,7 +181,7 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formId, repor
                                     onOptionSelected={(option) => {
                                         onDropdownOptionSelected(key, option.text);
                                     }}
-                                    options={DropdownOptionsArrays[key]}
+                                    options={dropdownOptionsMap[key]}
                                     style={[styles.flexGrow1, styles.alignItemsStart]}
                                     wrapperStyle={[styles.w100, styles.justifyContentBetween]}
                                     isSplitButton={false}
