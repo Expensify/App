@@ -3,6 +3,7 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -216,7 +217,7 @@ function Search({queryJSON}: SearchProps) {
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
-        return null;
+        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     const ListItem = SearchUtils.getListItem(status);
