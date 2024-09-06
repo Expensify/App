@@ -107,8 +107,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
+            // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
-            initialRouteName: SCREENS.ONBOARDING.PURPOSE,
             screens: {
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
@@ -762,6 +763,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
                         },
+                        [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+                            path: ROUTES.RULES_CUSTOM_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
+                            path: ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: {
+                            path: ROUTES.RULES_RANDOM_REPORT_AUDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER]: {
+                            path: ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.route,
                         },
@@ -1070,6 +1083,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_IS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {

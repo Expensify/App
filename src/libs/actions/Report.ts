@@ -8,7 +8,6 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
-import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -111,6 +110,7 @@ import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import * as OnboardingFlow from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -2164,17 +2164,6 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-/**
- * Navigates to the 1:1 system chat
- */
-function navigateToSystemChat() {
-    const systemChatReport = ReportUtils.getSystemChat();
-
-    if (systemChatReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(systemChatReport.reportID));
-    }
-}
-
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -2704,7 +2693,9 @@ function openReportFromDeepLink(url: string) {
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         if (!hasCompletedGuidedSetupFlow) {
-                            Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT.getRoute())});
+                            Welcome.isOnboardingFlowCompleted({
+                                onNotCompleted: () => OnboardingFlow.startOnboardingFlow(),
+                            });
                             return;
                         }
 
@@ -3330,13 +3321,7 @@ function completeOnboarding(
     onboardingPolicyID?: string,
     paymentSelected?: string,
 ) {
-    const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
-    const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
-
-    // If the target report isn't opened, the permission field will not exist. So we should add the fallback permission for task report
-    const fallbackPermission = isAccountIDOdd ? [CONST.REPORT.PERMISSIONS.READ] : [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE];
-
-    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
@@ -3389,7 +3374,7 @@ function completeOnboarding(
             targetChatPolicyID,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
-        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(targetEmail);
+        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
         const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
             currentTask.reportID,
             task.title,
@@ -3453,7 +3438,6 @@ function completeOnboarding(
                     },
                     isOptimisticReport: true,
                     managerID: currentUserAccountID,
-                    permissions: targetChatReport?.permissions ?? fallbackPermission,
                 },
             },
             {
@@ -4115,7 +4099,6 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     navigateToConciergeChat,
-    navigateToSystemChat,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
