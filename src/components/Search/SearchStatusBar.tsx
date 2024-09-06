@@ -120,13 +120,6 @@ const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: Translat
         text: 'common.unread',
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.UNREAD),
     },
-    // This will be added back in a future PR when we sync the draft across all platforms
-    // {
-    //     key: CONST.SEARCH.STATUS.CHAT.DRAFTS,
-    //     icon: Expensicons.Pencil,
-    //     text: 'common.drafts',
-    //     query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.DRAFTS),
-    // },
     {
         key: CONST.SEARCH.STATUS.CHAT.SENT,
         icon: Expensicons.Send,

@@ -5383,7 +5383,6 @@ const CONST = {
             CHAT: {
                 ALL: 'all',
                 UNREAD: 'unread',
-                DRAFTS: 'drafts',
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
                 LINKS: 'links',
