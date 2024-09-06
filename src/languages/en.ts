@@ -2942,10 +2942,10 @@ export default {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
-                    subTitle: 'Streamline your business with the Expensify Card',
+                    subTitle: 'Streamline your business with the Expensify Card.',
                     features: {
-                        cashBack: 'Up to 2% cash back on every US purchase',
-                        unlimited: 'Issue unlimited virtual cards',
+                        cashBack: 'Cash back on every US purchase',
+                        unlimited: 'Unlimited virtual cards',
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',
