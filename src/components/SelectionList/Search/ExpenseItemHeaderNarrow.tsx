@@ -9,14 +9,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
     text?: string;
-    participantFrom: SearchAccountDetails;
-    participantTo: SearchAccountDetails;
+    participantFrom: SearchPersonalDetails;
+    participantTo: SearchPersonalDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action?: SearchTransactionAction;

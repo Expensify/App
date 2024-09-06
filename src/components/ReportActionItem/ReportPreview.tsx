@@ -299,13 +299,13 @@ function ReportPreview({
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
-    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID);
     const shouldShowRBR = hasErrors;
 
     /*
@@ -365,7 +365,7 @@ function ReportPreview({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                count: numberOfRequests,
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
             }),
@@ -389,7 +389,7 @@ function ReportPreview({
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Timing.start(CONST.TIMING.SWITCH_REPORT_FROM_PREVIEW);
+                        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}

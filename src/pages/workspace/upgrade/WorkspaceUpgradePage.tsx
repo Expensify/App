@@ -9,7 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -29,10 +29,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
 
-    const isUpgraded = React.useMemo(() => isControlPolicy(policy), [policy]);
+    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const upgradeToCorporate = () => {
-        if (!policy || !feature) {
+        if (!canPerformUpgrade) {
             return;
         }
 
@@ -47,6 +48,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 Policy.enablePolicyReportFields(policyID, true, true);
                 return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
+                Policy.enablePolicyRules(policyID, true, true);
+                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
         }
@@ -54,16 +58,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     useEffect(() => {
         const unsubscribeListener = navigation.addListener('blur', () => {
-            if (!isUpgraded) {
+            if (!isUpgraded || !canPerformUpgrade) {
                 return;
             }
             confirmUpgrade();
         });
 
         return unsubscribeListener;
-    }, [isUpgraded, confirmUpgrade, navigation]);
+    }, [isUpgraded, canPerformUpgrade, confirmUpgrade, navigation]);
 
-    if (!feature || !policy) {
+    if (!canPerformUpgrade) {
         return <NotFoundPage />;
     }
 

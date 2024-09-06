@@ -3,8 +3,7 @@
 //
 // Here's a general grammar structure:
 //
-// start: entry point for the parser. It calls the query rule and return its value.
-// query: rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
+// query: entry point for the parser and rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
 // filterList: rule to process the array of filters returned by the filter rule. It takes head and tail as arguments, filters it for null values and builds the AST.
 // filter: rule to build the filter object. It takes field, operator and value as input and returns {operator, left: field, right: value} or null if the left value is a defaultValues
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
@@ -33,7 +32,14 @@
       filters
     };
   }
-  
+
+  function applyPolicyID(filtersWithDefaults) {
+    return {
+      ...filtersWithDefaults,
+      policyID: filtersWithDefaults.policyID
+    };
+  }
+
   function updateDefaultValues(field, value) {
     defaultValues[field] = value;
   }
@@ -41,10 +47,21 @@
   function isDefaultField(field) {
     return defaultValues.hasOwnProperty(field);
   }
+
+  function isPolicyID(field) {
+    return field === 'policyID';
+  }
 }
 
 query
-  = _ filters:filterList? _ { return applyDefaults(filters); }
+  = _ filters:filterList? _ {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  }
 
 filterList
   = head:filter tail:(logicalAnd filter)* {
@@ -52,12 +69,28 @@ filterList
       if (!allFilters.length) {
       	return null;
       }
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
+     const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+     if(!nonKeywords.length){
+     	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
+     }
+     if(!keywords.length){
+     	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
+     }
+
+     return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
+
       return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
     }
 
 filter
   = _ field:key? _ op:operator? _ value:identifier {
       if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
+      if (isPolicyID(field)) {
         updateDefaultValues(field, value.trim());
         return null;
       }
@@ -100,6 +133,9 @@ key
   / "keyword" { return "keyword"; }
   / "sortBy" { return "sortBy"; }
   / "sortOrder" { return "sortOrder"; }
+  / "policyID" { return "policyID"; }
+  / "has" { return "has"; }
+  / "is" { return "is"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
@@ -108,13 +144,10 @@ quotedString
   = '"' chars:[^"\r\n]* '"' { return chars.join(''); }
 
 alphanumeric
-  = chars:[A-Za-z0-9_@./#&+\-\\',]+ { return chars.join(''); }
+  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(''); }
 
 logicalAnd
   = _ { return "and"; }
 
 _ "whitespace"
   = [ \t\r\n]*
-
-start
-  = query

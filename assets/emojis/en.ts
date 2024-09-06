@@ -144,7 +144,7 @@ const enEmojis: EmojisList = {
         keywords: ['meh', 'face', 'unhappy'],
     },
     '🙄': {
-        keywords: ['eyes', 'face', 'rolling'],
+        keywords: ['eyes', 'face', 'rolling', 'eyeroll'],
     },
     '😬': {
         keywords: ['face', 'grimace'],

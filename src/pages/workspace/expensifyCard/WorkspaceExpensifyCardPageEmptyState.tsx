@@ -50,11 +50,11 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList ?? {});
 
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
         }

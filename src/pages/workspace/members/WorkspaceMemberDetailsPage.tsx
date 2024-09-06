@@ -75,12 +75,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
 
+    const memberCards = useMemo(() => {
+        if (!cardsList) {
+            return [];
+        }
+        return Object.values(cardsList).filter((card) => card.accountID === accountID);
+    }, [cardsList, accountID]);
+
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
-        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: displayName,
+            ownerName: policyOwnerDisplayName,
+        });
     }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
@@ -129,6 +139,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     const navigateToIssueNewCard = useCallback(() => {
+        const activeRoute = Navigation.getActiveRoute();
+
         Card.setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data: {
@@ -136,7 +148,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             },
             isEditing: false,
         });
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     }, [memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
@@ -259,7 +271,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {Object.values(cardsList ?? {}).map((card) => (
+                                            {memberCards.map((card) => (
                                                 <MenuItem
                                                     title={card.nameValuePairs?.cardTitle}
                                                     badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit)}

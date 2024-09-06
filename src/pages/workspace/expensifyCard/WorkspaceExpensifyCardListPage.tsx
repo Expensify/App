@@ -15,8 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import localeCompare from '@libs/LocaleCompare';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -48,24 +47,19 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
-    const sortedCards = useMemo(
-        () =>
-            Object.values(cardsList ?? {}).sort((cardA: Card, cardB: Card) => {
-                const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
-                const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
-                const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
-                const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
-                return localeCompare(aName, bName);
-            }),
-        [cardsList, personalDetails],
-    );
+    const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+
+    const issueCard = () => {
+        const activeRoute = Navigation.getActiveRoute();
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+    };
 
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             <Button
                 medium
                 success
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
+                onPress={issueCard}
                 icon={Expensicons.Plus}
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldUseNarrowLayout && styles.flex1}
@@ -84,6 +78,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
         ({item, index}: ListRenderItemInfo<Card>) => (
             <OfflineWithFeedback
                 key={`${item.nameValuePairs?.cardTitle}_${index}`}
+                pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
             >

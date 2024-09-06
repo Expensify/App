@@ -49,7 +49,7 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
+function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
     const queryWithOffset = {
@@ -58,7 +58,7 @@ function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; off
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery, policyIDs}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -97,9 +97,10 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
+        jsonQuery,
         reportIDList,
         transactionIDList,
         policyIDs,
