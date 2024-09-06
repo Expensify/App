@@ -402,7 +402,7 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    const regexp = /[<>,:=]/g;
+    const regexp = /[<>,:= ]/g;
     if (regexp.test(str)) {
         return `"${str}"`;
     }
