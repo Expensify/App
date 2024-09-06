@@ -147,6 +147,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        attachments: 'Attachments',
         center: 'Center',
         from: 'From',
         to: 'To',
@@ -390,6 +391,10 @@ export default {
         importSpreadsheet: 'Import spreadsheet',
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
+        chats: 'Chats',
+        unread: 'Unread',
+        sent: 'Sent',
+        links: 'Links',
         days: 'days',
     },
     location: {

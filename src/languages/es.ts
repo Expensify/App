@@ -137,6 +137,7 @@ export default {
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
+        attachments: 'Archivos adjuntos',
         from: 'De',
         to: 'A',
         in: 'En',
@@ -380,6 +381,10 @@ export default {
         import: 'Importar',
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
+        chats: 'Chats',
+        unread: 'No leído',
+        sent: 'Enviado',
+        links: 'Enlaces',
         days: 'días',
     },
     connectionComplete: {
