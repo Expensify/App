@@ -34,10 +34,6 @@ function ChatListItem<TItem extends ListItem>({
             id: from.accountID,
         },
     ];
-    const fragment = {
-        ...reportActionItem.message,
-        type: 'COMMENT',
-    };
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -92,13 +88,17 @@ function ChatListItem<TItem extends ListItem>({
                             <ReportActionItemDate created={reportActionItem.created ?? ''} />
                         </View>
                         <View style={styles.chatItemMessage}>
-                            <ReportActionItemFragment
-                                fragment={fragment}
-                                actionName={CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}
-                                source=""
-                                accountID={from.accountID}
-                                isFragmentContainingDisplayName
-                            />
+                            {reportActionItem.message.map((fragment, index) => (
+                                <ReportActionItemFragment
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
+                                    fragment={fragment}
+                                    actionName={reportActionItem.actionName}
+                                    source=""
+                                    accountID={from.accountID}
+                                    isFragmentContainingDisplayName={index === 0}
+                                />
+                            ))}
                         </View>
                     </View>
                 </AttachmentContext.Provider>

@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type ReportActionName from './ReportActionName';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -113,17 +114,26 @@ type SearchReportAction = {
     /** The report action sender ID */
     accountID: number;
 
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
+
     /** The report action created date */
     created: string;
 
     /** report action message */
-    message: {
+    message: Array<{
+        /** The type of the action item fragment. Used to render a corresponding component */
+        type: string;
+
         /** The text content of the fragment. */
         text: string;
 
         /** The html content of the fragment. */
         html: string;
-    };
+
+        /** Collection of accountIDs of users mentioned in message */
+        whisperedTo?: number[];
+    }>;
 
     /** The ID of the report action */
     reportActionID: string;
