@@ -58,7 +58,15 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
-            const accountingIntegrationData = getAccountingIntegrationData(newActiveIntegration.name, policyID, translate);
+            const accountingIntegrationData = getAccountingIntegrationData(
+                newActiveIntegration.name,
+                policyID,
+                translate,
+                undefined,
+                undefined,
+                newActiveIntegration.integrationToDisconnect,
+                newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+            );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
                 Navigation.navigate(

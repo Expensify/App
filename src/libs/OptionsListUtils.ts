@@ -177,6 +177,7 @@ type GetOptionsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     action?: IOUAction;
+    shouldBoldTitleByDefault?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1743,6 +1744,7 @@ function getOptions(
         includeInvoiceRooms = false,
         includeDomainEmail = false,
         action,
+        shouldBoldTitleByDefault = true,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1967,7 +1969,7 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
-            reportOption.isBold = shouldUseBoldText(reportOption);
+            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
 
             if (action === CONST.IOU.ACTION.CATEGORIZE) {
                 const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
@@ -1991,7 +1993,7 @@ function getOptions(
         if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
             continue;
         }
-        personalDetailOption.isBold = shouldUseBoldText(personalDetailOption);
+        personalDetailOption.isBold = shouldBoldTitleByDefault;
 
         personalDetailsOptions.push(personalDetailOption);
     }
@@ -2061,6 +2063,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMoneyRequests: true,
         includeTasks: true,
         includeSelfDM: true,
+        shouldBoldTitleByDefault: false,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
