@@ -405,8 +405,12 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+}
+
 /**
- * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
 function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
@@ -1084,6 +1088,7 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getAttendees,
     getTaxAmount,
     getTaxCode,
     getCurrency,

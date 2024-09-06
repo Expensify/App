@@ -13,6 +13,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -27,23 +28,25 @@ type IOURequestStepAttendeesOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
-type IOURequestStepAttendeesProps = IOURequestStepAttendeesOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
+type IOURequestStepAttendeesProps = IOURequestStepAttendeesOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
 
 function IOURequestStepAttendees({
-    route,
     route: {
         params: {transactionID, reportID, iouType, backTo, action},
     },
+    transaction,
     policy,
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || -1}`);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${route?.params.transactionID || -1}`);
     const [attendees, setAttendees] = useState<Attendee[]>(transaction?.attendees ?? []);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-
+    console.log('SELECTED', attendees);
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
             return;

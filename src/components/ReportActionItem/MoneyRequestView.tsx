@@ -153,6 +153,7 @@ function MoneyRequestView({
     const {
         created: transactionDate,
         amount: transactionAmount,
+        attendees: transactionAttendees,
         taxAmount: transactionTaxAmount,
         currency: transactionCurrency,
         comment: transactionDescription,
@@ -218,6 +219,7 @@ function MoneyRequestView({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowAttendees = iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
@@ -446,7 +448,12 @@ function MoneyRequestView({
             </OfflineWithFeedback>
         );
     });
+    console.log(
+        'LOG: ',
+        transactionAttendees?.map((x) => x.displayName ?? x.login),
+    );
 
+    console.log('transaction: ', transaction?.attendees);
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -659,6 +666,25 @@ function MoneyRequestView({
                             Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
                         }}
                     />
+                )}
+                {shouldShowAttendees && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
+                        <MenuItemWithTopDescription
+                            key="attendees"
+                            shouldShowRightIcon
+                            title={transactionAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
+                            description={`${translate('iou.attendees')} ${
+                                transactionAttendees?.length && transactionAttendees.length > 1 ? `\u00B7 ${10} ${translate('common.perPerson')}` : ''
+                            }`}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report?.reportID ?? '-1'))
+                            }
+                            interactive
+                            shouldRenderAsHTML
+                        />
+                    </OfflineWithFeedback>
                 )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
