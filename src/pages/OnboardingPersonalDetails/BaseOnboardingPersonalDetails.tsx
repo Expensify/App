@@ -6,7 +6,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -15,7 +14,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -41,7 +39,6 @@ function BaseOnboardingPersonalDetails({
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {accountID} = useSession();
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -77,14 +74,10 @@ function BaseOnboardingPersonalDetails({
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
             if (!shouldUseNarrowLayout && !route.params?.backTo) {
-                if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
-                    Report.navigateToSystemChat();
-                } else {
-                    Report.navigateToConciergeChat();
-                }
+                Report.navigateToConciergeChat();
             }
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, shouldUseNarrowLayout, route.params?.backTo, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, shouldUseNarrowLayout, route.params?.backTo],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

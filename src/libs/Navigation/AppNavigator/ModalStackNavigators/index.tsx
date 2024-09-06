@@ -541,6 +541,7 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersToPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersInPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersHasPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_IS_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersIsPage').default,
 });
 
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({

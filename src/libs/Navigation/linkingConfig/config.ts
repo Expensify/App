@@ -1070,6 +1070,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_IS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {

@@ -25,9 +25,12 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     policyID: string;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+
+    /** Whether SectionList should use custom ScrollView */
+    shouldUseCustomScrollView?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit, shouldUseCustomScrollView = false}: CategoryPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -85,6 +88,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
+            shouldUseCustomScrollView={shouldUseCustomScrollView}
         />
     );
 }

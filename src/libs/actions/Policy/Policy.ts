@@ -377,6 +377,8 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: null,
             },
         });
     });
@@ -3483,6 +3485,46 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
+    const policy = getPolicy(policyID);
+    if (!policy) {
+        return;
+    }
+
+    const {mccGroup} = policy;
+
+    const optimisticData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup: {
+                          ...mccGroup,
+                          [groupID]: {
+                              category,
+                              groupID,
+                          },
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    const failureData: OnyxUpdate[] = mccGroup
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `policy_${policyID}`,
+                  value: {
+                      mccGroup,
+                  },
+              },
+          ]
+        : [];
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData: [], failureData});
+}
 /**
  * Call the API to set the receipt required amount for the given policy
  * @param policyID - id of the policy to set the receipt required amount
@@ -3925,6 +3967,7 @@ export {
     openWorkspaceReimburseView,
     setPolicyIDForReimburseView,
     clearOnyxDataForReimburseView,
+    setWorkspaceDefaultSpendCategory,
     setRateForReimburseView,
     setUnitForReimburseView,
     generateDefaultWorkspaceName,
