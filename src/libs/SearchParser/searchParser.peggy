@@ -135,6 +135,7 @@ key
   / "sortOrder" { return "sortOrder"; }
   / "policyID" { return "policyID"; }
   / "has" { return "has"; }
+  / "is" { return "is"; }
 
 identifier
  = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
