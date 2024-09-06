@@ -644,8 +644,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex?: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver${approverIndex !== undefined ? `?approverIndex=${approverIndex}` : ''}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'settings/workspaces/:policyID/workflows/payer',
