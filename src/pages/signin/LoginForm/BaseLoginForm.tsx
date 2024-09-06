@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -332,7 +332,9 @@ function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubm
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-function ComponentWithOnyx(props: Omit<BaseLoginFormProps, keyof BaseLoginFormOnyxProps>) {
+const BaseLoginFormWithRef = forwardRef(BaseLoginForm);
+
+function ComponentWithOnyx(props: Omit<BaseLoginFormProps, keyof BaseLoginFormOnyxProps>, ref: ForwardedRef<InputHandle>) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [closeAccount, closeAccountMetadata] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
 
@@ -341,7 +343,8 @@ function ComponentWithOnyx(props: Omit<BaseLoginFormProps, keyof BaseLoginFormOn
     }
 
     return (
-        <BaseLoginForm
+        <BaseLoginFormWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             account={account}
@@ -350,4 +353,4 @@ function ComponentWithOnyx(props: Omit<BaseLoginFormProps, keyof BaseLoginFormOn
     );
 }
 
-export default withToggleVisibilityView(ComponentWithOnyx);
+export default withToggleVisibilityView(forwardRef(ComponentWithOnyx));

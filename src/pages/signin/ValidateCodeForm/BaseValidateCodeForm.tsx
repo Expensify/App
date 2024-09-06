@@ -423,7 +423,9 @@ function BaseValidateCodeForm(
 
 BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
-function ComponentWithOnyx(props: Omit<BaseValidateCodeFormProps, keyof BaseValidateCodeFormOnyxProps>) {
+const BaseValidateCodeFormWithRef = forwardRef(BaseValidateCodeForm);
+
+function ComponentWithOnyx(props: Omit<BaseValidateCodeFormProps, keyof BaseValidateCodeFormOnyxProps>, ref: ForwardedRef<BaseValidateCodeFormRef>) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
@@ -433,7 +435,8 @@ function ComponentWithOnyx(props: Omit<BaseValidateCodeFormProps, keyof BaseVali
     }
 
     return (
-        <BaseValidateCodeForm
+        <BaseValidateCodeFormWithRef
+            ref={ref}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             account={account}

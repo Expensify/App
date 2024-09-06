@@ -343,7 +343,7 @@ type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
-export default function SignInPageThemeWrapper(props: Omit<SignInPageProps & RefAttributes<SignInPageRef>, keyof SignInPageOnyxProps>, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageThemeWrapper(props: Omit<SignInPageProps & RefAttributes<SignInPageRef>, keyof SignInPageOnyxProps>, ref: ForwardedRef<SignInPageRef>) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [activeClients, activeClientsMetadata] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
@@ -374,5 +374,7 @@ export default function SignInPageThemeWrapper(props: Omit<SignInPageProps & Ref
 }
 
 SignInPageThemeWrapper.displayName = 'SignInPage';
+
+export default forwardRef(SignInPageThemeWrapper);
 
 export type {SignInPageRef};

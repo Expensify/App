@@ -494,8 +494,8 @@ function ComponentWithOnyx(
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector});
     const [isLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [quickAction, quickActionMetadata] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [quickActionReport, quickActionReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
-    const [quickActionPolicy, quickActionPolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
+    const [quickActionReport, quickActionReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID ?? '-1'}`);
+    const [quickActionPolicy, quickActionPolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID ?? '-1'}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [hasSeenTrackTraining, hasSeenTrackTrainingMetadata] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
