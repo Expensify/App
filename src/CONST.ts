@@ -5375,10 +5375,8 @@ const CONST = {
             },
             TRIP: {
                 ALL: 'all',
-                DRAFTS: 'drafts',
-                OUTSTANDING: 'outstanding',
-                APPROVED: 'approved',
-                PAID: 'paid',
+                CURRENT: 'current',
+                PAST: 'past',
             },
         },
         CHAT_TYPES: {

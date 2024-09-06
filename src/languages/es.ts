@@ -3955,6 +3955,8 @@ export default {
                 greaterThan: (amount?: string) => `Más que ${amount ?? ''}`,
                 between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} y ${lessThan}`,
             },
+            current: 'Actual',
+            past: 'Anterior',
         },
         expenseType: 'Tipo de gasto',
     },

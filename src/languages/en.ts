@@ -3904,6 +3904,8 @@ export default {
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
                 between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
             },
+            current: 'Current',
+            past: 'Past',
         },
         expenseType: 'Expense type',
     },
