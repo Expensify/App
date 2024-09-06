@@ -5,137 +5,149 @@
 //
 // query: entry point for the parser and rule to process the values returned by the filterList rule. Takes filters as an argument and returns the final AST output.
 // filterList: rule to process the array of filters returned by the filter rule. It takes head and tail as arguments, filters it for null values and builds the AST.
-// filter: abstract rule to simplify the filterList rule. It takes all filter types.
-// defaultFilter: rule to process the default values returned by the defaultKey rule. It updates the default values object.
-// freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
-// multiSelectFilter: rule to process the multi-select values returned by the multiselectKey rule. It builds multiselect filter Object.
-// standardFilter: rule to process the values returned by the key rule. It builds filter Object.
-// policyIDFilter: rule to process the policyID. It builds filter Object.
+// filter: rule to build the filter object. It takes field, operator and value as input and returns {operator, left: field, right: value} or null if the left value is a defaultValues
 // operator: rule to match pre-defined search syntax operators, e.g. !=, >, etc
-// key: rule to match pre-defined search syntax fields that aren't multi-select, e.g. amount, merchant, etc
-// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
-// multiselectKey: rule to match pre-defined search syntax fields that are used for multi-select filters, e.g. in, currency, etc
+// key: rule to match pre-defined search syntax fields, e.g. amount, merchant, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
 // quotedString: rule to match a quoted string pattern, e.g. "this is a quoted string"
 // alphanumeric: rule to match unquoted alphanumeric characters, e.g. a-z, 0-9, _, @, etc
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator
 // whitespace: rule to match whitespaces
 
-// global initializer (code executed only once)
-{{
-    function buildFilter(operator, left, right) {
-      return { operator, left, right };
-    }
-  }}
-  
-  // per-parser initializer (code executed before every parse)
-  {
-    const defaultValues = {
-      type: "expense",
-      status: "all",
-      sortBy: "date",
-      sortOrder: "desc",
+{
+  const defaultValues = {
+    "type": "expense",
+    "status": "all",
+    "sortBy": "date",
+    "sortOrder": "desc",
+  };
+
+  function buildFilter(operator, left, right) {
+    return { operator, left, right };
+  }
+
+  function applyDefaults(filters) {
+    return {
+      ...defaultValues,
+      filters
     };
-  
-    function applyDefaults(filters) {
-      return {
-        ...defaultValues,
-        filters,
-      };
-    }
-  
-    function updateDefaultValues(field, value) {
-      defaultValues[field] = value;
-    }
   }
-  
-  query = _ filters:filterList? _ { return applyDefaults(filters); }
-  
-  filterList
-    = head:filter tail:(logicalAnd filter)* {
-        const allFilters = [head, ...tail.map(([_, filter]) => filter)]
-          .filter((filter) => filter !== null)
-          .filter(Boolean);
-        if (!allFilters.length) {
-          return null;
-        }
-  
-        const keywords = allFilters.filter(
-          (filter) =>
-            filter.left === "keyword" || filter.right?.left === "keyword"
-        );
-        const nonKeywords = allFilters.filter(
-          (filter) =>
-            filter.left !== "keyword" && filter.right?.left !== "keyword"
-        );
-  
-        if (!nonKeywords.length) {
-          return keywords.reduce((result, filter) =>
-            buildFilter("or", result, filter)
-          );
-        }
-        if (!keywords.length) {
-          return nonKeywords.reduce((result, filter) =>
-            buildFilter("and", result, filter)
-          );
-        }
-  
-        return buildFilter(
-          "and",
-          keywords.reduce((result, filter) => buildFilter("or", result, filter)),
-          nonKeywords.reduce((result, filter) =>
-            buildFilter("and", result, filter)
-          )
-        );
-      }
-  
-  filter
-    = @(
-        defaultFilter
-        / standardFilter
-        / freeTextFilter
-      )
-  
-  defaultFilter
-    = _ key:defaultKey _ op:operator _ value:identifier {
-        updateDefaultValues(key, value);
-      }
-  
-  freeTextFilter
-    = _ value:identifier _ { return buildFilter("eq", "keyword", value); }
-  
-  standardFilter
-    = _ field:key _ op:operator _ value:identifier {
-          return buildFilter(op, field, value);
-      }
-      
-  operator "operator"
-    = (":" / "=") { return "eq"; }
-    / "!=" { return "neq"; }
-    / ">=" { return "gte"; }
-    / ">" { return "gt"; }
-    / "<=" { return "lte"; }
-    / "<" { return "lt"; }
-  
-  key "key"
-    = @("date" / "amount" / "merchant" / "description" / "reportID" / "keyword" / "in" / "currency" / "tag" / "category" / "to" / "taxRate" / "cardID" / "from" / "expenseType")
-  
-  defaultKey "default key" = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
-  
-  identifier = parts:(quotedString / alphanumeric)+ {
-      const value = parts.flat(); 
-      if (value.length > 1) {
-          return value;
-      }
-      return value[0];
+
+  function applyPolicyID(filtersWithDefaults) {
+    return {
+      ...filtersWithDefaults,
+      policyID: filtersWithDefaults.policyID
+    };
   }
-  
-  quotedString "quote" = "\"" chars:[^"\r\n]* "\"" { return chars.join("").trim(); }
-  
-  alphanumeric "word"
-    = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join("").trim().split(",").filter(val => val); }
-  
-  logicalAnd = _ { return "and"; }
-  
-  _ "whitespace" = [ \t\r\n]*
-  
+
+  function updateDefaultValues(field, value) {
+    defaultValues[field] = value;
+  }
+
+  function isDefaultField(field) {
+    return defaultValues.hasOwnProperty(field);
+  }
+
+  function isPolicyID(field) {
+    return field === 'policyID';
+  }
+}
+
+query
+  = _ filters:filterList? _ {
+    const withDefaults = applyDefaults(filters);
+    if (defaultValues.policyID) {
+        return applyPolicyID(withDefaults);
+    }
+
+    return withDefaults;
+  }
+
+filterList
+  = head:filter tail:(logicalAnd filter)* {
+      const allFilters = [head, ...tail.map(([_, filter]) => filter)].filter(filter => filter !== null);
+      if (!allFilters.length) {
+      	return null;
+      }
+     const keywords = allFilters.filter((filter) => filter.left === "keyword" || filter.right?.left === "keyword")
+     const nonKeywords = allFilters.filter((filter) => filter.left !== "keyword" && filter.right?.left !== "keyword")
+     if(!nonKeywords.length){
+     	return keywords.reduce((result, filter) => buildFilter("or", result, filter))
+     }
+     if(!keywords.length){
+     	return nonKeywords.reduce((result, filter) => buildFilter("and", result, filter))
+     }
+
+     return buildFilter("and", keywords.reduce((result, filter) => buildFilter("or", result, filter)), nonKeywords.reduce((result, filter) => buildFilter("and", result, filter)))
+
+      return allFilters.reduce((result, filter) => buildFilter("and", result, filter));
+    }
+
+filter
+  = _ field:key? _ op:operator? _ value:identifier {
+      if (isDefaultField(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
+      if (isPolicyID(field)) {
+        updateDefaultValues(field, value.trim());
+        return null;
+      }
+
+      if (!field && !op) {
+        return buildFilter('eq', 'keyword', value.trim());
+      }
+
+      const values = value.split(',');
+      const operatorValue = op ?? 'eq';
+
+      return values.slice(1).reduce((acc, val) => buildFilter('or', acc, buildFilter(operatorValue, field, val.trim())), buildFilter(operatorValue, field, values[0]));
+    }
+
+operator
+  = (":" / "=") { return "eq"; }
+  / "!=" { return "neq"; }
+  / ">" { return "gt"; }
+  / ">=" { return "gte"; }
+  / "<" { return "lt"; }
+  / "<=" { return "lte"; }
+
+key
+  = "type" { return "type"; }
+  / "status" { return "status"; }
+  / "date" { return "date"; }
+  / "amount" { return "amount"; }
+  / "expenseType" { return "expenseType"; }
+  / "in" { return "in"; }
+  / "currency" { return "currency"; }
+  / "merchant" { return "merchant"; }
+  / "description" { return "description"; }
+  / "from" { return "from"; }
+  / "to" { return "to"; }
+  / "category" { return "category"; }
+  / "tag" { return "tag"; }
+  / "taxRate" { return "taxRate"; }
+  / "cardID" { return "cardID"; }
+  / "reportID" { return "reportID"; }
+  / "keyword" { return "keyword"; }
+  / "sortBy" { return "sortBy"; }
+  / "sortOrder" { return "sortOrder"; }
+  / "policyID" { return "policyID"; }
+  / "has" { return "has"; }
+  / "is" { return "is"; }
+
+identifier
+ = parts:(quotedString / alphanumeric)+ { return parts.join(''); }
+
+quotedString
+  = '"' chars:[^"\r\n]* '"' { return chars.join(''); }
+
+alphanumeric
+  = chars:[A-Za-z0-9_@./#&+\-\\',;]+ { return chars.join(''); }
+
+logicalAnd
+  = _ { return "and"; }
+
+_ "whitespace"
+  = [ \t\r\n]*
