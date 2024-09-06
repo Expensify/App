@@ -48,7 +48,7 @@ type SelectionListApprover = {
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
-function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
+function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -227,7 +227,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                testID={WorkflowsApprovalsApproverPage.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -262,6 +262,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     );
 }
 
-WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
+WorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);
+export default withPolicyAndFullscreenLoading(WorkflowsApprovalsApproverPage);
