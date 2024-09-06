@@ -31,6 +31,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,6 +51,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -172,7 +174,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={isFirstTimeNewExpensifyUser && hasCompletedGuidedSetupFlow && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)}
+                shouldRender={
+                    isFirstTimeNewExpensifyUser &&
+                    !shouldHideGBRTooltip &&
+                    hasCompletedGuidedSetupFlow &&
+                    isScreenFocused &&
+                    shouldUseNarrowLayout &&
+                    ReportUtils.isConciergeChatReport(report)
+                }
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -182,6 +191,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
+                onPressOverlay={() => User.dismissGBRTooltip()}
             >
                 <View>
                     <Hoverable>

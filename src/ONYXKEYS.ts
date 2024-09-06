@@ -211,6 +211,9 @@ const ONYXKEYS = {
     /** The NVP containing all information related to educational tooltip in workspace chat */
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
+    /**  Whether to hide gbr tooltip*/
+    NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -915,6 +918,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
+    [ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;

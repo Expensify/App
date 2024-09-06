@@ -1230,6 +1230,10 @@ function dismissWorkspaceTooltip() {
     Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
 }
 
+function dismissGBRTooltip() {
+    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, true);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1269,4 +1273,5 @@ export {
     requestRefund,
     saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    dismissGBRTooltip,
 };
