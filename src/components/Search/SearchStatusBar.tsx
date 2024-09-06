@@ -20,6 +20,7 @@ import type {ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, Search
 type SearchStatusBarProps = {
     type: SearchDataTypes;
     status: SearchStatus;
+    onStatusChange?: () => void;
 };
 
 const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
@@ -121,7 +122,7 @@ function getOptions(type: SearchDataTypes) {
     }
 }
 
-function SearchStatusBar({type, status}: SearchStatusBarProps) {
+function SearchStatusBar({type, status, onStatusChange}: SearchStatusBarProps) {
     const {singleExecution} = useSingleExecution();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -141,7 +142,10 @@ function SearchStatusBar({type, status}: SearchStatusBarProps) {
             showsHorizontalScrollIndicator={false}
         >
             {options.map((item, index) => {
-                const onPress = singleExecution(() => Navigation.setParams({q: item.query}));
+                const onPress = singleExecution(() => {
+                    onStatusChange?.();
+                    Navigation.setParams({q: item.query});
+                });
                 const isActive = status === item.key;
                 const isFirstItem = index === 0;
                 const isLastItem = index === options.length - 1;

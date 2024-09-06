@@ -26,6 +26,7 @@ import SearchTypeMenu from './SearchTypeMenu';
 const TOO_CLOSE_TO_TOP_DISTANCE = 20;
 const TOO_CLOSE_TO_BOTTOM_DISTNACE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
+const SCROLL_TO_BAR_OFFSET_RATIO = 0.8;
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -46,6 +47,11 @@ function SearchPageBottomTab() {
         height: headerHeight.value,
     }));
 
+    const expandTopBar = () => {
+        // eslint-disable-next-line react-compiler/react-compiler
+        topBarOffset.value = withTiming(0, {duration: ANIMATION_DURATION_IN_MS});
+        headerHeight.value = withTiming(variables.searchHeaderHeight + variables.typeAndStatusBarHeight, {duration: ANIMATION_DURATION_IN_MS});
+    };
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
         if (windowHeight > contentSize.height) {
@@ -56,12 +62,10 @@ function SearchPageBottomTab() {
         const isScrollingDown = currentOffset > scrollOffset.value;
         if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
             const distanceScrolled = currentOffset - scrollOffset.value;
-            // eslint-disable-next-line react-compiler/react-compiler
-            topBarOffset.value = Math.max(-variables.typeAndStatusBarHeight, topBarOffset.value - distanceScrolled);
-            headerHeight.value = Math.max(variables.searchHeaderHeight, headerHeight.value - distanceScrolled);
+            topBarOffset.value = Math.max(-variables.typeAndStatusBarHeight, topBarOffset.value - distanceScrolled * SCROLL_TO_BAR_OFFSET_RATIO);
+            headerHeight.value = Math.max(variables.searchHeaderHeight, headerHeight.value - distanceScrolled * SCROLL_TO_BAR_OFFSET_RATIO);
         } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
-            topBarOffset.value = withTiming(0, {duration: ANIMATION_DURATION_IN_MS});
-            headerHeight.value = withTiming(variables.searchHeaderHeight + variables.typeAndStatusBarHeight, {duration: ANIMATION_DURATION_IN_MS});
+            expandTopBar();
         }
 
         scrollOffset.value = currentOffset;
@@ -120,6 +124,7 @@ function SearchPageBottomTab() {
                             <SearchStatusBar
                                 type={queryJSON.type}
                                 status={queryJSON.status}
+                                onStatusChange={expandTopBar}
                             />
                         )}
                     </Animated.View>
