@@ -15,10 +15,17 @@ require 'ostruct'
 skip_docs
 opt_out_usage
 
-KEY_GRADLE_APK_OUTPUT_PATH = "gradleAPKOutputPath"
+KEY_GRADLE_APK_PATH = "gradleAPKOutputPath"
+KEY_IPA_PATH = "ipaPath"
+KEY_DSYM_PATH = "dsymPath"
 
-def setGradleAPKPathInEnv()
-  ENV[KEY_GRADLE_APK_OUTPUT_PATH] = lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+def setGradleOutputsInEnv()
+  ENV[KEY_GRADLE_APK_PATH] = lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+end
+
+def setIOSBuildOutputsInEnv()
+  ENV[KEY_IPA_PATH] = lane_context[SharedValues::IPA_OUTPUT_PATH]
+  ENV[KEY_DSYM_PATH] = lane_context[SharedValues::DSYM_OUTPUT_PATH]
 end
 
 platform :android do
@@ -33,7 +40,7 @@ platform :android do
       flavor: 'Production',
       build_type: 'Release',
     )
-    setGradleAPKPathInEnv()
+    setGradleOutputsInEnv()
   end
 
   lane :build_e2e do
@@ -47,7 +54,7 @@ platform :android do
       flavor: 'e2e',
       build_type: 'Release',
     )
-    setGradleAPKPathInEnv()
+    setGradleOutputsInEnv()
   end
 
   lane :build_e2edelta do
@@ -61,7 +68,7 @@ platform :android do
       flavor: 'e2edelta',
       build_type: 'Release',
     )
-    setGradleAPKPathInEnv()
+    setGradleOutputsInEnv()
   end
 
   desc "Build AdHoc testing build"
@@ -73,7 +80,7 @@ platform :android do
       flavor: 'Adhoc',
       build_type: 'Release',
     )
-    setGradleAPKPathInEnv()
+    setGradleOutputsInEnv()
   end
 
   desc "Upload build to S3"
@@ -83,7 +90,7 @@ platform :android do
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-      apk: ENV[KEY_GRADLE_APK_OUTPUT_PATH],
+      apk: ENV[KEY_GRADLE_APK_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
@@ -175,6 +182,8 @@ platform :ios do
         manageAppVersionAndBuildNumber: false
       }
     )
+
+    setIOSBuildOutputsInEnv()
   end
 
   desc "Build an unsigned iOS production build"
@@ -184,6 +193,7 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         scheme: "New Expensify"
     )
+    setIOSBuildOutputsInEnv()
   end
 
   desc "Build AdHoc app for testing"
@@ -214,6 +224,7 @@ platform :ios do
         manageAppVersionAndBuildNumber: false
       }
     )
+    setIOSBuildOutputsInEnv()
   end
 
   desc "Upload app to S3"
@@ -223,7 +234,7 @@ platform :ios do
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      ipa: ENV[KEY_IPA_PATH],
       app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
     )
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
@@ -255,7 +266,7 @@ platform :ios do
 
     upload_symbols_to_crashlytics(
       app_id: "1:921154746561:ios:216bd10ccc947659027c40",
-      dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
+      dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
     )
