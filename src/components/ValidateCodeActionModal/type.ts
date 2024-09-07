@@ -7,7 +7,7 @@ type ValidateCodeActionModalProps = {
     /** Title of the modal */
     title: string;
 
-    /** description of the modal */
+    /** Description of the modal */
     description: string;
 
     /** Function to call when the user closes the modal */
