@@ -3272,6 +3272,8 @@ export default {
                     }
                 }
             },
+            errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
+            goToODToFix: 'Go to Expensiy Classic to fix this issue.',
             setup: 'Connect',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
