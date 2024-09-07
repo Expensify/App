@@ -360,9 +360,9 @@ function getOptionData({
     const status = personalDetail?.status ?? '';
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
-    // We only create tooltips for the first 5 users or so since some reports have hundreds of users, causing performance to degrade.
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        (participantPersonalDetailList || []).slice(0, 5),
+        (participantPersonalDetailList || []).slice(0, 10),
         hasMultipleParticipants,
         undefined,
         ReportUtils.isSelfDM(report),
