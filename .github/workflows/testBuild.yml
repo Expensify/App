@@ -10,6 +10,9 @@ on:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -35,7 +38,6 @@ jobs:
             echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
           fi
         env:
-          PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
 
   getBranchRef:
@@ -64,7 +66,6 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
       RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
@@ -137,7 +138,6 @@ jobs:
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
@@ -229,8 +229,6 @@ jobs:
     name: Build and deploy Desktop for testing
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-14-large
     steps:
       - name: Checkout
@@ -274,8 +272,6 @@ jobs:
     name: Build and deploy Web
     needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
@@ -310,8 +306,6 @@ jobs:
     name: Post a GitHub comment with app download links for testing
     needs: [validateActor, getBranchRef, android, iOS, desktop, web]
     if: ${{ always() }}
-    env:
-      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
