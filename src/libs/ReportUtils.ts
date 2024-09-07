@@ -55,7 +55,6 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
@@ -155,10 +154,10 @@ type OptimisticExpenseReport = Pick<
     | 'statusNum'
     | 'total'
     | 'nonReimbursableTotal'
-    | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'parentReportActionID'
+    | 'participants'
     | 'fieldList'
 >;
 
@@ -275,7 +274,6 @@ type OptimisticChatReport = Pick<
     | 'lastMessageText'
     | 'lastReadTime'
     | 'lastVisibleActionCreated'
-    | 'notificationPreference'
     | 'oldPolicyName'
     | 'ownerAccountID'
     | 'pendingFields'
@@ -356,7 +354,6 @@ type OptimisticTaskReport = Pick<
     | 'policyID'
     | 'stateNum'
     | 'statusNum'
-    | 'notificationPreference'
     | 'parentReportActionID'
     | 'lastVisibleActionCreated'
     | 'hasParentAccess'
@@ -396,7 +393,6 @@ type OptimisticIOUReport = Pick<
     | 'statusNum'
     | 'total'
     | 'reportName'
-    | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
     | 'fieldList'
@@ -1149,6 +1145,32 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
+function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    if (isAnnounceRoom(report)) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+    if (isPublicRoom(report)) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY;
+    }
+    if (!getChatType(report) || isGroupChat(report)) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+    if (isAdminRoom(report) || isPolicyExpenseChat(report) || isInvoiceRoom(report)) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+    if (isSelfDM(report)) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    }
+    return CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY;
+}
+
+/**
+ * Get the notification preference given a report
+ */
+function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    return report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report);
+}
+
 const CONCIERGE_ACCOUNT_ID_STRING = CONST.ACCOUNT_ID.CONCIERGE.toString();
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
@@ -1254,7 +1276,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = !isChatThread(report) || report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const shouldKeep = !isChatThread(report) || getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
@@ -1622,13 +1644,6 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
         return false;
     }
     return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
-}
-
-/**
- * Get the notification preference given a report
- */
-function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
-    return report?.notificationPreference ?? '';
 }
 
 /**
@@ -2065,7 +2080,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
                 return false;
             }
 
-            if (shouldExcludeHidden && reportParticipants[accountID]?.hidden) {
+            if (shouldExcludeHidden && reportParticipants[accountID]?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
                 return false;
             }
 
@@ -2118,7 +2133,7 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     const finalParticipants: Participants = {};
     return accountIDs.reduce((participants, accountID) => {
         // eslint-disable-next-line no-param-reassign
-        participants[accountID] = {hidden: false};
+        participants[accountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
         return participants;
     }, finalParticipants);
 }
@@ -4256,8 +4271,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const policy = getPolicy(policyID);
 
     const participants: Participants = {
-        [payeeAccountID]: {hidden: true},
-        [payerAccountID]: {hidden: true},
+        [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+        [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
     };
 
     return {
@@ -4275,7 +4290,6 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         fieldList: policy?.fieldList,
@@ -4330,7 +4344,11 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        participants: {
+            [currentUserAccountID ?? -1]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        },
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
@@ -4380,7 +4398,11 @@ function buildOptimisticExpenseReport(
         statusNum,
         total: storedTotal,
         nonReimbursableTotal: reimbursable ? 0 : storedTotal,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        participants: {
+            [payeeAccountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        },
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         parentReportActionID,
@@ -5040,12 +5062,11 @@ function buildOptimisticChatReport(
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
-    shouldShowParticipants = true,
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
-            hidden: !shouldShowParticipants,
+            notificationPreference,
             ...(!isWorkspaceChatType && {role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER}),
         };
         // eslint-disable-next-line no-param-reassign
@@ -5066,7 +5087,6 @@ function buildOptimisticChatReport(
         lastMessageText: undefined,
         lastReadTime: currentTime,
         lastVisibleActionCreated: currentTime,
-        notificationPreference,
         oldPolicyName,
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
@@ -5484,9 +5504,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         policyName,
         undefined,
         undefined,
-
-        // #announce contains all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const announceChatReportID = announceChatData.reportID;
     const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -5573,12 +5591,12 @@ function buildOptimisticTaskReport(
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
-            hidden: false,
+            notificationPreference,
         },
     };
 
     if (assigneeAccountID) {
-        participants[assigneeAccountID] = {hidden: false};
+        participants[assigneeAccountID] = {notificationPreference};
     }
 
     return {
@@ -5593,7 +5611,6 @@ function buildOptimisticTaskReport(
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        notificationPreference,
         lastVisibleActionCreated: DateUtils.getDBTime(),
         hasParentAccess: true,
     };
@@ -5671,10 +5688,6 @@ function buildTransactionThread(
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReport?.reportID,
-        '',
-        '',
-        '',
-        false,
     );
 }
 
@@ -5982,7 +5995,10 @@ function shouldReportBeInOptionList({
         return false;
     }
 
-    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
+    // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
+    // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
+    // show that chat
+    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report)) {
         return false;
     }
 
@@ -6048,7 +6064,7 @@ function shouldReportBeInOptionList({
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInFocusMode) {
-        return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+        return isUnread(report) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
@@ -7341,7 +7357,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     }
     type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
     const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
-    const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
+    const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isReportInGroupPolicy(report) &&
         policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
@@ -7440,7 +7456,7 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
+function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
@@ -7448,7 +7464,7 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
     }
 
     // If the notification preference of the chat is not hidden that means we have already joined the chat
-    if (report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         return false;
     }
 
@@ -7482,7 +7498,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         return false;
     }
 
@@ -7500,7 +7516,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return canLeaveInvoiceRoom(report);
     }
 
-    return (isChatThread(report) && !!report?.notificationPreference?.length) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+    return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
 function getReportActionActorAccountID(reportAction: OnyxInputOrEntry<ReportAction>, iouReport: OnyxInputOrEntry<Report> | undefined): number | undefined {
@@ -7620,8 +7636,9 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
 }
 
 /**
- * Whether the report is a system chat or concierge chat, depending on the onboarding report ID or fallbacking
- * to the user's account ID (used for A/B testing purposes).
+ * Whether a given report is used for onboarding tasks. In the past, it could be either the Concierge chat or the system
+ * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
+ * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
     // onboarding can be an array for old accounts and accounts created from olddot
@@ -7629,13 +7646,12 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData)
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
-    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1)
-        ? isSystemChat(optionOrReport)
-        : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
+    return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
- * Get the report (system or concierge chat) used for the user's onboarding process.
+ * Get the report used for the user's onboarding process. For most users it is the Concierge chat, however in the past
+ * we also used the system DM for A/B tests.
  */
 function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(ReportConnection.getAllReports() ?? {}).find(isChatUsedForOnboarding);
@@ -7776,8 +7792,8 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     return invoiceReport?.ownerAccountID === currentUserAccountID && isEmptyObject(getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount ?? {}) && isSettled(iouReportID);
 }
 
-function isSubmittedExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID && isProcessingReport(report);
+function isExpenseReportManagerWithoutParentAccess(report: OnyxEntry<Report>) {
+    return isExpenseReport(report) && report?.hasParentAccess === false && report?.managerID === currentUserAccountID;
 }
 
 export {
@@ -7976,7 +7992,7 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isSubmittedExpenseReportManagerWithoutParentAccess,
+    isExpenseReportManagerWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
@@ -8033,6 +8049,7 @@ export {
     isInvoiceRoomWithID,
     isInvoiceReport,
     isOpenInvoiceReport,
+    getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,

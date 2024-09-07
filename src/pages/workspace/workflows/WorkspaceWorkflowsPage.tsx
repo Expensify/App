@@ -176,7 +176,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             <OfflineWithFeedback
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
-                                pendingAction={policy?.pendingFields?.employeeList}
+                                pendingAction={workflow.pendingAction}
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}

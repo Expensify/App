@@ -75,15 +75,15 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (!validateFile(file)) {
             return;
         }
-        if (!file.uri) {
+        let fileURI = file.uri ?? URL.createObjectURL(file);
+        if (!fileURI) {
             return;
         }
-        let filePath = file.uri;
         if (Platform.OS === 'ios') {
-            filePath = filePath.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
+            fileURI = fileURI.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
 
-        fetch(filePath)
+        fetch(fileURI)
             .then((data) => {
                 setIsReadingFIle(true);
                 return data.arrayBuffer();
@@ -92,12 +92,19 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][]).then(() => {
-                    Navigation.navigate(goTo);
-                });
+                setSpreadsheetData(data as string[][])
+                    .then(() => {
+                        Navigation.navigate(goTo);
+                    })
+                    .catch(() => {
+                        setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                    });
             })
             .finally(() => {
                 setIsReadingFIle(false);
+                if (fileURI && !file.uri) {
+                    URL.revokeObjectURL(fileURI);
+                }
             });
     };
 
@@ -185,7 +192,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                             height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
                                         />
                                         <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{translate('common.dropMessage')}</Text>
+                                        <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
                                     </View>
                                 </View>
                             </DragAndDropConsumer>
