@@ -34,8 +34,6 @@ def setIOSBuildOutputsInEnv()
 end
 
 platform :android do
-  desc "Generate a new local APK for e2e testing"
-
   desc "Generate a new local APK"
   lane :build do
     ENV["ENVFILE"]=".env.production"
@@ -48,6 +46,7 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
+  desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
