@@ -21,6 +21,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import onlyEmojisBlockquoteLineHeight from './utils/emojiBlockquoteStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
@@ -262,6 +263,7 @@ const styles = (theme: ThemeColors) =>
         ...textDecorationLine,
         editedLabelStyles,
         emojiDefaultStyles,
+        onlyEmojisBlockquoteLineHeight,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,

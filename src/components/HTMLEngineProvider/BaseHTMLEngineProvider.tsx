@@ -82,8 +82,28 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
+            blockquote: HTMLElementModel.fromCustomModel({
+                tagName: 'blockquote',
+                contentModel: HTMLContentModel.block,
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return;
+                    }
+                    return styles.onlyEmojisBlockquoteLineHeight;
+                },
+            }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough, styles.mutedNormalTextLabel],
+        [
+            styles.formError,
+            styles.mb0,
+            styles.colorMuted,
+            styles.textLabelSupporting,
+            styles.lh16,
+            styles.textSupporting,
+            styles.textLineThrough,
+            styles.mutedNormalTextLabel,
+            styles.onlyEmojisBlockquoteLineHeight,
+        ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
