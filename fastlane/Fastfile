@@ -20,11 +20,16 @@ KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
 
 def setGradleOutputsInEnv()
+  puts "Saving Android build outputs in env..."
+  puts "#{KEY_GRADLE_APK_PATH}=#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}"
   ENV[KEY_GRADLE_APK_PATH] = lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
 end
 
 def setIOSBuildOutputsInEnv()
+  puts "Saving iOS build outputs in env..."
+  puts "#{KEY_IPA_PATH}=#{lane_context[SharedValues::IPA_OUTPUT_PATH]}"
   ENV[KEY_IPA_PATH] = lane_context[SharedValues::IPA_OUTPUT_PATH]
+  puts "#{KEY_DSYM_PATH}=#{lane_context[SharedValues::DSYM_OUTPUT_PATH]}"
   ENV[KEY_DSYM_PATH] = lane_context[SharedValues::DSYM_OUTPUT_PATH]
 end
 
