@@ -90,6 +90,7 @@ platform :android do
 
   desc "Upload build to S3"
   lane :upload_s3 do
+    puts "APK path: #{ENV[KEY_GRADLE_APK_PATH]}"
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
@@ -234,6 +235,7 @@ platform :ios do
 
   desc "Upload app to S3"
   lane :upload_s3 do
+    puts "IPA path: #{ENV[KEY_IPA_PATH]}"
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
@@ -269,6 +271,7 @@ platform :ios do
       }
     )
 
+    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
     upload_symbols_to_crashlytics(
       app_id: "1:921154746561:ios:216bd10ccc947659027c40",
       dsym_path: ENV[KEY_DSYM_PATH],
