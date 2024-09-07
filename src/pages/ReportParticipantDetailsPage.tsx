@@ -54,8 +54,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = details.displayName ?? '';
-    const displayNameOrDefault = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
@@ -93,12 +92,12 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {!!(displayNameOrDefault ?? '') && (
+                    {!!(displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
-                            {displayNameOrDefault}
+                            {displayName}
                         </Text>
                     )}
                     {isCurrentUserAdmin && (
