@@ -110,7 +110,13 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 },
             ]);
-            Connections.updateNetSuiteCustomLists(policyID, updatedCustomLists, customLists);
+            Connections.updateNetSuiteCustomLists(
+                policyID,
+                updatedCustomLists,
+                customLists,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}_${customLists.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             nextScreen();
         },
         [customLists, nextScreen, policyID],
@@ -153,7 +159,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonStyles={[styles.ph5, styles.mb0]}
                     shouldUseScrollView={!selectionListForm}
                     enabledWhenOffline
-                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customLists}
+                    isSubmitDisabled={!!config?.pendingFields?.customLists}
                     submitFlexEnabled={submitFlexAllowed}
                 >
                     <SubStep
