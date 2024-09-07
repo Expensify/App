@@ -694,6 +694,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: file?.uri ?? '',
+                avatarFileName: file ? file?.name ?? '' : null,
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -704,12 +705,14 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         },
     ];
 
+    const fetchedReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarUrl: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.avatarUrl ?? null,
+                avatarUrl: fetchedReport?.avatarUrl ?? null,
+                avatarFileName: fetchedReport?.avatarFileName ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -842,8 +845,6 @@ function openReport(
         if (avatar) {
             parameters.file = avatar;
         }
-
-        clearGroupChat();
     }
 
     if (isFromDeepLink) {
@@ -1007,7 +1008,14 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            newChat = ReportUtils.buildOptimisticGroupChatReport(
+                participantAccountIDs,
+                reportName ?? '',
+                avatarUri ?? '',
+                avatarFile?.name ?? '',
+                optimisticReportID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
@@ -1027,12 +1035,14 @@ function navigateToAndOpenReport(
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
-    if (shouldDismissModal) {
-        Navigation.dismissModalWithReport(report);
-    } else {
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
-    }
+    InteractionManager.runAfterInteractions(() => {
+        if (shouldDismissModal) {
+            Navigation.dismissModalWithReport(report);
+        } else {
+            Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
+        }
+    });
 }
 
 /**

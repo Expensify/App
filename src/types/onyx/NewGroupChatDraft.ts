@@ -23,6 +23,9 @@ type NewGroupChatDraft = {
 
     /** New group chat avatar file type */
     avatarFileType: string | null;
+
+    /** Optimistic report ID of the new group chat */
+    optimisticReportID: string | null;
 };
 export type {SelectedParticipant};
 export default NewGroupChatDraft;
