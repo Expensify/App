@@ -1235,6 +1235,15 @@ type Connections = {
 /** Names of integration connections */
 type ConnectionName = keyof Connections;
 
+/** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
+type MccGroup = {
+    /** Default category for provided MCC Group */
+    category: string;
+
+    /** ID of the Merchant Category Code */
+    groupID: string;
+};
+
 /** Model of verified reimbursement bank account linked to policy */
 type ACHAccount = {
     /** ID of the bank account */
@@ -1437,8 +1446,44 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-        /** The maximum report total allowed to trigger auto reimbursement. */
+        /** Detailed settings for the autoReimbursement */
+        autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<
+            {
+                /**
+                 * The maximum report total allowed to trigger auto reimbursement.
+                 */
+                limit?: number;
+            },
+            'limit'
+        >;
+
+        /** The maximum report total allowed to trigger auto reimbursement */
         autoReimbursementLimit?: number;
+
+        /**
+         * Whether the auto-approval options are enabled in the policy rules
+         */
+        shouldShowAutoApprovalOptions?: boolean;
+
+        /** Detailed settings for the autoApproval */
+        autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
+            {
+                /**
+                 * The maximum report total allowed to trigger auto approval.
+                 */
+                limit?: number;
+                /**
+                 * Percentage of the reports that should be selected for a random audit
+                 */
+                auditRate?: number;
+            },
+            'limit' | 'auditRate'
+        >;
+
+        /**
+         * Whether the custom report name options are enabled in the policy rules
+         */
+        shouldShowCustomReportTitleOption?: boolean;
 
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
@@ -1508,7 +1553,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         connections?: Connections;
 
         /** Report fields attached to the policy */
-        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField>>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;
@@ -1579,10 +1624,16 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether GL codes are enabled */
         glCodes?: boolean;
 
+        /** Is the auto-pay option for the policy enabled  */
+        shouldShowAutoReimbursementLimitOption?: boolean;
+
+        /** Policy MCC Group settings */
+        mccGroup?: Record<string, MccGroup>;
+
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | 'employeeList' | keyof ACHAccount | keyof Attributes
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */
