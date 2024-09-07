@@ -1,4 +1,3 @@
-import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +14,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TimezoneInitialPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -33,7 +33,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const updateAutomaticTimezone = (isAutomatic: boolean) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            selected: isAutomatic && !lodashIsEmpty(currentTimezone) ? currentTimezone : timezone.selected,
+            selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
         });
     };
 
