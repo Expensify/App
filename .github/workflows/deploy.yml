@@ -102,7 +102,7 @@ jobs:
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
 
       - name: Build Android app
-        if: fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android build
         env:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
@@ -269,13 +269,23 @@ jobs:
       - name: Set iOS version in ENV
         run: echo "IOS_VERSION=$(echo '${{ env.VERSION }}' | tr '-' '.')" >> "$GITHUB_ENV"
 
-      - name: Run Fastlane
-        run: bundle exec fastlane ios ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
+      - name: Build iOS release app
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios build
+
+      - name: Upload release build to TestFlight
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_testflight
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+      - name: Run Fastlane
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios submit_for_review
+        env:
           VERSION: ${{ env.IOS_VERSION }}
 
       - name: Upload iOS build to Browser Stack
