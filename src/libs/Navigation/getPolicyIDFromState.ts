@@ -1,8 +1,7 @@
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
-import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
-import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
-import type {RootStackParamList, State} from './types';
+import type {NavigationPartialRoute, RootStackParamList, State} from './types';
 
 /**
  * returns policyID value if one exists in navigation state
@@ -12,19 +11,16 @@ import type {RootStackParamList, State} from './types';
  *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for SEARCH_CENTRAL_PANE)
  */
 const getPolicyIDFromState = (state: State<RootStackParamList>): string | undefined => {
-    const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-
-    if (!topmostBottomTabRoute) {
-        return;
+    const lastPolicyRoute = state.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE);
+    if (lastPolicyRoute?.params && 'policyID' in lastPolicyRoute.params) {
+        return lastPolicyRoute?.params?.policyID;
     }
 
-    if (topmostBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB) {
-        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
-        return extractPolicyIDFromQuery(topmostCentralPaneRoute);
+    if (lastPolicyRoute) {
+        return extractPolicyIDFromQuery(lastPolicyRoute as NavigationPartialRoute<string>);
     }
 
-    const policyID = topmostBottomTabRoute && topmostBottomTabRoute.params && 'policyID' in topmostBottomTabRoute.params && topmostBottomTabRoute.params?.policyID;
-    return policyID ? (topmostBottomTabRoute.params?.policyID as string) : undefined;
+    return undefined;
 };
 
 export default getPolicyIDFromState;

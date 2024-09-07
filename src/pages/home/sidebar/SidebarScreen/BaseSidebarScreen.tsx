@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
@@ -27,7 +27,7 @@ const startTimer = () => {
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
-    const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
+    const activeWorkspaceID = useActiveWorkspace();
     const {translate} = useLocalize();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
 

@@ -1,19 +1,24 @@
-import React, {useMemo, useState} from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
+import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
-    const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(undefined);
+    const activeWorkspaceID = useNavigationState(getPolicyIDFromState);
 
-    const value = useMemo(
-        () => ({
-            activeWorkspaceID,
-            setActiveWorkspaceID,
-        }),
-        [activeWorkspaceID, setActiveWorkspaceID],
-    );
+    // @TODO Remember to handle saving activeWorkspaceID in the session storage
 
-    return <ActiveWorkspaceContext.Provider value={value}>{children}</ActiveWorkspaceContext.Provider>;
+    // const setActiveWorkspaceID = useCallback((workspaceID: string | undefined) => {
+    //     updateActiveWorkspaceID(workspaceID);
+    //     if (workspaceID && sessionStorage) {
+    //         sessionStorage?.setItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID, workspaceID);
+    //     } else {
+    //         sessionStorage?.removeItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+    //     }
+    // }, []);
+
+    return <ActiveWorkspaceContext.Provider value={activeWorkspaceID}>{children}</ActiveWorkspaceContext.Provider>;
 }
 
 export default ActiveWorkspaceContextProvider;

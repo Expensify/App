@@ -55,7 +55,7 @@ function WorkspaceNewRoomPage() {
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const {isLoading = false, errorFields = {}} = formState ?? {};
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspace();
 
     const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
 

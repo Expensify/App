@@ -64,7 +64,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspace();
     const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
 
@@ -147,7 +147,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />

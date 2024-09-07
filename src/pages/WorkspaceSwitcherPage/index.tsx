@@ -41,7 +41,7 @@ function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspace();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -90,14 +90,13 @@ function WorkspaceSwitcherPage() {
 
             const {policyID} = option;
 
-            // setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
                 // Navigation.navigateWithSwitchPolicyID({policyID});
                 navigationRef.dispatch({type: 'SWITCH_POLICY_ID', payload: {policyID}});
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID],
+        [activeWorkspaceID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

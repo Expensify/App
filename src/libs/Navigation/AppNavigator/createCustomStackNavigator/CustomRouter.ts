@@ -2,9 +2,11 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, getPathFromState, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import * as Localize from '@libs/Localize';
+import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import linkingConfig from '@libs/Navigation/linkingConfig';
-import {RootStackParamList} from '@libs/Navigation/types';
+import createSplitNavigator from '@libs/Navigation/linkingConfig/createSplitNavigator';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import * as Welcome from '@userActions/Welcome';
@@ -101,18 +103,19 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
 
                     if (action.payload.policyID) {
                         queryJSON.policyID = action.payload.policyID;
-                        newParams = {...currentParams, q: SearchUtils.buildSearchQueryString(queryJSON)};
                     } else {
                         delete queryJSON.policyID;
-                        newParams = {...currentParams, q: SearchUtils.buildSearchQueryString(queryJSON)};
                     }
 
-                    const newRoutes = [...state.routes, {...lastRoute, params: newParams}];
+                    newParams = {...currentParams, q: SearchUtils.buildSearchQueryString(queryJSON)};
+                    const newRoutes = [...state.routes, {...lastRoute, key: lastRoute.key + 'key', params: newParams}];
                     return {...state, routes: newRoutes, index: newRoutes.length - 1};
                 }
                 if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                     // TODO: handle change policy id of reports navigator.
-                    return;
+                    const newRoute = createSplitNavigator('Home', {name: SCREENS.REPORT, params: {reportID: ''}}, action.payload.policyID, lastRoute.key + 'key');
+                    const newRoutes = [...state.routes, newRoute];
+                    return {...state, routes: newRoutes, index: newRoutes.length - 1};
                 }
                 // In other cases, do nothing.
                 return null;
@@ -121,6 +124,22 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.
             if (shouldPreventReset(state, action)) {
                 return state;
+            }
+
+            if (action.type === 'PUSH' && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const policyID = getPolicyIDFromState(state);
+                const currentParams = {...action.payload.params};
+                action.payload.params = {...currentParams, policyID};
+            }
+
+            if (action.type === 'PUSH' && action.payload.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                const policyID = getPolicyIDFromState(state);
+                const params = policyID ? {policyID} : {};
+                action.payload.params = {q: SearchUtils.buildSearchQueryString(params), isCustomQuery: false};
+            }
+
+            if (action.type === 'RESET') {
+                const policyID = getPolicyIDFromState(action.payload);
             }
 
             // TODO: I don't remember if the code below makes sense Wojtek :D but it's possible.

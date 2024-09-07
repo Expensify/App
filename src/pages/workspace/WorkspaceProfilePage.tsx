@@ -52,7 +52,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = route.params.policyID;
     const {canUseSpotnanaTravel} = usePermissions();
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -136,10 +136,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy?.id) {
-            setActiveWorkspaceID(undefined);
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+    }, [policy?.id, policyName, activeWorkspaceID]);
 
     return (
         <WorkspacePageWithSections

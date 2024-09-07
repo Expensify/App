@@ -77,7 +77,10 @@ function SearchPage({route}: SearchPageProps) {
                                         breadcrumbLabel={translate('common.search')}
                                         shouldDisplaySearch={false}
                                     />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
+                                    <SearchTypeMenu
+                                        queryJSON={queryJSON}
+                                        searchName={name}
+                                    />
                                 </View>
                             ) : (
                                 <HeaderWithBackButton

@@ -6,7 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
-import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,7 @@ type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
 function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
-    const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
+    const activeWorkspaceID = useActiveWorkspace();
     const {translate} = useLocalize();
 
     const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
@@ -52,7 +52,6 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
-
     return (
         <View
             accessibilityElementsHidden={!isFocused}
@@ -68,7 +67,6 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading ?? false}
-                activeWorkspaceID={activeWorkspaceID}
                 optionListItems={orderedReportIDs}
             />
         </View>
