@@ -1595,7 +1595,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectedAvatarBorder: {
-            padding: 2,
+            padding: 1,
             borderWidth: 2,
             borderRadius: 20,
             borderColor: theme.success,
@@ -1621,8 +1621,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             borderWidth: 2,
             position: 'absolute',
-            right: -3,
-            top: -4,
+            right: -2,
+            top: -3,
             height: 12,
             width: 12,
             zIndex: 10,
@@ -4522,7 +4522,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -4,
             bottom: -4,
-            borderColor: theme.highlightBG,
+            borderColor: theme.appBG,
             borderWidth: 2,
             overflow: 'hidden',
         },

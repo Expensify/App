@@ -5,8 +5,8 @@ import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 import type {SearchQueryString} from '@components/Search/types';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -158,7 +158,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt2, selectedTab === SCREENS.HOME ? styles.textBold : {}]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.HOME ? styles.textBold : {}]}
                     >
                         {translate('common.inbox')}
                     </Text>
@@ -182,7 +182,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                     </View>
                     <Text
                         textAlign="center"
-                        style={[styles.textSmall, styles.mt2, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : {}]}
+                        style={[styles.textSmall, styles.mt1Half, selectedTab === SCREENS.SEARCH.BOTTOM_TAB ? styles.textBold : {}]}
                     >
                         {translate('common.search')}
                     </Text>

@@ -30,7 +30,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const shouldRemoveTopMargin = isSelected || !!emojiStatus;
+    const shouldRemoveTopMargin = isSelected || emojiStatus;
 
     const showSettingsPage = useCallback(() => {
         if (isCreateMenuOpen) {
@@ -68,12 +68,12 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 wrapperStyle={styles.flex1}
-                style={[styles.bottomTabBarItem, emojiStatus ? styles.mtn1 : {}]}
+                style={[styles.bottomTabBarItem, isSelected ? styles.mtn0Half : {}, emojiStatus ? styles.mtn1 : {}]}
             >
                 {children}
                 <Text
                     textAlign="center"
-                    style={[styles.textSmall, isSelected ? styles.textBold : {}, shouldRemoveTopMargin ? {} : styles.mt2]}
+                    style={[styles.textSmall, isSelected ? styles.textBold : {}, shouldRemoveTopMargin ? {} : styles.mt0Half]}
                 >
                     {translate('common.settings')}
                 </Text>
