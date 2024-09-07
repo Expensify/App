@@ -91,7 +91,7 @@ function ReportIDsContextProvider({
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspace();
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [policies, activeWorkspaceID, accountID]);
 
