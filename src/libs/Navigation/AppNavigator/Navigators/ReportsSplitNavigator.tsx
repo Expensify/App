@@ -23,7 +23,7 @@ function shouldOpenOnAdminRoom() {
 
 function ReportsSplitNavigator() {
     const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspace();
 
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);

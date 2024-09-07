@@ -15,7 +15,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
         return adaptedState;
     },
     subscribe,
-    // getPathFromState: customGetPathFromState,
+    getPathFromState: customGetPathFromState,
     prefixes,
     config,
 };
