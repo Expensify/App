@@ -118,6 +118,26 @@ platform :android do
   end
 end
 
+def setupIOSSigningCertificate()
+  require 'securerandom'
+  keychain_password = SecureRandom.uuid
+
+  create_keychain(
+    name: "ios-build.keychain",
+    password: keychain_password,
+    default_keychain: "true",
+    unlock: "true",
+    timeout: "3600",
+    add_to_search_list: "true"
+  )
+
+  import_certificate(
+    certificate_path: "./ios/Certificates.p12",
+    keychain_name: "ios-build.keychain",
+    keychain_password: keychain_password
+  )
+end
+
 platform :ios do
   desc "Generate a local iOS production build"
   lane :build do
@@ -131,25 +151,9 @@ platform :ios do
 
   desc "Build app for testing"
   lane :build_internal do
-    require 'securerandom'
     ENV["ENVFILE"]=".env.adhoc"
 
-    keychain_password = SecureRandom.uuid
-
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
-    )
+    setupIOSSigningCertificate()
 
     install_provisioning_profile(
         path: "./ios/NewApp_AdHoc.mobileprovision"
@@ -189,25 +193,9 @@ platform :ios do
 
   desc "Build and upload app to TestFlight"
   lane :beta do
-    require 'securerandom'
     ENV["ENVFILE"]=".env.production"
 
-    keychain_password = SecureRandom.uuid
-
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
-    )
+    setupIOSSigningCertificate()
 
     install_provisioning_profile(
         path: "./ios/NewApp_AppStore.mobileprovision"
