@@ -15,6 +15,12 @@ require 'ostruct'
 skip_docs
 opt_out_usage
 
+KEY_GRADLE_APK_OUTPUT_PATH = "gradleAPKOutputPath"
+
+def setGradleAPKPathInEnv()
+  ENV[KEY_GRADLE_APK_OUTPUT_PATH] = lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+end
+
 platform :android do
   desc "Generate a new local APK for e2e testing"
 
@@ -27,6 +33,7 @@ platform :android do
       flavor: 'Production',
       build_type: 'Release',
     )
+    setGradleAPKPathInEnv()
   end
 
   lane :build_e2e do
@@ -40,6 +47,7 @@ platform :android do
       flavor: 'e2e',
       build_type: 'Release',
     )
+    setGradleAPKPathInEnv()
   end
 
   lane :build_e2edelta do
@@ -53,6 +61,7 @@ platform :android do
       flavor: 'e2edelta',
       build_type: 'Release',
     )
+    setGradleAPKPathInEnv()
   end
 
   desc "Build AdHoc testing build"
@@ -64,6 +73,7 @@ platform :android do
       flavor: 'Adhoc',
       build_type: 'Release',
     )
+    setGradleAPKPathInEnv()
   end
 
   desc "Upload build to S3"
@@ -73,7 +83,7 @@ platform :android do
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      apk: ENV[KEY_GRADLE_APK_OUTPUT_PATH],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
