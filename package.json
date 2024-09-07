@@ -12,7 +12,7 @@
     "startAndroidEmulator": "scripts/start-android.sh",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
-    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --mode=developmentDebug --appId=com.expensify.chat.dev --active-arch-only",
+    "android": "scripts/run-android.sh",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --list-devices --mode=\"DebugDevelopment\" --scheme=\"New Expensify Dev\"",
     "pod-install": "scripts/pod-install.sh",
     "ipad": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (12.9-inch) (6th generation)\\\" --mode=\\\"DebugDevelopment\\\" --scheme=\\\"New Expensify Dev\\\"\"",

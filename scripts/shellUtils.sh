@@ -10,6 +10,11 @@ if [ -z "${RED+x}" ]; then
   declare -r RED=$'\e[1;31m'
 fi
 
+# Check if YELLOW has already been defined
+if [ -z "${YELLOW+x}" ]; then
+  declare -r YELLOW=$'\e[1;33m'
+fi
+
 # Check if BLUE has already been defined
 if [ -z "${BLUE+x}" ]; then
   declare -r BLUE=$'\e[1;34m'
@@ -31,6 +36,10 @@ function success {
 
 function error {
   echo "💥 $RED$1$RESET"
+}
+
+function warning {
+  echo "⚠️ $YELLOW$1$RESET"
 }
 
 function info {
@@ -120,5 +129,38 @@ read_lines_into_array() {
   local line
   while IFS= read -r line || [ -n "$line" ]; do
     eval "$array_name+=(\"$line\")"
+  done
+}
+
+ask_yes_no() {
+  local prompt_text="$1"
+  local default="$2"
+  local response
+
+  # Determine the prompt with the default option shown
+  if [[ "$default" == "Y" ]]; then
+    prompt_text="$prompt_text [Y/n] "
+  elif [[ "$default" == "N" ]]; then
+    prompt_text="$prompt_text [y/N] "
+  else
+    prompt_text="$prompt_text [y/n] "
+  fi
+
+  # Loop until a valid response is given
+  while true; do
+    # Prompt the user for input
+    read -r -p "$prompt_text" response
+
+    # If response is empty, use the default
+    if [[ -z "$response" ]]; then
+      response="$default"
+    fi
+
+    # Check if the response is Yes or No
+    case "$response" in
+      [yY][eE][sS]|[yY]) return 0 ;;  # Yes: Return true (success)
+      [nN][oO]|[nN]) return 1 ;;      # No: Return false (failure)
+      *) echo "Please answer yes or no." ;;
+    esac
   done
 }
