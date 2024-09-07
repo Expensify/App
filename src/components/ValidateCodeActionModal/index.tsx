@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,21 +53,18 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
                     title={title}
                     onBackButtonPress={hide}
                 />
-                {validateCodeAction?.isLoading ? (
-                    <FullScreenLoadingIndicator style={[themeStyles.flex1, themeStyles.pRelative]} />
-                ) : (
-                    <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
-                        <Text style={[themeStyles.mb3]}>{description}</Text>
-                        <ValidateCodeForm
-                            validateCodeAction={validateCodeAction}
-                            validatePendingAction={validatePendingAction}
-                            validateError={validateError}
-                            handleSubmitForm={handleSubmitForm}
-                            clearError={clearError}
-                            ref={validateCodeFormRef}
-                        />
-                    </View>
-                )}
+
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
+                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                    <ValidateCodeForm
+                        validateCodeAction={validateCodeAction}
+                        validatePendingAction={validatePendingAction}
+                        validateError={validateError}
+                        handleSubmitForm={handleSubmitForm}
+                        clearError={clearError}
+                        ref={validateCodeFormRef}
+                    />
+                </View>
             </ScreenWrapper>
         </Modal>
     );

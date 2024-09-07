@@ -269,6 +269,9 @@ function clearContactMethod(contactMethod: string) {
     });
 }
 
+/**
+ * Clears error for a sepcific field on validate action code.
+ */
 function clearValidateCodeActionError(fieldName: string) {
     Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
         errorFields: {
@@ -317,6 +320,10 @@ function clearUnvalidatedNewContactMethodAction() {
     });
 }
 
+/**
+ * When user adds a new contact method, they need to verify the magic code first
+ * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
+ */
 function addPendingContactMethod(contactMethod: string) {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
@@ -483,6 +490,9 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Requests a magic code to verify current user
+ */
 function requestValidateCodeAction() {
     const optimisticData: OnyxUpdate[] = [
         {
