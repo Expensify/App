@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidationCode} from '@libs/actions/Delegate';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -41,7 +42,8 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
 
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
     const login = personalDetails?.login ?? optimisticDelegateData?.login;
-    const displayName = personalDetails?.displayName ?? login;
+    const formattedLogin = formatPhoneNumber(login ?? '');
+    const displayName = personalDetails?.displayName ?? formattedLogin;
 
     const submitButton = (
         <Button
@@ -72,7 +74,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 iconType={CONST.ICON_TYPE_AVATAR}
                 icon={avatarIcon}
                 title={displayName}
-                description={login}
+                description={formattedLogin}
                 interactive={false}
             />
             <MenuItemWithTopDescription

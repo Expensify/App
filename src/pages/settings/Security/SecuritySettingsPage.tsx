@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAddDelegateErrors} from '@libs/actions/Delegate';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -93,9 +94,10 @@ function SecuritySettingsPage() {
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_MAGIC_CODE.getRoute(accountID, role));
             };
 
+            const formattedEmail = formatPhoneNumber(email);
             return {
-                title: personalDetail?.displayName ?? email,
-                description: personalDetail?.displayName ? email : '',
+                title: personalDetail?.displayName ?? formattedEmail,
+                description: personalDetail?.displayName ? formattedEmail : '',
                 badgeText: translate('delegate.role', role),
                 avatarID: accountID,
                 icon: personalDetail?.avatar ?? FallbackAvatar,
@@ -114,10 +116,11 @@ function SecuritySettingsPage() {
 
     const delegatorMenuItems: MenuItemProps[] = delegators.map(({email, role}) => {
         const personalDetail = getPersonalDetailByEmail(email);
+        const formattedEmail = formatPhoneNumber(email);
 
         return {
-            title: personalDetail?.displayName ?? email,
-            description: personalDetail?.displayName ? email : '',
+            title: personalDetail?.displayName ?? formattedEmail,
+            description: personalDetail?.displayName ? formattedEmail : '',
             badgeText: translate('delegate.role', role),
             avatarID: personalDetail?.accountID ?? -1,
             icon: personalDetail?.avatar ?? '',
