@@ -678,11 +678,10 @@ const isChannelMuted = (reportId: string) =>
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
+                const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(
-                    !report?.notificationPreference ||
-                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ||
-                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    !notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                 );
             },
         });
