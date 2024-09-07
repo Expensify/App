@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -35,6 +36,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    isControlPolicy,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -45,10 +47,17 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
+
+type RouteParams = {
+    newConnectionName?: ConnectionName;
+    integrationToDisconnect?: ConnectionName;
+    shouldDisconnectIntegrationBeforeConnecting?: boolean;
+};
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`);
@@ -65,6 +74,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {canUseWorkspaceFeeds} = usePermissions();
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
+
+    const route = useRoute();
+    const params = route.params as RouteParams | undefined;
+    const newConnectionName = params?.newConnectionName;
+    const integrationToDisconnect = params?.integrationToDisconnect;
+    const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
@@ -119,6 +134,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ],
         [shouldShowEnterCredentials, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!newConnectionName || !isControlPolicy(policy)) {
+                return;
+            }
+
+            startIntegrationFlow({
+                name: newConnectionName,
+                integrationToDisconnect,
+                shouldDisconnectIntegrationBeforeConnecting,
+            });
+        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow]),
     );
 
     useEffect(() => {
@@ -232,7 +261,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         const shouldShowSynchronizationError = !!synchronizationError;
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, canUseNetSuiteUSATax);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         const configurationOptions = [

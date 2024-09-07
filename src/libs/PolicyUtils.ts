@@ -309,7 +309,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
-        for (const tag of Object.values(policyTagList.tags)) {
+        for (const tag of Object.values(policyTagList.tags ?? {})) {
             uniqueTagNames.add(getCleanedTagName(tag.name));
         }
     }
@@ -990,6 +990,10 @@ function getDomainNameForPolicy(policyID?: string): string {
     return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
 }
 
+function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1098,6 +1102,7 @@ export {
     getTagNamesFromTagsLists,
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
+    getWorkflowApprovalsUnavailable,
 };
 
 export type {MemberEmailsToAccountIDs};
