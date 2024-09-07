@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +40,19 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
             <SelectionList
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={4}
-                headerContent={<Text style={[styles.ph5, styles.pb5, styles.pt3]}>{translate('delegate.accessLevelDescription')}</Text>}
+                headerContent={
+                    <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+                        <>
+                            {translate('delegate.accessLevelDescription')}{' '}
+                            <TextLink
+                                style={[styles.link]}
+                                href={CONST.COPILOT_HELP_URL}
+                            >
+                                {translate('common.learnMore')}
+                            </TextLink>
+                        </>
+                    </Text>
+                }
                 onSelectRow={(option) => {
                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(Number(route.params.accountID), option.value));
                 }}

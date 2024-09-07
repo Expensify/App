@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -166,7 +167,17 @@ function SecuritySettingsPage() {
                                 <View style={safeAreaPaddingBottomStyle}>
                                     <Section
                                         title={translate('delegate.copilotDelegatedAccess')}
-                                        subtitle={translate('delegate.copilotDelegatedAccessDescription')}
+                                        renderSubtitle={() => (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
+                                                <TextLink
+                                                    style={[styles.link]}
+                                                    href={CONST.COPILOT_HELP_URL}
+                                                >
+                                                    {translate('common.learnMore')}
+                                                </TextLink>
+                                            </View>
+                                        )}
                                         isCentralPane
                                         subtitleMuted
                                         titleStyles={styles.accountSettingsSectionTitle}
