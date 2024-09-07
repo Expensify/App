@@ -19,7 +19,7 @@ KEY_GRADLE_APK_PATH = "gradleAPKOutputPath"
 KEY_IPA_PATH = "ipaPath"
 KEY_DSYM_PATH = "dsymPath"
 
-# This is a utility function to setting environment variables in the parent shell.
+# Export environment variables in the parent shell.
 # In a GitHub Actions environment, it will save the environment variables in the GITHUB_ENV file.
 # In any other environment, it will save them to the current shell environment using the `export` command.
 def exportEnvVars(env_vars)
