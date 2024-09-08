@@ -3478,7 +3478,7 @@ export default {
                 fixedAmountDescription: 'Gasta hasta una determinada cantidad una vez',
                 setLimit: 'Establecer un límite',
                 giveItName: 'Dale un nombre',
-                giveItNameInstruction: 'Hazlo lo suficientemente único como para distinguirlo de los demás. Los casos de uso específicos son aún mejores.',
+                giveItNameInstruction: 'Hazlo lo suficientemente único para distinguirla de otras tarjetas. ¡Los casos de uso específicos son aún mejores!',
                 cardName: 'Nombre de la tarjeta',
                 letsDoubleCheck: 'Vuelve a comprobar que todo parece correcto. ',
                 willBeReady: 'Esta tarjeta estará lista para su uso inmediato.',
