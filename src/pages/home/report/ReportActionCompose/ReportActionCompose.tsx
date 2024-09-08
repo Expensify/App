@@ -215,12 +215,9 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (includesConcierge) {
-            if (userBlockedFromConcierge) {
-                return translate('reportActionCompose.blockedFromConcierge');
-            }
+        if (includesConcierge && userBlockedFromConcierge) {
+            return translate('reportActionCompose.blockedFromConcierge');
         }
-
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
