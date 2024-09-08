@@ -43,7 +43,7 @@ type BankInfoProps = BankInfoOnyxProps & {
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confirmation];
-const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
+const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress, policyID}: BankInfoProps) {
