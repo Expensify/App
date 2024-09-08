@@ -43,7 +43,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                 }
                 isActive={isSwitchOn}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
+                    Connections.updatePolicyConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.IMPORT_CUSTOMERS,
