@@ -325,7 +325,7 @@ function AvatarWithImagePicker({
     );
 
     return (
-        <View style={style}>
+        <View style={[styles.w100, style]}>
             <View style={styles.w100}>
                 <AttachmentModal
                     headerTitle={headerTitle}
@@ -372,7 +372,7 @@ function AvatarWithImagePicker({
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
+                                                    style={[styles.pRelative, avatarStyle]}
                                                     ref={anchorRef}
                                                 >
                                                     <OfflineWithFeedback pendingAction={pendingAction}>
