@@ -3775,7 +3775,6 @@ const styles = (theme: ThemeColors) =>
         bankAccountMenuItem: {
             paddingLeft: 0,
             paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
             height: variables.componentSizeLarge,
             alignItems: 'center',
         },
