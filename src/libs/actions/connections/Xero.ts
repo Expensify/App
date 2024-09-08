@@ -444,7 +444,7 @@ function updateXeroExportExporter(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(exporter),
+        settingValue: exporter,
         idempotencyKey: String(CONST.XERO_CONFIG.EXPORTER),
     };
 
@@ -460,7 +460,7 @@ function updateXeroExportBillDate(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(billDate),
+        settingValue: billDate,
         idempotencyKey: String(CONST.XERO_CONFIG.BILL_DATE),
     };
 
@@ -476,7 +476,7 @@ function updateXeroExportNonReimbursableAccount(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(nonReimbursableAccount),
+        settingValue: nonReimbursableAccount,
         idempotencyKey: String(CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT),
     };
 
@@ -497,7 +497,7 @@ function updateXeroSyncInvoiceCollectionsAccountID(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(invoiceCollectionsAccountID),
+        settingValue: invoiceCollectionsAccountID,
         idempotencyKey: String(CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID),
     };
 
@@ -518,7 +518,7 @@ function updateXeroSyncReimbursementAccountID(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: JSON.stringify(reimbursementAccountID),
+        settingValue: reimbursementAccountID,
         idempotencyKey: String(CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID),
     };
 
