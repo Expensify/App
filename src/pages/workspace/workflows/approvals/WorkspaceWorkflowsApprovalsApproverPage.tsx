@@ -240,6 +240,7 @@ function WorkspaceWorkflowsApprovalsApproverPageBeta({policy, personalDetails, i
                 subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 subtitleStyle={styles.textSupporting}
                 containerStyle={styles.pb10}
+                contentFitImage="contain"
             />
         ),
         [translate, styles.textSupporting, styles.pb10],
