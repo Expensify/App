@@ -178,7 +178,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             if (!personalDetails?.[accountID]) {
                 return false;
             }
-            // When offline, we want to count in the pending members with delete action as they are displayed in the list as well
+        // When offline, we want to include the pending members with delete action as they are displayed in the list as well
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
         return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;

@@ -4108,7 +4108,7 @@ const CONST = {
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
-     *  We only include the members search bar when we hit 8 number of members
+     *  We only include the members search bar when we have 8 or more members
      */
     SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
