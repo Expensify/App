@@ -193,6 +193,10 @@ function AvatarWithImagePicker({
         setError(null, {});
     }, [isFocused]);
 
+    useEffect(() => {
+        setError(null, {});
+    }, [source, avatarID]);
+
     /**
      * Check if the attachment extension is allowed.
      */
