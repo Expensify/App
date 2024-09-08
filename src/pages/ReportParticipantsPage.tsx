@@ -233,18 +233,16 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
     );
 
     const customListHeader = useMemo(() => {
-        if (!isGroupChat) {
-            return;
-        }
-
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.searchInputStyle, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
-                <View style={[StyleUtils.getMinimumWidth(60)]}>
-                    <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
-                </View>
+                {isGroupChat && (
+                    <View style={[StyleUtils.getMinimumWidth(60)]}>
+                        <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                    </View>
+                )}
             </View>
         );
 
@@ -252,7 +250,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
             return header;
         }
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, isGroupChat ? styles.mt3 : styles.mt0]}>{header}</View>;
     }, [styles, translate, isGroupChat, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
@@ -395,7 +393,7 @@ function ReportParticipantsPage({report}: WithReportOrNotFoundProps) {
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.mt3, styles.flex1]}>
+                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
                         ref={selectionListRef}
                         canSelectMultiple={canSelectMultiple}
