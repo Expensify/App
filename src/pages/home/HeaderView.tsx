@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrailBadge';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -59,7 +58,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -132,7 +130,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report.reportID || !title;
-    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
 
     return (
         <View
@@ -269,12 +266,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {ReportUtils.isChatUsedForOnboarding(report) && freeTrialText && (
-                                    <Badge
-                                        success
-                                        text={freeTrialText}
-                                    />
-                                )}
+                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>

@@ -3,7 +3,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -27,22 +26,13 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrailBadge';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({
-    reportID,
-    isFocused = false,
-    onSelectRow = () => {},
-    optionItem,
-    viewMode = 'default',
-    style,
-    onLayout = () => {},
-    hasDraftComment,
-    freeTrialText,
-}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -238,13 +228,7 @@ function OptionRowLHN({
                                                 ReportUtils.isSystemChat(report)
                                             }
                                         />
-                                        {ReportUtils.isChatUsedForOnboarding(report) && freeTrialText && (
-                                            <Badge
-                                                success
-                                                text={freeTrialText}
-                                                badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]}
-                                            />
-                                        )}
+                                        {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
                                         {isStatusVisible && (
                                             <Tooltip
                                                 text={statusContent}
