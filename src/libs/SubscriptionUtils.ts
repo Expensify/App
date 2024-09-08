@@ -201,9 +201,9 @@ function hasInsufficientFundsError() {
 
 /**
  * Determines whether the pre-trial billing banner should be shown.
- * @param {OnyxEntry<string>} [firstDay] - The start date of the free trial.
- * @param {OnyxEntry<string>} [lastDay] - The end date of the free trial.
- * @returns {boolean} True if the pre-trial billing banner should be shown, false otherwise.
+ * @param [firstDay] - The start date of the free trial.
+ * @param [lastDay] - The end date of the free trial.
+ * @returns True if the pre-trial billing banner should be shown, false otherwise.
  */
 function shouldShowPreTrialBillingBanner(firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
     return !isUserOnFreeTrial(firstDay, lastDay) && !hasUserFreeTrialEnded(lastDay);
@@ -365,8 +365,8 @@ function hasSubscriptionGreenDotInfo(): boolean {
 
 /**
  * Calculates the remaining number of days of the workspace owner's free trial before it ends.
- * @param {OnyxEntry<string>} [lastDay] - The end date of the free trial.
- * @returns {number} The remaining number of free trial days.
+ * @param [lastDay] - The end date of the free trial.
+ * @returns The remaining number of free trial days.
  */
 function calculateRemainingFreeTrialDays(lastDay: OnyxEntry<string> = lastDayFreeTrial): number {
     if (!lastDay) {
@@ -383,8 +383,8 @@ function calculateRemainingFreeTrialDays(lastDay: OnyxEntry<string> = lastDayFre
 
 /**
  * @param policies - The policies collection.
- * @param {OnyxEntry<string>} [firstDay] - The start date of the free trial.
- * @param {OnyxEntry<string>} [lastDay] - The end date of the free trial.
+ * @param [firstDay] - The start date of the free trial.
+ * @param [lastDay] - The end date of the free trial.
  * @returns The free trial badge text.
  */
 function getFreeTrialText(policies: OnyxCollection<Policy> | null, firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): string | undefined {
@@ -407,9 +407,9 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null, firstDay: Ony
 
 /**
  * Whether the workspace's owner is on its free trial period.
- * @param {OnyxEntry<string>} [firstDay] - The start date of the free trial.
- * @param {OnyxEntry<string>} [lastDay] - The end date of the free trial.
- * @returns {boolean} True if the user is on a free trial, false otherwise.
+ * @param [firstDay] - The start date of the free trial.
+ * @param [lastDay] - The end date of the free trial.
+ * @returns True if the user is on a free trial, false otherwise.
  */
 function isUserOnFreeTrial(firstDay: OnyxEntry<string> = firstDayFreeTrial, lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
     if (!firstDay || !lastDay) {
@@ -427,8 +427,8 @@ function isUserOnFreeTrial(firstDay: OnyxEntry<string> = firstDayFreeTrial, last
 
 /**
  * Whether the workspace owner's free trial period has ended.
- * @param {OnyxEntry<string>} [lastDay] - The end date of the free trial.
- * @returns {boolean} True if the free trial has ended, false otherwise.
+ * @param [lastDay] - The end date of the free trial.
+ * @returns True if the free trial has ended, false otherwise.
  */
 function hasUserFreeTrialEnded(lastDay: OnyxEntry<string> = lastDayFreeTrial): boolean {
     if (!lastDay) {
