@@ -9,6 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -61,7 +62,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseWorkspaceFeeds, canUseWorkspaceRules} = usePermissions();
+    const {canUseWorkspaceFeeds, canUseWorkspaceRules, canUseCompanyCardFeeds} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -120,6 +121,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 setIsDisableExpensifyCardWarningModalOpen(true);
             },
         });
+    }
+
+    if (canUseCompanyCardFeeds) {
         spendItems.push({
             icon: Illustrations.CompanyCard,
             titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
@@ -405,6 +409,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
+                <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {translate('workspace.moreFeatures.subtitle')}
+                </Text>
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
 
