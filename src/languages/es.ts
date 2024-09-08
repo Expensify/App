@@ -3211,7 +3211,7 @@ export default {
             removeMembersTitle: 'Eliminar miembros',
             removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
-            removeRoomMemberButtonTitle: 'Eliminar de la sala',
+            removeRoomMemberButtonTitle: 'Eliminar del chat',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',

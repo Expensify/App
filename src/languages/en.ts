@@ -3160,7 +3160,7 @@ export default {
             removeMembersTitle: 'Remove members',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
-            removeRoomMemberButtonTitle: 'Remove from room',
+            removeRoomMemberButtonTitle: 'Remove from chat',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
