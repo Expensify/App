@@ -42,7 +42,7 @@ type BankInfoProps = BankInfoOnyxProps & {
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confirmation];
+const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual];
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
