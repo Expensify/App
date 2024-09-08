@@ -219,7 +219,7 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction.modifiedCustomUnitRateID && !!getCustomUnitRate(policy, updatedTransaction.modifiedCustomUnitRateID)) {
+        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 

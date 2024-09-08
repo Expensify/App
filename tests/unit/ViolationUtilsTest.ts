@@ -69,7 +69,13 @@ describe('getViolationsOnyxData', () => {
             transactionViolations = [customUnitOutOfPolicyViolation];
 
             const customUnitRateID = 'rate_id';
-            transaction.modifiedCustomUnitRateID = customUnitRateID;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
             policy.customUnits = {
                 unitId: {
                     attributes: {unit: 'mi'},

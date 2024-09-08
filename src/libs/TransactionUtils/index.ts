@@ -256,14 +256,11 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
     }
 
     if (Object.hasOwn(transactionChanges, 'customUnitRateID')) {
-        updatedTransaction.modifiedCustomUnitRateID = transactionChanges.customUnitRateID;
-        if (!updatedTransaction.comment) {
-            updatedTransaction.comment = {};
-        }
         updatedTransaction.comment = {
-            ...updatedTransaction?.comment,
+            ...(updatedTransaction?.comment ?? {}),
             customUnit: {
                 ...updatedTransaction?.comment?.customUnit,
+                customUnitRateID: transactionChanges.customUnitRateID,
                 defaultP2PRate: null,
             },
         };
@@ -774,6 +771,7 @@ function calculateAmountForUpdatedWaypointOrRate(
 ) {
     const hasModifiedRouteWithPendingWaypoints = !isEmptyObject(transactionChanges.waypoints) && isEmptyObject(transactionChanges?.routes?.route0?.geometry);
     const hasModifiedRateWithPendingWaypoints = !!transactionChanges?.customUnitRateID && isFetchingWaypointsFromServer(transaction);
+    console.log('Ndebug hasModifiedRateWithPendingWaypoints', hasModifiedRateWithPendingWaypoints);
     if (hasModifiedRouteWithPendingWaypoints || hasModifiedRateWithPendingWaypoints) {
         return {
             amount: CONST.IOU.DEFAULT_AMOUNT,
@@ -835,7 +833,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();
+    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 /**
