@@ -93,9 +93,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** The free trial banner text */
-    freeTrialText?: string;
 };
 
 type OptionRowLHNProps = {
@@ -119,9 +116,6 @@ type OptionRowLHNProps = {
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
-
-    /** The free trial banner text */
-    freeTrialText?: string;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };
