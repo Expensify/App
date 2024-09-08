@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
 
