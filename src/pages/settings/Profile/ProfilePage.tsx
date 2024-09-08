@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,6 +35,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -155,27 +157,31 @@ function ProfilePage({
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart]}>
-                                <MenuItemGroup shouldUseSingleExecution={false}>
-                                    <AvatarWithImagePicker
-                                        isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                        source={avatarURL}
-                                        avatarID={accountID}
-                                        onImageSelected={PersonalDetails.updateAvatar}
-                                        onImageRemoved={PersonalDetails.deleteAvatar}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
-                                        avatarStyle={styles.avatarXLarge}
-                                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                        errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                        errorRowStyles={styles.mt6}
-                                        onErrorClose={PersonalDetails.clearAvatarErrors}
-                                        onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                        previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                        originalFileName={currentUserPersonalDetails.originalFileName}
-                                        headerTitle={translate('profilePage.profileAvatar')}
-                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                        editIconStyle={styles.profilePageAvatar}
-                                    />
-                                </MenuItemGroup>
+                                {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
+                                ) : (
+                                    <MenuItemGroup shouldUseSingleExecution={false}>
+                                        <AvatarWithImagePicker
+                                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                            source={avatarURL}
+                                            avatarID={accountID}
+                                            onImageSelected={PersonalDetails.updateAvatar}
+                                            onImageRemoved={PersonalDetails.deleteAvatar}
+                                            size={CONST.AVATAR_SIZE.XLARGE}
+                                            avatarStyle={styles.avatarXLarge}
+                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                                            errorRowStyles={styles.mt6}
+                                            onErrorClose={PersonalDetails.clearAvatarErrors}
+                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                            originalFileName={currentUserPersonalDetails.originalFileName}
+                                            headerTitle={translate('profilePage.profileAvatar')}
+                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                            editIconStyle={styles.profilePageAvatar}
+                                        />
+                                    </MenuItemGroup>
+                                )}
                             </View>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
