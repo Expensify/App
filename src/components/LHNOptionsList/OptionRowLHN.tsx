@@ -228,7 +228,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 ReportUtils.isSystemChat(report)
                                             }
                                         />
-                                        {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge />}
+                                        {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrialBadge badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                         {isStatusVisible && (
                                             <Tooltip
                                                 text={statusContent}
