@@ -26,7 +26,6 @@ import SearchTypeMenu from './SearchTypeMenu';
 const TOO_CLOSE_TO_TOP_DISTANCE = 20;
 const TOO_CLOSE_TO_BOTTOM_DISTNACE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
-const SCROLL_TO_BAR_OFFSET_RATIO = 0.8;
 
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -62,8 +61,8 @@ function SearchPageBottomTab() {
         const isScrollingDown = currentOffset > scrollOffset.value;
         if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
             const distanceScrolled = currentOffset - scrollOffset.value;
-            topBarOffset.value = Math.max(-variables.typeAndStatusBarHeight, topBarOffset.value - distanceScrolled * SCROLL_TO_BAR_OFFSET_RATIO);
-            headerHeight.value = Math.max(variables.searchHeaderHeight, headerHeight.value - distanceScrolled * SCROLL_TO_BAR_OFFSET_RATIO);
+            topBarOffset.value = Math.max(-variables.typeAndStatusBarHeight, topBarOffset.value - distanceScrolled);
+            headerHeight.value = Math.max(variables.searchHeaderHeight, headerHeight.value - distanceScrolled);
         } else if (!isScrollingDown && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTNACE) {
             expandTopBar();
         }
