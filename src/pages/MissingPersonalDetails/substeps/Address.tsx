@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
-import CountrySelector from '@components/CountrySelector';
+import CountryPicker from '@components/CountryPicker';
 import InputWrapper from '@components/Form/InputWrapper';
+import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
-import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -110,7 +110,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
             />
             <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
-                    InputComponent={CountrySelector}
+                    InputComponent={CountryPicker}
                     inputID={INPUT_IDS.COUNTRY}
                     value={currentCountry}
                     onValueChange={handleAddressChange}
@@ -119,7 +119,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
             {isUSAForm ? (
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
-                        InputComponent={StateSelector}
+                        InputComponent={StatePicker}
                         inputID={INPUT_IDS.STATE}
                         value={state as State}
                         onValueChange={handleAddressChange}
