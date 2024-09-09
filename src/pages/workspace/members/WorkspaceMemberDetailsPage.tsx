@@ -37,7 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -45,25 +45,25 @@ type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
-const allCards = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    cards_18175034_ExpensifyCard: [],
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    cards_18175034_cdfbmo: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        '1': {isLoadingLastUpdated: false, nameValuePairs: {cardTitle: 'jk'}},
-        id1: {
-            cardID: 885646,
-            accountID: 11309072,
-            nameValuePairs: {
-                cardTitle: 'Test 1',
-            },
-            cardNumber: '1234 56XX XXXX 1222',
-        },
-    },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'cards_18224126_Expensify Card': [],
-} as never as Record<string, WorkspaceCardsList>;
+// const allCards = {
+//     // eslint-disable-next-line @typescript-eslint/naming-convention
+//     cards_18175034_ExpensifyCard: [],
+//     // eslint-disable-next-line @typescript-eslint/naming-convention
+//     cards_18175034_cdfbmo: {
+//         // eslint-disable-next-line @typescript-eslint/naming-convention
+//         '1': {isLoadingLastUpdated: false, nameValuePairs: {cardTitle: 'jk'}},
+//         id1: {
+//             cardID: 885646,
+//             accountID: 11309072,
+//             nameValuePairs: {
+//                 cardTitle: 'Test 1',
+//             },
+//             cardNumber: '1234 56XX XXXX 1222',
+//         },
+//     },
+//     // eslint-disable-next-line @typescript-eslint/naming-convention
+//     'cards_18224126_Expensify Card': [],
+// } as never as Record<string, WorkspaceCardsList>;
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
@@ -94,6 +94,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
+    const companyCards = CardUtils.getMemberCards(policy, allCardsList, accountID);
 
     const memberCards = useMemo(() => {
         if (!expensifyCardsList) {
@@ -101,26 +102,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
         return Object.values(expensifyCardsList).filter((expensifyCard) => expensifyCard.accountID === accountID);
     }, [expensifyCardsList, accountID]);
-
-    const companyCards = useMemo(() => {
-        const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
-        const cards: WorkspaceCardsList = {};
-        const mockedCardsList = allCardsList ?? allCards ?? {};
-        Object.keys(mockedCardsList)
-            .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
-            .forEach((key) => {
-                const feedCards = mockedCardsList?.[key];
-                if (feedCards && Object.keys(feedCards).length > 0) {
-                    Object.keys(feedCards).forEach((feedCardKey) => {
-                        if (feedCards[feedCardKey].accountID !== accountID) {
-                            return;
-                        }
-                        cards[feedCardKey] = feedCards[feedCardKey];
-                    });
-                }
-            });
-        return cards;
-    }, [accountID, policy?.workspaceAccountID, allCardsList]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
@@ -180,9 +161,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const navigateToCompanyCardDetails = useCallback(
         (cardID: string) => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, route.params.accountID, Navigation.getActiveRoute()));
         },
-        [policyID],
+        [policyID, route.params.accountID],
     );
 
     const navigateToIssueNewCard = useCallback(() => {

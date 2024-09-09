@@ -1,6 +1,6 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type Policy from '../types/onyx/Policy';
 import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -206,6 +207,26 @@ function getCardDetailsImage(cardFeed: string): IconAsset {
     return Illustrations.AmexCardCompanyCardDetail;
 }
 
+function getMemberCards(policy: OnyxEntry<Policy>, allCardsList: OnyxCollection<WorkspaceCardsList>, accountID?: number) {
+    const workspaceId = policy?.workspaceAccountID ? policy.workspaceAccountID.toString() : '';
+    const cards: WorkspaceCardsList = {};
+    const mockedCardsList = allCardsList ?? {};
+    Object.keys(mockedCardsList)
+        .filter((key) => key !== `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` && key.includes(workspaceId))
+        .forEach((key) => {
+            const feedCards = mockedCardsList?.[key];
+            if (feedCards && Object.keys(feedCards).length > 0) {
+                Object.keys(feedCards).forEach((feedCardKey) => {
+                    if (feedCards?.[feedCardKey].accountID !== accountID) {
+                        return;
+                    }
+                    cards[feedCardKey] = feedCards[feedCardKey];
+                });
+            }
+        });
+    return cards;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -223,4 +244,5 @@ export {
     sortCardsByCardholderName,
     getCardFeedIcon,
     getCardDetailsImage,
+    getMemberCards,
 };

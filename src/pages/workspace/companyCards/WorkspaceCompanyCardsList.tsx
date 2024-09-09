@@ -47,10 +47,10 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                         accessibilityLabel="row"
                         hoverStyle={styles.hoveredComponentBG}
                         onPress={() => {
-                            if (!cardID) {
+                            if (!cardID || !item?.accountID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID));
+                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, item.accountID.toString()));
                         }}
                     >
                         <WorkspaceCompanyCardsListRow

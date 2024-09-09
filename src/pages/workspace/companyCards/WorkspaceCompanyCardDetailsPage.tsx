@@ -29,30 +29,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
-const mockedFeeds: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-    },
-};
-
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+    const {policyID, cardID, backTo, accountID} = route.params;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
@@ -63,26 +45,23 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(mockedFeeds?.companyCards ?? {})[0];
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
-
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const card = cardsList?.[cardID];
+    const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const companyCards = CardUtils.getMemberCards(policy, allCardsList, Number(accountID));
+    const card = companyCards?.[cardID];
+
     const cardholder = personalDetails?.[card?.accountID ?? -1];
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
-        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, selectedFeed);
+        Policy.unassignWorkspaceCompanyCard(workspaceAccountID, cardID, card?.bank);
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, selectedFeed);
+        Policy.updateWorkspaceCompanyCard(workspaceAccountID, cardID, card?.bank);
     };
 
     return (
@@ -129,14 +108,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 description={translate('workspace.moreFeatures.companyCards.cardName')}
                                 title={card?.nameValuePairs?.cardTitle}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, accountID))}
                             />
                             {exportMenuItem && (
                                 <MenuItemWithTopDescription
                                     description={exportMenuItem.description}
                                     title={exportMenuItem.title}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, accountID))}
                                 />
                             )}
                             <MenuItemWithTopDescription
@@ -158,14 +137,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItem
                                 icon={Expensicons.Sync}
-                                iconFill={theme.icon}
+                                iconFill={theme.success}
                                 title={translate('workspace.moreFeatures.companyCards.updateCard')}
                                 style={styles.mv1}
                                 onPress={updateCard}
                             />
                             <MenuItem
-                                icon={Expensicons.UserCheck}
-                                iconFill={theme.icon}
+                                icon={Expensicons.RemoveMembers}
+                                iconFill={theme.success}
                                 title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                                 style={styles.mv1}
                                 onPress={() => setIsUnassignModalVisible(true)}
