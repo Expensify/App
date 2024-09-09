@@ -33,7 +33,6 @@ type SavedSearchMenuItem = MenuItemBaseProps & {
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-    isCustomQuery: boolean;
 };
 
 type SearchTypeMenuItem = {
@@ -43,7 +42,7 @@ type SearchTypeMenuItem = {
     route?: Route;
 };
 
-function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,6 +64,12 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                 icon: Expensicons.Receipt,
                 route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
             },
+        {
+            title: translate('common.chats'),
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
+        },
             {
                 title: translate('workspace.common.invoices'),
                 type: CONST.SEARCH.DATA_TYPES.INVOICE,
@@ -95,7 +100,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', isCustomQuery: true}));
+                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? ''}));
                 },
                 rightComponent: (
                     <ThreeDotsMenu
@@ -167,10 +172,12 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
         [savedSearchesMenuItems, styles, translate],
     );
 
-    const activeItemIndex = typeMenuItems.findIndex((item) => item.type === type);
+
+    const isCannedQuery = SearchUtils.isCannedSearchQuery(queryJSON);
+    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : undefined;
+        const title = isCannedQuery ? undefined : SearchUtils.getSearchHeaderTitle(queryJSON);
 
         return (
             <SearchTypeMenuNarrow

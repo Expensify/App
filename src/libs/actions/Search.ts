@@ -60,7 +60,7 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, finallyData});
 }
 
-function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; offset?: number; policyIDs?: string}) {
+function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
     const queryWithOffset = {
@@ -69,7 +69,7 @@ function search({queryJSON, offset, policyIDs}: {queryJSON: SearchQueryJSON; off
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery, policyIDs}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**

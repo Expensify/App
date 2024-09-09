@@ -6,27 +6,23 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
+import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -40,11 +36,9 @@ function BaseOnboardingPersonalDetails({
 }: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {accountID} = useSession();
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -79,21 +73,11 @@ function BaseOnboardingPersonalDetails({
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
-            if (!isSmallScreenWidth && !route.params?.backTo) {
-                if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
-                    Report.navigateToSystemChat();
-                } else {
-                    Report.navigateToConciergeChat();
-                }
+            if (!shouldUseNarrowLayout && !route.params?.backTo) {
+                Report.navigateToConciergeChat();
             }
-
-            // Small delay purely due to design considerations,
-            // no special technical reasons behind that.
-            setTimeout(() => {
-                Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-            }, variables.welcomeVideoDelay);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, shouldUseNarrowLayout, route.params?.backTo],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -141,12 +125,12 @@ function BaseOnboardingPersonalDetails({
                 <HeaderWithBackButton
                     shouldShowBackButton
                     progressBarPercentage={75}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={OnboardingFlow.goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, isMediumOrLargerScreenWidth && styles.mt5, isMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
-                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
+                    footerContent={shouldUseNarrowLayout && PersonalDetailsFooterInstance}
                     validate={validate}
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
@@ -156,7 +140,7 @@ function BaseOnboardingPersonalDetails({
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
-                    <View style={[isMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>

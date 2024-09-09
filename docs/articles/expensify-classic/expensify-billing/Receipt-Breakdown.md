@@ -18,7 +18,7 @@ The top section will show the total amount you paid as the billing owner of Expe
 ## How-to reduce your bill and get paid to use Expensify
 Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card.  
 
-_Note: Currently, we offer Expensify Cards to companies with USD bank accounts._ 
+_Note: Currently, we offer Expensify Cards to companies with US bank accounts._ 
 
 ## How-to understand your billing breakdown 
 Your receipt will have a detailed breakdown of activity and discounts across all workspaces. Here's a description of items that may appear on your bill:
@@ -34,12 +34,10 @@ Your receipt will have a detailed breakdown of activity and discounts across all
   - Any members included in your annual subscription on the Collect plan. 
 - [Number of] Pay-per-use Collect members @ $20.00
   - Any members above your annual subscription size on the Collect plan. These members are billed at the pay-per-use rate.
-- [Number of] Free members @ $0.00
-  - All members across any of your Free workspaces.
 - X% Expensify Card discount with $Y spend
-  - This shows the % discount you're getting based on total approved spend across your Expensify Cards. This is only available in the US.
+  - The % discount you're getting based on total settled US purchases across your Expensify Cards.
 - X% Expensify Card cash back credit for $Y spend
-  - The amount of cash back you've earned based on total approved spend across your Expensify Cards. This is only available in the US.
+  - The amount of cash back you've earned based on total settled US purchases across your Expensify Cards.
 - 50% ExpensifyApproved! partner discount
   - If you're part of an accounting firm, you get an additional discount for being our partner. [Learn more about our ExpensifyApproved! accountants program.](https://use.expensify.com/accountants-program) 
 - Total 
