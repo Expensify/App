@@ -3,9 +3,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
+import * as SearchUtils from '@libs/SearchUtils';
+import CONST from '@src/CONST';
 import useLocalize from './useLocalize';
-
-const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all';
 
 export default function useDeleteSavedSearch() {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -23,7 +23,7 @@ export default function useDeleteSavedSearch() {
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: DEFAULT_SAVE_SEARCH_QUERY_STRING,
+                query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL)
             }),
         );
     };

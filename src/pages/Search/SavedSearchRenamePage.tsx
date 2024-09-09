@@ -29,9 +29,8 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all sortBy:date sortOrder:desc';
 
-        const queryJSON = SearchUtils.buildSearchQueryJSON(q || DEFAULT_SAVE_SEARCH_QUERY_STRING);
+        const queryJSON = SearchUtils.buildSearchQueryJSON(q || SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL));
         if (!queryJSON) {
             return;
         }

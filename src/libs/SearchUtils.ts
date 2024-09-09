@@ -27,8 +27,6 @@ import * as UserUtils from './UserUtils';
 
 type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
-const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all';
-
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
@@ -725,7 +723,6 @@ export {
     isCannedSearchQuery,
     getExpenseTypeTranslationKey,
     getOverflowMenu,
-    DEFAULT_SAVE_SEARCH_QUERY_STRING,
     getChatFiltersTranslationKey,
     getChatStatusTranslationKey,
 };

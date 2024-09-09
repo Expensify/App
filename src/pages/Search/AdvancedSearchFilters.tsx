@@ -258,7 +258,6 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
-    const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all sortBy:date sortOrder:desc';
     const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const queryString = useMemo(() => SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters), [searchAdvancedFilters]);
@@ -274,7 +273,7 @@ function AdvancedSearchFilters() {
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || DEFAULT_SAVE_SEARCH_QUERY_STRING);
+        const queryJSON = SearchUtils.buildSearchQueryJSON(queryString || SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL));
         if (!queryJSON) {
             return;
         }
