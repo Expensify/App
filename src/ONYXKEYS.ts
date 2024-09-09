@@ -651,6 +651,7 @@ const ONYXKEYS = {
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
         SEARCH_ADVANCED_FILTERS_FORM_DRAFT: 'searchAdvancedFiltersFormDraft',
         SEARCH_SAVED_SEARCH_RENAME_FORM: 'searchSavedSearchRenameForm',
+        SEARCH_SAVED_SEARCH_RENAME_FORM_DRAFT: 'searchSavedSearchRenameFormDraft',
         TEXT_PICKER_MODAL_FORM: 'textPickerModalForm',
         TEXT_PICKER_MODAL_FORM_DRAFT: 'textPickerModalFormDraft',
         RULES_CUSTOM_NAME_MODAL_FORM: 'rulesCustomNameModalForm',
