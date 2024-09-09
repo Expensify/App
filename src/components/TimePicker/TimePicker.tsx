@@ -78,13 +78,13 @@ function insertAtPosition(originalString: string, newSubstring: string, from: nu
  */
 function replaceRangeWithZeros(originalString: string, from: number, to: number): string {
     const normalizedFrom = Math.max(from, 0);
-    const normalizedTo = Math.min(to, 2);
+    const normalizedTo = Math.min(to, 3);
     const replacement = '0'.repeat(normalizedTo - normalizedFrom);
     return `${originalString.slice(0, normalizedFrom)}${replacement}${originalString.slice(normalizedTo)}`;
 }
 
 /**
- * Clear the value under selection of an input (either hours or minutes) by replacing it with zeros
+ * Clear the value under selection of an input (either hours, minutes, seconds or miliseconds) by replacing it with zeros
  *
  * @param value - current value of the input
  * @param selection - current selection of the input
@@ -519,7 +519,11 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         (key: string) => {
             const isHourFocused = hourInputRef.current?.isFocused();
             const isMinuteFocused = minuteInputRef.current?.isFocused();
-            if (!isHourFocused && !isMinuteFocused) {
+            const isSecondFocused = secondInputRef.current?.isFocused();
+            const isMilisecondFocused = milisecondInputRef.current?.isFocused();
+            if (showFullFormat && !isHourFocused && !isMinuteFocused && !isSecondFocused && !isMilisecondFocused) {
+                milisecondInputRef.current?.focus();
+            } else if (!showFullFormat && !isHourFocused && !isMinuteFocused) {
                 minuteInputRef.current?.focus();
             }
 
@@ -536,6 +540,20 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                     }
 
                     clearSelectedValue(minutes, selectionMinute, setMinutes, setSelectionMinute);
+                } else if (isSecondFocused) {
+                    if (selectionSecond.start === 0 && selectionSecond.end === 0) {
+                        focusMinuteInputOnLastCharacter();
+                        return;
+                    }
+
+                    clearSelectedValue(seconds, selectionSecond, setSeconds, setSelectionSecond);
+                } else if (isMilisecondFocused) {
+                    if (selectionMilisecond.start === 0 && selectionMilisecond.end === 0) {
+                        focusSecondInputOnLastCharacter();
+                        return;
+                    }
+
+                    clearSelectedValue(miliseconds, selectionMilisecond, setMiliseconds, setSelectionMilisecond);
                 }
                 return;
             }
@@ -545,10 +563,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));
             } else if (isMinuteFocused) {
                 handleMinutesChange(insertAtPosition(minutes, trimmedKey, selectionMinute.start, selectionMinute.end));
+            } else if (isSecondFocused) {
+                handleSecondsChange(insertAtPosition(seconds, trimmedKey, selectionSecond.start, selectionSecond.end));
+            } else if (isMilisecondFocused) {
+                handleMilisecondsChange(insertAtPosition(miliseconds, trimmedKey, selectionMilisecond.start, selectionMilisecond.end));
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [minutes, hours, selectionMinute, selectionHour],
+        [minutes, hours, seconds, miliseconds, selectionMinute, selectionHour, selectionSecond, selectionMilisecond],
     );
 
     useEffect(() => {
@@ -663,7 +685,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {
-        const time = showFullFormat ? `${hours}:${minutes}:${seconds}.${miliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`;
+        const time = showFullFormat ? `${hours}:${minutes}:${seconds}.${miliseconds}` : `${hours}:${minutes} ${amPmValue}`;
         const isValid = validate(time);
 
         if (isValid) {
