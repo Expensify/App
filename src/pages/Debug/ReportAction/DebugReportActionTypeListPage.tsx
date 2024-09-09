@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type DebugReportActionTypeListPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DEBUG_REPORT_ACTION_TYPE_LIST>;
+type DebugReportActionTypeListPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DEBUG_DETAILS_DATE_TIME_PICKER_PAGE>;
 
 const reportActionTypeList = Object.values(CONST.REPORT.ACTIONS.TYPE).reduce((acc: string[], value) => {
     if (isObject(value)) {

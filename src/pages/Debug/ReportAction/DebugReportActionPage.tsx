@@ -54,10 +54,7 @@ function DebugReportActionPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
-                                    formID={ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM}
-                                    reportID={reportID}
                                     data={reportAction}
-                                    reportActionID={reportActionID}
                                     onSave={(data) => {
                                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
                                     }}

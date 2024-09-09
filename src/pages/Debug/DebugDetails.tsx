@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -16,34 +16,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {DebugDetailsFormID} from '@userActions/Debug';
 import Debug from '@userActions/Debug';
-import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@src/components/ButtonWithDropdownMenu/types';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {DETAILS_DROPDOWN_OPTIONS, DETAILS_SELECTION_LIST} from './const';
+import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS} from './const';
+import ConstantSelector from './ConstantSelector';
+import DateTimeSelector from './DateTimeSelector';
 
 type DebugDetailsProps = {
     /** The report or report action data to be displayed and editted. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction>;
 
-    /** A unique Onyx key identifying the form . */
-    formID: DebugDetailsFormID;
-
-    /** The ID of the report */
-    reportID: string;
-
-    /** The ID of the report action */
-    reportActionID?: string;
-
     /** Callback to be called when user saves the debug data. */
-    onSave: (values: FormOnyxValues<DebugDetailsFormID>) => void;
+    onSave: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>) => void;
 
     /** Callback to be called when user deletes the debug data. */
     onDelete: () => void;
@@ -52,31 +39,28 @@ type DebugDetailsProps = {
     validate: (key: never, value: string) => void;
 };
 
-const dropdownOptionsMap: Record<string, Array<DropdownOption<string>>> = Object.entries(DETAILS_DROPDOWN_OPTIONS).reduce(
-    (acc: Record<string, Array<DropdownOption<string>>>, [key, value]) => {
-        acc[key] = Object.values(value).map((option) => ({value: option, text: option}));
-        return acc;
-    },
-    {},
-);
-
-function DebugDetails({data, reportID, onSave, onDelete, validate, formID, reportActionID}: DebugDetailsProps) {
+function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onyxDraftDataKey = formID === ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM ? ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM_DRAFT : ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT;
-    const [formDraftData] = useOnyx(onyxDraftDataKey);
-    const [dropdownsState, setDropdownsState] = useState<Record<string, string>>({});
+    const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
+    const booleanFields = useMemo(() => Object.entries(data ?? {}).filter(([, value]) => typeof value === 'boolean') as Array<[string, boolean]>, [data]);
+    const constantFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_CONSTANT_FIELDS.includes(key)) as Array<[string, string]>, [data]);
+    const numberFields = useMemo(() => Object.entries(data ?? {}).filter(([, value]) => typeof value === 'number') as Array<[string, number]>, [data]);
+    const textFields = useMemo(
+        () =>
+            Object.entries(data ?? {}).filter(([key, value]) => typeof value === 'string' && !DETAILS_CONSTANT_FIELDS.includes(key) && !DETAILS_DATETIME_FIELDS.includes(key)) as Array<
+                [string, string]
+            >,
+        [data],
+    );
+    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key)) as Array<[string, string]>, [data]);
 
     const validator = useCallback(
-        (values: FormOnyxValues<DebugDetailsFormID>): FormInputErrors<DebugDetailsFormID> => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
             const newErrors: Record<string, string | undefined> = {};
             Object.entries(values).forEach(([key, value]) => {
                 try {
-                    if (typeof value === 'boolean') {
-                        return;
-                    }
-
-                    validate(key as never, value as string);
+                    validate(key as never, DebugUtils.onyxDataToString(value));
                 } catch (e) {
                     const {cause, message} = e as SyntaxError;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
@@ -89,14 +73,12 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formID, repor
     );
 
     useEffect(() => {
-        Debug.resetDebugDetailsDraftForm(formID);
-    }, [formID]);
+        Debug.resetDebugDetailsDraftForm();
+    }, []);
 
     const handleSubmit = useCallback(
-        (values: FormOnyxValues<DebugDetailsFormID>) => {
-            const dataToSave = {...values, ...dropdownsState};
-
-            const dataPreparedToSave = Object.entries(dataToSave).reduce((acc: FormOnyxValues<DebugDetailsFormID>, [key, value]) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>) => {
+            const dataPreparedToSave = Object.entries(values).reduce((acc: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>, [key, value]) => {
                 if (typeof value === 'boolean') {
                     acc[key] = value;
                 } else {
@@ -107,95 +89,27 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formID, repor
 
             onSave(dataPreparedToSave);
         },
-        [dropdownsState, data, onSave],
+        [data, onSave],
     );
 
-    const onDropdownOptionSelected = (inputId: string, value: string) => {
-        setDropdownsState((currentDropdownsState) => ({...currentDropdownsState, [inputId]: value}));
-    };
-
     return (
-        <ScrollView
-            style={styles.mt5}
-            contentContainerStyle={[styles.gap5, styles.ph5, styles.pb5]}
-        >
+        <ScrollView style={styles.mv5}>
             <FormProvider
                 style={styles.flexGrow1}
-                formID={formID}
+                formID={ONYXKEYS.FORMS.DEBUG_DETAILS_FORM}
                 validate={validator}
                 shouldValidateOnChange
-                isSubmitDisabled={isEmptyObject(formDraftData) && isEmptyObject(dropdownsState)}
                 onSubmit={handleSubmit}
+                isSubmitDisabled={!Object.entries(formDraftData ?? {}).some(([key, value]) => data?.[key as keyof typeof data] !== value)}
                 submitButtonText={translate('common.save')}
+                submitButtonStyles={styles.ph5}
                 enabledWhenOffline
             >
-                {Object.entries(data ?? {}).map(([key, value]) => {
-                    const defaultData: unknown = value;
-
-                    if (typeof defaultData === 'boolean') {
+                <Text style={[styles.headerText, styles.textAlignCenter]}>Text fields</Text>
+                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
+                    {textFields.map(([key, value]) => {
+                        const numberOfLines = DebugUtils.getNumberOfLinesFromString(value);
                         return (
-                            <View style={[styles.mb5, styles.ml1]}>
-                                <InputWrapper
-                                    style={[styles.mt5, styles.mb5]}
-                                    InputComponent={CheckboxWithLabel}
-                                    label={key}
-                                    inputID={key}
-                                    shouldSaveDraft
-                                    accessibilityLabel="Checkbox input field"
-                                    defaultValue={defaultData}
-                                />
-                            </View>
-                        );
-                    }
-
-                    if (DETAILS_SELECTION_LIST.includes(key)) {
-                        return (
-                            <MenuItemWithTopDescription
-                                key={key}
-                                style={styles.mb5}
-                                title={(formDraftData?.[key] as string) ?? (defaultData as string)}
-                                description={key}
-                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_TYPE_LIST.getRoute(reportID ?? '-1', reportActionID))}
-                                shouldShowRightIcon
-                            />
-                        );
-                    }
-
-                    if (key in DETAILS_DROPDOWN_OPTIONS) {
-                        const DetailsDropdown = DETAILS_DROPDOWN_OPTIONS[key as keyof typeof DETAILS_DROPDOWN_OPTIONS] as Record<string, string>;
-
-                        type Details = DeepValueOf<typeof DetailsDropdown>;
-
-                        return (
-                            <View style={styles.mb5}>
-                                <View style={[styles.flexWrap]}>
-                                    <Text style={[styles.mutedTextLabel]}>{key}</Text>
-                                </View>
-                                <ButtonWithDropdownMenu<Details>
-                                    shouldAlwaysShowDropdownMenu
-                                    pressOnEnter
-                                    menuHeaderText="Select an option"
-                                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                                    onPress={() => null}
-                                    customText={dropdownsState[key] ?? value}
-                                    onOptionSelected={(option) => {
-                                        onDropdownOptionSelected(key, option.text);
-                                    }}
-                                    options={dropdownOptionsMap[key]}
-                                    style={[styles.flexGrow1, styles.alignItemsStart]}
-                                    wrapperStyle={[styles.w100, styles.justifyContentBetween]}
-                                    isSplitButton={false}
-                                />
-                            </View>
-                        );
-                    }
-
-                    const stringValue = DebugUtils.onyxDataToString(defaultData);
-
-                    const numberOfLines = DebugUtils.getNumberOfLinesFromString(stringValue);
-
-                    return (
-                        <View style={styles.mb5}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={key}
@@ -205,22 +119,82 @@ function DebugDetails({data, reportID, onSave, onDelete, validate, formID, repor
                                 label={key}
                                 numberOfLines={numberOfLines}
                                 multiline={numberOfLines > 1}
-                                defaultValue={stringValue}
+                                defaultValue={value}
                             />
-                        </View>
-                    );
-                })}
+                        );
+                    })}
+                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                </View>
+                <Text style={[styles.headerText, styles.textAlignCenter]}>Number fields</Text>
+                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
+                    {numberFields.map(([key, value]) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={key}
+                            accessibilityLabel="Text input field"
+                            shouldSaveDraft
+                            forceActiveLabel
+                            label={key}
+                            defaultValue={String(value)}
+                        />
+                    ))}
+                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                </View>
+                <Text style={[styles.headerText, styles.textAlignCenter]}>Constant fields</Text>
+                <View style={styles.mb5}>
+                    {constantFields.map(([key, value]) => (
+                        <InputWrapper
+                            key={key}
+                            InputComponent={ConstantSelector}
+                            inputID={key}
+                            name={key}
+                            shouldSaveDraft
+                            defaultValue={String(value)}
+                        />
+                    ))}
+                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                </View>
+                <Text style={[styles.headerText, styles.textAlignCenter]}>Datetime fields</Text>
+                <View style={styles.mb5}>
+                    {dateTimeFields.map(([key, value]) => (
+                        <InputWrapper
+                            key={key}
+                            InputComponent={DateTimeSelector}
+                            inputID={key}
+                            name={key}
+                            shouldSaveDraft
+                            defaultValue={String(value)}
+                        />
+                    ))}
+                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                </View>
+                <Text style={[styles.headerText, styles.textAlignCenter]}>Boolean fields</Text>
+                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
+                    {booleanFields.map(([key, value]) => (
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
+                            label={key}
+                            inputID={key}
+                            shouldSaveDraft
+                            accessibilityLabel="Checkbox input field"
+                            defaultValue={value}
+                        />
+                    ))}
+                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
+                </View>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
             </FormProvider>
-            <Button
-                danger
-                large
-                text={translate('common.delete')}
-                onPress={() => {
-                    onDelete();
-                    Navigation.goBack();
-                }}
-            />
+            <View style={styles.ph5}>
+                <Button
+                    danger
+                    large
+                    text={translate('common.delete')}
+                    onPress={() => {
+                        onDelete();
+                        Navigation.goBack();
+                    }}
+                />
+            </View>
         </ScrollView>
     );
 }

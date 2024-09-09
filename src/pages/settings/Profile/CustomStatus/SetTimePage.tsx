@@ -27,6 +27,7 @@ function SetTimePage({customStatus}: SetTimePageProps) {
 
     const onSubmit = (time: string) => {
         const timeToUse = DateUtils.combineDateAndTime(time, clearAfter);
+        console.log({timeToUse, time, clearAfter});
 
         User.updateDraftCustomStatus({clearAfter: timeToUse});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);

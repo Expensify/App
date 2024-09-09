@@ -7,7 +7,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 class NumberError extends SyntaxError {
     constructor() {
-        super('debug.invalidValue', {cause: {expectedValues: 'number | undefined'}});
+        super('debug.invalidValue', {cause: {expectedValues: 'number | undefined | ""'}});
     }
 }
 
@@ -25,7 +25,7 @@ class ObjectError extends SyntaxError {
     constructor(type: Record<string, unknown>) {
         super('debug.invalidValue', {
             cause: {
-                expectedValues: `${stringifyJSON(type)} | undefined`,
+                expectedValues: `${stringifyJSON(type)} | undefined | ''`,
             },
         });
     }
@@ -217,7 +217,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
  * Validates if a string is a valid representation of a number.
  */
 function validateNumber(value: string) {
-    if (value === 'undefined' || (!value.includes(' ') && value !== '' && !Number.isNaN(Number(value)))) {
+    if (value === 'undefined' || value === '' || (!value.includes(' ') && !Number.isNaN(Number(value)))) {
         return;
     }
 
@@ -257,7 +257,7 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         return String(val);
     });
 
-    if (value === 'undefined' || (value !== '' && enumValues.includes(value))) {
+    if (value === 'undefined' || value === '' || enumValues.includes(value)) {
         return;
     }
 

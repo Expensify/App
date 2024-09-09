@@ -696,6 +696,8 @@ const ONYXKEYS = {
         DEBUG_REPORT_PAGE_FORM_DRAFT: 'debugReportPageFormDraft',
         DEBUG_REPORT_ACTION_PAGE_FORM: 'debugReportActionPageForm',
         DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT: 'debugReportActionPageFormDraft',
+        DEBUG_DETAILS_FORM: 'debugDetailsForm',
+        DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
     },
 } as const;
 
@@ -792,6 +794,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
     [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
