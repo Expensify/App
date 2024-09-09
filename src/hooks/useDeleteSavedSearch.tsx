@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
-import ROUTES from '@src/ROUTES';
 import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import useLocalize from './useLocalize';
 
 export default function useDeleteSavedSearch() {
@@ -23,7 +23,7 @@ export default function useDeleteSavedSearch() {
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL)
+                query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL),
             }),
         );
     };
