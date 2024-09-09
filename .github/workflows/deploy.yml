@@ -443,6 +443,7 @@ jobs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
     needs: [android, desktop, iOS, web]
+    if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccess

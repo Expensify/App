@@ -100,7 +100,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 required: policyTagList.required,
                 rightElement: (
                     <ListItemRightCaretWithLabel
-                        labelText={policyTagList.required ? translate('common.required') : undefined}
+                        labelText={policyTagList.required && !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled) ? translate('common.required') : undefined}
                         shouldShowCaret={false}
                     />
                 ),
