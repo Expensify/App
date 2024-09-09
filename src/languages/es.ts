@@ -373,7 +373,6 @@ export default {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        importSpreadsheet: 'Importar hoja de cálculo',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
@@ -680,6 +679,8 @@ export default {
         importSuccessfullTitle: 'Importar categorías',
         invalidFileMessage:
             'El archivo que ha cargado está vacío o contiene datos no válidos. Asegúrese de que el archivo tiene el formato correcto y contiene la información necesaria antes de volver a cargarlo.',
+        importSpreadsheet: 'Importar hoja de cálculo',
+        downloadCSV: 'Descargar CSV',
     },
     receipt: {
         upload: 'Subir recibo',
