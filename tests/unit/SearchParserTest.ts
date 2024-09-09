@@ -193,17 +193,9 @@ const tests = [
                                 right: '200',
                             },
                             right: {
-                                operator: 'or',
-                                left: {
-                                    operator: 'eq',
-                                    left: 'expenseType',
-                                    right: 'cash',
-                                },
-                                right: {
-                                    operator: 'eq',
-                                    left: 'expenseType',
-                                    right: 'card',
-                                },
+                                operator: 'eq',
+                                left: 'expenseType',
+                                right: ['cash', 'card'],
                             },
                         },
                         right: {
@@ -219,25 +211,9 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'or',
-                    left: {
-                        operator: 'or',
-                        left: {
-                            operator: 'eq',
-                            left: 'category',
-                            right: 'travel',
-                        },
-                        right: {
-                            operator: 'eq',
-                            left: 'category',
-                            right: 'hotel',
-                        },
-                    },
-                    right: {
-                        operator: 'eq',
-                        left: 'category',
-                        right: 'meal & entertainment',
-                    },
+                    operator: 'eq',
+                    left: 'category',
+                    right: ['travel', 'hotel', 'meal & entertainment'],
                 },
             },
         },
@@ -252,22 +228,14 @@ const tests = [
             filters: {
                 operator: 'and',
                 left: {
-                    operator: 'or',
-                    left: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'las',
-                    },
-                    right: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'vegas',
-                    },
-                },
-                right: {
                     operator: 'gt',
                     left: 'amount',
                     right: '200',
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'keyword',
+                    right: ['las', 'vegas'],
                 },
             },
         },
@@ -282,19 +250,6 @@ const tests = [
             filters: {
                 operator: 'and',
                 left: {
-                    operator: 'or',
-                    left: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'las',
-                    },
-                    right: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'vegas',
-                    },
-                },
-                right: {
                     operator: 'and',
                     left: {
                         operator: 'gt',
@@ -306,6 +261,11 @@ const tests = [
                         left: 'category',
                         right: 'Hotel : Marriott',
                     },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'keyword',
+                    right: ['las', 'vegas'],
                 },
             },
         },
@@ -320,19 +280,6 @@ const tests = [
             filters: {
                 operator: 'and',
                 left: {
-                    operator: 'or',
-                    left: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'las',
-                    },
-                    right: {
-                        operator: 'eq',
-                        left: 'keyword',
-                        right: 'vegas',
-                    },
-                },
-                right: {
                     operator: 'and',
                     left: {
                         operator: 'and',
@@ -352,54 +299,27 @@ const tests = [
                                 },
                             },
                             right: {
-                                operator: 'or',
-                                left: {
-                                    operator: 'eq',
-                                    left: 'date',
-                                    right: '2024-01-01',
-                                },
-                                right: {
-                                    operator: 'eq',
-                                    left: 'date',
-                                    right: '2024-02-01',
-                                },
-                            },
-                        },
-                        right: {
-                            operator: 'or',
-                            left: {
                                 operator: 'eq',
-                                left: 'merchant',
-                                right: 'Expensify',
-                            },
-                            right: {
-                                operator: 'eq',
-                                left: 'merchant',
-                                right: 'Inc.',
-                            },
-                        },
-                    },
-                    right: {
-                        operator: 'or',
-                        left: {
-                            operator: 'or',
-                            left: {
-                                operator: 'eq',
-                                left: 'tag',
-                                right: 'hotel',
-                            },
-                            right: {
-                                operator: 'eq',
-                                left: 'tag',
-                                right: 'travel',
+                                left: 'date',
+                                right: ['2024-01-01', '2024-02-01'],
                             },
                         },
                         right: {
                             operator: 'eq',
-                            left: 'tag',
-                            right: 'meals & entertainment',
+                            left: 'merchant',
+                            right: 'Expensify, Inc.',
                         },
                     },
+                    right: {
+                        operator: 'eq',
+                        left: 'tag',
+                        right: ['hotel', 'travel', 'meals & entertainment'],
+                    },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'keyword',
+                    right: ['las', 'vegas'],
                 },
             },
         },
