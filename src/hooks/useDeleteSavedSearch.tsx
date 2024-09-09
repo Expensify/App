@@ -24,7 +24,6 @@ export default function useDeleteSavedSearch() {
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: DEFAULT_SAVE_SEARCH_QUERY_STRING,
-                isCustomQuery: true,
             }),
         );
     };

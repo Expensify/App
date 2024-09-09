@@ -24,7 +24,6 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
-                isCustomQuery: true,
             }),
         );
     };
