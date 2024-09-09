@@ -85,6 +85,13 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
+const SearchColumns = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
+};
+
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
     metadata: OnyxTypes.SearchResults['search'];
@@ -102,6 +109,10 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
+    if (SearchColumns[metadata.type] === null) {
+        return;
+    }
+
     if (displayNarrowVersion) {
         return;
     }
@@ -109,7 +120,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
-                {expenseHeaders.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                {SearchColumns[metadata.type]?.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
                         return null;
                     }
