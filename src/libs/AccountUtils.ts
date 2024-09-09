@@ -8,4 +8,11 @@ const isValidateCodeFormSubmitting = (account: OnyxEntry<Account>) =>
 /** Whether the accound ID is an odd number, useful for A/B testing. */
 const isAccountIDOddNumber = (accountID: number) => accountID % 2 === 1;
 
-export default {isValidateCodeFormSubmitting, isAccountIDOddNumber};
+function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
+    const delegateEmail = account?.delegatedAccess?.delegate;
+    const delegateRole = account?.delegatedAccess?.delegates?.find((delegate) => delegate.email === delegateEmail)?.role;
+
+    return delegateRole === CONST.DELEGATE_ROLE.SUBMITTER;
+}
+
+export default {isValidateCodeFormSubmitting, isAccountIDOddNumber, isDelegateOnlySubmitter};
