@@ -29,7 +29,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSynchronizationErrorMessage} from './actions/connections';
+import {hasSynchronizationErrorMessage} from './actions/connections';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -90,7 +90,7 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
  * Checks if the policy had a sync error.
  */
 function hasSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
-    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!getSynchronizationErrorMessage(policy, connection, isSyncInProgress));
+    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
 
 /**
@@ -309,7 +309,7 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
     for (const policyTagList of Object.values(policyTagLists ?? {})) {
-        for (const tag of Object.values(policyTagList.tags)) {
+        for (const tag of Object.values(policyTagList.tags ?? {})) {
             uniqueTagNames.add(getCleanedTagName(tag.name));
         }
     }
@@ -986,6 +986,10 @@ function getDomainNameForPolicy(policyID?: string): string {
     return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
 }
 
+function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1093,6 +1097,7 @@ export {
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getDomainNameForPolicy,
+    getWorkflowApprovalsUnavailable,
 };
 
 export type {MemberEmailsToAccountIDs};
