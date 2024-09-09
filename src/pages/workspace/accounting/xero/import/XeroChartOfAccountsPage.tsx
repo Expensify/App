@@ -60,7 +60,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!xeroConfig?.enableNewCategories}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(
+                    Connections.updatePolicyConnectionConfig(
                         policyID,
                         CONST.POLICY.CONNECTIONS.NAME.XERO,
                         CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
