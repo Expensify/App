@@ -41,7 +41,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, isPendi
             <PressableWithFeedback
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldUseNarrowLayout && styles.mb3]}
-                accessibilityLabel={cardFeeds?.companyCardNicknames?.[selectedFeed]}
+                accessibilityLabel={cardFeeds?.companyCardNicknames?.[selectedFeed] ?? ''}
             >
                 <Icon
                     src={CardUtils.getCardFeedIcon(selectedFeed)}
