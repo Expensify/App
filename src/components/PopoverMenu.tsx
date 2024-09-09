@@ -98,6 +98,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether to show the selected option checkmark */
+    shouldShowSelectedItemCheck?: boolean;
 };
 
 function PopoverMenu({
@@ -123,9 +126,11 @@ function PopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    shouldShowSelectedItemCheck = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
@@ -141,8 +146,8 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            onItemSelected(selectedItem, index);
             Modal.close(() => {
-                onItemSelected(selectedItem, index);
                 selectedItem.onSelected?.();
             });
         } else {
@@ -263,6 +268,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
+                            shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                             titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
@@ -274,6 +280,7 @@ function PopoverMenu({
                             iconRight={item.iconRight}
                             shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                             label={item.label}
+                            style={{backgroundColor: item.isSelected ? theme.activeComponentBG : undefined}}
                             isLabelHoverable={item.isLabelHoverable}
                             floatRightAvatars={item.floatRightAvatars}
                             floatRightAvatarSize={item.floatRightAvatarSize}
@@ -290,6 +297,7 @@ function PopoverMenu({
                             renderTooltipContent={item.renderTooltipContent}
                             numberOfLinesTitle={item.numberOfLinesTitle}
                             interactive={item.interactive}
+                            isSelected={item.isSelected}
                             badgeText={item.badgeText}
                         />
                     ))}

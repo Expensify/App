@@ -90,10 +90,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                if (reportID) {
-                                    const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
-                                    Navigation.navigate(route);
-                                }
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID);
+                                Navigation.navigate(route);
                             }}
                             onLongPress={(event) =>
                                 onShowContextMenu(() =>
