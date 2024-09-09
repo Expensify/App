@@ -125,14 +125,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                   })
                 : approvers;
 
+        const data = OptionsListUtils.sortAlphabetically(filteredApprovers, 'text');
         return [
             {
                 title: undefined,
-                data: filteredApprovers,
+                data,
                 shouldShow: true,
             },
         ];
-        // eslint-disable-next-line react-compiler/react-compiler
     }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections[0].data.length;
