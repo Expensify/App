@@ -52,7 +52,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
                 return;
             }
             if (row.value !== invoiceStatus) {
-                Connections.updatePolicyXeroConnectionConfig(
+                Connections.updatePolicyConnectionConfig(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
                     CONST.XERO_CONFIG.EXPORT,

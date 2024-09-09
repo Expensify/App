@@ -510,8 +510,8 @@ function IOURequestStepScan({
                         style={styles.pb5}
                     />
 
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <Button
                         medium
                         success

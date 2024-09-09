@@ -42,7 +42,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyXeroConnectionConfig(
+            Connections.updatePolicyConnectionConfig(
                 policyID,
                 CONST.POLICY.CONNECTIONS.NAME.XERO,
                 CONST.XERO_CONFIG.SYNC,

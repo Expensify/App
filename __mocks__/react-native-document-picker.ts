@@ -18,6 +18,7 @@ const reactNativeDocumentPickerMock: ReactNativeDocumentPickerMock = {
         doc: 'com.microsoft.word.doc',
         docx: 'org.openxmlformats.wordprocessingml.document',
         images: 'public.image',
+        json: 'public.json',
         pdf: 'com.adobe.pdf',
         plainText: 'public.plain-text',
         ppt: 'com.microsoft.powerpoint.ppt',
