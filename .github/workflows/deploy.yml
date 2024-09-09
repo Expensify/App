@@ -549,7 +549,7 @@ jobs:
 
       - name: Upload artifacts to GitHub Release
         run: |
-          gh release upload ${{ env.STAGING_VERSION }} \
+          gh release upload ${{ env.PRODUCTION_VERSION }} \
             ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap-${{ env.STAGING_VERSION }} \
             ./desktop-build-artifact/NewExpensify.dmg \
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap-${{ env.STAGING_VERSION }} \
