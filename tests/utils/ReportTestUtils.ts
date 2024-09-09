@@ -11,7 +11,7 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
         automatic: false,
         avatar: '',
         created: '2023-09-12 16:27:35.124',
-        isAttachment: true,
+        isAttachmentOnly: true,
         isFirstItem: false,
         lastModified: '2021-07-14T15:00:00Z',
         message: [

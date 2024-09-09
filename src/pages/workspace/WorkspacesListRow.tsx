@@ -13,9 +13,9 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -113,7 +113,7 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -142,7 +142,7 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[styles.flexRow, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+        <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
             {isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
@@ -161,7 +161,7 @@ function WorkspacesListRow({
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
                             onIconPress={() => {
-                                if (isSmallScreenWidth) {
+                                if (shouldUseNarrowLayout) {
                                     return;
                                 }
                                 threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -204,7 +204,7 @@ function WorkspacesListRow({
                             {title}
                         </Text>
                     </View>
-                    {isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+                    {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
                 <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
@@ -257,7 +257,7 @@ function WorkspacesListRow({
                 </View>
             </View>
 
-            {!isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+            {!shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
         </View>
     );
 }

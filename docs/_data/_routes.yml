@@ -69,8 +69,8 @@ platforms:
         icon: /assets/images/handshake.svg
         description: Discover the benefits of becoming an Expensify Partner.
 
-      - href: integrations
-        title: Integrations
+      - href: connections
+        title: Connections
         icon: /assets/images/simple-illustration__monitor-remotesync.svg
         description: Integrate with accounting or HR software to streamline expense approvals.
 

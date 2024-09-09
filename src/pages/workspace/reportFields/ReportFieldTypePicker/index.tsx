@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
@@ -36,8 +36,8 @@ function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldType
             keyForList: reportFieldType,
             value: reportFieldType,
             isSelected: defaultValue === reportFieldType,
-            text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
-            alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
+            text: translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportFieldType)),
+            alternateText: translate(WorkspaceReportFieldUtils.getReportFieldAlternativeTextTranslationKey(reportFieldType)),
         }));
 
         return [{data}];

@@ -1,6 +1,4 @@
-import {getUnixTime} from 'date-fns';
 import {Str} from 'expensify-common';
-import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
@@ -12,6 +10,7 @@ import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportA
 import type IconAsset from '@src/types/utils/IconAsset';
 import type EmojiTrie from './EmojiTrie';
 import type {SupportedLanguage} from './EmojiTrie';
+import memoize from './memoize';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -42,9 +41,32 @@ Onyx.connect({
                         emoji = {...emoji, ...findEmojiByCode(item.code)};
                     }
                     const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    if (!emojiWithSkinTones) {
+                        return null;
+                    }
                     return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+
+        // On AddComment API response, each variant of the same emoji (with different skin tones) is
+        // treated as a separate entry due to unique emoji codes for each variant.
+        // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
+        const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+        frequentlyUsedEmojis.forEach((emoji) => {
+            const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+            if (existingEmoji) {
+                existingEmoji.count += emoji.count;
+                existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            } else {
+                frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            }
+        });
+        frequentlyUsedEmojis = Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+            if (a.count !== b.count) {
+                return b.count - a.count;
+            }
+            return b.lastUpdatedAt - a.lastUpdatedAt;
+        });
     },
 });
 
@@ -74,42 +96,45 @@ const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string =>
 /**
  * Get the unicode code of an emoji in base 16.
  */
-const getEmojiUnicode = memoize((input: string) => {
-    if (input.length === 0) {
-        return '';
-    }
-
-    if (input.length === 1) {
-        return input
-            .charCodeAt(0)
-            .toString()
-            .split(' ')
-            .map((val) => parseInt(val, 10).toString(16))
-            .join(' ');
-    }
-
-    const pairs = [];
-
-    // Some Emojis in UTF-16 are stored as a pair of 2 Unicode characters (e.g. Flags)
-    // The first char is generally between the range U+D800 to U+DBFF called High surrogate
-    // & the second char between the range U+DC00 to U+DFFF called low surrogate
-    // More info in the following links:
-    // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
-    // 2. https://thekevinscott.com/emojis-in-javascript/
-    for (let i = 0; i < input.length; i++) {
-        if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
-            // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
-                // low surrogate
-                pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
-            }
-        } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
-            // modifiers and joiners
-            pairs.push(input.charCodeAt(i));
+const getEmojiUnicode = memoize(
+    (input: string) => {
+        if (input.length === 0) {
+            return '';
         }
-    }
-    return pairs.map((val) => parseInt(String(val), 10).toString(16)).join(' ');
-});
+
+        if (input.length === 1) {
+            return input
+                .charCodeAt(0)
+                .toString()
+                .split(' ')
+                .map((val) => parseInt(val, 10).toString(16))
+                .join(' ');
+        }
+
+        const pairs = [];
+
+        // Some Emojis in UTF-16 are stored as a pair of 2 Unicode characters (e.g. Flags)
+        // The first char is generally between the range U+D800 to U+DBFF called High surrogate
+        // & the second char between the range U+DC00 to U+DFFF called low surrogate
+        // More info in the following links:
+        // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
+        // 2. https://thekevinscott.com/emojis-in-javascript/
+        for (let i = 0; i < input.length; i++) {
+            if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
+                // high surrogate
+                if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
+                    // low surrogate
+                    pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
+                }
+            } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
+                // modifiers and joiners
+                pairs.push(input.charCodeAt(i));
+            }
+        }
+        return pairs.map((val) => parseInt(String(val), 10).toString(16)).join(' ');
+    },
+    {monitoringName: 'getEmojiUnicode'},
+);
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
@@ -201,7 +226,7 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
     let updatedEmojis: EmojiPickerList = [];
     emojis.forEach((emoji, index) => {
-        if ('header' in emoji) {
+        if (emoji && typeof emoji === 'object' && 'header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
             return;
         }
@@ -233,37 +258,6 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
 
     const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
-}
-
-/**
- * Get the updated frequently used emojis list by usage
- */
-function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji[] {
-    let frequentEmojiList = [...frequentlyUsedEmojis];
-
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-
-    const currentTimestamp = getUnixTime(new Date());
-    (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
-        let currentEmojiCount = 1;
-        const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
-        if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-            frequentEmojiList.splice(emojiIndex, 1);
-        }
-
-        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
-
-        // We want to make sure the current emoji is added to the list
-        // Hence, we take one less than the current frequent used emojis
-        frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-        frequentEmojiList.push(updatedEmoji);
-
-        // Sort the list by count and lastUpdatedAt in descending order
-        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
-    });
-
-    return frequentEmojiList;
 }
 
 /**
@@ -601,7 +595,6 @@ export {
     getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
-    getFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,

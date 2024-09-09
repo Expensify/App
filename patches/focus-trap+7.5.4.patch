@@ -1,0 +1,106 @@
+diff --git a/node_modules/focus-trap/dist/focus-trap.esm.js b/node_modules/focus-trap/dist/focus-trap.esm.js
+index 10d56db..a6d76d8 100644
+--- a/node_modules/focus-trap/dist/focus-trap.esm.js
++++ b/node_modules/focus-trap/dist/focus-trap.esm.js
+@@ -100,8 +100,8 @@ var isKeyForward = function isKeyForward(e) {
+ var isKeyBackward = function isKeyBackward(e) {
+   return isTabEvent(e) && e.shiftKey;
+ };
+-var delay = function delay(fn) {
+-  return setTimeout(fn, 0);
++var delay = function delay(fn, delayTime = 0) {
++  return setTimeout(() => setTimeout(fn, delayTime), 0);
+ };
+ 
+ // Array.find/findIndex() are not supported on IE; this replicates enough
+@@ -283,7 +283,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+     return node;
+   };
+   var getInitialFocusNode = function getInitialFocusNode() {
+-    var node = getNodeForOption('initialFocus');
++    var node = getNodeForOption('initialFocus', state.containers);
+ 
+     // false explicitly indicates we want no initialFocus at all
+     if (node === false) {
+@@ -744,7 +744,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+     // that caused the focus trap activation.
+     state.delayInitialFocusTimer = config.delayInitialFocus ? delay(function () {
+       tryFocus(getInitialFocusNode());
+-    }) : tryFocus(getInitialFocusNode());
++    }, typeof config.delayInitialFocus === 'number' ? config.delayInitialFocus : undefined) : tryFocus(getInitialFocusNode());
+     doc.addEventListener('focusin', checkFocusIn, true);
+     doc.addEventListener('mousedown', checkPointerDown, {
+       capture: true,
+@@ -880,7 +880,7 @@ var createFocusTrap = function createFocusTrap(elements, userOptions) {
+             tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
+           }
+           onPostDeactivate === null || onPostDeactivate === void 0 || onPostDeactivate();
+-        });
++        }, typeof config.delayInitialFocus === 'number' ? config.delayInitialFocus : undefined);
+       };
+       if (returnFocus && checkCanReturnFocus) {
+         checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
+diff --git a/node_modules/focus-trap/index.d.ts b/node_modules/focus-trap/index.d.ts
+index 400db1b..69f4b94 100644
+--- a/node_modules/focus-trap/index.d.ts
++++ b/node_modules/focus-trap/index.d.ts
+@@ -16,7 +16,7 @@ declare module 'focus-trap' {
+    * `document.querySelector()` to find the DOM node), `false` to explicitly indicate
+    * an opt-out, or a function that returns a DOM node or `false`.
+    */
+-  export type FocusTargetOrFalse = FocusTargetValueOrFalse | (() => FocusTargetValueOrFalse);
++  export type FocusTargetOrFalse = FocusTargetValueOrFalse | ((containers?: HTMLElement[]) => FocusTargetValueOrFalse | undefined);
+ 
+   type MouseEventToBoolean = (event: MouseEvent | TouchEvent) => boolean;
+   type KeyboardEventToBoolean = (event: KeyboardEvent) => boolean;
+@@ -185,7 +185,7 @@ declare module 'focus-trap' {
+      * This prevents elements within the focusable element from capturing
+      * the event that triggered the focus trap activation.
+      */
+-    delayInitialFocus?: boolean;
++    delayInitialFocus?: boolean | number;
+     /**
+      * Default: `window.document`. Document where the focus trap will be active.
+      * This allows to use FocusTrap in an iFrame context.
+diff --git a/node_modules/focus-trap/index.js b/node_modules/focus-trap/index.js
+index de8e46a..bfc8b63 100644
+--- a/node_modules/focus-trap/index.js
++++ b/node_modules/focus-trap/index.js
+@@ -63,8 +63,8 @@ const isKeyBackward = function (e) {
+   return isTabEvent(e) && e.shiftKey;
+ };
+ 
+-const delay = function (fn) {
+-  return setTimeout(fn, 0);
++const delay = function (fn, delayTime = 0) {
++  return setTimeout(() => setTimeout(fn, delayTime), 0);
+ };
+ 
+ // Array.find/findIndex() are not supported on IE; this replicates enough
+@@ -267,7 +267,7 @@ const createFocusTrap = function (elements, userOptions) {
+   };
+ 
+   const getInitialFocusNode = function () {
+-    let node = getNodeForOption('initialFocus');
++    let node = getNodeForOption('initialFocus', state.containers);
+ 
+     // false explicitly indicates we want no initialFocus at all
+     if (node === false) {
+@@ -817,7 +817,7 @@ const createFocusTrap = function (elements, userOptions) {
+     state.delayInitialFocusTimer = config.delayInitialFocus
+       ? delay(function () {
+           tryFocus(getInitialFocusNode());
+-        })
++        }, typeof config.delayInitialFocus === 'number' ? config.delayInitialFocus : undefined)
+       : tryFocus(getInitialFocusNode());
+ 
+     doc.addEventListener('focusin', checkFocusIn, true);
+@@ -989,7 +989,7 @@ const createFocusTrap = function (elements, userOptions) {
+             tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
+           }
+           onPostDeactivate?.();
+-        });
++        }, typeof config.delayInitialFocus === 'number' ? config.delayInitialFocus : undefined);
+       };
+ 
+       if (returnFocus && checkCanReturnFocus) {

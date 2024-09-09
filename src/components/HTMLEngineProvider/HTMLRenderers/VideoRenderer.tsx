@@ -1,5 +1,6 @@
 import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import {AttachmentContext} from '@components/AttachmentContext';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -16,7 +17,7 @@ type VideoRendererProps = CustomRendererProps<TBlock> & {
 
 function VideoRenderer({tnode, key}: VideoRendererProps) {
     const htmlAttribs = tnode.attributes;
-    const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
+    const attrHref = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || htmlAttribs.src || htmlAttribs.href || '';
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
     const fileName = FileUtils.getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
@@ -28,19 +29,26 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     return (
         <ShowContextMenuContext.Consumer>
             {({report}) => (
-                <VideoPlayerPreview
-                    key={key}
-                    videoUrl={sourceURL}
-                    reportID={currentReportIDValue?.currentReportID ?? '-1'}
-                    fileName={fileName}
-                    thumbnailUrl={thumbnailUrl}
-                    videoDimensions={{width, height}}
-                    videoDuration={duration}
-                    onShowModalPress={() => {
-                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
-                        Navigation.navigate(route);
-                    }}
-                />
+                <AttachmentContext.Consumer>
+                    {({accountID, type}) => (
+                        <VideoPlayerPreview
+                            key={key}
+                            videoUrl={sourceURL}
+                            reportID={currentReportIDValue?.currentReportID ?? '-1'}
+                            fileName={fileName}
+                            thumbnailUrl={thumbnailUrl}
+                            videoDimensions={{width, height}}
+                            videoDuration={duration}
+                            onShowModalPress={() => {
+                                if (!sourceURL || !type) {
+                                    return;
+                                }
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', type, sourceURL, accountID);
+                                Navigation.navigate(route);
+                            }}
+                        />
+                    )}
+                </AttachmentContext.Consumer>
             )}
         </ShowContextMenuContext.Consumer>
     );

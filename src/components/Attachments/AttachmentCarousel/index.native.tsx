@@ -57,7 +57,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(targetAttachments[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
 
     /** Updates the page state when the user navigates between attachments */

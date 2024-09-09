@@ -1,23 +1,28 @@
 import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
-import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {updateNetSuiteCustomersJobsMapping} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {NetSuiteMappingValues} from '@src/types/onyx/Policy';
 
 type ImportListItem = SelectorType & {
-    value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
+    value: NetSuiteMappingValues;
 };
 
 function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const importMappings = netsuiteConfig?.syncOptions?.mapping;
@@ -39,14 +44,19 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
     const updateImportMapping = useCallback(
         ({value}: ImportListItem) => {
             if (value !== importedValue) {
-                if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS, value, importMappings?.jobs);
-                }
-                if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, value, importMappings?.customers);
-                }
+                updateNetSuiteCustomersJobsMapping(
+                    policyID,
+                    {
+                        customersMapping: importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                        jobsMapping: importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                    },
+                    {
+                        customersMapping: importMappings?.customers,
+                        jobsMapping: importMappings?.jobs,
+                    },
+                );
             }
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
         },
         [importCustomer, importJobs, importMappings?.customers, importMappings?.jobs, importedValue, policyID],
     );
@@ -54,7 +64,7 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportCustomersOrProjectSelectPage.displayName}
             sections={[{data: inputSectionData}]}
@@ -64,6 +74,20 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID))}
             title="workspace.common.displayedAs"
+            errors={
+                areSettingsInErrorFields([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS], netsuiteConfig?.errorFields)
+                    ? ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS)
+                    : ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)
+            }
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            pendingAction={settingsPendingAction(
+                [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                netsuiteConfig?.pendingFields,
+            )}
+            onClose={() => {
+                Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS);
+                Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS);
+            }}
         />
     );
 }

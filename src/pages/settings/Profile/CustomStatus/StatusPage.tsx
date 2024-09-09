@@ -141,7 +141,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         }
 
         return () => User.clearDraftCustomStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
@@ -151,7 +151,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return {};
     }, [brickRoadIndicator]);
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -186,7 +186,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
-                            onModalHide={() => {}}
+                            onModalHide={() => {
+                                inputRef.current?.focus();
+                            }}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />

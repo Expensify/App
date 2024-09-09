@@ -15,17 +15,44 @@ function acceptSpotnanaTerms() {
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
                 hasAcceptedTerms: true,
+                isLoading: true,
             },
         },
     ];
 
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken) : buildTravelDotURL()))
-            .catch(() => buildTravelDotURL()),
-        (travelDotURL) => travelDotURL,
-    );
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const error = new Error('Failed to generate spotnana token.');
+
+    return new Promise((resolve, reject) => {
+        asyncOpenURL(
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData, finallyData})
+                .then((response) => {
+                    if (!response?.spotnanaToken) {
+                        reject(error);
+                        throw error;
+                    }
+                    return buildTravelDotURL(response.spotnanaToken);
+                })
+                .catch(() => {
+                    reject(error);
+                    throw error;
+                }),
+            (travelDotURL) => {
+                resolve(travelDotURL);
+                return travelDotURL ?? '';
+            },
+        );
+    });
 }
 
 // eslint-disable-next-line import/prefer-default-export

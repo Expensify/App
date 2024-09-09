@@ -45,6 +45,12 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
 
+    /** Callback when the payment options popover is shown */
+    onPaymentOptionsShow?: () => void;
+
+    /** Callback when the payment options popover is closed */
+    onPaymentOptionsHide?: () => void;
+
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: EnablePaymentsRoute;
 
@@ -107,6 +113,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
 };
 
 function SettlementButton({
@@ -142,19 +151,23 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    useKeyboardShortcuts = false,
+    onPaymentOptionsShow,
+    onPaymentOptionsHide,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID), [activePolicyID]);
-
     const session = useSession();
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID, session?.email), [activePolicyID, session?.email]);
+
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport));
+    const shouldShowPaywithExpensifyOption =
+        !isPaidGroupPolicy ||
+        (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
     const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -249,8 +262,8 @@ function SettlementButton({
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currency, formattedAmount, iouReport, chatReport, policyID, translate, shouldHidePaymentOptions, primaryPolicy, shouldShowApproveButton, shouldDisableApproveButton]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [currency, formattedAmount, iouReport, chatReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
@@ -297,6 +310,8 @@ function SettlementButton({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
                     success
+                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu={isInvoiceReport}
                     customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
@@ -312,6 +327,7 @@ function SettlementButton({
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
                 />
             )}
         </KYCWall>

@@ -4,6 +4,9 @@ const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const ReactCompilerConfig = {
     runtimeModule: 'react-compiler-runtime',
+    environment: {
+        enableTreatRefLikeIdentifiersAsRefs: true,
+    },
 };
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [

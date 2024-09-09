@@ -121,6 +121,7 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        // eslint-disable-next-line react-compiler/react-compiler
         offsetX.value = 0;
         offsetY.value = 0;
         pinchScale.value = 1;

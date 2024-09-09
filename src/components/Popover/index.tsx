@@ -6,7 +6,7 @@ import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
-import type {PopoverProps} from './types';
+import type PopoverProps from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
@@ -27,27 +27,31 @@ function Popover(props: PopoverProps) {
         anchorRef = () => {},
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
+        shouldCloseWhenBrowserNavigationChanged = true,
     } = props;
 
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
     // Not adding this inside the PopoverProvider
     // because this is an issue on smaller screens as well.
     React.useEffect(() => {
+        if (!shouldCloseWhenBrowserNavigationChanged) {
+            return;
+        }
         const listener = () => {
             if (!isVisible) {
                 return;
             }
-
             onClose();
         };
         window.addEventListener('popstate', listener);
         return () => {
             window.removeEventListener('popstate', listener);
         };
-    }, [onClose, isVisible]);
+    }, [onClose, isVisible, shouldCloseWhenBrowserNavigationChanged]);
 
     const onCloseWithPopoverContext = () => {
         if (popover && 'current' in anchorRef) {
@@ -57,7 +61,7 @@ function Popover(props: PopoverProps) {
         onClose();
     };
 
-    if (!fullscreen && !isSmallScreenWidth) {
+    if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -76,7 +80,7 @@ function Popover(props: PopoverProps) {
         );
     }
 
-    if (withoutOverlay && !isSmallScreenWidth) {
+    if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -97,9 +101,9 @@ function Popover(props: PopoverProps) {
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
-            fullscreen={isSmallScreenWidth ? true : fullscreen}
-            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
-            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
+            fullscreen={shouldUseNarrowLayout ? true : fullscreen}
+            animationInTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationInTiming}
+            animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}

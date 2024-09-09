@@ -10,6 +10,8 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+require 'ostruct'
+
 skip_docs
 opt_out_usage
 

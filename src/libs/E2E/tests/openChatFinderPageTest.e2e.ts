@@ -34,6 +34,7 @@ const test = () => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug(`[E2E] Sidebar loaded, navigating to chat finder route…`);
+                Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
                 Navigation.navigate(ROUTES.CHAT_FINDER);
                 return;
             }

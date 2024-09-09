@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -192,7 +192,7 @@ function MagicCodeInput(
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -332,6 +332,15 @@ function MagicCodeInput(
             }
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
+        } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
+            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
+                setInputAndIndex(newFocusedIndex);
+                inputRefs.current?.focus();
+                if (event?.preventDefault) {
+                    event.preventDefault();
+                }
+            }
         }
     };
 
@@ -353,7 +362,7 @@ function MagicCodeInput(
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     return (

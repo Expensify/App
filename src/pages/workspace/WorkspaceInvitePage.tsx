@@ -81,13 +81,13 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         return () => {
             Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
@@ -171,7 +171,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setPersonalDetails(Object.values(newPersonalDetailsDict));
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const sections: MembersSection[] = useMemo(() => {

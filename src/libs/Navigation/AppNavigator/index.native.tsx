@@ -10,17 +10,17 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const initUrl = useContext(InitialURLContext);
+    const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initUrl) {
+        if (!NativeModules.HybridAppModule || !initialURL) {
             return;
         }
 
         Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(initUrl);
+            Navigation.navigate(initialURL);
         });
-    }, [initUrl]);
+    }, [initialURL]);
 
     if (authenticated) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;

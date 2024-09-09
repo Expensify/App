@@ -1,6 +1,8 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
+import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
@@ -94,14 +96,59 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
     });
 }
 
+const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
+    const fetchOptions: RequestInit = {
+        method: 'POST',
+        body: formData,
+    };
+
+    return fetch(url, fetchOptions)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to download file');
+            }
+            return response.text();
+        })
+        .then((fileData) => {
+            const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
+            const downloadPath = `${RNFS.DownloadDirectoryPath}/Expensify/${finalFileName}`;
+
+            return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
+        })
+        .then((downloadPath) =>
+            RNFetchBlob.MediaCollection.copyToMediaStore(
+                {
+                    name: FileUtils.getFileName(downloadPath),
+                    parentFolder: 'Expensify',
+                    mimeType: null,
+                },
+                'Download',
+                downloadPath,
+            ).then(() => downloadPath),
+        )
+        .then((downloadPath) => {
+            RNFetchBlob.fs.unlink(downloadPath);
+            FileUtils.showSuccessAlert();
+        })
+        .catch(() => {
+            if (!onDownloadFailed) {
+                FileUtils.showGeneralErrorAlert();
+            }
+            onDownloadFailed?.();
+        });
+};
+
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName, successMessage) =>
+const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
+                    if (requestType === CONST.NETWORK.METHOD.POST) {
+                        return postDownloadFile(url, fileName, formData, onDownloadFailed);
+                    }
                     return handleDownload(url, fileName, successMessage);
                 }
                 FileUtils.showPermissionErrorAlert();

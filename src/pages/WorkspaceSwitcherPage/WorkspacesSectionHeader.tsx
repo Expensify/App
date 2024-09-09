@@ -33,8 +33,8 @@ function WorkspacesSectionHeader() {
                     accessible={false}
                     role={CONST.ROLE.BUTTON}
                     onPress={() => {
-                        Navigation.goBack();
-                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
+                        const activeRoute = Navigation.getActiveRouteWithoutParams();
+                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute));
                     }}
                 >
                     {({hovered}) => (

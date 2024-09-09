@@ -1,14 +1,15 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
-import {getTrackingCategories} from '@libs/actions/connections/ConnectToXero';
+import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -25,12 +26,13 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 
-    const menuItems: MenuItemProps[] = useMemo(() => {
-        const trackingCategories = getTrackingCategories(policy);
+    const menuItems = useMemo(() => {
+        const trackingCategories = Xero.getTrackingCategories(policy);
         return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
+            id: category.id,
             description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
-            title: translate(`workspace.xero.trackingCategoriesOptions.${category.value.toLowerCase()}` as TranslationPaths),
+            title: translate(`workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toLowerCase() : 'default'}` as TranslationPaths),
         }));
     }, [translate, policy, policyID]);
 
@@ -50,28 +52,27 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
-                onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(
-                        policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.XERO,
-                        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
-                        !xeroConfig?.importTrackingCategories,
-                    )
-                }
+                onToggle={() => Xero.updateXeroImportTrackingCategories(policyID, !xeroConfig?.importTrackingCategories, xeroConfig?.importTrackingCategories)}
+                pendingAction={settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
             {xeroConfig?.importTrackingCategories && (
                 <View>
-                    {menuItems.map((menuItem: MenuItemProps) => (
-                        <MenuItemWithTopDescription
-                            key={menuItem.description}
-                            title={menuItem.title}
-                            description={menuItem.description}
-                            shouldShowRightIcon
-                            onPress={menuItem.onPress}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                        />
+                    {menuItems.map((menuItem) => (
+                        <OfflineWithFeedback
+                            key={menuItem.id}
+                            pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
+                        >
+                            <MenuItemWithTopDescription
+                                title={menuItem.title}
+                                description={menuItem.description}
+                                shouldShowRightIcon
+                                onPress={menuItem.onPress}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                brickRoadIndicator={areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined}
+                            />
+                        </OfflineWithFeedback>
                     ))}
                 </View>
             )}

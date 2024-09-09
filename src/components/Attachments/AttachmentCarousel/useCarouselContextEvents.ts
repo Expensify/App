@@ -39,6 +39,7 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
                 return;
             }
 
+            // eslint-disable-next-line react-compiler/react-compiler
             isScrollEnabled.value = newIsScrollEnabled;
             onRequestToggleArrows(newIsScrollEnabled);
         },
@@ -57,7 +58,7 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
         onRequestToggleArrows();
     }, [isScrollEnabled.value, onRequestToggleArrows]);
 
-    return {handleTap, handleScaleChange, scale};
+    return {handleTap, handleScaleChange, scale, isScrollEnabled};
 }
 
 export default useCarouselContextEvents;

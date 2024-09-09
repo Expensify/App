@@ -1,4 +1,0 @@
-diff --git a/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.m b/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm
-similarity index 100%
-rename from node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.m
-rename to node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm

@@ -7,7 +7,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -27,9 +27,15 @@ type PromotedAction = {
 type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    message: (params: {accountID?: number; login?: string}) => PromotedAction;
+    message: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
+    hold: (params: {
+        isTextHold: boolean;
+        reportAction: ReportAction | undefined;
+        reportID?: string;
+        isDelegateAccessRestricted: boolean;
+        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
+    }) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -50,11 +56,16 @@ const PromotedActions = {
             ReportActions.joinRoom(report);
         }),
     }),
-    message: ({accountID, login}) => ({
+    message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
         onSelected: () => {
+            if (reportID) {
+                Navigation.dismissModal(reportID);
+                return;
+            }
+
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
                 ReportActions.navigateToAndOpenReport([login]);
@@ -65,23 +76,28 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction}) => ({
+    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
-            if (!isTextHold) {
-                Navigation.goBack();
-            }
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-
-            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? ''));
+            if (isDelegateAccessRestricted) {
+                setIsNoDelegateAccessMenuVisible(true); // Show the menu
                 return;
             }
 
-            const currentQuery = topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(currentQuery?.query ?? CONST.SEARCH.TAB.ALL, reportAction?.childReportID ?? ''));
+            if (!isTextHold) {
+                Navigation.goBack();
+            }
+            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
+            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
+
+            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
+                return;
+            }
+
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(targetedReportID));
         },
     }),
 } satisfies PromotedActionsType;
@@ -127,4 +143,4 @@ PromotedActionsBar.displayName = 'PromotedActionsBar';
 export default PromotedActionsBar;
 
 export {PromotedActions};
-export type {PromotedActionsBarProps, PromotedAction};
+export type {PromotedAction, PromotedActionsBarProps};

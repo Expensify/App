@@ -81,18 +81,9 @@
             transition: transform var(--label-transition-duration);
         }
 
-        @media screen and (min-width: 480px) {
-            .splash-logo > svg {
-                width: 104px;
-                height: 104px;
-            }
-        }
-
-        @media screen and (max-width: 479px) {
-            .splash-logo > svg {
-                width: 52px;
-                height: 52px;
-            }
+        .splash-logo > svg {
+            width: 104px;
+            height: 104px;
         }
 
         #splash {
@@ -118,7 +109,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
+    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
         <!-- Third party scripts -->
         <script async="" src="thirdPartyScripts.js"></script>
         <!-- End Third party scripts -->
@@ -126,13 +117,13 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
+    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->
     <% } %>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
-    <div id="root"></div>
+    <div id="root" class="fs-unmask"></div>
     <div id="splash">
         <div class="splash-logo">
             <%= htmlWebpackPlugin.options.splashLogo %>

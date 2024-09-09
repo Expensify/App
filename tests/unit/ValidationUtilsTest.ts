@@ -24,7 +24,7 @@ describe('ValidationUtils', () => {
         });
 
         test('Should return false for a date after the range', () => {
-            const futureDate = '3024-07-18';
+            const futureDate = '3042-07-18';
             const isValid = ValidationUtils.isValidDate(futureDate);
             expect(isValid).toBe(false);
         });
@@ -323,6 +323,18 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidPersonName('123 test')).toBe(false);
             expect(ValidationUtils.isValidPersonName('test #$')).toBe(false);
             expect(ValidationUtils.isValidPersonName('test123$')).toBe(false);
+        });
+    });
+
+    describe('ValidateLegalName', () => {
+        test('Valid legal name', () => {
+            expect(ValidationUtils.isValidLegalName('test name')).toBe(true);
+            expect(ValidationUtils.isValidLegalName(`X Æ A test`)).toBe(true);
+        });
+
+        test('Invalid legal name', () => {
+            expect(ValidationUtils.isValidLegalName(`a hyphenated-name`)).toBe(false);
+            expect(ValidationUtils.isValidLegalName('άλφα')).toBe(false);
         });
     });
 });

@@ -21,7 +21,7 @@ function WorkspaceOwnerRestrictedAction() {
 
     const addPaymentCard = () => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
     };
 
     return (

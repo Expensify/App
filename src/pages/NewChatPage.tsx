@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -18,10 +17,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,7 +31,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageProps = {
@@ -52,12 +50,12 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
             listOptions.reports ?? [],
             listOptions.personalDetails ?? [],
-            (betas ?? []) as OnyxEntry<Beta[]>,
-            debouncedSearchTerm,
+            betas ?? [],
+            '',
             selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
@@ -71,19 +69,31 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
-            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            0,
             undefined,
             true,
         );
+        return filteredOptions;
+    }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
-            !!filteredOptions.userToInvite,
+    const options = useMemo(() => {
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            selectedOptions,
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+
+        return filteredOptions;
+    }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
+    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
+    const headerMessage = useMemo(() => {
+        return OptionsListUtils.getHeaderMessage(
+            options.personalDetails.length + options.recentReports.length !== 0,
+            !!options.userToInvite,
             debouncedSearchTerm.trim(),
-            selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+            selectedOptions.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
         );
-        return {...filteredOptions, headerMessage};
-    }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions]);
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -106,7 +116,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             if (!participantOption) {
                 participantOption = OptionsListUtils.getUserToInviteOption({
                     searchValue: participant.login,
-                    betas,
                 });
             }
             if (!participantOption) {
@@ -118,15 +127,25 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
 
-    return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
+    return {
+        ...options,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        selectedOptions,
+        setSelectedOptions,
+        headerMessage,
+    };
 }
 
 function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {insets} = useStyledSafeAreaInsets();
@@ -208,8 +227,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     );
 
     const itemRightSideComponent = useCallback(
-        (item: ListItem & OptionsListUtils.Option) => {
-            if (item.isSelfDM) {
+        (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
+            if (!!item.isSelfDM || (item.accountID && CONST.NON_ADDABLE_ACCOUNT_IDS.includes(item.accountID))) {
                 return null;
             }
             /**
@@ -237,20 +256,21 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     <PressableWithFeedback
                         onPress={() => toggleOption(item)}
                         disabled={item.isDisabled}
-                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                     >
                         <SelectCircle isChecked={item.isSelected} />
                     </PressableWithFeedback>
                 );
             }
-
+            const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
             return (
                 <Button
                     onPress={() => toggleOption(item)}
                     style={[styles.pl2]}
                     text={translate('newChatPage.addToGroup')}
+                    innerStyles={buttonInnerStyles}
                     small
                 />
             );
@@ -298,6 +318,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
+            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+            focusTrapSettings={{active: false}}
         >
             <KeyboardAvoidingView
                 style={styles.flex1}
@@ -316,7 +338,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}

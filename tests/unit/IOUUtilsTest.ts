@@ -114,6 +114,24 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
         });
     });
+
+    describe('insertTagIntoTransactionTagsString', () => {
+        test('Inserting a tag into tag string should update the tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2)).toBe(':NY:California');
+        });
+
+        test('Inserting a tag into an index with no tags should update the tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1)).toBe(':NY:California');
+        });
+
+        test('Inserting a tag with colon in name into tag string should keep the colon in tag', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1)).toBe('East:City \\: \\::California');
+        });
+
+        test('Remove a tag from tagString', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1)).toBe('East::California');
+        });
+    });
 });
 
 describe('isValidMoneyRequestType', () => {

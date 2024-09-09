@@ -489,6 +489,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         if (rateIDsToDelete.includes(rateID)) {
             optimisticRates[rateID] = {
                 ...currentRates[rateID],
+                enabled: false,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
             failureRates[rateID] = {

@@ -39,7 +39,7 @@ type PendingChatMember = {
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the participant is visible in the report */
-    hidden?: boolean;
+    notificationPreference: NotificationPreference;
 
     /** What is the role of the participant in the report */
     role?: 'admin' | 'member';
@@ -113,8 +113,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time of the last mention of the report */
         lastMentionedTime?: string | null;
 
-        /** The current user's notification preference for this report */
-        notificationPreference?: NotificationPreference;
+        /** The policy avatar to use, if any */
+        policyAvatar?: string | null;
 
         /** The policy name to use */
         policyName?: string | null;
@@ -289,6 +289,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The trip ID in spotnana */
             tripID: string;
         };
+
+        /** Whether the report is archived */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        private_isArchived?: string;
     },
     PolicyReportField['fieldID']
 >;

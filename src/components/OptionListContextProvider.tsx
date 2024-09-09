@@ -73,7 +73,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
             return newOptions;
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reports]);
 
     /**
@@ -124,7 +124,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         });
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails]);
 
     const loadOptions = useCallback(() => {

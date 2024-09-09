@@ -1,7 +1,6 @@
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -175,7 +174,7 @@ function hasAmountOwed(): boolean {
  * @returns Whether there is a card authentication error.
  */
 function hasCardAuthenticatedError() {
-    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
+    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
 /**
@@ -203,7 +202,7 @@ function hasInsufficientFundsError() {
  * @returns The card to be used for subscription billing.
  */
 function getCardForSubscriptionBilling(): Fund | undefined {
-    return Object.values(fundList ?? {}).find((card) => card?.isDefault);
+    return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
@@ -363,7 +362,8 @@ function calculateRemainingFreeTrialDays(): number {
     }
 
     const currentDate = new Date();
-    const diffInSeconds = differenceInSeconds(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
+    const diffInSeconds = differenceInSeconds(lastDayFreeTrialDate, currentDate);
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
     return diffInDays < 0 ? 0 : diffInDays;
@@ -378,8 +378,10 @@ function isUserOnFreeTrial(): boolean {
     }
 
     const currentDate = new Date();
-    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+
+    // Free Trials are stored in UTC so the below code will convert the provided UTC datetime to local time
+    const firstDayFreeTrialDate = new Date(`${firstDayFreeTrial}Z`);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }
@@ -393,7 +395,7 @@ function hasUserFreeTrialEnded(): boolean {
     }
 
     const currentDate = new Date();
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+    const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, lastDayFreeTrialDate);
 }
@@ -455,6 +457,7 @@ export {
     getAmountOwed,
     getOverdueGracePeriodDate,
     getCardForSubscriptionBilling,
+    hasCardAuthenticatedError,
     hasSubscriptionGreenDotInfo,
     hasRetryBillingError,
     PAYMENT_STATUS,

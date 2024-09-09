@@ -3,7 +3,6 @@ import type {BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, Web
 import contextMenu from 'electron-context-menu';
 import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
-import serve from 'electron-serve';
 import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
@@ -14,6 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
+import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;

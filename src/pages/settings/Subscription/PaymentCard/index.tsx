@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
@@ -11,23 +11,22 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import usePrevious from '@hooks/usePrevious';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -35,7 +34,6 @@ function AddPaymentCard() {
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
     useEffect(() => {
         PaymentMethods.clearPaymentCardFormErrorAndSubmit();
@@ -44,15 +42,6 @@ function AddPaymentCard() {
             PaymentMethods.clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
-
-    useEffect(() => {
-        if (!defaultCard?.accountData || isEmptyObject(defaultCard?.accountData)) {
-            setShouldShowPaymentCardForm(true);
-            return;
-        }
-        PaymentMethods.setPaymentCardForm(defaultCard.accountData);
-        setShouldShowPaymentCardForm(true);
-    }, [defaultCard?.accountData]);
 
     const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
         const cardData = {
@@ -67,12 +56,23 @@ function AddPaymentCard() {
         PaymentMethods.addSubscriptionPaymentCard(cardData);
     }, []);
 
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
+
+    useEffect(() => {
+        if (prevFormDataSetupComplete || !formData?.setupComplete) {
+            return;
+        }
+
+        PaymentMethods.continueSetup();
+    }, [prevFormDataSetupComplete, formData?.setupComplete]);
+
     return (
         <ScreenWrapper testID={AddPaymentCard.displayName}>
             <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
             <View style={styles.containerWithSpaceBetween}>
                 <PaymentCardForm
-                    shouldShowPaymentCardForm={shouldShowPaymentCardForm}
+                    shouldShowPaymentCardForm
                     addPaymentCard={addPaymentCard}
                     showAcceptTerms
                     showCurrencyField
@@ -108,6 +108,7 @@ function AddPaymentCard() {
                     }
                 />
             </View>
+            <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
         </ScreenWrapper>
     );
 }

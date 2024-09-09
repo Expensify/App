@@ -62,7 +62,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({country: undefined});
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (
@@ -75,7 +75,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             description={translate('common.country')}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRouteWithoutParams();
+                const activeRoute = Navigation.getActiveRoute();
                 didOpenContrySelector.current = true;
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
             }}

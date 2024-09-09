@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -12,6 +11,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -104,6 +104,9 @@ Onyx.connect({
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
     const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
@@ -291,7 +294,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: optimisticMembersState},
+            value: {employeeList: optimisticMembersState, approver: emailList.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver},
         },
     ];
     optimisticData.push(...announceRoomMembers.onyxOptimisticData);
@@ -309,7 +312,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: failureMembersState},
+            value: {employeeList: failureMembersState, approver: policy?.approver},
         },
     ];
     failureData.push(...announceRoomMembers.onyxFailureData);
@@ -627,7 +630,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
-        welcomeNote: new ExpensiMark().replace(welcomeNote),
+        welcomeNote: Parser.replace(welcomeNote),
         policyID,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {

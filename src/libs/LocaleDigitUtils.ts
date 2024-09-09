@@ -1,8 +1,8 @@
-import _ from 'lodash';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as Localize from './Localize';
+import memoize from './memoize';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
@@ -13,28 +13,31 @@ const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = _.memoize((locale: Locale): string[] => {
-    const localeDigits = [...STANDARD_DIGITS];
-    for (let i = 0; i <= 9; i++) {
-        localeDigits[i] = NumberFormatUtils.format(locale, i);
-    }
-    NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
-        switch (part.type) {
-            case 'decimal':
-                localeDigits[INDEX_DECIMAL] = part.value;
-                break;
-            case 'minusSign':
-                localeDigits[INDEX_MINUS_SIGN] = part.value;
-                break;
-            case 'group':
-                localeDigits[INDEX_GROUP] = part.value;
-                break;
-            default:
-                break;
+const getLocaleDigits = memoize(
+    (locale: Locale): string[] => {
+        const localeDigits = [...STANDARD_DIGITS];
+        for (let i = 0; i <= 9; i++) {
+            localeDigits[i] = NumberFormatUtils.format(locale, i);
         }
-    });
-    return localeDigits;
-});
+        NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
+            switch (part.type) {
+                case 'decimal':
+                    localeDigits[INDEX_DECIMAL] = part.value;
+                    break;
+                case 'minusSign':
+                    localeDigits[INDEX_MINUS_SIGN] = part.value;
+                    break;
+                case 'group':
+                    localeDigits[INDEX_GROUP] = part.value;
+                    break;
+                default:
+                    break;
+            }
+        });
+        return localeDigits;
+    },
+    {monitoringName: 'getLocaleDigits'},
+);
 
 /**
  * Gets the locale digit corresponding to a standard digit.
@@ -70,16 +73,23 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
 
 /**
  * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
+ * @param locale - The locale to use for formatting
+ * @param number - The number to format
+ * @param writtenOrdinals - If true, returns the written ordinal (e.g. "first", "second") for numbers 1-10
  */
-function toLocaleOrdinal(locale: Locale, number: number): string {
+function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false): string {
     // Defaults to "other" suffix or "th" in English
-    let suffixKey = 'workflowsPage.frequencies.ordinals.other';
+    let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
 
     // Calculate last digit of the number to determine basic ordinality
     const lastDigit = number % 10;
 
     // Calculate last two digits to handle exceptions in the 11-13 range
     const lastTwoDigits = number % 100;
+
+    if (writtenOrdinals && number >= 1 && number <= 10) {
+        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+    }
 
     if (lastDigit === 1 && lastTwoDigits !== 11) {
         suffixKey = 'workflowsPage.frequencies.ordinals.one';
@@ -89,7 +99,7 @@ function toLocaleOrdinal(locale: Locale, number: number): string {
         suffixKey = 'workflowsPage.frequencies.ordinals.few';
     }
 
-    const suffix = Localize.translate(locale, suffixKey as TranslationPaths);
+    const suffix = Localize.translate(locale, suffixKey);
 
     return `${number}${suffix}`;
 }

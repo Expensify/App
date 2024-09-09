@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 START_DIR=$(pwd)
 ROOT_DIR=$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")
 cd "$ROOT_DIR" || exit 1
@@ -61,14 +63,17 @@ if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modu
   cleanupAndExit 1
 fi
 
+# Retrieve a list of podspec paths from react-native config
 if ! read_lines_into_array PODSPEC_PATHS < <(npx react-native config | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
   error "Error: could not parse podspec paths from react-native config command"
   cleanupAndExit 1
 fi
 
+PODSPECS=$(./.github/scripts/printPodspec.rb "${PODSPEC_PATHS[@]}")
+
 # Format a list of Pods based on the output of the config command
 if ! FORMATTED_PODS=$( \
-  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/printPodspec.rb "${PODSPEC_PATHS[@]}")" \
+  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$(./.github/scripts/removeInvalidJson.rb "${PODSPECS}")" \
 ); then
   error "Error: could not parse podspecs at paths parsed from react-native config"
   cleanupAndExit 1

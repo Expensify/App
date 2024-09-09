@@ -52,7 +52,7 @@ const setConfigPath = (configPathParam: string | undefined) => {
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require<CustomConfig>(configPath).default;
+    const customConfig = (require(configPath) as CustomConfig).default;
     config = Object.assign(defaultConfig, customConfig);
 };
 
@@ -150,8 +150,7 @@ const runTests = async (): Promise<void> => {
         Logger.log('Launching', appPackage);
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
-        MeasureUtils.start(appPackage);
-        await withFailTimeout(
+        const {promise, resetTimeout} = withFailTimeout(
             new Promise<void>((resolve) => {
                 const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
@@ -194,9 +193,22 @@ const runTests = async (): Promise<void> => {
                     removeListener();
                     resolve();
                 });
+                MeasureUtils.start(appPackage, {
+                    onAttachFailed: async () => {
+                        MeasureUtils.stop();
+                        resetTimeout();
+                        removeListener();
+                        // something went wrong, let's wait a little bit and try again
+                        await sleep(5000);
+                        // simply restart the test
+                        await runTestIteration(appPackage, iterationText, branch, launchArgs);
+                        resolve();
+                    },
+                });
             }),
             iterationText,
         );
+        await promise;
 
         Logger.log('Killing', appPackage);
         await killApp('android', appPackage);
@@ -256,6 +268,8 @@ const runTests = async (): Promise<void> => {
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
             const onError = (e: Error) => {
+                MeasureUtils.stop();
+                server.clearAllTestDoneListeners();
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");

@@ -15,12 +15,14 @@ export default {
      * Web-only style.
      */
     pFixed: {
-        // NOTE: asserting "position" to a valid type, because it isn't possible to augment "position".
-        position: 'fixed' as ViewStyle['position'],
+        position: 'fixed',
     },
 
     t0: {
         top: 0,
+    },
+    t5: {
+        top: 20,
     },
     tn4: {
         top: -16,
@@ -51,6 +53,9 @@ export default {
     },
     r8: {
         right: 32,
+    },
+    rn3: {
+        right: -12,
     },
     b0: {
         bottom: 0,
