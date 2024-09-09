@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
+import * as OnboardingFlow from './OnboardingFlow';
 
 type OnboardingData = Onboarding | [] | undefined;
 
@@ -46,6 +47,7 @@ function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
+let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
@@ -53,8 +55,10 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
         }
 
         if (onboarding?.hasCompletedGuidedSetupFlow) {
+            isOnboardingInProgress = false;
             onCompleted?.();
-        } else {
+        } else if (!isOnboardingInProgress) {
+            isOnboardingInProgress = true;
             onNotCompleted?.();
         }
     });
@@ -97,7 +101,7 @@ function handleHybridAppOnboarding() {
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_ROOT.route);
+                        OnboardingFlow.startOnboardingFlow();
                     }, variables.explanationModalDelay),
             }),
     });
@@ -150,6 +154,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function updateOnboardingLastVisitedPath(path: string) {
+    Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
 
 function completeHybridAppOnboarding() {
@@ -213,12 +221,15 @@ function resetAllChecks() {
         resolveOnboardingFlowStatus = resolve;
     });
     isLoadingReportData = true;
+    isOnboardingInProgress = false;
+    OnboardingFlow.clearInitialPath();
 }
 
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     setOnboardingPurposeSelected,
+    updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,

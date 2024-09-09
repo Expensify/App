@@ -97,6 +97,7 @@ import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -230,4 +231,5 @@ export type {
     CardFeeds,
     ImportedSpreadsheet,
     OnboardingPurpose,
+    ValidateMagicCodeAction,
 };
