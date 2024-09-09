@@ -557,11 +557,16 @@ function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.
     return normalizeQuery(`type:${type} status:${status}`);
 }
 
-function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void) {
+function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
     return [
         {
             text: translateLocal('common.rename'),
-            onSelected: () => Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery})),
+            onSelected: () => {
+                if (isMobileMenu && closeMenu) {
+                    closeMenu();
+                }
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: itemName, jsonQuery: inputQuery}));
+            },
             icon: Expensicons.Pencil,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
