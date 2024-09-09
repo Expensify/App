@@ -15,7 +15,7 @@ function WorkspaceCompanyCardsFeedNoFeedPendingPage() {
 
     const subtitle = (
         <>
-            {translate('workspace.moreFeatures.companyCards.pendingNoFeedDescription')}
+            {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
             <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>
         </>
     );
@@ -27,7 +27,7 @@ function WorkspaceCompanyCardsFeedNoFeedPendingPage() {
             headerMedia={Illustrations.CompanyCardsPendingState}
             headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
             headerContentStyles={styles.emptyStateCardIllustration}
-            title={translate('workspace.moreFeatures.companyCards.pendingNoFeedTitle')}
+            title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             subtitle={subtitle}
         />
     );

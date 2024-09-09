@@ -2994,8 +2994,8 @@ export default {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'Assign company cards',
                 emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
-                pendingNoFeedTitle: `We're reviewing your request...`,
-                pendingNoFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
+                pendingFeedTitle: `We're reviewing your request...`,
+                pendingFeedDescription: `We're currently reviewing your feed details. Once that's done we'll reach out to you via`,
             },
             workflows: {
                 title: 'Workflows',
