@@ -424,7 +424,6 @@ type OptionData = {
     hasDraftComment?: boolean | null;
     keyForList?: string;
     searchText?: string;
-    freeTrialText?: string;
     isIOUReportOwner?: boolean | null;
     isArchivedRoom?: boolean | null;
     shouldShowSubscript?: boolean | null;

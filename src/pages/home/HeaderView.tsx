@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import FreeTrialBadge from '@pages/settings/Subscription/FreeTrailBadge';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';

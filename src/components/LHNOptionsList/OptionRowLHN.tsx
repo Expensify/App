@@ -26,7 +26,7 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import FreeTrialBadge from '@pages/settings/Subscription/FreeTrailBadge';
+import FreeTrialBadge from '@pages/settings/Subscription/FreeTrialBadge';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
