@@ -38,18 +38,19 @@ function CurrencySelectionList({
             return acc;
         }, [] as CurrencyListItem[]);
 
-        const policyRecentlyUsedCurrencyOptions: CurrencyListItem[] =
-            recentlyUsedCurrencies?.map((currencyCode) => {
-                const currencyInfo = currencyList?.[currencyCode];
-                const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
-                return {
-                    currencyName: currencyInfo?.name ?? '',
-                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                    currencyCode,
-                    keyForList: currencyCode,
-                    isSelected: isSelectedCurrency,
-                };
-            }) ?? [];
+        const policyRecentlyUsedCurrencyOptions: CurrencyListItem[] = Array.isArray(recentlyUsedCurrencies)
+            ? recentlyUsedCurrencies?.map((currencyCode) => {
+                  const currencyInfo = currencyList?.[currencyCode];
+                  const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
+                  return {
+                      currencyName: currencyInfo?.name ?? '',
+                      text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
+                      currencyCode,
+                      keyForList: currencyCode,
+                      isSelected: isSelectedCurrency,
+                  };
+              })
+            : [];
 
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
         const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
