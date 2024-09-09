@@ -5202,13 +5202,13 @@ const styles = (theme: ThemeColors) =>
         progressBarWrapper: {
             height: 2,
             width: '100%',
-            backgroundColor: '#1A3D32',
+            backgroundColor: theme.buttonDefaultBG,
             borderRadius: 5,
             overflow: 'hidden',
         },
         progressBar: {
             height: '100%',
-            backgroundColor: '#03D47C',
+            backgroundColor: theme.success,
             borderRadius: 5,
             width: '100%',
         },
