@@ -9,6 +9,7 @@ import ROUTES from '@src/ROUTES';
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
+        mode: 'legacy',
     });
 
     // Send local notification when update is downloaded
