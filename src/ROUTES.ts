@@ -1425,6 +1425,8 @@ const ROUTES = {
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
     MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
+    MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
+    MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
 } as const;
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
