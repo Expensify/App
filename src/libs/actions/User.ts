@@ -33,6 +33,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -904,6 +905,13 @@ function subscribeToUserEvents() {
             // the onyx updates in order
             return onyxUpdatePromise;
         });
+    });
+
+    // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
+    // is not in the DB
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
+        App.reconnectApp();
+        return Promise.resolve();
     });
 }
 
