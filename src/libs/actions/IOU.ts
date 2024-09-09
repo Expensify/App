@@ -3867,7 +3867,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
             undefined,
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         );
         return {existingSplitChatReport: null, splitChatReport};
     }
@@ -3967,11 +3967,6 @@ function createSplitsAndOnyxData(
     splitChatReport.lastActorAccountID = currentUserAccountID;
     splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
 
-    let splitChatReportNotificationPreference = splitChatReport.notificationPreference;
-    if (splitChatReportNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
-        splitChatReportNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
-    }
-
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
         splitChatReport.pendingFields = {
@@ -3985,10 +3980,7 @@ function createSplitsAndOnyxData(
             // and we need the data to be available when we navigate to the chat page
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {
-                ...splitChatReport,
-                notificationPreference: splitChatReportNotificationPreference,
-            },
+            value: splitChatReport,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
