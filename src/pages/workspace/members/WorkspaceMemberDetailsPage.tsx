@@ -28,6 +28,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import WorkspaceMemberDetailsFeedSelectorModal from '@pages/workspace/members/WorkspaceMemberDetailsFeedSelectorModal';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
@@ -79,6 +80,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [allCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+    const [isFeedSelectorModalVisible, setIsFeedSelectorModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
@@ -94,6 +96,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
+
+    const hasMultipleFeeds = true;
 
     const memberCards = useMemo(() => {
         if (!expensifyCardsList) {
@@ -185,7 +189,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         [policyID],
     );
 
-    const navigateToIssueNewCard = useCallback(() => {
+    const handleIssueNewCard = useCallback(() => {
+        if (hasMultipleFeeds) {
+            setIsFeedSelectorModalVisible(true);
+            return;
+        }
         const activeRoute = Navigation.getActiveRoute();
 
         Card.setIssueNewCardStepAndData({
@@ -196,7 +204,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [memberLogin, policyID]);
+    }, [hasMultipleFeeds, memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -237,7 +245,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             subtitle={policy?.name}
                         />
                         <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart, styles.pRelative]}>
                                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                     <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                         <Avatar
@@ -290,7 +298,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         cancelText={translate('common.cancel')}
                                     />
                                 </View>
-                                <View style={styles.w100}>
+                                <View style={[styles.w100]}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                         title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
@@ -351,11 +359,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}
-                                                onPress={navigateToIssueNewCard}
+                                                onPress={handleIssueNewCard}
                                             />
                                         </>
                                     )}
                                 </View>
+                                <WorkspaceMemberDetailsFeedSelectorModal
+                                    isVisible={isFeedSelectorModalVisible}
+                                    onClose={() => setIsFeedSelectorModalVisible(false)}
+                                />
                             </View>
                         </ScrollView>
                     </>
