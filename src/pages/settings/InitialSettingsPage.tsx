@@ -11,6 +11,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -104,6 +105,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const activeCentralPaneRoute = useActiveCentralPaneRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
+    const {setInitialURL} = useContext(InitialURLContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -149,6 +151,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                         ? {
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  setInitialURL(undefined);
                               },
                           }
                         : {
@@ -184,7 +187,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, setInitialURL]);
 
     /**
      * Retuns a list of menu items data for workspace section

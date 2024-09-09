@@ -7,11 +7,10 @@ import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -107,6 +106,16 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialR
     return undefined;
 }
 
+function initializePusher() {
+    Pusher.init({
+        appKey: CONFIG.PUSHER.APP_KEY,
+        cluster: CONFIG.PUSHER.CLUSTER,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+    }).then(() => {
+        User.subscribeToUserEvents();
+    });
+}
+
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
@@ -125,7 +134,7 @@ Onyx.connect({
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
-            User.subscribeToUserEvents();
+            initializePusher();
         }
     },
 });
@@ -208,15 +217,14 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumOrLargerScreenWidth), [screenOptions, isMediumOrLargerScreenWidth]);
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumOrLargerScreenWidth),
-        [StyleUtils, isSmallScreenWidth, isMediumOrLargerScreenWidth, styles],
+        () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
+        [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
     const modal = useRef<OnyxTypes.Modal>({});
 
@@ -256,13 +264,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-        }).then(() => {
-            User.subscribeToUserEvents();
-        });
+        initializePusher();
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
@@ -394,7 +396,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
-            <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}
                     isSmallScreenWidth={isSmallScreenWidth}
