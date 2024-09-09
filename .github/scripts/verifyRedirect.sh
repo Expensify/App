@@ -32,6 +32,12 @@ while read -r line; do
     SOURCE_URL=${LINE_PARTS[0]}
     DEST_URL=${LINE_PARTS[1]}
 
+    # Make sure that the source and destination are not identical
+    if [[ "$SOURCE_URL" == "$DEST_URL" ]]; then
+        error "Source and destination URLs are identical: $SOURCE_URL"
+        exit 1
+    fi
+
     # Make sure the format of the line is as expected.
     if [[ "${#LINE_PARTS[@]}" -gt 2 ]]; then
         error "Found a line with more than one comma: $line"
