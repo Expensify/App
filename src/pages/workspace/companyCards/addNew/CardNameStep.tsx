@@ -23,11 +23,7 @@ function CardNameStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-        if (!values.cardTitle) {
-            errors.cardTitle = translate('common.error.fieldRequired');
-        }
-        return errors;
+        return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {

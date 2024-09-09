@@ -123,7 +123,7 @@ function CardTypeStep() {
                     <View style={[styles.ph5, styles.mb3]}>
                         <FormHelpMessage
                             isError={isError}
-                            message={translate('common.error.pleaseSelectProvider')}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectProvider')}
                         />
                     </View>
                 )}
