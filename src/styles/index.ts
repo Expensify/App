@@ -5199,6 +5199,19 @@ const styles = (theme: ThemeColors) =>
             top: 80,
             left: 12,
         },
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: '#1A3D32',
+            borderRadius: 5,
+            overflow: 'hidden',
+        },
+        progressBar: {
+            height: '100%',
+            backgroundColor: '#03D47C',
+            borderRadius: 5,
+            width: '100%',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
