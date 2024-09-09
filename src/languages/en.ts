@@ -3563,6 +3563,8 @@ export default {
             continueWithSetup: 'Continue with setup',
             youreAlmostDone: "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills.",
             streamlinePayments: 'Streamline payments',
+            connectBankAccountNote: "Note: Personal bank accounts can't be used for payments on workspaces.",
+            oneMoreThing: 'One more thing!',
             allSet: "You're all set!",
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills.',
             letsFinishInChat: "Let's finish in chat!",
