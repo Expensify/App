@@ -4,8 +4,9 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -51,7 +52,10 @@ function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, se
     return {...item, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType | ReportActionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean) {
+    if (SearchUtils.isReportActionListItemType(item)) {
+        return item;
+    }
     return SearchUtils.isTransactionListItemType(item)
         ? mapToTransactionItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple)
         : {
@@ -115,8 +119,8 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     }, [isOffline, offset, queryJSON]);
 
     const getItemHeight = useCallback(
-        (item: TransactionListItemType | ReportListItemType) => {
-            if (SearchUtils.isTransactionListItemType(item)) {
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+            if (SearchUtils.isTransactionListItemType(item) || SearchUtils.isReportActionListItemType(item)) {
                 return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
             }
 
@@ -176,12 +180,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
-        return null;
+        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
-    const ListItem = SearchUtils.getListItem(status);
-    const data = SearchUtils.getSections(status, searchResults.data, searchResults.search);
-    const sortedData = SearchUtils.getSortedSections(status, data, sortBy, sortOrder);
+    const ListItem = SearchUtils.getListItem(type, status);
+    const data = SearchUtils.getSections(type, status, searchResults.data, searchResults.search);
+    const sortedData = SearchUtils.getSortedSections(type, status, data, sortBy, sortOrder);
     const sortedSelectedData = sortedData.map((item) => mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple));
 
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
@@ -190,7 +194,10 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         return <EmptySearchView type={type} />;
     }
 
-    const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
+    const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        if (SearchUtils.isReportActionListItemType(item)) {
+            return;
+        }
         if (SearchUtils.isTransactionListItemType(item)) {
             if (!item.keyForList) {
                 return;
@@ -220,7 +227,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         );
     };
 
-    const openReport = (item: TransactionListItemType | ReportListItemType) => {
+    const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
         let reportID = SearchUtils.isTransactionListItemType(item) && !item.isFromOneTransactionReport ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
@@ -231,6 +238,12 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
         if (SearchUtils.isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
             reportID = ReportUtils.generateReportID();
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
+        }
+
+        if (SearchUtils.isReportActionListItemType(item)) {
+            const reportActionID = item.reportActionID;
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID, reportActionID));
+            return;
         }
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(reportID));
@@ -271,7 +284,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
     const shouldShowSorting = sortableSearchStatuses.includes(status);
 
     return (
-        <SelectionListWithModal<ReportListItemType | TransactionListItemType>
+        <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
             sections={[{data: sortedSelectedData, isDisabled: false}]}
             turnOnSelectionModeOnLongPress
             onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
@@ -291,7 +304,7 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                 )
             }
             onScroll={onSearchListScroll}
-            canSelectMultiple={canSelectMultiple}
+            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -322,7 +335,6 @@ function Search({queryJSON, onSearchListScroll, contentContainerStyle}: SearchPr
                     />
                 ) : undefined
             }
-            scrollEventThrottle={16}
             contentContainerStyle={contentContainerStyle}
         />
     );

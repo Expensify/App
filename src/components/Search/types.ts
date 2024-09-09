@@ -1,5 +1,5 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
 
@@ -29,14 +29,15 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus;
+type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
+type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
     selectedReports: Array<SearchReport['reportID']>;
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
     clearSelectedTransactions: (hash?: number) => void;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
@@ -45,7 +46,7 @@ type SearchContext = {
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
-    right: string | ASTNode;
+    right: string | ASTNode | string[];
 };
 
 type QueryFilter = {
@@ -92,4 +93,5 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
+    ChatSearchStatus,
 };

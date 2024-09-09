@@ -108,6 +108,8 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
             return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};

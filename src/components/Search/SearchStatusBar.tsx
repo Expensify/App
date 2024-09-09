@@ -15,7 +15,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import type {ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
 
 type SearchStatusBarProps = {
     type: SearchDataTypes;
@@ -85,28 +85,49 @@ const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: Translat
         query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.DRAFTS,
-        icon: Expensicons.Pencil,
-        text: 'common.drafts',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.DRAFTS),
+        key: CONST.SEARCH.STATUS.TRIP.CURRENT,
+        icon: Expensicons.Calendar,
+        text: 'search.filters.current',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.CURRENT),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.OUTSTANDING,
-        icon: Expensicons.Hourglass,
-        text: 'common.outstanding',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.OUTSTANDING),
+        key: CONST.SEARCH.STATUS.TRIP.PAST,
+        icon: Expensicons.History,
+        text: 'search.filters.past',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAST),
+    },
+];
+
+const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+    {
+        key: CONST.SEARCH.STATUS.CHAT.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ALL),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.APPROVED,
-        icon: Expensicons.ThumbsUp,
-        text: 'iou.approved',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.APPROVED),
+        key: CONST.SEARCH.STATUS.CHAT.UNREAD,
+        icon: Expensicons.ChatBubbleUnread,
+        text: 'common.unread',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.UNREAD),
     },
     {
-        key: CONST.SEARCH.STATUS.TRIP.PAID,
-        icon: Expensicons.MoneyBag,
-        text: 'iou.settledExpensify',
-        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.TRIP.PAID),
+        key: CONST.SEARCH.STATUS.CHAT.SENT,
+        icon: Expensicons.Send,
+        text: 'common.sent',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.SENT),
+    },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
+        icon: Expensicons.Document,
+        text: 'common.attachments',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.ATTACHMENTS),
+    },
+    {
+        key: CONST.SEARCH.STATUS.CHAT.LINKS,
+        icon: Expensicons.Paperclip,
+        text: 'common.links',
+        query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.CHAT.LINKS),
     },
 ];
 
@@ -116,6 +137,8 @@ function getOptions(type: SearchDataTypes) {
             return invoiceOptions;
         case CONST.SEARCH.DATA_TYPES.TRIP:
             return tripOptions;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return chatOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return expenseOptions;
