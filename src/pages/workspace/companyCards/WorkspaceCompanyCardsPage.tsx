@@ -18,7 +18,7 @@ import type SCREENS from '@src/SCREENS';
 import type {WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
-import WorkspaceCompanyCardsFeedNoFeedPendingPage from './WorkspaceCompanyCardsFeedNoFeedPendingPage';
+import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 )}
                 {isNoFeed && !isLoading && <WorkspaceCompanyCardPageEmptyState route={route} />}
                 {isFeedAdded && !isLoading && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
-                {isPending && !isLoading && <WorkspaceCompanyCardsFeedNoFeedPendingPage />}
+                {isPending && !isLoading && <WorkspaceCompanyCardsFeedPendingPage />}
                 {isFeedAdded && <WorkspaceCompanyCardsList cardsList={cardsList} />}
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

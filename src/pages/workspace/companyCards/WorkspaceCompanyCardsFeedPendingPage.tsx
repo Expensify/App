@@ -9,7 +9,7 @@ import colors from '@styles/theme/colors';
 import * as ReportInstance from '@userActions/Report';
 import CONST from '@src/CONST';
 
-function WorkspaceCompanyCardsFeedNoFeedPendingPage() {
+function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -33,6 +33,6 @@ function WorkspaceCompanyCardsFeedNoFeedPendingPage() {
     );
 }
 
-WorkspaceCompanyCardsFeedNoFeedPendingPage.displayName = 'WorkspaceCompanyCardsFeedNoFeedPendingPage';
+WorkspaceCompanyCardsFeedPendingPage.displayName = 'WorkspaceCompanyCardsFeedPendingPage';
 
-export default WorkspaceCompanyCardsFeedNoFeedPendingPage;
+export default WorkspaceCompanyCardsFeedPendingPage;
