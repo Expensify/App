@@ -25,7 +25,7 @@ import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
-    const {policyID} = route.params;
+    const policyID = route?.params?.policyID ?? '-1';
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
@@ -51,9 +51,10 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? '-1'}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

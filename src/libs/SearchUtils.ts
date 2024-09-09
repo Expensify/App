@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +17,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
-import type {AuthScreensParamList, BottomTabNavigatorParamList, RootStackParamList, State} from './Navigation/types';
+import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -76,27 +77,32 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-function isSearchDataType(type: string): type is SearchDataTypes {
-    const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
-    return searchDataTypes.includes(type);
+type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+
+type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+
+type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+function isReportEntry(key: string): key is ReportKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search'] | undefined): SearchDataTypes | undefined {
-    if (!search) {
-        return undefined;
-    }
+function isTransactionEntry(key: string): key is TransactionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
 
-    if (!isSearchDataType(search.type)) {
-        return undefined;
-    }
-
-    return search.type;
+function isReportActionEntry(key: string): key is ReportActionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
-    return Object.values(data).some((item) => {
-        const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-        return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    return Object.keys(data).some((key) => {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
+            const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+        }
+        return false;
     });
 }
 
@@ -106,9 +112,14 @@ function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
 }
 
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
+}
+
+function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is ReportActionListItemType {
+    const reportActionListItem = item as ReportActionListItemType;
+    return reportActionListItem.reportActionID !== undefined;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
@@ -127,13 +138,22 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
         });
     }
 
-    for (const [key, transactionItem] of Object.entries(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            const item = transactionItem as SearchTransaction;
+    for (const key in data) {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
             const date = TransactionUtils.getCreated(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;
+            }
+        } else if (isReportActionEntry(key)) {
+            const item = data[key];
+            for (const action of Object.values(item)) {
+                const date = action.created;
+
+                if (DateUtils.doesDateBelongToAPastYear(date)) {
+                    return true;
+                }
             }
         }
     }
@@ -145,9 +165,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
-    return Object.entries(data)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-        .map(([, transactionItem]) => {
+    return Object.keys(data)
+        .filter(isTransactionEntry)
+        .map((key) => {
+            const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = data.personalDetailsList?.[transactionItem.managerID];
 
@@ -170,6 +191,26 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
+}
+
+function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const reportActionItems: ReportActionListItemType[] = [];
+    for (const key in data) {
+        if (isReportActionEntry(key)) {
+            const reportActions = data[key];
+            for (const reportAction of Object.values(reportActions)) {
+                const from = data.personalDetailsList?.[reportAction.accountID];
+                reportActionItems.push({
+                    ...reportAction,
+                    from,
+                    formattedFrom: from?.displayName ?? from?.login ?? '',
+                    date: reportAction.created,
+                    keyForList: reportAction.reportActionID,
+                });
+            }
+        }
+    }
+    return reportActionItems;
 }
 
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
@@ -200,7 +241,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+        if (isReportEntry(key)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
@@ -209,12 +250,12 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID],
-                to: data.personalDetailsList?.[reportItem.managerID],
+                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                to: data.personalDetailsList?.[reportItem.managerID ?? -1],
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
-        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+        } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
@@ -250,50 +291,25 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof status> {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
-        default:
-            return TransactionListItem;
+function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof type, typeof status> {
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return ChatListItem;
     }
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
 }
 
 function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
-        default:
-            return getTransactionsSections(data, metadata);
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return getReportActionsSections(data);
     }
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
 }
 
-function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.TRANSACTION:
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.REPORT:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return status === CONST.SEARCH.STATUS.EXPENSE.ALL
-                ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder)
-                : getSortedReportData(data as ReportListItemType[]);
-        default:
-            return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return data;
     }
-}
-
-function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
-    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
@@ -343,18 +359,9 @@ function getSortedReportData(data: ReportListItemType[]) {
 function getCurrentSearchParams() {
     const rootState = navigationRef.getRootState() as State<RootStackParamList>;
 
-    const lastSearchCentralPaneRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
-    const lastSearchBottomTabRoute = rootState.routes[0].state?.routes.filter((route) => route.name === SCREENS.SEARCH.BOTTOM_TAB).at(-1);
+    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
 
-    if (lastSearchCentralPaneRoute) {
-        return lastSearchCentralPaneRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    }
-
-    if (lastSearchBottomTabRoute) {
-        const {policyID, ...rest} = lastSearchBottomTabRoute.params as BottomTabNavigatorParamList[typeof SCREENS.SEARCH.BOTTOM_TAB];
-        const params: AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE] = {policyIDs: policyID, ...rest};
-        return params;
-    }
+    return lastSearchRoute ? (lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) : undefined;
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
@@ -365,18 +372,16 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
+function buildSearchQueryJSON(query: SearchQueryString) {
     try {
-        // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.inputQuery = query;
 
-        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
-        const policyIDPart = policyID ?? '';
-        result.hash = getQueryHashFromString(query + policyIDPart);
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
         return result;
     } catch (e) {
-        console.error(e);
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
 }
 
@@ -384,12 +389,12 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (queryJSON?.[key]) {
-            queryParts.push(`${key}:${queryJSON[key]}`);
-        } else if (defaultQueryJSON) {
-            queryParts.push(`${key}:${defaultQueryJSON[key]}`);
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
         }
     }
 
@@ -464,10 +469,11 @@ function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>
 }
 
 function sanitizeString(str: string) {
-    if (str.includes(' ') || str.includes(',')) {
-        return `"${str}"`;
+    const safeStr = str;
+    if (safeStr.includes(' ') || safeStr.includes(',')) {
+        return `"${safeStr}"`;
     }
-    return str;
+    return safeStr;
 }
 
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
@@ -482,15 +488,43 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
+function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (chatStatus) {
+        case CONST.SEARCH.CHAT_STATUS.PINNED:
+            return 'search.filters.pinned';
+        case CONST.SEARCH.CHAT_STATUS.UNREAD:
+            return 'search.filters.unread';
+        case CONST.SEARCH.CHAT_STATUS.DRAFT:
+            return 'search.filters.draft';
+    }
+}
+
 /**
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
     const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
-        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.KEYWORD) && filterValue) {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
             const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
             if (keyInCorrectForm) {
-                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValue as string}`;
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
+            }
+        }
+        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${filterValue as string}`;
             }
         }
 
@@ -502,7 +536,10 @@ function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFilters
                 filterKey === FILTER_KEYS.TAG ||
                 filterKey === FILTER_KEYS.CURRENCY ||
                 filterKey === FILTER_KEYS.FROM ||
-                filterKey === FILTER_KEYS.TO) &&
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS ||
+                filterKey === FILTER_KEYS.IS) &&
             Array.isArray(filterValue) &&
             filterValue.length > 0
         ) {
@@ -538,7 +575,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object' && node.right) {
+        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
@@ -553,10 +590,19 @@ function getFilters(queryJSON: SearchQueryJSON) {
 
         // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
         const filterArray = filters[nodeKey] ?? [];
-        filterArray.push({
-            operator: node.operator,
-            value: node.right as string | number,
-        });
+        if (!Array.isArray(node.right)) {
+            filterArray.push({
+                operator: node.operator,
+                value: node.right as string | number,
+            });
+        } else {
+            node.right.forEach((element) => {
+                filterArray.push({
+                    operator: node.operator,
+                    value: element as string | number,
+                });
+            });
+        }
     }
 
     if (queryJSON.filters) {
@@ -566,6 +612,26 @@ function getFilters(queryJSON: SearchQueryJSON) {
     return filters;
 }
 
+/**
+ * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
+ * and return just the first policyID value from the filter.
+ *
+ * Note: `policyID` property can store multiple policy ids (just like many other search filters) as a comma separated value;
+ * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
+ */
+function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
+    const policyIDFilter = queryJSON.policyID;
+
+    if (!policyIDFilter) {
+        return;
+    }
+
+    // policyID is a comma-separated value
+    const [policyID] = policyIDFilter.split(',');
+
+    return policyID;
+}
+
 function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
@@ -573,7 +639,7 @@ function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
             filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
     });
 
@@ -594,23 +660,41 @@ function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
     return title;
 }
 
+function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
+    return normalizeQuery(`type:${type} status:${status}`);
+}
+
+/**
+ * Returns whether a given search query is a Canned query.
+ *
+ * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
+ * For example: "type:trip status:all" is a canned query.
+ */
+function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
+    return !queryJSON.filters;
+}
+
 export {
     buildQueryStringFromFilters,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
+    getPolicyIDFromSearchQuery,
     getListItem,
-    getQueryHash,
     getSearchHeaderTitle,
-    getSearchType,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
     isReportListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
+    isReportActionListItemType,
     normalizeQuery,
     shouldShowYear,
+    buildCannedSearchQuery,
+    isCannedSearchQuery,
     getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
+    getChatStatusTranslationKey,
 };
