@@ -48,7 +48,7 @@ type SelectionListApprover = {
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
-function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
+function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -70,11 +70,14 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
         setSelectedApproverEmail(currentApprover.email);
     }, [approvalWorkflow?.approvers, approverIndex]);
 
+    const employeeList = policy?.employeeList;
+    const approversFromWorkflow = approvalWorkflow?.approvers;
+    const isDefault = approvalWorkflow?.isDefault;
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
-        if (policy?.employeeList) {
-            const availableApprovers = Object.values(policy.employeeList)
+        if (employeeList) {
+            const availableApprovers = Object.values(employeeList)
                 .map((employee): SelectionListApprover | null => {
                     const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
                     const email = employee.email;
@@ -84,17 +87,17 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
                     }
 
                     // Do not allow the same email to be added twice
-                    const isEmailAlreadyInApprovers = approvalWorkflow?.approvers.some((approver, index) => approver?.email === email && index !== approverIndex);
+                    const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
                     if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
                         return null;
                     }
 
                     // Do not allow the default approver to be added as the first approver
-                    if (!approvalWorkflow?.isDefault && approverIndex === 0 && defaultApprover === email) {
+                    if (!isDefault && approverIndex === 0 && defaultApprover === email) {
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
 
@@ -125,27 +128,18 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
         return [
             {
                 title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
+                data: filteredApprovers,
                 shouldShow: true,
             },
         ];
-    }, [
-        approvalWorkflow?.approvers,
-        approvalWorkflow?.isDefault,
-        approverIndex,
-        debouncedSearchTerm,
-        defaultApprover,
-        personalDetails,
-        policy?.employeeList,
-        selectedApproverEmail,
-        translate,
-    ]);
+        // eslint-disable-next-line react-compiler/react-compiler
+    }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections[0].data.length;
 
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
-            const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+            const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
             const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
             Workflow.setApprovalWorkflowApprover(
@@ -167,7 +161,7 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
             const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
-    }, [approvalWorkflow, approverIndex, personalDetails, policy?.employeeList, route.params.policyID, selectedApproverEmail]);
+    }, [approvalWorkflow, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -227,7 +221,7 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkflowsApprovalsApproverPage.displayName}
+                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -262,6 +256,6 @@ function WorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingRepor
     );
 }
 
-WorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
+WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
-export default withPolicyAndFullscreenLoading(WorkflowsApprovalsApproverPage);
+export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);
