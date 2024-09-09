@@ -1039,14 +1039,12 @@ function navigateToAndOpenReport(
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
-    InteractionManager.runAfterInteractions(() => {
-        if (shouldDismissModal) {
-            Navigation.dismissModalWithReport(report);
-        } else {
-            Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
-        }
-    });
+    if (shouldDismissModal) {
+        Navigation.dismissModalWithReport(report);
+    } else {
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
+    }
 }
 
 /**
