@@ -185,13 +185,15 @@ function MissingPersonalDetails() {
                     submitButtonStyles={[styles.ph5, styles.mb0]}
                     enabledWhenOffline
                 >
-                    <SubStep
-                        isEditing={isEditing}
-                        onNext={handleNextScreen}
-                        onMove={moveTo}
-                        screenIndex={screenIndex}
-                        privatePersonalDetails={privatePersonalDetails}
-                    />
+                    <View style={styles.ph5}>
+                        <SubStep
+                            isEditing={isEditing}
+                            onNext={handleNextScreen}
+                            onMove={moveTo}
+                            screenIndex={screenIndex}
+                            privatePersonalDetails={privatePersonalDetails}
+                        />
+                    </View>
                 </FormProvider>
             </View>
         </ScreenWrapper>
