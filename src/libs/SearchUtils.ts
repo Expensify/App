@@ -18,6 +18,7 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
@@ -200,6 +201,10 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                if (ReportActionsUtils.isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
                 reportActionItems.push({
                     ...reportAction,
                     from,
