@@ -5171,6 +5171,14 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 19,
             backgroundColor: theme.border,
         },
+
+        colorGreenSuccess: {
+            color: colors.green400,
+        },
+
+        bgPaleGreen: {
+            backgroundColor: colors.green100,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
