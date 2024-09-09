@@ -481,24 +481,16 @@ function ComposerWithSuggestions(
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            const valueLength = valueRef.current.length;
-            if (
-                'key' in event &&
-                event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
-                textInputRef.current &&
-                'selectionStart' in textInputRef.current &&
-                textInputRef.current?.selectionStart === 0 &&
-                valueLength === 0 &&
-                !includeChronos
-            ) {
-                event.preventDefault();
+            const isEmptyComment = !valueRef.current || !!valueRef.current.match(CONST.REGEX.EMPTY_COMMENT);
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
+                webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
                     Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
     const onChangeText = useCallback(
