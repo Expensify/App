@@ -21,9 +21,6 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     const {splashScreenState} = useSplashScreenStateContext();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
-    const [isHidden, setIsHidden] = React.useState(false);
-    const navigationContainerRef = useContext(NavigationContainerRefContext);
-    const navigator = useContext(NavigationContext);
 
     useNetwork({onReconnect: () => setIsError(false)});
 
@@ -33,39 +30,41 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         setAnimationFile(source.file);
     }, [setAnimationFile, source.file]);
 
+    const aspectRatioStyle = styles.aspectRatioLottie(source);
+
+    const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
+    const navigationContainerRef = useContext(NavigationContainerRefContext);
+    const navigator = useContext(NavigationContext);
+
     useEffect(() => {
-        if (!navigationContainerRef || !navigator) {
+        if (!navigationContainerRef?.isReady?.() || !navigator) {
             return;
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
-            setIsHidden(false);
+            setHasNavigatedAway(false);
         });
         return unsubscribeNavigationFocus;
     }, [navigationContainerRef, navigator]);
 
-    // Prevent the animation from running in the background after navigating to other pages.
-    // See https://github.com/Expensify/App/issues/47273
     useEffect(() => {
-        if (!navigationContainerRef || !navigator) {
+        if (!navigationContainerRef?.isReady?.() || !navigator) {
             return;
         }
         const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
             const state = navigationContainerRef.getRootState();
             const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
             if (targetRouteName !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                setIsHidden(true);
+                setHasNavigatedAway(true);
             }
         });
         return unsubscribeNavigationBlur;
     }, [navigationContainerRef, navigator]);
 
-    const aspectRatioStyle = styles.aspectRatioLottie(source);
-
-    // If the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
+    // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
     // we'll just render an empty view as the fallback to prevent
     // 1. memory leak, see issue: https://github.com/Expensify/App/issues/36645
-    // 2. heavy rendering, see issue: https://github.com/Expensify/App/issues/34696
-    if (isError || isHidden || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+    // 2. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
+    if (hasNavigatedAway || isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
         return <View style={[aspectRatioStyle, props.style]} />;
     }
 
