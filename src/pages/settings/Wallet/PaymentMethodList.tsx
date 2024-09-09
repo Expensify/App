@@ -214,7 +214,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: card.bank,
-                        description: card.domainName,
+                        description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,

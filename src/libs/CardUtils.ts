@@ -13,6 +13,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -194,6 +195,16 @@ function getCardFeedIcon(cardFeed: string): IconAsset {
     return Illustrations.AmexCompanyCards;
 }
 
+function getDescriptionForPolicyDomainCard(domainName: string) {
+    const match = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME);
+    if (match) {
+        const policyID = match[1];
+        const policy = PolicyUtils.getPolicy(policyID);
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -210,4 +221,5 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    getDescriptionForPolicyDomainCard,
 };
