@@ -849,12 +849,12 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: num
 
 function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     const policy = PolicyUtils.getPolicy(policyID);
-    const prevExpenseRules = policy?.rules?.approvalRules ?? [];
-    const expenseRuleToUpdate = PolicyUtils.getTagExpenseRule(policyID, tag);
-    const filteredExpenseRules = expenseRuleToUpdate ? prevExpenseRules.filter((rule) => rule.id === expenseRuleToUpdate.id) : prevExpenseRules;
+    const prevApprovalRules = policy?.rules?.approvalRules ?? [];
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
 
-    const updatedExpenseRule = expenseRuleToUpdate
-        ? {...expenseRuleToUpdate, approver}
+    const updatedApproverRule = approverRuleToUpdate
+        ? {...approverRuleToUpdate, approver}
         : {
               applyWhen: [
                   {
@@ -874,7 +874,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        expenseRules: [...filteredExpenseRules, updatedExpenseRule],
+                        approvalRules: [...filteredApprovalRules, updatedApproverRule],
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -887,7 +887,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        expenseRules: [...filteredExpenseRules, updatedExpenseRule],
+                        approvalRules: [...filteredApprovalRules, updatedApproverRule],
                     },
                     pendingAction: null,
                     pendingFields: {rules: null},
@@ -900,7 +900,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     rules: {
-                        expenseRules: prevExpenseRules,
+                        approvalRules: prevApprovalRules,
                     },
                     pendingAction: null,
                     pendingFields: {rules: null},

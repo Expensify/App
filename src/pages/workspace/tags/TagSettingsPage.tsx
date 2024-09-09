@@ -91,7 +91,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
-    const tagApprover = PolicyUtils.getTagExpenseRule(route.params.policyID, currentPolicyTag.name)?.approver;
+    const tagApprover = PolicyUtils.getTagApproverRule(route.params.policyID, currentPolicyTag.name)?.approver;
 
     const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
 

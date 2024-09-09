@@ -1370,20 +1370,6 @@ type PendingJoinRequestPolicy = {
     >;
 };
 
-/**
- *
- */
-type ExpenseRule = {
-    /** Set of conditions under which the expense rule should be applied */
-    applyWhen: ApplyRulesWhen[];
-
-    /** Policy tag approver */
-    approver: string;
-
-    /** An id of the rule */
-    id: string;
-};
-
 /** Data informing when a given rule should be applied */
 type ApplyRulesWhen = {
     /** The condition for applying the rule to the workspace */
@@ -1585,15 +1571,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         rules?: {
             /** A set of rules related to the workpsace approvals */
             approvalRules?: ApprovalRule[];
-
-            /** A set of rules related to the workpsace expenses */
-            expenseRules?: ExpenseRule[];
         };
-
-        /**
-         *
-         */
-        expenseRules?: ExpenseRule[];
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
