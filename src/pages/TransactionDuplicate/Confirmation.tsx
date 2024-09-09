@@ -45,10 +45,7 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const isActionOwner =
-        typeof reportAction?.actorAccountID === 'number' &&
-        typeof currentUserPersonalDetails?.accountID === 'number' &&
-        reportAction.actorAccountID === currentUserPersonalDetails?.accountID;
+    const isActionOwner = report?.ownerAccountID === currentUserPersonalDetails?.accountID;
     const isApprover = ReportUtils.isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
     const isAdmin = ReportUtils.isPolicyAdmin(report?.policyID ?? '-1', allPolicies);
 
@@ -61,7 +58,8 @@ function Confirmation() {
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-    }, [transactionsMergeParams]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
+    }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(
         () => ({
@@ -123,7 +121,13 @@ function Confirmation() {
                             <Button
                                 text={translate('common.confirm')}
                                 success
-                                onPress={mergeDuplicates}
+                                onPress={() => {
+                                    if ((isAdmin || isApprover) && !isActionOwner) {
+                                        resolveDuplicates();
+                                        return;
+                                    }
+                                    mergeDuplicates();
+                                }}
                                 large
                             />
                         </FixedFooter>

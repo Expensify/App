@@ -8072,10 +8072,12 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
+        const updatedViolations = id === params.transactionID ? violations : [...violations, newViolation];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+            value: updatedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
 
@@ -8101,6 +8103,30 @@ function resolveDuplicates(params: TransactionMergeParams) {
         })
         .map((action) => action?.childReportID);
 
+    const optimisticHoldActions: OnyxUpdate[] = [];
+    const failureHoldActions: OnyxUpdate[] = [];
+    const reportActionIDList: string[] = [];
+    reportIDList.forEach((transactionThreadReportID) => {
+        const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
+        reportActionIDList.push(createdReportAction.reportActionID);
+        optimisticHoldActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction,
+            },
+        });
+        failureHoldActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+                },
+            },
+        });
+    });
+
     const transactionReportID = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`] ?? {})?.find(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
             if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
@@ -8116,7 +8142,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const optimisticReportAction = ReportUtils.buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
-        violationName: CONST.VIOLATIONS.RTER,
+        violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     });
 
     const optimisticReportActionData: OnyxUpdate = {
@@ -8138,17 +8164,14 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, optimisticReportActionData);
-    failureData.push(failureTransactionData, ...failureTransactionViolations, failureReportActionData);
-
-    // get reportID from params.transactionIDList
-    // add optimistic data like putonhold for each reportID
-    // const reportActionIDList =
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, optimisticReportActionData);
+    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, failureReportActionData);
+    const {transactionID, reportID, receiptID, ...otherParams} = params;
 
     const parameters: TransactionResolveParams = {
-        ...params,
+        ...otherParams,
         transactionIDToKeep: params.transactionID,
-        reportActionIDList: [],
+        reportActionIDList,
         optimisticReportActionID: optimisticReportAction.reportActionID,
     };
 
