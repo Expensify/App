@@ -477,21 +477,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     shouldShowRedDotIndicator
-                                    message={
-                                        <Text style={[{color: theme.textError}]}>
-                                            {translate('workspace.accounting.errorODIntegration')}
-                                            <TextLink
-                                                onPress={() => {
-                                                    // Go to Expensify Classic.
-                                                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                                                }}
-                                            >
-                                                {translate('workspace.accounting.goToODToFix')}
-                                            </TextLink>
-                                        </Text>
-                                    }
                                     style={styles.menuItemError}
-                                />
+                                >
+                                    <Text style={[{color: theme.textError}]}>
+                                        {translate('workspace.accounting.errorODIntegration')}
+                                        <TextLink
+                                            onPress={() => {
+                                                // Go to Expensify Classic.
+                                                Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                            }}
+                                        >
+                                            {translate('workspace.accounting.goToODToFix')}
+                                        </TextLink>
+                                    </Text>
+                                </FormHelpMessage>
                             )}
                             {otherIntegrationsItems && (
                                 <CollapsibleSection
