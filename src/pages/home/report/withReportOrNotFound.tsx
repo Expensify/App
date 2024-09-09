@@ -85,7 +85,7 @@ export default function (
                 }
 
                 if (shouldShowNotFoundPage) {
-                    return <NotFoundPage />;
+                    return <NotFoundPage isReportRelatedPage />;
                 }
             }
 
