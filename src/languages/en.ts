@@ -840,7 +840,7 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `the ${valueName} to ${newValueToDisplay}`,
-        setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
+        setTheDistance: ({changedField, newMerchant, newAmountToDisplay}: SetTheDistanceParams) => `set the ${changedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>

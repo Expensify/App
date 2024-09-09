@@ -10,6 +10,7 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as TransactionUtils from './TransactionUtils';
+import Log from './Log';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -94,16 +95,53 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     }, prefix);
 }
 
-function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
-    if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+// function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
+//     // If it doesn't match the regex for distance, we should just return the default message
+//     if (!oldDistance) {
+//         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
+//     }
+
+//     // The new translate function should take in changedField, newMerchant, oldMerchant, newAmount, oldAmount
+
+//     //         return "set the $changedField to $newMerchant, which set the amount to $newAmount";
+//     // }
+//     // return "changed the $changedField to $newMerchant (previously $oldMerchant), which updated the amount to $newAmount (previously $oldAmount)";
+
+
+//     return Localize.translateLocal('iou.updatedTheDistance', {
+//         newDistanceToDisplay: newDistance,
+//         oldDistanceToDisplay: oldDistance,
+//         newAmountToDisplay: newAmount,
+//         oldAmountToDisplay: oldAmount,
+//     });
+// }
+
+
+function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
+    const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\w){1,3} ?[0-9.]+\)? \/ \w+$/;
+    let changedField: 'distance' | 'rate' = 'distance';
+
+    if (distanceMerchantRegex.test(newMerchant) && distanceMerchantRegex.test(oldMerchant)) {
+        const oldValues = oldMerchant.split('@');
+        const oldDistance = oldValues[0]?.trim() || '';
+        const oldRate = oldValues[1]?.trim() || '';
+        const newValues = newMerchant.split('@');
+        const newDistance = newValues[0]?.trim() || '';
+        const newRate = newValues[1]?.trim() || '';
+
+        if (oldDistance === newDistance && oldRate !== newRate) {
+            changedField = 'rate';
+        }
+    } else {
+        Log.hmmm("Distance request merchant doesn't match NewDot format. Defaulting to showing as distance changed.", {newMerchant, oldMerchant});
     }
-    return Localize.translateLocal('iou.updatedTheDistance', {
-        newDistanceToDisplay: newDistance,
-        oldDistanceToDisplay: oldDistance,
-        newAmountToDisplay: newAmount,
-        oldAmountToDisplay: oldAmount,
-    });
+    const translatedChangedField = Localize.translateLocal(`common.${changedField}`);
+
+    if (!oldMerchant.length) {
+        // return `set the ${changedField} to ${newMerchant}, which set the amount to ${newAmount}`;
+        return Localize.translateLocal('iou.setTheDistance', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+    }
+    return `changed the ${changedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmount} (previously ${oldAmount})`;
 }
 
 /**

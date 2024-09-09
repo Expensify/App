@@ -203,7 +203,7 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
-type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
+type SetTheDistanceParams = {changedField: string; newMerchant: string; newAmountToDisplay: string};
 
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
