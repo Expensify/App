@@ -90,8 +90,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {
-                    const parsedQueryJSON: SearchQueryJSON = JSON.parse(item?.query ?? '{}') as SearchQueryJSON;
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: parsedQueryJSON?.inputQuery ?? '', isCustomQuery: true}));
+                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', isCustomQuery: true}));
                 },
                 rightComponent: (
                     <ThreeDotsMenu
@@ -103,7 +102,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                         }}
                     />
                 ),
-                styles: [styles.textBlue, styles.alignItemsCenter],
+                styles: [styles.alignItemsCenter],
             };
 
             if (!isNarrow) {
@@ -114,15 +113,17 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     },
-                    tooltipShiftHorizontal: -28,
+                    tooltipShiftHorizontal: -32,
+                    tooltipShiftVertical: 15,
+                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
                     renderTooltipContent: () => (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Expensicons.Lightbulb
                                 width={16}
                                 height={16}
-                                color={styles.colorMuted as unknown as string}
+                                fill={styles.colorGreenSuccess.color}
                             />
-                            <Text style={[styles.colorMuted, styles.textNormal, styles.ml1]}>You can rename your saved search</Text>
+                            <Text style={[styles.ml1, styles.textLabel]}>You can rename your saved search</Text>
                         </View>
                     ),
                 };
@@ -144,11 +145,16 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
         () => ({
             savedSearchesMenuItems,
             renderSavedSearchesSection: () => (
-                <View style={[styles.pb1, styles.mh3]}>
+                <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                     <Text style={[styles.sectionTitle, styles.pb1]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                     <MenuItemList
                         menuItems={savedSearchesMenuItems}
+                        wrapperStyle={styles.sectionMenuItem}
+                        icon={Expensicons.Star}
+                        iconWidth={variables.iconSizeNormal}
+                        iconHeight={variables.iconSizeNormal}                        
                         shouldUseSingleExecution
+                        isPaneMenu
                     />
                 </View>
             ),
