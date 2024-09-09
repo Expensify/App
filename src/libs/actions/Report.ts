@@ -767,14 +767,13 @@ function getInviteOnboardingDetails() {
     const firstName = personalDetails?.firstName ?? '';
     const lastName = personalDetails?.lastName ?? '';
 
+    Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
+
     if (choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
         return {
-            choice,
-            data: CONST.ONBOARDING_MESSAGES[choice],
-            personalDetails: {
-                firstName,
-                lastName,
-            },
+            firstName,
+            lastName,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
         };
     }
 }
@@ -869,17 +868,25 @@ function openReport(
     };
 
     const inviteOnboardingDetails = getInviteOnboardingDetails();
-    if (inviteOnboardingDetails && !introSelected?.isInviteOnboardingComplete) {
-        const {choice, data, personalDetails} = inviteOnboardingDetails;
-        completeOnboarding(choice, data, {...personalDetails});
+    if (inviteOnboardingDetails && !introSelected?.isInviteOnboardingComplete && introSelected?.choice) {
+        const onboardingData = prepareOnboardingOptimisticData(introSelected?.choice, inviteOnboardingDetails.onboardingMessage);
 
-        Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: true});
+        optimisticData.push(
+            ...onboardingData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                }
+            }    
+        );
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {isInviteOnboardingComplete: true},
-        });
+        successData.push(...onboardingData.successData);
+
+        failureData.push(...onboardingData.failureData);
+
+        parameters.guidedSetupObject = JSON.stringify(onboardingData.guidedSetupData);
     }
 
     if (ReportUtils.isGroupChat(newReportObject)) {
@@ -3366,16 +3373,9 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding(
+function prepareOnboardingOptimisticData(
     engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    {
-        firstName,
-        lastName,
-    }: {
-        firstName: string;
-        lastName: string;
-    },
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -3723,6 +3723,24 @@ function completeOnboarding(
     }
 
     guidedSetupData.push(...tasksForParameters);
+
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+}
+
+function completeOnboarding(
+    engagementChoice: OnboardingPurpose,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    {
+        firstName,
+        lastName,
+    }: {
+        firstName: string;
+        lastName: string;
+    },
+    adminsChatReportID?: string,
+    onboardingPolicyID?: string,
+) {
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(engagementChoice, data, adminsChatReportID, onboardingPolicyID);
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
