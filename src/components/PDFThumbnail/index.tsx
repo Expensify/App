@@ -1,3 +1,4 @@
+import 'core-js/proposals/promise-with-resolvers';
 // eslint-disable-next-line import/extensions
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
 import React, {useMemo, useState} from 'react';
