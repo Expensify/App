@@ -41,12 +41,14 @@ import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralP
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SessionUtils from '@libs/SessionUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getCurrency, getTransaction} from '@libs/TransactionUtils';
@@ -270,6 +272,18 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
+let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => (personalDetailsList = value),
 });
 
 /**
@@ -3666,6 +3680,7 @@ function trackExpense(
     actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
+    customUnitRateID?: string,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report.chatReportID) : report;
@@ -3805,6 +3820,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
+                customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -3851,7 +3867,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
             undefined,
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         );
         return {existingSplitChatReport: null, splitChatReport};
     }
@@ -3951,11 +3967,6 @@ function createSplitsAndOnyxData(
     splitChatReport.lastActorAccountID = currentUserAccountID;
     splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
 
-    let splitChatReportNotificationPreference = splitChatReport.notificationPreference;
-    if (splitChatReportNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
-        splitChatReportNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
-    }
-
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
         splitChatReport.pendingFields = {
@@ -3969,10 +3980,7 @@ function createSplitsAndOnyxData(
             // and we need the data to be available when we navigate to the chat page
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {
-                ...splitChatReport,
-                notificationPreference: splitChatReportNotificationPreference,
-            },
+            value: splitChatReport,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -7389,11 +7397,51 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
     );
 }
 
+/**
+ * Completes onboarding for invite link flow based on the selected payment option
+ *
+ * @param paymentSelected based on which we choose the onboarding choice and concierge message
+ */
+function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>) {
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+
+    if (isInviteOnboardingComplete || !introSelected?.choice) {
+        return;
+    }
+
+    const session = SessionUtils.getSession();
+
+    const personalDetailsListValues = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
+    const personalDetails = personalDetailsListValues[0] ?? {};
+
+    let onboardingPurpose = introSelected.choice;
+    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.IOU.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+    }
+
+    if (introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+    }
+
+    Report.completeOnboarding(
+        onboardingPurpose,
+        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        {
+            firstName: personalDetails.firstName ?? '',
+            lastName: personalDetails.lastName ?? '',
+        },
+        paymentSelected,
+    );
+}
+
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, full = true) {
     if (chatReport.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
+
+    const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
 
     const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
@@ -7413,6 +7461,9 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         failureData,
         params: {reportActionID},
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+
+    const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
 
     const params: PayInvoiceParams = {
         reportID: invoiceReport.reportID,
@@ -8009,6 +8060,7 @@ export {
     getIOURequestPolicyID,
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    completePaymentOnboarding,
     payInvoice,
     payMoneyRequest,
     putOnHold,
