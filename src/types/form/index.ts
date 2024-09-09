@@ -1,4 +1,5 @@
 export type {AddPaymentCardForm} from './AddPaymentCardForm';
+export type {AssignCardForm} from './AssignCardForm';
 export type {CloseAccountForm} from './CloseAccountForm';
 export type {DateOfBirthForm} from './DateOfBirthForm';
 export type {DisplayNameForm} from './DisplayNameForm';
@@ -69,6 +70,10 @@ export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
+export type {RulesCustomNameModalForm} from './RulesCustomNameModalForm';
+export type {RulesAutoApproveReportsUnderModalForm} from './RulesAutoApproveReportsUnderModalForm';
+export type {RulesRandomReportAuditModalForm} from './RulesRandomReportAuditModalForm';
+export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnderModalForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
 export type {default as Form} from './Form';
 export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';

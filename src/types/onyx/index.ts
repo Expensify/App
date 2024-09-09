@@ -1,6 +1,7 @@
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
+import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -96,6 +97,7 @@ import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
+import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -109,6 +111,7 @@ export type {
     TryNewDot,
     Account,
     AccountData,
+    AssignCard,
     BankAccount,
     BankAccountList,
     Beta,
@@ -228,4 +231,5 @@ export type {
     WorkspaceTooltip,
     CardFeeds,
     ImportedSpreadsheet,
+    ValidateMagicCodeAction,
 };

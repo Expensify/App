@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AssignCard} from '@src/types/onyx/AssignCard';
 import type {AddNewCardFeedData, AddNewCardFeedStep} from '@src/types/onyx/CardFeeds';
 
 type AddNewCompanyCardFlowData = {
@@ -13,6 +14,14 @@ type AddNewCompanyCardFlowData = {
     data?: Partial<AddNewCardFeedData>;
 };
 
+function setAssignCardStepAndData({data, isEditing, currentStep}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {data, isEditing, currentStep});
+}
+
+function clearAssignCardStepAndData() {
+    Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
+}
+
 function setAddNewCompanyCardStepAndData({data, isEditing, step}: AddNewCompanyCardFlowData) {
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
@@ -24,4 +33,4 @@ function clearAddNewCardFlow() {
     });
 }
 
-export {setAddNewCompanyCardStepAndData, clearAddNewCardFlow};
+export {setAddNewCompanyCardStepAndData, clearAddNewCardFlow, setAssignCardStepAndData, clearAssignCardStepAndData};

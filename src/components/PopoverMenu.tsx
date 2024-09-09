@@ -125,6 +125,7 @@ function PopoverMenu({
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
@@ -140,8 +141,8 @@ function PopoverMenu({
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
         } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+            onItemSelected(selectedItem, index);
             Modal.close(() => {
-                onItemSelected(selectedItem, index);
                 selectedItem.onSelected?.();
             });
         } else {
