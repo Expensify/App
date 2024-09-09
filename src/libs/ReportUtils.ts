@@ -5502,7 +5502,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         false,
         policyName,
         undefined,
-        undefined,
+        CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const announceChatReportID = announceChatData.reportID;
