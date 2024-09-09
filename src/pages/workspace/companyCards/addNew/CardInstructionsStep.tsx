@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CompanyCardUtils from '@libs/CompanyCardUtils';
 import Parser from '@libs/Parser';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -26,8 +25,6 @@ function CardInstructionsStep() {
 
     const data = addNewCard?.data;
     const feedProvider = data?.cardType;
-
-    const pointsByProvider = CompanyCardUtils.getTranslationKeyForFeedInstructions(feedProvider);
 
     const submit = () => {
         if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
@@ -61,7 +58,7 @@ function CardInstructionsStep() {
                 </Text>
                 <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.companyCards.addNewCard.enableFeed.heading')}</Text>
                 <View style={[styles.ph5]}>
-                    <RenderHTML html={Parser.replace(pointsByProvider ? translate(pointsByProvider) : '')} />
+                    <RenderHTML html={Parser.replace(feedProvider ? translate(`workspace.companyCards.addNewCard.enableFeed.${feedProvider}`) : '')} />
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
