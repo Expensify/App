@@ -253,7 +253,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
 
-    const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
+    const headerMessage = searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '';
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
