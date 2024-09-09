@@ -19,7 +19,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -192,9 +191,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         return;
                     }
 
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -214,10 +210,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
                         return;
                     }
 
-                    clearSelectedTransactions();
-                    if (selectionMode?.isEnabled) {
-                        turnOffMobileSelectionMode();
-                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
@@ -267,7 +259,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
-        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
@@ -276,7 +267,6 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        selectionMode?.isEnabled,
     ]);
 
     if (shouldUseNarrowLayout) {

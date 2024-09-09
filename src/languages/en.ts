@@ -1526,7 +1526,6 @@ export default {
         groupName: 'Group name',
     },
     groupChat: {
-        groupMembersListTitle: 'Directory of all group members.',
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
@@ -3171,8 +3170,9 @@ export default {
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
             removeMembersTitle: 'Remove members',
-            removeMemberButtonTitle: 'Remove from workspace',
-            removeMemberGroupButtonTitle: 'Remove from group',
+            removeWorkspaceMemberButtonTitle: 'Remove from workspace',
+            removeGroupMemberButtonTitle: 'Remove from group',
+            removeRoomMemberButtonTitle: 'Remove from chat',
             removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
@@ -3220,7 +3220,7 @@ export default {
                 fixedAmountDescription: 'Spend up to a certain amount once',
                 setLimit: 'Set a limit',
                 giveItName: 'Give it a name',
-                giveItNameInstruction: 'Make it unique enough to tell apart from the other. Specific use cases are even better!',
+                giveItNameInstruction: 'Make it unique enough to tell apart from other cards. Specific use cases are even better!',
                 cardName: 'Card name',
                 letsDoubleCheck: 'Let’s double check that everything looks right.',
                 willBeReady: 'This card will be ready to use immediately.',

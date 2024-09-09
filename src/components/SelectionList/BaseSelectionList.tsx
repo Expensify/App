@@ -99,6 +99,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
+        shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
         scrollEventThrottle,
         contentContainerStyle,
@@ -110,7 +111,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const shouldShowTextInput = !!textInputLabel || !!textInputIconLeft;
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();

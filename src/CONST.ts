@@ -1019,6 +1019,9 @@ const CONST = {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
         },
+        ROOM_MEMBERS_BULK_ACTION_TYPES: {
+            REMOVE: 'remove',
+        },
     },
     NEXT_STEP: {
         ICONS: {
@@ -4205,6 +4208,11 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
+
+    /**
+     *  We only include the members search bar when we have 8 or more members
+     */
+    SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
     /**
      * Bank account names
