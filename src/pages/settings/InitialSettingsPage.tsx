@@ -439,7 +439,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 onScroll={onScroll}
                 scrollEventThrottle={16}
                 contentContainerStyle={[styles.w100]}
-                showsVerticalScrollIndicator = {false}
+                showsVerticalScrollIndicator={false}
             >
                 {accountMenuItems}
                 {workspaceMenuItems}
