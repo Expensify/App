@@ -341,20 +341,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
-    if (
-        isLoadingOnyxValue(
-            policyMetadata,
-            policyCategoriesMetadata,
-            policyTagListMetadata,
-            parentReportMetadata,
-            parentReportActionsMetadata,
-            distanceRatesMetadata,
-            transactionViolationsMetadata,
-        )
-    ) {
-        return null;
-    }
-
     const distanceRequestFields = canUseP2PDistanceRequests ? (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
@@ -463,17 +449,20 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             </OfflineWithFeedback>
         );
     });
-    console.log('RENDERING MoneyRequestView');
-    console.log('policy', policy);
-    console.log('policyCategories', policyCategories);
-    console.log('policyTagList', policyTagList);
-    console.log('parentReport', parentReport);
-    console.log('parentReportActions', parentReportActions);
-    console.log('distanceRates', distanceRates);
-    console.log('transactionViolations', transactionViolations);
-    console.log('parentReportAction', parentReportAction);
-    console.log('transaction', transaction);
-    console.log('transactionBackup', transactionBackup);
+
+    if (
+        isLoadingOnyxValue(
+            policyMetadata,
+            policyCategoriesMetadata,
+            policyTagListMetadata,
+            parentReportMetadata,
+            parentReportActionsMetadata,
+            distanceRatesMetadata,
+            transactionViolationsMetadata,
+        )
+    ) {
+        return null;
+    }
 
     return (
         <View style={styles.pRelative}>
