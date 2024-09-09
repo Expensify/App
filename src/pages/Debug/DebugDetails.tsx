@@ -7,7 +7,6 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -19,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Debug from '@userActions/Debug';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS} from './const';
 import ConstantSelector from './ConstantSelector';
@@ -43,14 +41,34 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
-    const booleanFields = useMemo(() => Object.entries(data ?? {}).filter(([, value]) => typeof value === 'boolean') as Array<[string, boolean]>, [data]);
-    const constantFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_CONSTANT_FIELDS.includes(key)) as Array<[string, string]>, [data]);
-    const numberFields = useMemo(() => Object.entries(data ?? {}).filter(([, value]) => typeof value === 'number') as Array<[string, number]>, [data]);
+    const booleanFields = useMemo(
+        () =>
+            Object.entries(data ?? {})
+                .filter(([, value]) => typeof value === 'boolean')
+                .sort((a, b) => a[0].localeCompare(b[0])) as Array<[string, boolean]>,
+        [data],
+    );
+    const constantFields = useMemo(
+        () =>
+            Object.entries(data ?? {})
+                .filter(([key]) => DETAILS_CONSTANT_FIELDS.includes(key))
+                .sort((a, b) => a[0].localeCompare(b[0])) as Array<[string, string]>,
+        [data],
+    );
+    const numberFields = useMemo(
+        () =>
+            Object.entries(data ?? {})
+                .filter(([, value]) => typeof value === 'number')
+                .sort((a, b) => a[0].localeCompare(b[0])) as Array<[string, number]>,
+        [data],
+    );
     const textFields = useMemo(
         () =>
-            Object.entries(data ?? {}).filter(([key, value]) => typeof value === 'string' && !DETAILS_CONSTANT_FIELDS.includes(key) && !DETAILS_DATETIME_FIELDS.includes(key)) as Array<
-                [string, string]
-            >,
+            Object.entries(data ?? {})
+                .filter(([key, value]) => (typeof value === 'string' || typeof value === 'object') && !DETAILS_CONSTANT_FIELDS.includes(key) && !DETAILS_DATETIME_FIELDS.includes(key))
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
+                .sort((a, b) => a[0].localeCompare(b[0])),
         [data],
     );
     const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter(([key]) => DETAILS_DATETIME_FIELDS.includes(key)) as Array<[string, string]>, [data]);
@@ -100,12 +118,21 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                 validate={validator}
                 shouldValidateOnChange
                 onSubmit={handleSubmit}
-                isSubmitDisabled={!Object.entries(formDraftData ?? {}).some(([key, value]) => data?.[key as keyof typeof data] !== value)}
+                isSubmitDisabled={
+                    !Object.entries(formDraftData ?? {}).some(([key, value]) => {
+                        const onyxData = data?.[key as keyof typeof data];
+                        if (typeof value === 'string') {
+                            return !DebugUtils.compareStringWithOnyxData(value, onyxData);
+                        }
+                        return onyxData !== value;
+                    })
+                }
                 submitButtonText={translate('common.save')}
                 submitButtonStyles={styles.ph5}
                 enabledWhenOffline
+                allowHTML
             >
-                <Text style={[styles.headerText, styles.textAlignCenter]}>Text fields</Text>
+                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Text fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {textFields.map(([key, value]) => {
                         const numberOfLines = DebugUtils.getNumberOfLinesFromString(value);
@@ -125,7 +152,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     })}
                     {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter]}>Number fields</Text>
+                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Number fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {numberFields.map(([key, value]) => (
                         <InputWrapper
@@ -140,7 +167,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter]}>Constant fields</Text>
+                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Constant fields</Text>
                 <View style={styles.mb5}>
                     {constantFields.map(([key, value]) => (
                         <InputWrapper
@@ -154,7 +181,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter]}>Datetime fields</Text>
+                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Datetime fields</Text>
                 <View style={styles.mb5}>
                     {dateTimeFields.map(([key, value]) => (
                         <InputWrapper
@@ -168,7 +195,7 @@ function DebugDetails({data, onSave, onDelete, validate}: DebugDetailsProps) {
                     ))}
                     {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.textAlignCenter]}>None</Text>}
                 </View>
-                <Text style={[styles.headerText, styles.textAlignCenter]}>Boolean fields</Text>
+                <Text style={[styles.headerText, styles.textAlignCenter, styles.mb3]}>Boolean fields</Text>
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {booleanFields.map(([key, value]) => (
                         <InputWrapper

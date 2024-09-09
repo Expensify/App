@@ -27,7 +27,7 @@ function ConstantSelector({errorText = '', name, value, onInputChange}: Constant
 
     useEffect(() => {
         // If no constant is selected from the URL, exit the effect early to avoid further processing.
-        if (!fieldValue) {
+        if (!fieldValue && fieldValue !== '') {
             return;
         }
 

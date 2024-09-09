@@ -189,7 +189,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const handleHourChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
         const trimmedText = text.replace(/ /g, '0');
-        console.log({trimmedText, selectionHour});
         if (!trimmedText) {
             resetHours();
             return;
@@ -279,7 +278,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const handleMinutesChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
         const trimmedText = text.replace(/ /g, '0');
-        console.log({trimmedText, selectionMinute});
         if (!trimmedText) {
             resetMinutes();
             return;

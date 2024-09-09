@@ -436,7 +436,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         return validateObject(
             value,
             {
-                hidden: 'boolean',
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
             },
             'number',
         );
@@ -471,9 +471,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
     }
     if (key === 'statusNum') {
         return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-    }
-    if (key === 'notificationPreference') {
-        return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
     }
     if (key === 'chatType') {
         return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
