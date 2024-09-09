@@ -62,7 +62,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                 </OfflineWithFeedback>
             );
         },
-        [cardsList, personalDetails, policyID],
+        [cardsList, personalDetails, policyID, styles],
     );
 
     const renderListHeader = useCallback(

@@ -42,7 +42,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, currentConnectionName],
+        [translate, currentConnectionName, styles],
     );
 
     const updateExportAccount = useCallback(
