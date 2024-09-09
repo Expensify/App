@@ -27,11 +27,9 @@ function CardInstructionsStep() {
     const feedProvider = data?.cardType;
 
     const submit = () => {
-        if (feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS});
-            return;
-        }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
+        CompanyCards.setAddNewCompanyCardStepAndData({
+            step: feedProvider === CONST.COMPANY_CARDS.CARD_TYPE.AMEX ? CONST.COMPANY_CARDS.STEP.CARD_DETAILS : CONST.COMPANY_CARDS.STEP.CARD_NAME,
+        });
     };
 
     const handleBackButtonPress = () => {
