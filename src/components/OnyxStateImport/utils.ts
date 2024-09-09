@@ -1,6 +1,5 @@
+import type {UnknownRecord} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-type UnknownRecord = Record<string, unknown> | unknown[];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
@@ -9,7 +8,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 // List of Onyx keys from the .txt file we want to keep for the local override
 const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION];
 
-function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord {
+function transformNumericKeysToArray(data: UnknownRecord): UnknownRecord | unknown[] {
     const dataCopy = data;
     if (typeof dataCopy !== 'object' || dataCopy === null) {
         return dataCopy;

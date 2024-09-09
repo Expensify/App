@@ -61,7 +61,6 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                         title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={() => {
-                            // TODO should directly use 'react-native-document-picker'
                             openPicker({
                                 onPicked: onExportFilePicked,
                             });

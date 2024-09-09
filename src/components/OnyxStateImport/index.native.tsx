@@ -1,6 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
+import type {UnknownRecord} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -8,50 +10,43 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxValues} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import transformNumericKeysToArray from './utils';
+import {keysToOmit, transformNumericKeysToArray} from './utils';
 
-// List of Onyx keys from the .txt file we want to omit for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION];
+const CHUNK_SIZE = 100;
 
 function readFileInChunks(fileUri: string, chunkSize = 1024 * 1024) {
-    console.log('File URI:', fileUri); // Log the file URI
     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
-    // Check if the file exists
+
     return RNFS.exists(filePath)
         .then((exists) => {
             if (!exists) {
                 throw new Error('File does not exist');
             }
-            console.log('File exists:', exists);
             return RNFS.stat(filePath);
         })
         .then((fileStats) => {
-            console.log('File stats:', fileStats);
             const fileSize = fileStats.size;
             let fileContent = '';
             const promises = [];
 
-            console.log('Start chunking');
+            // Chunk the file into smaller parts to avoid memory issues
             for (let i = 0; i < fileSize; i += chunkSize) {
-                promises.push(
-                    RNFS.read(filePath, chunkSize, i, 'utf8').then((chunk) => {
-                        fileContent += chunk;
-                    }),
-                );
+                promises.push(RNFS.read(filePath, chunkSize, i, 'utf8').then((chunk) => chunk));
             }
-            console.log('end chunking');
 
-            return Promise.all(promises).then(() => fileContent);
+            // After all chunks have been read, join them together
+            return Promise.all(promises).then((chunks) => {
+                fileContent = chunks.join('');
+
+                return fileContent;
+            });
         })
         .catch((error) => {
-            console.error('Error reading file:', error);
             throw error;
         });
 }
-
-const CHUNK_SIZE = 100; // Adjust the chunk size based on your needs
 
 function chunkArray<T>(array: T[], size: number): T[][] {
     const result = [];
@@ -61,13 +56,14 @@ function chunkArray<T>(array: T[], size: number): T[][] {
     return result;
 }
 
-function applyStateInChunks(state: Record<string, unknown>) {
+function applyStateInChunks(state: OnyxValues) {
     const entries = Object.entries(state);
     const chunks = chunkArray(entries, CHUNK_SIZE);
 
     let promise = Promise.resolve();
     chunks.forEach((chunk) => {
-        promise = promise.then(() => Onyx.multiSet(Object.fromEntries(chunk)));
+        const partialOnyxState = Object.fromEntries(chunk) as Partial<OnyxValues>;
+        promise = promise.then(() => Onyx.multiSet(partialOnyxState));
     });
 
     return promise;
@@ -76,39 +72,34 @@ function applyStateInChunks(state: Record<string, unknown>) {
 export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoading: boolean) => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [, setError] = useState(null);
 
-    const handleFileRead = (fileUri: string) => {
-        console.log('File URI:', fileUri); // Log the file URI
+    const handleFileRead = (file: FileObject) => {
+        if (!file.uri) {
+            return;
+        }
+
         setIsLoading(true);
-        readFileInChunks(fileUri)
+        readFileInChunks(file.uri)
             .then((fileContent) => {
-                const importedState = JSON.parse(fileContent);
-                console.log('Parse imported state');
-                const transformedState = transformNumericKeysToArray(importedState);
-                console.log('Transformed state:');
-                // Only keep the keys that we're interested in
+                const importedState = JSON.parse(fileContent) as UnknownRecord;
+                const transformedState = transformNumericKeysToArray(importedState) as OnyxValues;
+
                 Object.keys(transformedState).forEach((key) => {
                     const shouldOmit = keysToOmit.some((onyxKey) => key.startsWith(onyxKey));
+
                     if (shouldOmit) {
-                        delete transformedState[key];
+                        delete transformedState[key as keyof OnyxValues];
                     }
                 });
-                console.log('Omgitted keys');
 
-                Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true}).then(() => {
-                    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-                        // 4. Apply the new state from the file
-                        applyStateInChunks(transformedState).then(() => {
-                            setIsLoading(false);
-                            console.log('Applied imported state.');
-                            Navigation.navigate(ROUTES.HOME);
-                        });
+                Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+                    applyStateInChunks(transformedState).then(() => {
+                        setIsLoading(false);
+                        Navigation.navigate(ROUTES.HOME);
                     });
                 });
             })
-            .catch((err) => {
-                setError(err.message);
+            .finally(() => {
                 setIsLoading(false);
             });
     };
@@ -122,15 +113,8 @@ export default function OnyxStateImport({setIsLoading}: {setIsLoading: (isLoadin
                         title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={() => {
-                            // TODO should directly use 'react-native-document-picker'
                             openPicker({
-                                onPicked: (file) => {
-                                    if (!file.uri) {
-                                        return;
-                                    }
-
-                                    handleFileRead(file.uri);
-                                },
+                                onPicked: handleFileRead,
                             });
                         }}
                     />
