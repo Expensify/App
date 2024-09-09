@@ -113,7 +113,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     } else {
         Log.hmmm("Distance request merchant doesn't match NewDot format. Defaulting to showing as distance changed.", {newMerchant, oldMerchant});
     }
-    const translatedChangedField = Localize.translateLocal(`common.${changedField}`);
+    const translatedChangedField = Localize.translateLocal(`common.${changedField}`).toLowerCase();
 
     if (!oldMerchant.length) {
         return Localize.translateLocal('iou.setTheDistanceMerchant', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
