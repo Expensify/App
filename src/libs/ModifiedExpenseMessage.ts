@@ -95,28 +95,6 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     }, prefix);
 }
 
-// function getForDistanceRequest(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
-//     // If it doesn't match the regex for distance, we should just return the default message
-//     if (!oldDistance) {
-//         return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
-//     }
-
-//     // The new translate function should take in changedField, newMerchant, oldMerchant, newAmount, oldAmount
-
-//     //         return "set the $changedField to $newMerchant, which set the amount to $newAmount";
-//     // }
-//     // return "changed the $changedField to $newMerchant (previously $oldMerchant), which updated the amount to $newAmount (previously $oldAmount)";
-
-
-//     return Localize.translateLocal('iou.updatedTheDistance', {
-//         newDistanceToDisplay: newDistance,
-//         oldDistanceToDisplay: oldDistance,
-//         newAmountToDisplay: newAmount,
-//         oldAmountToDisplay: oldAmount,
-//     });
-// }
-
-
 function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
     const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\w){1,3} ?[0-9.]+\)? \/ \w+$/;
     let changedField: 'distance' | 'rate' = 'distance';
@@ -138,10 +116,9 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     const translatedChangedField = Localize.translateLocal(`common.${changedField}`);
 
     if (!oldMerchant.length) {
-        // return `set the ${changedField} to ${newMerchant}, which set the amount to ${newAmount}`;
         return Localize.translateLocal('iou.setTheDistance', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
     }
-    return `changed the ${changedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmount} (previously ${oldAmount})`;
+    return Localize.translateLocal('iou.updatedTheDistance', {changedField: translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay: newAmount, oldAmountToDisplay: oldAmount});
 }
 
 /**
