@@ -160,7 +160,7 @@ function MissingPersonalDetails() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={MissingPersonalDetails.displayName}
         >
@@ -175,27 +175,25 @@ function MissingPersonalDetails() {
                     stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-                    submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
-                    onSubmit={screenIndex === formSteps.length - 1 ? updatePersonalDetails : handleNextScreen}
-                    validate={validate}
-                    style={[styles.flexGrow1]}
-                    submitButtonStyles={[styles.ph5, styles.mb0]}
-                    enabledWhenOffline
-                >
-                    <View style={styles.ph5}>
-                        <SubStep
-                            isEditing={isEditing}
-                            onNext={handleNextScreen}
-                            onMove={moveTo}
-                            screenIndex={screenIndex}
-                            privatePersonalDetails={privatePersonalDetails}
-                        />
-                    </View>
-                </FormProvider>
-            </View>
+            <FormProvider
+                formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
+                submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
+                onSubmit={screenIndex === formSteps.length - 1 ? updatePersonalDetails : handleNextScreen}
+                validate={validate}
+                style={[styles.flexGrow1, styles.mt3]}
+                submitButtonStyles={[styles.ph5, styles.mb0]}
+                enabledWhenOffline
+            >
+                <View style={styles.ph5}>
+                    <SubStep
+                        isEditing={isEditing}
+                        onNext={handleNextScreen}
+                        onMove={moveTo}
+                        screenIndex={screenIndex}
+                        privatePersonalDetails={privatePersonalDetails}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }
