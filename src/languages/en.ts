@@ -275,7 +275,6 @@ export default {
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
             pleaseSelectOne: 'Please select an option above.',
-            pleaseSelectProvider: 'Please select a card provider before continuing.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -2835,6 +2834,9 @@ export default {
                         title: `What's the Mastercard distribution ID`,
                         distributionLabel: 'Distribution ID',
                     },
+                },
+                error: {
+                    pleaseSelectProvider: 'Please select a card provider before continuing.',
                 },
             },
             assignCard: 'Assign card',

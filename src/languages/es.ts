@@ -265,7 +265,6 @@ export default {
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
             pleaseSelectOne: 'Seleccione una de las opciones.',
-            pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -2881,6 +2880,9 @@ export default {
                         title: `¿Cuál es el identificador de distribución de Mastercard?`,
                         distributionLabel: 'ID de distribución',
                     },
+                },
+                error: {
+                    pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                 },
             },
             assignCard: 'Asignar tarjeta',
