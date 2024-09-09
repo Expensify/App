@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CountryData} from '@libs/searchCountryOptions';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import CountrySelectorModal from './CountrySelectorModal';
 
 type CountryPickerProps = {
@@ -34,7 +35,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value}
+                title={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
                 description={translate('common.country')}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

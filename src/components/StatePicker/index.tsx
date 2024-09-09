@@ -1,3 +1,4 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
@@ -5,6 +6,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CountryData} from '@libs/searchCountryOptions';
 import CONST from '@src/CONST';
 import StateSelectorModal from './StateSelectorModal';
+
+type State = keyof typeof COMMON_CONST.STATES;
 
 type StatePickerProps = {
     /** Current value of the selected item */
@@ -34,7 +37,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value}
+                title={value ? translate(`allStates.${value as State}.stateName`) : undefined}
                 description={translate('common.state')}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
