@@ -1647,6 +1647,9 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: 'Enter legal name',
+        enterAddress: 'Enter address',
+        addPhoneNumber: 'Add phone number',
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
         legalName: 'Legal name',
@@ -2875,11 +2878,11 @@ export default {
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
-            addMailingAddress: 'Add mailing address',
+            addPersonalDetails: 'Add personal details',
             issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoMailingAddress: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once a mailing address is added.`,
+            issuedCardNoPersonalDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once personal details have added.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
-            addedAddress: (assignee: string) => `${assignee} added the address. Expensify Card will arrive in 2-3 business days.`,
+            addedPersonalDetails: (assignee: string) => `${assignee} added the personal details. Expensify Card will arrive in 2-3 business days.`,
         },
         categories: {
             deleteCategories: 'Delete categories',

@@ -1091,6 +1091,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
+                    screens: {
+                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
+                    },
+                },
             },
         },
 

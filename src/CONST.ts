@@ -1818,6 +1818,15 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    MISSING_PERSONAL_DETAILS_INDEXES: {
+        MAPPING: {
+            LEGAL_NAME: 0,
+            ADDRESS: 1,
+            PHONE_NUMBER: 2,
+        },
+        INDEX_LIST: ['1', '2', '3'],
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),

@@ -7,6 +7,7 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
@@ -552,6 +553,10 @@ const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchRepo
     [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default,
 });
 
+const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
+    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -583,4 +588,5 @@ export {
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
+    MissingPersonalDetailsModalStackNavigator,
 };

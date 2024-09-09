@@ -1656,6 +1656,9 @@ export default {
         },
     },
     privatePersonalDetails: {
+        enterLegalName: 'Enter legal name',
+        enterAddress: 'Enter address',
+        addPhoneNumber: 'Add phone number',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         legalName: 'Nombre completo',
@@ -2923,11 +2926,11 @@ export default {
                 `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
             changeCardMonthlyLimitTypeWarning: (limit: string) =>
                 `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
-            addMailingAddress: 'Añadir dirección de postal',
+            addPersonalDetails: 'Añadir detalles personales',
             issuedCard: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta llegará en 2-3 días laborables.`,
-            issuedCardNoMailingAddress: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta se enviará una vez que se añada una dirección postal.`,
+            issuedCardNoPersonalDetails: (assignee: string) => `¡emitió a ${assignee} una Tarjeta Expensify! La tarjeta será enviada una vez que se hayan agregado los datos personales.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `¡emitió a ${assignee} una ${link} virtual! La tarjeta puede utilizarse inmediatamente.`,
-            addedAddress: (assignee: string) => `${assignee} ha añadido la dirección. Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            addedPersonalDetails: (assignee: string) => `${assignee} agregó los datos personales. Tarjeta Expensify llegará en 2-3 días hábiles.`,
         },
         categories: {
             deleteCategories: 'Eliminar categorías',

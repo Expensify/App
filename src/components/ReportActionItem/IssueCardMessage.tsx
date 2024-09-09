@@ -31,7 +31,14 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     const assignee = `<mention-user accountID=${(action?.originalMessage as IssueNewCardOriginalMessage)?.assigneeAccountID}></mention-user>`;
     const link = `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('cardPage.expensifyCard')}</a>`;
 
-    const noMailingAddress = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isEmptyObject(privatePersonalDetails?.address);
+    const missingDetails =
+        !privatePersonalDetails?.legalFirstName ||
+        !privatePersonalDetails?.legalLastName ||
+        !privatePersonalDetails?.phoneNumber ||
+        isEmptyObject(privatePersonalDetails?.addresses) ||
+        privatePersonalDetails.addresses.length === 0;
+
+    const shouldShowDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
 
     const getTranslation = () => {
         switch (action?.actionName) {
@@ -40,7 +47,7 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
             case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
                 return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link});
             case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-                return translate(`workspace.expensifyCard.${noMailingAddress ? 'issuedCardNoMailingAddress' : 'addedAddress'}`, assignee);
+                return translate(`workspace.expensifyCard.${shouldShowDetailsButton ? 'issuedCardNoPersonalDetails' : 'addedPersonalDetails'}`, assignee);
             default:
                 return '';
         }
@@ -49,13 +56,13 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
     return (
         <>
             <RenderHTML html={`<muted-text>${getTranslation()}</muted-text>`} />
-            {noMailingAddress && (
+            {shouldShowDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
                     success
                     medium
                     style={[styles.alignSelfStart, styles.mt3]}
-                    text={translate('workspace.expensifyCard.addMailingAddress')}
+                    text={translate('workspace.expensifyCard.addPersonalDetails')}
                 />
             )}
         </>
