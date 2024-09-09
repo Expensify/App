@@ -105,6 +105,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
+    const selectedFeed = lastSelectedFeed ?? defaultFeed;
+
     const fetchCompanyCards = useCallback(() => {
         Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -114,12 +118,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const companyCards = cardFeeds?.companyCards;
     const companyCardsLength = Object.keys(companyCards ?? {}).length;
     const isNoFeed = companyCardsLength === 0;
-    const isFeedAdded = companyCardsLength > 0 && !Object.values(companyCards ?? {})[0].pending;
+    const isFeedAdded = companyCardsLength > 0;
     const isPending = companyCardsLength === 1 && Object.values(companyCards ?? {})[0].pending;
     const isLoading = !cardFeeds || cardFeeds.isLoading;
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
 
     // TODO: use data form onyx instead of mocked one when API is implemented
     // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
@@ -137,27 +138,30 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     color={theme.spinner}
                 />
             )}
-            <WorkspacePageWithSections
-                shouldUseScrollView={!isFeedAdded}
-                icon={Illustrations.CompanyCard}
-                headerText={translate('workspace.common.companyCards')}
-                route={route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
-                shouldShowOfflineIndicatorInWideScreen
-                includeSafeAreaPaddingBottom
-                showLoadingAsFirstRender={false}
-            >
-                {isFeedAdded && (
-                    <WorkspaceCompanyCardsListHeaderButtons
-                        policyID={policyID}
-                        selectedFeed={selectedFeed}
-                    />
-                )}
-                {isNoFeed && !isLoading && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                {isFeedAdded && !isLoading && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
-                {isPending && !isLoading && <WorkspaceCompanyCardsFeedPendingPage />}
-                {isFeedAdded && <WorkspaceCompanyCardsList cardsList={cardsList} />}
-            </WorkspacePageWithSections>
+            {!isLoading && (
+                <WorkspacePageWithSections
+                    shouldUseScrollView={!isFeedAdded}
+                    icon={Illustrations.CompanyCard}
+                    headerText={translate('workspace.common.companyCards')}
+                    route={route}
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
+                    shouldShowOfflineIndicatorInWideScreen
+                    includeSafeAreaPaddingBottom
+                    showLoadingAsFirstRender={false}
+                >
+                    {isFeedAdded && (
+                        <WorkspaceCompanyCardsListHeaderButtons
+                            policyID={policyID}
+                            selectedFeed={selectedFeed}
+                            isPending={isPending}
+                        />
+                    )}
+                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                    {isFeedAdded && !isPending && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
+                    {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
+                    {isFeedAdded && !isPending && <WorkspaceCompanyCardsList cardsList={cardsList} />}
+                </WorkspacePageWithSections>
+            )}
         </AccessOrNotFoundWrapper>
     );
 }
