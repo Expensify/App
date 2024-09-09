@@ -790,6 +790,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/gl-code` as const,
     },
+    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/tax-rate',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/tax-rate` as const,
+    },
+    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/flag-amounts',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/flag-amounts` as const,
+    },
+    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/description-hint',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/description-hint` as const,
+    },
+    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/require-receipts-over',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORSKPACE_CATEGORY_APPROVER: {
+        route: 'settings/workspaces/:policyID/categories/:categoryName/approver',
+        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/approver` as const,
+    },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
