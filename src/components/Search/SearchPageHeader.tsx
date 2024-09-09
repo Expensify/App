@@ -10,6 +10,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -307,6 +308,7 @@ function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModa
             icon={headerIcon}
             subtitleStyles={subtitleStyles}
         >
+            <SearchButton />
             {headerButtonsOptions.length > 0 ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
