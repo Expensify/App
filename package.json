@@ -30,7 +30,7 @@
     "createDocsRoutes": "ts-node .github/scripts/createDocsRoutes.ts",
     "detectRedirectCycle": "ts-node .github/scripts/detectRedirectCycle.ts",
     "desktop-build-adhoc": "scripts/build-desktop.sh adhoc",
-    "ios-build": "fastlane ios build",
+    "ios-build": "fastlane ios build_unsigned",
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "android-build-e2edelta": "bundle exec fastlane android build_e2edelta",
