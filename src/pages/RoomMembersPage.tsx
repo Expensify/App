@@ -78,6 +78,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         [],
     );
 
+    useEffect(() => {
+        if (isFocusedScreen) {
+            return;
+        }
+        setSelectedMembers([]);
+    }, [isFocusedScreen]);
+
     /**
      * Get members for the current room
      */
