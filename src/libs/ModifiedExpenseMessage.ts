@@ -96,7 +96,7 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
 }
 
 function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
-    const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\w){1,3} ?[0-9.]+\)? \/ \w+$/;
+    const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/;
     let changedField: 'distance' | 'rate' = 'distance';
 
     if (distanceMerchantRegex.test(newMerchant) && distanceMerchantRegex.test(oldMerchant)) {
