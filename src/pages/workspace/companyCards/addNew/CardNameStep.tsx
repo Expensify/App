@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,18 +22,15 @@ function CardNameStep() {
     const {inputCallbackRef} = useAutoFocusInput();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-            if (!values.cardTitle) {
-                errors.cardTitle = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        if (!values.cardTitle) {
+            errors.cardTitle = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
         CompanyCards.setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
             data: {
@@ -41,11 +38,11 @@ function CardNameStep() {
             },
             isEditing: false,
         });
-    }, []);
+    };
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
-    }, []);
+    };
 
     return (
         <ScreenWrapper
@@ -72,7 +69,6 @@ function CardNameStep() {
                     inputID={INPUT_IDS.CARD_TITLE}
                     label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
                     role={CONST.ROLE.PRESENTATION}
-                    // TODO: default value for card name
                     defaultValue={addNewCard?.data?.cardTitle}
                     containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}

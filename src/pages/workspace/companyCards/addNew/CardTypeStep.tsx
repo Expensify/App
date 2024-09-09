@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -47,53 +47,50 @@ function CardTypeStep() {
         Navigation.goBack();
     };
 
-    const data = useMemo(
-        () => [
-            {
-                value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-                text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
-                keyForList: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-                isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-                leftElement: (
-                    <Icon
-                        src={Illustrations.AmexBlueCompanyCards}
-                        height={variables.iconSizeExtraLarge}
-                        width={variables.iconSizeExtraLarge}
-                        additionalStyles={styles.mr3}
-                    />
-                ),
-            },
-            {
-                value: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-                text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
-                keyForList: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-                isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-                leftElement: (
-                    <Icon
-                        src={Illustrations.MasterCardCompanyCards}
-                        height={variables.iconSizeExtraLarge}
-                        width={variables.iconSizeExtraLarge}
-                        additionalStyles={styles.mr3}
-                    />
-                ),
-            },
-            {
-                value: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-                text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
-                keyForList: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-                isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-                leftElement: (
-                    <Icon
-                        src={Illustrations.VisaCompanyCards}
-                        height={variables.iconSizeExtraLarge}
-                        width={variables.iconSizeExtraLarge}
-                        additionalStyles={styles.mr3}
-                    />
-                ),
-            },
-        ],
-        [styles.mr3, translate, typeSelected],
-    );
+    const data = [
+        {
+            value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
+            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
+            leftElement: (
+                <Icon
+                    src={Illustrations.AmexBlueCompanyCards}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        },
+        {
+            value: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
+            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            leftElement: (
+                <Icon
+                    src={Illustrations.MasterCardCompanyCards}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        },
+        {
+            value: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
+            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            leftElement: (
+                <Icon
+                    src={Illustrations.VisaCompanyCards}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        },
+    ];
 
     return (
         <ScreenWrapper
