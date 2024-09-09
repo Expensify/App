@@ -568,7 +568,14 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>, currentReportID?: string) {
+function editTaskAssignee(
+    report: OnyxTypes.Report,
+    ownerAccountID: number,
+    assigneeEmail: string,
+    assigneeAccountID: number | null = 0,
+    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
+    currentReportID?: string,
+) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
@@ -593,9 +600,11 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
 
     const additionalReport: NullishDeep<OnyxTypes.Report> = {};
     if (report.reportID === currentReportID) {
-        additionalReport.lastReadTime = DateUtils.getDBTimeWithSkew();
+        const now = Date.now();
+        additionalReport.lastReadTime = DateUtils.getDBTimeWithSkew(now);
+        additionalReport.lastMentionedTime = DateUtils.getDBTimeWithSkew(now);
     }
-    
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -621,10 +630,10 @@ function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assi
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value:{
+            value: {
                 ...successReport,
                 ...additionalReport,
-            }
+            },
         },
     ];
 
