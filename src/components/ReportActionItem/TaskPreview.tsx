@@ -113,7 +113,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                     </View>
                     {taskAssigneeAccountID > 0 && (
                         <Avatar
-                            containerStyles={[styles.mr2, styles.alignSelfCenter]}
+                            containerStyles={[styles.mr2, styles.alignSelfCenter, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                             source={avatar}
                             size={CONST.AVATAR_SIZE.SMALL}
                             avatarID={taskAssigneeAccountID}
