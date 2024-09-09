@@ -46,7 +46,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
             setHasNavigatedAway(false);
         });
         return unsubscribeNavigationFocus;
-    }, [navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
@@ -60,7 +60,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
             }
         });
         return unsubscribeNavigationBlur;
-    }, [navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator]);
 
     // If the page navigates to another screen, the image fails to load, app is in background state, animation file isn't ready, or the splash screen isn't hidden yet,
     // we'll just render an empty view as the fallback to prevent
