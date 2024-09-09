@@ -5,6 +5,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import * as Browser from '@libs/Browser';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,12 +33,13 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
+    const browser = Browser.getBrowser();
     const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const navigator = useContext(NavigationContext);
 
     useEffect(() => {
-        if (!navigationContainerRef?.isReady?.() || !navigator) {
+        if (!browser || !navigationContainerRef || !navigator) {
             return;
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
@@ -47,7 +49,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     }, [navigationContainerRef, navigator]);
 
     useEffect(() => {
-        if (!navigationContainerRef?.isReady?.() || !navigator) {
+        if (!browser || !navigationContainerRef || !navigator) {
             return;
         }
         const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
