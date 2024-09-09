@@ -2457,7 +2457,6 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
         },
-        CARD_TITLE_INPUT_LIMIT: 255,
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
