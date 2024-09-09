@@ -25,6 +25,7 @@ import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {clearIsReportActionLinked} from '@pages/home/report/ReportActionsList';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy/Policy';
@@ -351,13 +352,19 @@ function FloatingActionButtonAndPopover(
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
+    const onItemSelected = useCallback(() => {
+        hideCreateMenu();
+        // Clear the highlighted report item when an action from the + menu is taken
+        clearIsReportActionLinked();
+    }, [hideCreateMenu]);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={hideCreateMenu}
+                onItemSelected={onItemSelected}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {

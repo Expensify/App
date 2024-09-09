@@ -23,6 +23,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useDetectPageRefresh from '@hooks/usePageRefresh';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -110,6 +111,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {wasPageRefreshed} = useDetectPageRefresh();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
@@ -121,7 +123,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || -1}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
@@ -132,15 +134,16 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const prevIsDeletedParentAction = usePrevious(isDeletedParentAction);
 
-    const isLoadingReportOnyx = !reportOnyx || Object.keys(reportOnyx).length === 0 || isLoadingOnyxValue(reportResult);
+    const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
+            // Reset reportActionID if it's invalid or if the page was just refreshed
             const reportActionID = route?.params?.reportActionID;
             const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
-            if (reportActionID && !isValidReportActionID) {
+            if (reportActionID && (!isValidReportActionID || wasPageRefreshed)) {
                 navigation.setParams({reportActionID: ''});
             }
             return;
@@ -156,6 +159,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
+        // Exclude wasPageRefreshed to avoid unnecessary re-renders.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 
     /**
@@ -196,6 +201,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             isWaitingOnBankAccount: reportOnyx?.isWaitingOnBankAccount,
             iouReportID: reportOnyx?.iouReportID,
             isOwnPolicyExpenseChat: reportOnyx?.isOwnPolicyExpenseChat,
+            notificationPreference: reportOnyx?.notificationPreference,
             isPinned: reportOnyx?.isPinned,
             chatReportID: reportOnyx?.chatReportID,
             visibility: reportOnyx?.visibility,
@@ -239,6 +245,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.isWaitingOnBankAccount,
             reportOnyx?.iouReportID,
             reportOnyx?.isOwnPolicyExpenseChat,
+            reportOnyx?.notificationPreference,
             reportOnyx?.isPinned,
             reportOnyx?.chatReportID,
             reportOnyx?.visibility,
@@ -548,7 +555,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             !isFocused ||
             prevIsFocused ||
             !ReportUtils.isChatThread(report) ||
-            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
+            report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
             isSingleTransactionView
         ) {
             return;
@@ -558,7 +565,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report.participants, isFocused, isSingleTransactionView]);
+    }, [prevIsFocused, report.notificationPreference, isFocused, isSingleTransactionView]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
