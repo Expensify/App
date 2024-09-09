@@ -68,6 +68,7 @@ function SettlementButton({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     style,
+    disabledStyle,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
@@ -245,6 +246,7 @@ function SettlementButton({
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
                     style={style}
+                    disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}

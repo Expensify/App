@@ -77,6 +77,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
+
     /** Additional button styles. Specific to the OpacityView of the button */
     innerStyles?: StyleProp<ViewStyle>;
 
@@ -202,6 +205,7 @@ function Button(
         enterKeyEventListenerPriority = 0,
 
         style = [],
+        disabledStyle,
         innerStyles = [],
         textStyles = [],
         textHoverStyles = [],
@@ -376,6 +380,7 @@ function Button(
                     danger && !isDisabled ? styles.buttonDangerHovered : undefined,
                     hoverStyles,
                 ]}
+                disabledStyle={disabledStyle}
                 id={id}
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}

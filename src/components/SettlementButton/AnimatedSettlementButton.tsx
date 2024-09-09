@@ -11,7 +11,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     onAnimationFinish: () => void;
 };
 
-function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
@@ -34,6 +34,13 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
         justifyContent: 'center',
         overflow: 'hidden',
     }));
+
+    const buttonDisabledStyle = shouldStartPaidAnimation
+        ? {
+              opacity: 1,
+              ...styles.cursorDefault,
+          }
+        : undefined;
 
     const resetAnimation = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
@@ -73,6 +80,8 @@ function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, 
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
+                    isDisabled={shouldStartPaidAnimation || isDisabled}
+                    disabledStyle={buttonDisabledStyle}
                 />
             </Animated.View>
         </Animated.View>
