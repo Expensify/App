@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,10 +7,11 @@ import SettlementButton from '.';
 import type SettlementButtonProps from './types';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
-    isVisible: boolean;
+    shouldStartPaidAnimation: boolean;
+    onAnimationFinish: () => void;
 };
 
-function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({shouldStartPaidAnimation, onAnimationFinish, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
@@ -34,8 +35,6 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
         overflow: 'hidden',
     }));
 
-    const [isAnimationRunning, setIsAnimationRunning] = useState(false);
-
     const resetAnimation = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
         buttonScale.value = 1;
@@ -46,7 +45,7 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
     }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height]);
 
     useEffect(() => {
-        if (!isAnimationRunning) {
+        if (!shouldStartPaidAnimation) {
             resetAnimation();
             return;
         }
@@ -58,18 +57,14 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
         // Wait for the above animation + 1s delay before hiding the component
         height.value = withDelay(
             1200,
-            withTiming(0, {duration: 200}, () => runOnJS(setIsAnimationRunning)(false)),
+            withTiming(0, {duration: 200}, () => runOnJS(onAnimationFinish)()),
         );
         paymentCompleteTextOpacity.value = withDelay(1200, withTiming(0, {duration: 200}));
-    }, [isAnimationRunning, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
-
-    if (!isVisible && !isAnimationRunning) {
-        return null;
-    }
+    }, [shouldStartPaidAnimation, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, resetAnimation]);
 
     return (
         <Animated.View style={containerStyles}>
-            {isAnimationRunning && (
+            {shouldStartPaidAnimation && (
                 <Animated.View style={paymentCompleteTextStyles}>
                     <Text style={[styles.buttonMediumText]}>Payment complete</Text>
                 </Animated.View>
@@ -78,10 +73,6 @@ function AnimatedSettlementButton({isVisible, ...settlementButtonProps}: Animate
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    onPress={(paymentType, payAsBusiness) => {
-                        const isPaid = !!settlementButtonProps.onPress(paymentType, payAsBusiness);
-                        setIsAnimationRunning(isPaid);
-                    }}
                 />
             </Animated.View>
         </Animated.View>

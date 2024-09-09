@@ -1,5 +1,5 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -137,6 +137,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
+    const [shouldStartPaidAnimation, setShouldStartPaidAnimation] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
@@ -197,6 +198,7 @@ function ReportPreview({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
+    const stopAnimation = useCallback(() => setShouldStartPaidAnimation(false), []);
     const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
@@ -208,13 +210,13 @@ function ReportPreview({
         } else if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
+            setShouldStartPaidAnimation(true);
             HapticFeedback.longPress();
             if (ReportUtils.isInvoiceReport(iouReport)) {
                 IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {
                 IOU.payMoneyRequest(type, chatReport, iouReport);
             }
-            return true;
         }
     };
 
@@ -309,7 +311,10 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions), [iouReport, chatReport, policy, allTransactions]);
+    const shouldShowPayButton = useMemo(
+        () => shouldStartPaidAnimation || IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions),
+        [shouldStartPaidAnimation, iouReport, chatReport, policy, allTransactions],
+    );
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
@@ -475,33 +480,36 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                <AnimatedSettlementButton
-                                    isVisible={shouldShowSettlementButton}
-                                    formattedAmount={getSettlementAmount() ?? ''}
-                                    currency={iouReport?.currency}
-                                    policyID={policyID}
-                                    chatReportID={chatReportID}
-                                    iouReport={iouReport}
-                                    onPress={confirmPayment}
-                                    onPaymentOptionsShow={onPaymentOptionsShow}
-                                    onPaymentOptionsHide={onPaymentOptionsHide}
-                                    confirmApproval={confirmApproval}
-                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldHidePaymentOptions={!shouldShowPayButton}
-                                    shouldShowApproveButton={shouldShowApproveButton}
-                                    shouldDisableApproveButton={shouldDisableApproveButton}
-                                    kycWallAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    paymentMethodDropdownAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    isDisabled={isOffline && !canAllowSettlement}
-                                    isLoading={!isOffline && !canAllowSettlement}
-                                />
+                                {shouldShowSettlementButton && (
+                                    <AnimatedSettlementButton
+                                        shouldStartPaidAnimation={shouldStartPaidAnimation}
+                                        onAnimationFinish={stopAnimation}
+                                        formattedAmount={getSettlementAmount() ?? ''}
+                                        currency={iouReport?.currency}
+                                        policyID={policyID}
+                                        chatReportID={chatReportID}
+                                        iouReport={iouReport}
+                                        onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
+                                        confirmApproval={confirmApproval}
+                                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                        addBankAccountRoute={bankAccountRoute}
+                                        shouldHidePaymentOptions={!shouldShowPayButton}
+                                        shouldShowApproveButton={shouldShowApproveButton}
+                                        shouldDisableApproveButton={shouldDisableApproveButton}
+                                        kycWallAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        paymentMethodDropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        isDisabled={isOffline && !canAllowSettlement}
+                                        isLoading={!isOffline && !canAllowSettlement}
+                                    />
+                                )}
                                 {shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
