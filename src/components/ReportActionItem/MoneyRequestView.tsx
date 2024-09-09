@@ -716,45 +716,4 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
 MoneyRequestView.displayName = 'MoneyRequestView';
 
-export default function ComponentWithOnyx(props: Omit<MoneyRequestViewPropsWithoutTransaction, keyof MoneyRequestViewOnyxPropsWithoutTransaction>) {
-    console.log('RENDERING ComponentWithOnyx');
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report?.policyID ?? '-1'}`);
-    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${props.report?.policyID ?? '-1'}`);
-    const [policyTagList, policyTagListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${props.report?.policyID ?? '-1'}`);
-    const [parentReport, parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.report?.parentReportID ?? '-1'}`);
-    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.report ? props.report?.parentReportID : '-1'}`, {
-        canEvict: false,
-    });
-    const [distanceRates = {}, distanceRatesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.report?.policyID}`, {
-        selector: () => DistanceRequestUtils.getMileageRates(policy, true),
-    });
-    const [transactionViolations, transactionViolationsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(props.report, parentReportActions)}`);
-
-    if (
-        isLoadingOnyxValue(
-            policyMetadata,
-            policyCategoriesMetadata,
-            policyTagListMetadata,
-            parentReportMetadata,
-            parentReportActionsMetadata,
-            distanceRatesMetadata,
-            transactionViolationsMetadata,
-        )
-    ) {
-        return null;
-    }
-
-    return (
-        <MoneyRequestView
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            policy={policy}
-            policyCategories={policyCategories}
-            policyTagList={policyTagList}
-            parentReport={parentReport}
-            parentReportActions={parentReportActions}
-            distanceRates={distanceRates}
-            transactionViolations={transactionViolations}
-        />
-    );
-}
+export default MoneyRequestView;
