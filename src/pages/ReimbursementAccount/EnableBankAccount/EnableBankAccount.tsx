@@ -72,7 +72,7 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
                             iconHeight={iconSize}
                             interactive={false}
                             displayInDefaultIconColor
-                            wrapperStyle={[styles.bankAccountMenuItem, styles.mv3]}
+                            wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
                         />
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
                         <MenuItem

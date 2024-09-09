@@ -3772,13 +3772,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        bankAccountMenuItem: {
-            paddingLeft: 0,
-            paddingRight: 0,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
-        },
-
         emptyCardSectionTitle: {
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
