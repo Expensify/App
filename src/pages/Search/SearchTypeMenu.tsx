@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -51,6 +51,11 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const [prevSavedSearchesLength, setPrevSavedSearchesLength] = useState(0);
+
+    useEffect(() => {
+        setPrevSavedSearchesLength(Object.keys(savedSearches ?? {}).length);
+    }, [savedSearches]);
 
     const typeMenuItems: SearchTypeMenuItem[] = useMemo(
         () => [
@@ -108,7 +113,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: Object.keys(savedSearches ?? {}).length === 1,
+                    shouldRenderTooltip: Object.keys(savedSearches ?? {}).length === 1 && prevSavedSearchesLength === 0,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -123,7 +128,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                                 height={16}
                                 fill={styles.colorGreenSuccess.color}
                             />
-                            <Text style={[styles.ml1, styles.textLabel]}>You can rename your saved search</Text>
+                            <Text style={[styles.ml1, styles.textLabel]}>{translate('search.saveSearchTooltipText')}</Text>
                         </View>
                     ),
                 };
@@ -131,7 +136,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
 
             return baseMenuItem;
         },
-        [hash, savedSearches, styles, getOverflowMenu],
+        [hash, savedSearches, styles, getOverflowMenu, prevSavedSearchesLength],
     );
 
     const savedSearchesMenuItems = useMemo(() => {
