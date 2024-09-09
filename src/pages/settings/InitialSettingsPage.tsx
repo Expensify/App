@@ -428,18 +428,19 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pb0]}
+            style={[styles.w100, styles.pb0, styles.pt4]}
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
+            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100]}
+                showsVerticalScrollIndicator = {false}
             >
-                {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}
