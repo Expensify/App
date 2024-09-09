@@ -60,6 +60,7 @@ function SearchPageBottomTab() {
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
                             shouldDisplaySearch={false}
+                            isCustomSearchQuery={true}
                         />
                         <SearchTypeMenu queryJSON={queryJSON} />
                     </>
