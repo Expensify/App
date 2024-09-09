@@ -28,6 +28,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {containsHeader} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -88,18 +89,22 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
         const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
         const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
-        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => ({
-            name,
-            enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] : '',
-        }));
+        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
+            const categoryAlreadyExists = policyCategories?.[name];
+            const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
+            return {
+                name,
+                enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
+            };
+        });
 
         if (categories) {
             setIsImportingCategories(true);
             importPolicyCategories(policyID, categories);
         }
-    }, [validate, spreadsheet, containsHeader, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
