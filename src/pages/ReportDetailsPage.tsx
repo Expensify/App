@@ -7,6 +7,7 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,6 +23,7 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -234,15 +236,19 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
+    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if (isMoneyRequestExported) {
+        if (isDelegateAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
+        } else if (isMoneyRequestExported) {
             setIsUnapproveModalVisible(true);
             return;
         }
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [isMoneyRequestExported, moneyRequestReport]);
+    }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
 
     const shouldShowLeaveButton = ReportUtils.canLeaveChat(report, policy);
 
@@ -262,7 +268,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         roomDescription = translate('newRoomPage.roomName');
     }
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPref = !isMoneyRequestReport && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
@@ -552,6 +558,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
                     reportAction: moneyRequestAction,
                     reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID ?? '-1',
+                    isDelegateAccessRestricted,
+                    setIsNoDelegateAccessMenuVisible,
                 }),
             );
         }
@@ -563,7 +571,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID]);
+    }, [report, moneyRequestAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest, transactionThreadReportID, isDelegateAccessRestricted]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -812,6 +820,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                />
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    delegatorEmail={delegatorEmail ?? ''}
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}

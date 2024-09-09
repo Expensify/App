@@ -9,10 +9,10 @@ import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
@@ -251,7 +251,7 @@ function TransactionListItemRow({
     shouldShowTransactionCheckbox,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
