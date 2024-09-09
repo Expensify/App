@@ -192,6 +192,7 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import Star from '@assets/images/star.svg';
 
 export {
     ActiveRoomAvatar,
@@ -388,4 +389,5 @@ export {
     CalendarSolid,
     Filter,
     Feed,
+    Star,
 };
