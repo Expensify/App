@@ -3159,8 +3159,8 @@ export default {
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
-            tagRules: 'Tag rules',
-            approverDescription: 'Approver',
+            tagRules: 'Reglas de etiquetas',
+            approverDescription: 'Aprobador',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3899,7 +3899,6 @@ export default {
         pleaseEnterTaskName: 'Por favor, introduce un título',
         pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
     },
-
     task: {
         task: 'Tarea',
         title: 'Título',
