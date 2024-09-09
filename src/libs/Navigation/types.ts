@@ -1356,9 +1356,6 @@ type SearchAdvancedFiltersParamList = {
 
 type SearchSavedSearchParamList = {
     [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
-    [SCREENS.SEARCH.SAVED_SEARCH_DELETE_RHP]: {
-        hash: number;
-    };
 };
 
 type RestrictedActionParamList = {

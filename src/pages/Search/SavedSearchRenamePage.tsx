@@ -51,7 +51,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         >
             <HeaderWithBackButton title={translate('common.rename')} />
             <FormProvider
-                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
