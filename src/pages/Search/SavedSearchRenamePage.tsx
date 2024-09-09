@@ -30,7 +30,9 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchUtils.buildSearchQueryJSON(q);
+        const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all sortBy:date sortOrder:desc';
+
+        const queryJSON = SearchUtils.buildSearchQueryJSON(q || DEFAULT_SAVE_SEARCH_QUERY_STRING);
         if (!queryJSON) {
             return;
         }
