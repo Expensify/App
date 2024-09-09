@@ -871,16 +871,13 @@ function openReport(
     if (inviteOnboardingDetails && !introSelected?.isInviteOnboardingComplete && introSelected?.choice) {
         const onboardingData = prepareOnboardingOptimisticData(introSelected?.choice, inviteOnboardingDetails.onboardingMessage);
 
-        optimisticData.push(
-            ...onboardingData.optimisticData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.NVP_INTRO_SELECTED,
-                value: {
-                    isInviteOnboardingComplete: true,
-                }
-            }    
-        );
+        optimisticData.push(...onboardingData.optimisticData, {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {
+                isInviteOnboardingComplete: true,
+            },
+        });
 
         successData.push(...onboardingData.successData);
 
@@ -3373,12 +3370,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function prepareOnboardingOptimisticData(
-    engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    adminsChatReportID?: string,
-    onboardingPolicyID?: string,
-) {
+function prepareOnboardingOptimisticData(engagementChoice: OnboardingPurpose, data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>, adminsChatReportID?: string, onboardingPolicyID?: string) {
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
 
