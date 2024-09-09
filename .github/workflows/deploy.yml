@@ -65,6 +65,8 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest-xl
+    env:
+      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,13 +101,21 @@ jobs:
       - name: Set version in ENV
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
 
-      - name: Run Fastlane
-        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
+      - name: Build Android app
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android build
         env:
-          RUBYOPT: '-rostruct'
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+<<<<<<< HEAD
           VERSION: ${{ env.VERSION_CODE }}
+=======
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'upload_google_play_production' || 'upload_google_play_internal' }}
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+>>>>>>> b90a6c6 (Merge pull request #48754 from Expensify/Rory-SeparateBuildAndDeploy)
 
       - name: Upload Android build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -263,14 +273,28 @@ jobs:
       - name: Set iOS version in ENV
         run: echo "IOS_VERSION=$(echo '${{ env.VERSION }}' | tr '-' '.')" >> "$GITHUB_ENV"
 
-      - name: Run Fastlane
-        run: bundle exec fastlane ios ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'beta' }}
+      - name: Build iOS release app
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios build
+
+      - name: Upload release build to TestFlight
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_testflight
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+<<<<<<< HEAD
           VERSION: ${{ env.IOS_VERSION }}
+=======
+
+      - name: Submit build for App Store review
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios submit_for_review
+        env:
+          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+>>>>>>> b90a6c6 (Merge pull request #48754 from Expensify/Rory-SeparateBuildAndDeploy)
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
