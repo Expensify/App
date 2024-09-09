@@ -36,24 +36,26 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     const isFocused = useIsFocused();
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
-    const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
-            (account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
-        );
+    const selectPlaidAccount = useCallback(
+        (plaidAccountID: string) => {
+            ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
 
-        const bankAccountData = {
-            [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
-            [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
-            [BANK_INFO_STEP_KEYS.PLAID_MASK]: selectedPlaidBankAccount?.mask,
-            [BANK_INFO_STEP_KEYS.IS_SAVINGS]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.IS_SAVINGS],
-            [BANK_INFO_STEP_KEYS.BANK_NAME]: plaidData?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
-            [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID],
-            [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
-        };
+            const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === plaidAccountID);
 
-        ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
-        onNext();
-    }, [plaidData, reimbursementAccountDraft, onNext]);
+            const bankAccountData = {
+                [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
+                [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
+                [BANK_INFO_STEP_KEYS.PLAID_MASK]: selectedPlaidBankAccount?.mask,
+                [BANK_INFO_STEP_KEYS.IS_SAVINGS]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.IS_SAVINGS],
+                [BANK_INFO_STEP_KEYS.BANK_NAME]: plaidData?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+                [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID],
+                [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+            };
+
+            ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
+        },
+        [plaidData],
+    );
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
 
@@ -69,7 +71,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             validate={BankAccounts.validatePlaidSelection}
-            onSubmit={handleNextPress}
+            onSubmit={onNext}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
@@ -78,9 +80,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
-                onSelect={(plaidAccountID: string) => {
-                    ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
-                }}
+                onSelect={selectPlaidAccount}
                 plaidData={plaidData}
                 onExitPlaid={() => {
                     BankAccounts.setBankAccountSubStep(null);
