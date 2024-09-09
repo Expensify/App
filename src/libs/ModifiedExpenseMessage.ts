@@ -116,9 +116,9 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     const translatedChangedField = Localize.translateLocal(`common.${changedField}`);
 
     if (!oldMerchant.length) {
-        return Localize.translateLocal('iou.setTheDistance', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
+        return Localize.translateLocal('iou.setTheDistanceMerchant', {changedField: translatedChangedField, newMerchant, newAmountToDisplay: newAmount});
     }
-    return Localize.translateLocal('iou.updatedTheDistance', {changedField: translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay: newAmount, oldAmountToDisplay: oldAmount});
+    return Localize.translateLocal('iou.updatedTheDistanceMerchant', {changedField: translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay: newAmount, oldAmountToDisplay: oldAmount});
 }
 
 /**

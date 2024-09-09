@@ -203,13 +203,13 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
-type SetTheDistanceParams = {changedField: string; newMerchant: string; newAmountToDisplay: string};
+type SetTheDistanceMerchantParams = {changedField: string; newMerchant: string; newAmountToDisplay: string};
 
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
-type UpdatedTheDistanceParams = {changedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+type UpdatedTheDistanceMerchantParams = {changedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
@@ -430,7 +430,7 @@ export type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
-    SetTheDistanceParams,
+    SetTheDistanceMerchantParams,
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
@@ -447,7 +447,7 @@ export type {
     TranslationFlatObject,
     TranslationPaths,
     UntilTimeParams,
-    UpdatedTheDistanceParams,
+    UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
