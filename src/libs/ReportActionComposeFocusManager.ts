@@ -58,6 +58,7 @@ function clear(isMainComposer = false) {
     if (isMainComposer) {
         mainComposerFocusCallback = null;
     } else {
+        editComposerRef.current = null;
         focusCallback = null;
     }
 }
