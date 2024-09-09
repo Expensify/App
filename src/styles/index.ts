@@ -998,7 +998,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        uploadReceiptView: (isSmallScreenWidth: boolean) =>
+        uploadFileView: (isSmallScreenWidth: boolean) =>
             ({
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -1014,7 +1014,7 @@ const styles = (theme: ThemeColors) =>
                 flex: 1,
             } satisfies ViewStyle),
 
-        receiptViewTextContainer: {
+        uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
         },
@@ -1282,7 +1282,26 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 8,
         },
 
+        textInputSuffixWrapper: {
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            height: variables.inputHeight,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingTop: 23,
+            paddingBottom: 8,
+        },
+
         textInputPrefix: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            verticalAlign: 'middle',
+        },
+
+        textInputSuffix: {
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
@@ -1390,14 +1409,14 @@ const styles = (theme: ThemeColors) =>
             color: theme.textError,
         },
 
-        textReceiptUpload: {
+        textFileUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             color: theme.text,
             textAlign: 'center',
         },
 
-        subTextReceiptUpload: {
+        subTextFileUpload: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
@@ -2735,14 +2754,9 @@ const styles = (theme: ThemeColors) =>
             width: 110,
         },
 
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
-
-            if (isSmallScreenWidth) {
-                paddingHorizontal = spacing.ph4;
-                paddingVertical = spacing.pv4;
-            }
 
             if (isExtraSmallScreenWidth) {
                 paddingHorizontal = spacing.ph2;
@@ -2813,8 +2827,6 @@ const styles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         avatarSectionWrapperSettings: {
@@ -3717,19 +3729,19 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
+        fileDropOverlay: {
+            backgroundColor: theme.fileDropUIBG,
             zIndex: 2,
         },
 
         isDraggingOver: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
-        receiptImageWrapper: (receiptImageTopPosition: number) =>
+        fileUploadImageWrapper: (fileTopPosition: number) =>
             ({
                 position: 'absolute',
-                top: receiptImageTopPosition,
+                top: fileTopPosition,
             } satisfies ViewStyle),
 
         cardSectionContainer: {
@@ -3782,7 +3794,7 @@ const styles = (theme: ThemeColors) =>
 
         paymentMethod: {
             paddingHorizontal: 20,
-            height: variables.optionRowHeight,
+            minHeight: variables.optionRowHeight,
         },
 
         chatFooterBanner: {
@@ -3877,6 +3889,12 @@ const styles = (theme: ThemeColors) =>
         textReactionSenders: {
             color: theme.tooltipPrimaryText,
             ...wordBreak.breakWord,
+        },
+
+        reportActionComposeTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+            paddingVertical: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         quickActionTooltipWrapper: {
@@ -4252,7 +4270,7 @@ const styles = (theme: ThemeColors) =>
         tabText: (isSelected: boolean) =>
             ({
                 marginLeft: 8,
-                ...(isSelected ? FontUtils.fontFamily.platform.EXP_NEUE_BOLD : FontUtils.fontFamily.platform.EXP_NEUE),
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightNormal,
                 fontSize: variables.fontSizeNormal,
@@ -4509,6 +4527,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        profilePageAvatar: {
+            borderColor: theme.highlightBG,
+        },
+
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
@@ -4710,7 +4732,12 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerStatusBarContainer: {
-            minHeight: variables.componentSizeNormal,
+            minHeight: variables.componentSizeSmall,
+        },
+
+        walletIllustration: {
+            width: 262,
+            height: 152,
         },
 
         walletCardLimit: {
@@ -4747,13 +4774,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
-        walletBalance: {
-            lineHeight: undefined,
-            fontSize: 45,
-            paddingTop: 0,
-            paddingBottom: 0,
-        },
-
         walletRedDotSectionTitle: {
             color: theme.text,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4785,7 +4805,7 @@ const styles = (theme: ThemeColors) =>
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -5063,6 +5083,15 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        emptyStateCardIllustrationContainer: {
+            height: 220,
+        },
+
+        emptyStateCardIllustration: {
+            width: 164,
+            height: 190,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
@@ -5105,28 +5134,25 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: '100%',
-            paddingRight: 8,
-            paddingLeft: 8,
         },
 
         emptyStateScrollView: {
-            minHeight: 400,
             height: '100%',
             flex: 1,
         },
 
-        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+        emptyStateForeground: {
+            margin: 32,
             justifyContent: 'center',
             alignItems: 'center',
-            height: '100%',
-            padding: isSmallScreenWidth ? 32 : 0,
-            width: '100%',
-        }),
+            flex: 1,
+        },
 
         emptyStateContent: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: 400,
+            width: '100%',
         },
 
         emptyStateHeader: (isIllustration: boolean) => ({
@@ -5149,6 +5175,29 @@ const styles = (theme: ThemeColors) =>
         emptyStateFolderIconSize: {
             width: 184,
             height: 112,
+        },
+
+        workflowApprovalVerticalLine: {
+            height: 16,
+            width: 1,
+            marginLeft: 19,
+            backgroundColor: theme.border,
+        },
+
+        importColumnCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            flexWrap: 'wrap',
+        },
+
+        accountSwitcherPopover: {
+            width: variables.sideBarWidth - 19,
+        },
+
+        accountSwitcherAnchorPosition: {
+            top: 80,
+            left: 12,
         },
     } satisfies Styles);
 

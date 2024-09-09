@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -18,9 +18,19 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
-function ConfirmationStep() {
+type ConfirmationStepProps = {
+    /** ID of the policy that the card will be issued under */
+    policyID: string;
+
+    /** Route to navigate to */
+    backTo?: Route;
+};
+
+function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -29,9 +39,15 @@ function ConfirmationStep() {
 
     const data = issueNewCard?.data;
 
+    const submitButton = useRef<View>(null);
+
+    useEffect(() => {
+        submitButton.current?.focus();
+    }, []);
+
     const submit = () => {
-        // TODO: the logic will be created when CreateExpensifyCard is ready
-        Navigation.goBack();
+        Card.issueExpensifyCard(policyID, CONST.COUNTRY.US, data);
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
     };
 
@@ -66,11 +82,11 @@ function ConfirmationStep() {
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
+                    title={PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
@@ -100,6 +116,7 @@ function ConfirmationStep() {
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
+                        ref={submitButton}
                         isDisabled={isOffline}
                         success
                         large

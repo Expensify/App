@@ -16,7 +16,6 @@ import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@src/components/withCurrentReportID';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
@@ -105,7 +104,6 @@ jest.mock('@src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
     canUseDefaultRooms: jest.fn(() => true),
 }));
-jest.mock('@src/hooks/usePermissions.ts');
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -189,17 +187,7 @@ const personalDetails = createCollection(
 
 function ReportScreenWrapper(props: ReportScreenWrapperProps) {
     return (
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                CurrentReportIDContextProvider,
-                KeyboardStateProvider,
-                WindowDimensionsProvider,
-                LocaleContextProvider,
-                DragAndDropProvider,
-                ReportAttachmentsProvider,
-            ]}
-        >
+        <ComposeProviders components={[OnyxProvider, CurrentReportIDContextProvider, KeyboardStateProvider, LocaleContextProvider, DragAndDropProvider, ReportAttachmentsProvider]}>
             <ReportScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}

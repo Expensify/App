@@ -4,26 +4,20 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
+import {isConnectionInProgress} from './actions/connections';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
+import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
 type CheckingMethod = () => boolean;
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
@@ -46,6 +40,20 @@ Onyx.connect({
     },
 });
 
+let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = value;
+    },
+});
+
 /**
  * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
  * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
@@ -53,7 +61,23 @@ Onyx.connect({
 const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
-    const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
+    let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
+    if (oneTransactionThreadReportID) {
+        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+
+        if (
+            ReportUtils.shouldDisplayTransactionThreadViolations(
+                oneTransactionThreadReport,
+                allTransactionViolations,
+                reportActions[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+            )
+        ) {
+            doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+    }
+
     if (doesReportContainErrors) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -69,7 +93,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
-function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConnectionProgresses: OnyxCollection<PolicyConnectionSyncProgress>) {
     // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
     // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
@@ -79,6 +103,10 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanPolicies).some(hasEmployeeListError),
+        () =>
+            Object.values(cleanPolicies).some((cleanPolicy) =>
+                hasSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
+            ),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 
@@ -120,19 +148,6 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
     }
 
     return undefined;
-}
-
-function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
-    if (!policyID) {
-        return hasGlobalWorkspaceSettingsRBR(allPolicies);
-    }
-    const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
-
-    if (!policy) {
-        return false;
-    }
-
-    return hasWorkspaceSettingsRBR(policy);
 }
 
 /**
@@ -286,7 +301,6 @@ export {
     getWorkspacesBrickRoads,
     getWorkspacesUnreadStatuses,
     hasGlobalWorkspaceSettingsRBR,
-    checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
     getUnitTranslationKey,

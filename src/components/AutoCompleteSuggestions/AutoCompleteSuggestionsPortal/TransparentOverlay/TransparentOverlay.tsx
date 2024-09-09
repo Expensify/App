@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
@@ -8,26 +8,35 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type TransparentOverlayProps = {
-    resetSuggestions: () => void;
+    onPress: () => void;
 };
 
 type OnPressHandler = PressableProps['onPress'];
 
-function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
+function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const onResetSuggestions = useCallback<NonNullable<OnPressHandler>>(
+    const onPress = useCallback<NonNullable<OnPressHandler>>(
         (event) => {
             event?.preventDefault();
-            resetSuggestions();
+            onPressProp();
         },
-        [resetSuggestions],
+        [onPressProp],
     );
 
     const handlePointerDown = useCallback((e: PointerEvent) => {
         e?.preventDefault();
     }, []);
+
+    // The overlay is a semi-transparent layer that covers the entire screen and is used to close a modal when clicked.
+    // The touch event passes through the transparent overlay to the elements underneath, so we need to prevent that by adding a nearly invisible background color to the overlay.
+    const overlay = useMemo(
+        () => ({
+            backgroundColor: 'rgba(0, 0, 0, 0.005)',
+        }),
+        [],
+    );
 
     return (
         <View
@@ -35,8 +44,8 @@ function TransparentOverlay({resetSuggestions}: TransparentOverlayProps) {
             style={styles.fullScreen}
         >
             <PressableWithoutFeedback
-                onPress={onResetSuggestions}
-                style={[styles.flex1, styles.cursorDefault]}
+                onPress={onPress}
+                style={[styles.flex1, styles.cursorDefault, overlay]}
                 accessibilityLabel={translate('common.close')}
                 role={CONST.ROLE.BUTTON}
             />

@@ -12,7 +12,7 @@ Tax rates are only available on the Control plan. Collect plan users will need t
 
 ## Enable taxes on a workspace
 
-Taxes can be enabled on any workspace where the default currency is not USD. Please note that if you have a direct accounting integration, tax rates will be managed through the integration and cannot be manually enabled or disabled using the instructions below.
+Tax codes are only available on the Control plan. Taxes can be enabled on any workspace where the default currency is not USD. Please note that if you have a direct accounting integration, tax rates will be managed through the integration and cannot be manually enabled or disabled using the instructions below.
 
 **To enable taxes on your workspace:**
 

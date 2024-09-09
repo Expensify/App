@@ -13,6 +13,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Link from '@userActions/Link';
@@ -88,14 +89,18 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
                                 key={userDimension.dimension}
-                                pendingAction={config?.pendingFields?.[`dimension_${userDimension.dimension}`]}
+                                pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
                                 <MenuItemWithTopDescription
                                     title={userDimension.dimension}
                                     description={translate('workspace.intacct.userDefinedDimension')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.dimension}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={
+                                        areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields)
+                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                            : undefined
+                                    }
                                 />
                             </OfflineWithFeedback>
                         ))}

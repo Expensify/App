@@ -14,6 +14,7 @@ import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -25,6 +26,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,6 +69,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -180,7 +183,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }
@@ -387,28 +390,36 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject, isPdfValidated?: boolean) => {
-        if (!validateReceipt(file)) {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        if (!validateReceipt(originalFile)) {
             return;
         }
 
         // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-        if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
-            setPdfFile(file);
+        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+            setPdfFile(originalFile);
             return;
         }
 
-        // Store the receipt on the transaction object in Onyx
-        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-        // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
-
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, file?.uri ?? '');
-            return;
+        // With the image size > 24MB, we use manipulateAsync to resize the image.
+        // It takes a long time so we should display a loading indicator while the resize image progresses.
+        if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setIsLoadingReceipt(true);
         }
+        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+            setIsLoadingReceipt(false);
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
-        navigateToConfirmationStep(file, file.uri ?? '');
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, file?.uri ?? '');
+                return;
+            }
+
+            navigateToConfirmationStep(file, file.uri ?? '');
+        });
     };
 
     const capturePhoto = useCallback(() => {
@@ -436,7 +447,7 @@ function IOURequestStepScan({
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
-                const source = `file://${photo.path}`;
+                const source = getPhotoSource(photo.path);
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 FileUtils.readFileAsync(source, photo.path, (file) => {
@@ -468,6 +479,7 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
+            {isLoadingReceipt && <FullScreenLoadingIndicator />}
             {pdfFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
@@ -498,8 +510,8 @@ function IOURequestStepScan({
                         style={styles.pb5}
                     />
 
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <Button
                         medium
                         success
@@ -541,7 +553,7 @@ function IOURequestStepScan({
                 <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
                             style={[styles.alignItemsStart]}
                             onPress={() => {
@@ -560,7 +572,7 @@ function IOURequestStepScan({
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -574,7 +586,7 @@ function IOURequestStepScan({
                 </PressableWithFeedback>
                 {hasFlash && (
                     <PressableWithFeedback
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
                         style={[styles.alignItemsEnd]}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED}

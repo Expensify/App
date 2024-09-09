@@ -561,6 +561,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -573,6 +574,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -591,6 +593,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         parentReportID: '102',
                         type: CONST.REPORT.TYPE.EXPENSE,
+                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -611,6 +614,7 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
+                        managerID: currentUserAccountID,
                     };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
@@ -634,6 +638,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -646,6 +651,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -679,6 +685,7 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                         policyID: paidPolicy.id,
+                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -706,6 +713,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
+                    managerID: currentUserAccountID,
                 };
                 const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs]);
                 expect(moneyRequestOptions.length).toBe(3);
@@ -856,10 +864,10 @@ describe('ReportUtils', () => {
 
         it('should return correctly all ancestors of a thread report', () => {
             const resultAncestors = [
-                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false},
-                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false},
-                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false},
-                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false},
+                {report: reports[0], reportAction: reportActions[0], shouldDisplayNewMarker: false},
+                {report: reports[1], reportAction: reportActions[1], shouldDisplayNewMarker: false},
+                {report: reports[2], reportAction: reportActions[2], shouldDisplayNewMarker: false},
+                {report: reports[3], reportAction: reportActions[3], shouldDisplayNewMarker: false},
             ];
 
             expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
@@ -876,7 +884,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
         });
 
-        it('should return true if the user account ID is odd and report is the system chat', async () => {
+        it('should return false if the user account ID is odd and report is the system chat - only the Concierge chat chat should be the onboarding chat for users without the onboarding NVP', async () => {
             const accountID = 1;
 
             await Onyx.multiSet({
@@ -893,7 +901,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeFalsy();
         });
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
@@ -909,7 +917,7 @@ describe('ReportUtils', () => {
             });
 
             const report: Report = {
-                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
             };
 
             expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
@@ -946,28 +954,44 @@ describe('ReportUtils', () => {
             const invoiceReport: Report = {
                 reportID: '1',
                 type: CONST.REPORT.TYPE.INVOICE,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const taskReport: Report = {
                 reportID: '2',
                 type: CONST.REPORT.TYPE.TASK,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const iouReport: Report = {
                 reportID: '3',
                 type: CONST.REPORT.TYPE.IOU,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             groupChatReport = {
                 reportID: '4',
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: {[userAccountID]: {hidden: false}, [userAccountID2]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [userAccountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             oneOnOneChatReport = {
                 reportID: '5',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {[userAccountID]: {hidden: false}, [currentUserAccountID]: {hidden: false}},
+                participants: {
+                    [userAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
             };
             const reportCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT,

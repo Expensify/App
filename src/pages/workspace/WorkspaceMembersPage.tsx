@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -83,7 +84,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     );
 
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
@@ -331,7 +332,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 }
             }
 
-            const isSelected = selectedEmployees.includes(accountID);
+            const isSelected = selectedEmployees.includes(accountID) && canSelectMultiple;
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
@@ -366,7 +367,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-        result = OptionsListUtils.sortItemsAlphabetically(result);
+        result = OptionsListUtils.sortAlphabetically(result, 'text');
         return result;
     }, [
         isOffline,
@@ -384,6 +385,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         session?.accountID,
         translate,
         styles.cursorDefault,
+        canSelectMultiple,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
@@ -409,7 +411,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     };
 
     const getHeaderContent = () => (
-        <>
+        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
@@ -420,7 +422,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
-        </>
+        </View>
     );
 
     useEffect(() => {
@@ -516,6 +518,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                        isDisabled={!selectedEmployees.length}
                     />
                 ) : (
                     <Button
@@ -588,7 +591,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
-                            shouldDebounceRowSelect={!isPolicyAdmin}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}

@@ -267,6 +267,25 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 }
 
 /**
+ * Close the current screen and navigate to the route.
+ * If the current screen is the first screen in the navigator, we force using the fallback route to replace the current screen.
+ * It's useful in a case where we want to close an RHP and navigate to another RHP to prevent any blink effect.
+ */
+function closeAndNavigate(route: Route) {
+    if (!navigationRef.current) {
+        return;
+    }
+
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+    if (isFirstRouteInNavigator) {
+        goBack(route, true);
+        return;
+    }
+    goBack();
+    navigate(route);
+}
+
+/**
  * Reset the navigation state to Home page
  */
 function resetToHome() {
@@ -396,6 +415,7 @@ export default {
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,
+    closeAndNavigate,
     goBack,
     isNavigationReady,
     setIsNavigationReady,

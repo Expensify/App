@@ -35,7 +35,6 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
-
     return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)

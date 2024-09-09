@@ -230,6 +230,7 @@ function AttachmentPickerWithMenuItems({
                             }
                             triggerAttachmentPicker();
                         },
+                        shouldCallAfterModalHide: true,
                     },
                 ];
                 return (

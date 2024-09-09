@@ -11,7 +11,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getSageIntacctNonReimbursableActiveDefaultVendor, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -48,7 +48,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value);
+            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value, config?.export.nonReimbursable);
         },
         [config?.export.nonReimbursable, policyID],
     );
@@ -61,66 +61,52 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             description: translate('workspace.sageIntacct.defaultVendor'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
             title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
-            hasError:
+            subscribedSettings: [
                 config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                    ? !!config?.errorFields?.nonReimbursableVendor
-                    : !!config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
-            pendingAction:
-                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                    ? config?.pendingFields?.nonReimbursableVendor
-                    : config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
+                    ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+                    : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+            ],
         };
 
         return (
             <OfflineWithFeedback
                 key={defaultVendorSection.description}
-                pendingAction={defaultVendorSection.pendingAction}
+                pendingAction={settingsPendingAction(defaultVendorSection.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemWithTopDescription
                     title={defaultVendorSection.title}
                     description={defaultVendorSection.description}
                     shouldShowRightIcon
                     onPress={defaultVendorSection.action}
-                    brickRoadIndicator={defaultVendorSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={areSettingsInErrorFields(defaultVendorSection.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         );
-    }, [
-        config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
-        config?.errorFields?.nonReimbursableVendor,
-        config?.export.nonReimbursable,
-        config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
-        config?.pendingFields?.nonReimbursableVendor,
-        intacctData?.vendors,
-        policy,
-        policyID,
-        translate,
-    ]);
+    }, [config?.errorFields, config?.export.nonReimbursable, config?.pendingFields, intacctData?.vendors, policy, policyID, translate]);
 
     const creditCardAccount = useMemo(() => {
         const creditCardAccountSection = {
             description: translate('workspace.sageIntacct.creditCardAccount'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
             title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
-            hasError: !!config?.errorFields?.nonReimbursableAccount,
-            pendingAction: config?.pendingFields?.nonReimbursableAccount,
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         };
 
         return (
             <OfflineWithFeedback
                 key={creditCardAccountSection.description}
-                pendingAction={creditCardAccountSection.pendingAction}
+                pendingAction={settingsPendingAction(creditCardAccountSection.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemWithTopDescription
                     title={creditCardAccountSection.title}
                     description={creditCardAccountSection.description}
                     shouldShowRightIcon
                     onPress={creditCardAccountSection.action}
-                    brickRoadIndicator={creditCardAccountSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={areSettingsInErrorFields(creditCardAccountSection.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         );
-    }, [config?.errorFields?.nonReimbursableAccount, config?.export.nonReimbursableAccount, config?.pendingFields?.nonReimbursableAccount, policyID, translate]);
+    }, [config?.errorFields, config?.export.nonReimbursableAccount, config?.pendingFields, policyID, translate]);
 
     return (
         <ConnectionLayout
@@ -137,7 +123,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
-                pendingAction={config?.pendingFields?.nonReimbursable}
+                pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
                 onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
@@ -166,10 +152,15 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                             isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}
                             onToggle={(enabled) => {
                                 const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
+                                updateSageIntacctDefaultVendor(
+                                    policyID,
+                                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                                    vendor,
+                                    config?.export.nonReimbursableCreditCardChargeDefaultVendor,
+                                );
                             }}
                             wrapperStyle={[styles.ph5, styles.pv3]}
-                            pendingAction={config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor}
+                            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields)}
                             errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
                             onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
                         />

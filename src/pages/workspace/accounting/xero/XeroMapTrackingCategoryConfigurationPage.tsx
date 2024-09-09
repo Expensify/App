@@ -6,10 +6,10 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -21,8 +21,6 @@ type RouteParams = {
     categoryId?: string;
     categoryName?: string;
 };
-
-const TRACKING_CATEGORIES_KEY = 'trackingCategory_';
 
 function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -37,7 +35,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? '' : '';
+    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '' : '';
 
     const optionsList = useMemo(
         () =>
@@ -62,16 +60,15 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const updateMapping = useCallback(
         (option: {value: string}) => {
             if (option.value !== categoryName) {
-                Connections.updatePolicyXeroConnectionConfig(
+                Xero.updateXeroMappings(
                     policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.XERO,
-                    CONST.XERO_CONFIG.MAPPINGS,
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
+                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
                 );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, policyID],
+        [categoryId, categoryName, currentTrackingCategoryValue, policyID],
     );
 
     return (
@@ -88,11 +85,11 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID))}
             headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            pendingAction={xeroSettingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
+            pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}
-            shouldDebounceRowSelect
+            shouldSingleExecuteRowSelect
         />
     );
 }

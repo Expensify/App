@@ -5,6 +5,12 @@ type TravelSettings = {
 
     /** Whether the user has completed the travel terms and conditions checkbox */
     hasAcceptedTerms: boolean;
+
+    /** Whether the user is setup for staging travelDot */
+    testAccount?: boolean;
+
+    /** Whether the user is waiting for the API response after accepting terms */
+    isLoading?: boolean;
 };
 
 /** Model of workspace travel information to connect with Spotnana */

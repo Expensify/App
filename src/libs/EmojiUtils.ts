@@ -226,7 +226,7 @@ function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
     let updatedEmojis: EmojiPickerList = [];
     emojis.forEach((emoji, index) => {
-        if (emoji && 'header' in emoji) {
+        if (emoji && typeof emoji === 'object' && 'header' in emoji) {
             updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
             return;
         }

@@ -1,14 +1,13 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {ExportSearchItemsToCSVParams, SearchParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {buildSearchQueryJSON} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -50,26 +49,16 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
     return {optimisticData, finallyData};
 }
 
-function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-
-    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
-}
-
-// TODO_SEARCH: use this function after backend changes.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function searchV2(queryString: SearchQueryString) {
-    const queryJSON = buildSearchQueryJSON(queryString);
-
-    if (!queryJSON) {
-        return;
-    }
-
+function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
 
-    // TODO_SEARCH: uncomment this line after backend changes
-    // @ts-expect-error waiting for backend changes
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery: JSON.stringify(queryJSON)}, {optimisticData, finallyData});
+    const queryWithOffset = {
+        ...queryJSON,
+        offset,
+    };
+    const jsonQuery = JSON.stringify(queryWithOffset);
+
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
 }
 
 /**
@@ -108,9 +97,10 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
+        jsonQuery,
         reportIDList,
         transactionIDList,
         policyIDs,

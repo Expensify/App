@@ -10,6 +10,7 @@ import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -59,6 +60,20 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
+function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
+    const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
+    if (approvalChain.length === 0) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
+
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    if (!nextApproverEmail) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
+
+    return PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
+}
+
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  *
@@ -78,7 +93,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    const managerDisplayName = ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
+
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
@@ -104,10 +120,9 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'add',
-                        type: 'strong',
                     },
                     {
-                        text: ' expenses.',
+                        text: ' %expenses.',
                     },
                 ],
             };
@@ -119,11 +134,11 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
+                        text: `${ownerDisplayName}'s`,
                         type: 'strong',
                     },
                     {
-                        text: "'s %expenses to ",
+                        text: ' %expenses to automatically submit',
                     },
                 ];
                 let harvestingSuffix = '';
@@ -157,13 +172,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     };
 
                     if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = ` ${harvestingSuffixes[autoReportingFrequency]}`;
+                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
                     }
                 }
 
                 optimisticNextStep.message.push({
-                    text: `automatically submit${harvestingSuffix}`,
-                    type: 'strong',
+                    text: ` ${harvestingSuffix}`,
                 });
             }
 
@@ -180,7 +194,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: managerDisplayName,
+                        text: nextApproverDisplayName,
                         type: 'strong',
                     },
                     {
@@ -188,7 +202,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'approve',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -206,7 +219,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 type,
                 message: [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ],
             };
@@ -230,7 +243,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     message: [
                         {
-                            text: 'Finished! No further action required.',
+                            text: 'No further action required!',
                         },
                     ],
                 };
@@ -253,7 +266,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     },
                     {
                         text: 'pay',
-                        type: 'strong',
                     },
                     {
                         text: ' %expenses.',
@@ -270,7 +282,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                 message: [
                     {
-                        text: 'Finished! No further action required.',
+                        text: 'No further action required!',
                     },
                 ],
             };

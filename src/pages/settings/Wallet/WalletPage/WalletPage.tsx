@@ -5,9 +5,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +13,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
@@ -34,6 +34,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as Modal from '@userActions/Modal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -367,10 +368,58 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 errors={userWallet?.errors}
                                 errorRowStyles={[styles.ph6]}
                             >
+                                <Section
+                                    subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
+                                    title={translate('walletPage.bankAccounts')}
+                                    isCentralPane
+                                    titleStyles={styles.accountSettingsSectionTitle}
+                                    illustration={Illustrations.BigVault}
+                                    illustrationStyle={styles.walletIllustration}
+                                    illustrationContainerStyle={{height: 220}}
+                                    illustrationBackgroundColor="#411103"
+                                >
+                                    <PaymentMethodList
+                                        shouldShowAddPaymentMethodButton={false}
+                                        shouldShowEmptyListMessage={false}
+                                        onPress={paymentMethodPressed}
+                                        actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                                        activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
+                                        buttonRef={addPaymentMethodAnchorRef}
+                                        onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                        shouldEnableScroll={false}
+                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    />
+                                </Section>
+
+                                {hasAssignedCard ? (
+                                    <Section
+                                        subtitle={translate('walletPage.assignedCardsDescription')}
+                                        title={translate('walletPage.assignedCards')}
+                                        isCentralPane
+                                        titleStyles={styles.accountSettingsSectionTitle}
+                                    >
+                                        <PaymentMethodList
+                                            shouldShowAddBankAccount={false}
+                                            shouldShowAddPaymentMethodButton={false}
+                                            shouldShowAssignedCards
+                                            shouldShowEmptyListMessage={false}
+                                            shouldEnableScroll={false}
+                                            onPress={paymentMethodPressed}
+                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
+                                            buttonRef={addPaymentMethodAnchorRef}
+                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                        />
+                                    </Section>
+                                ) : null}
+
                                 {hasWallet && (
                                     <Section
-                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
-                                        title={translate('walletPage.expensifyWallet')}
+                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'walletEnabledToSendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
+                                        title={translate('walletPage.sendAndReceiveMoney')}
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
@@ -387,9 +436,15 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     errors={walletTerms?.errors}
                                                     onClose={PaymentMethods.clearWalletTermsError}
                                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                                    style={[styles.mt7, styles.mb5, styles.alignSelfStart]}
+                                                    style={[styles.mt4, styles.mb2]}
                                                 >
-                                                    <CurrentWalletBalance balanceStyles={[styles.walletBalance]} />
+                                                    <MenuItemWithTopDescription
+                                                        description={translate('walletPage.balance')}
+                                                        title={CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                        titleStyle={styles.textHeadlineH2}
+                                                        interactive={false}
+                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                    />
                                                 </OfflineWithFeedback>
                                             )}
 
@@ -462,13 +517,18 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     }
 
                                                     return (
-                                                        <Button
+                                                        <MenuItem
                                                             ref={buttonRef as ForwardedRef<View>}
-                                                            text={translate('walletPage.enableWallet')}
                                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS)}
-                                                            isDisabled={network.isOffline}
-                                                            success
-                                                            large
+                                                            disabled={network.isOffline}
+                                                            title={translate('walletPage.enableWallet')}
+                                                            icon={Expensicons.Wallet}
+                                                            hoverAndPressStyle={styles.hoveredComponentBG}
+                                                            wrapperStyle={[
+                                                                styles.transferBalance,
+                                                                shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+                                                                shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
+                                                            ]}
                                                         />
                                                     );
                                                 }}
@@ -476,48 +536,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         </>
                                     </Section>
                                 )}
-                                {hasAssignedCard ? (
-                                    <Section
-                                        subtitle={translate('walletPage.assignedCardsDescription')}
-                                        title={translate('walletPage.assignedCards')}
-                                        isCentralPane
-                                        titleStyles={styles.accountSettingsSectionTitle}
-                                    >
-                                        <PaymentMethodList
-                                            shouldShowAddBankAccount={false}
-                                            shouldShowAddPaymentMethodButton={false}
-                                            shouldShowAssignedCards
-                                            shouldShowEmptyListMessage={false}
-                                            shouldEnableScroll={false}
-                                            onPress={paymentMethodPressed}
-                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                            actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                                            activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                            buttonRef={addPaymentMethodAnchorRef}
-                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                        />
-                                    </Section>
-                                ) : null}
-                                <Section
-                                    subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
-                                    title={translate('walletPage.bankAccounts')}
-                                    isCentralPane
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                >
-                                    <PaymentMethodList
-                                        shouldShowAddPaymentMethodButton={false}
-                                        shouldShowEmptyListMessage={false}
-                                        onPress={paymentMethodPressed}
-                                        actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                                        activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                        buttonRef={addPaymentMethodAnchorRef}
-                                        onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                        shouldEnableScroll={false}
-                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    />
-                                </Section>
                             </OfflineWithFeedback>
                         </View>
                     </ScrollView>
@@ -559,27 +577,27 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
-                                    onPress={() => setShowConfirmDeleteModal(true)}
+                                    onPress={() => Modal.close(() => setShowConfirmDeleteModal(true))}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                                 />
                             </View>
                         )}
-                        <ConfirmModal
-                            isVisible={showConfirmDeleteModal}
-                            onConfirm={() => {
-                                deletePaymentMethod();
-                                hideDefaultDeleteMenu();
-                            }}
-                            onCancel={hideDefaultDeleteMenu}
-                            title={translate('walletPage.deleteAccount')}
-                            prompt={translate('walletPage.deleteConfirmation')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            shouldShowCancelButton
-                            danger
-                            onModalHide={resetSelectedPaymentMethodData}
-                        />
                     </Popover>
+                    <ConfirmModal
+                        isVisible={showConfirmDeleteModal}
+                        onConfirm={() => {
+                            deletePaymentMethod();
+                            hideDefaultDeleteMenu();
+                        }}
+                        onCancel={hideDefaultDeleteMenu}
+                        title={translate('walletPage.deleteAccount')}
+                        prompt={translate('walletPage.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        shouldShowCancelButton
+                        danger
+                        onModalHide={resetSelectedPaymentMethodData}
+                    />
                 </ScreenWrapper>
             )}
             <AddPaymentMethodMenu

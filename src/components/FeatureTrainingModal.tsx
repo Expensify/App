@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,6 +62,9 @@ type FeatureTrainingModalProps = {
     /** A callback to call when user confirms the tutorial */
     onConfirm?: () => void;
 
+    /** A callback to call when modal closes */
+    onClose?: () => void;
+
     /** Text to show on secondary button */
     helpText?: string;
 
@@ -80,12 +82,13 @@ function FeatureTrainingModal({
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
+    onClose = () => {},
     helpText = '',
     onHelp = () => {},
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
@@ -134,15 +137,17 @@ function FeatureTrainingModal({
                 ]}
             >
                 {videoStatus === 'video' ? (
-                    <VideoPlayer
-                        url={videoURL}
-                        videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                        onVideoLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
-                        shouldUseControlsBottomMargin={false}
-                        shouldPlay
-                        isLooping
-                    />
+                    <GestureHandlerRootView>
+                        <VideoPlayer
+                            url={videoURL}
+                            videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
+                            onVideoLoaded={setAspectRatio}
+                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
+                            shouldUseControlsBottomMargin={false}
+                            shouldPlay
+                            isLooping
+                        />
+                    </GestureHandlerRootView>
                 ) : (
                     <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
                         <Lottie
@@ -166,7 +171,8 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         Navigation.goBack();
-    }, [willShowAgain]);
+        onClose?.();
+    }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();
@@ -178,14 +184,14 @@ function FeatureTrainingModal({
             {({safeAreaPaddingBottomStyle}) => (
                 <Modal
                     isVisible={isModalVisible}
-                    type={isMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
                     innerContainerStyle={{
                         boxShadow: 'none',
                         borderRadius: 16,
                         paddingBottom: 20,
-                        paddingTop: isMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
-                        ...(isMediumOrLargerScreenWidth
+                        paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
+                        ...(onboardingIsMediumOrLargerScreenWidth
                             ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                               // To make it take as little space as possible.
                               {
@@ -195,44 +201,42 @@ function FeatureTrainingModal({
                             : {}),
                     }}
                 >
-                    <GestureHandlerRootView>
-                        <View style={[styles.mh100, isMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={isMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[styles.mt5, styles.mh5]}>
-                                {title && description && (
-                                    <View style={[isMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                        <Text style={[styles.textHeadlineH1]}>{title}</Text>
-                                        <Text style={styles.textSupporting}>{description}</Text>
-                                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                                    </View>
-                                )}
-                                {shouldShowDismissModalOption && (
-                                    <CheckboxWithLabel
-                                        label={translate('featureTraining.doNotShowAgain')}
-                                        accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                        style={[styles.mb5]}
-                                        isChecked={!willShowAgain}
-                                        onInputChange={toggleWillShowAgain}
-                                    />
-                                )}
-                                {helpText && (
-                                    <Button
-                                        large
-                                        style={[styles.mb3]}
-                                        onPress={onHelp}
-                                        text={helpText}
-                                    />
-                                )}
+                    <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                        <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[styles.mt5, styles.mh5]}>
+                            {!!title && !!description && (
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <Text style={[styles.textHeadlineH1]}>{title}</Text>
+                                    <Text style={styles.textSupporting}>{description}</Text>
+                                    {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                                </View>
+                            )}
+                            {shouldShowDismissModalOption && (
+                                <CheckboxWithLabel
+                                    label={translate('featureTraining.doNotShowAgain')}
+                                    accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                                    style={[styles.mb5]}
+                                    isChecked={!willShowAgain}
+                                    onInputChange={toggleWillShowAgain}
+                                />
+                            )}
+                            {!!helpText && (
                                 <Button
                                     large
-                                    success
-                                    pressOnEnter
-                                    onPress={closeAndConfirmModal}
-                                    text={confirmText}
+                                    style={[styles.mb3]}
+                                    onPress={onHelp}
+                                    text={helpText}
                                 />
-                            </View>
+                            )}
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                onPress={closeAndConfirmModal}
+                                text={confirmText}
+                            />
                         </View>
-                    </GestureHandlerRootView>
+                    </View>
                 </Modal>
             )}
         </SafeAreaConsumer>

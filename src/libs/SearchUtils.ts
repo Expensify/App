@@ -1,22 +1,28 @@
 import type {ValueOf} from 'type-fest';
-import type {AdvancedFiltersKeys, ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SortOrder} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
+import {translateLocal} from './Localize';
 import navigationRef from './Navigation/navigationRef';
 import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as searchParser from './SearchParser/searchParser';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+
+type KeysOfFilterKeysObject = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -51,12 +57,12 @@ const operatorToSignMap = {
 function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
-    to: SearchAccountDetails,
+    to: SearchPersonalDetails,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
+    const formattedTo = to?.displayName ?? to?.login ?? '';
     const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = TransactionUtils.getMerchant(transactionItem);
@@ -71,23 +77,32 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-function isSearchDataType(type: string): type is SearchDataTypes {
-    const searchDataTypes: string[] = Object.values(CONST.SEARCH.DATA_TYPES);
-    return searchDataTypes.includes(type);
+type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+
+type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+
+type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+function isReportEntry(key: string): key is ReportKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
 
-function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
-    if (!isSearchDataType(search.type)) {
-        return undefined;
-    }
+function isTransactionEntry(key: string): key is TransactionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
 
-    return search.type;
+function isReportActionEntry(key: string): key is ReportActionKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
-    return Object.values(data).some((item) => {
-        const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-        return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    return Object.keys(data).some((key) => {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
+            const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+        }
+        return false;
     });
 }
 
@@ -97,9 +112,14 @@ function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
 }
 
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
+}
+
+function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is ReportActionListItemType {
+    const reportActionListItem = item as ReportActionListItemType;
+    return reportActionListItem.reportActionID !== undefined;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
@@ -118,13 +138,22 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
         });
     }
 
-    for (const [key, transactionItem] of Object.entries(data)) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            const item = transactionItem as SearchTransaction;
+    for (const key in data) {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
             const date = TransactionUtils.getCreated(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;
+            }
+        } else if (isReportActionEntry(key)) {
+            const item = data[key];
+            for (const action of Object.values(item)) {
+                const date = action.created;
+
+                if (DateUtils.doesDateBelongToAPastYear(date)) {
+                    return true;
+                }
             }
         }
     }
@@ -136,14 +165,12 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
-    return Object.entries(data)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-        .map(([, transactionItem]) => {
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+    return Object.keys(data)
+        .filter(isTransactionEntry)
+        .map((key) => {
+            const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -166,6 +193,47 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         });
 }
 
+function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const reportActionItems: ReportActionListItemType[] = [];
+    for (const key in data) {
+        if (isReportActionEntry(key)) {
+            const reportActions = data[key];
+            for (const reportAction of Object.values(reportActions)) {
+                const from = data.personalDetailsList?.[reportAction.accountID];
+                reportActionItems.push({
+                    ...reportAction,
+                    from,
+                    formattedFrom: from?.displayName ?? from?.login ?? '',
+                    date: reportAction.created,
+                    keyForList: reportAction.reportActionID,
+                });
+            }
+        }
+    }
+    return reportActionItems;
+}
+
+function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
+    const payerPersonalDetails = data.personalDetailsList?.[reportItem.managerID ?? 0];
+    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
+        return translateLocal('iou.payerOwesAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
+    }
+
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
+        return translateLocal('iou.payerPaidAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
+    }
+
+    return reportItem.reportName;
+}
+
 function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -173,32 +241,26 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+        if (isReportEntry(key)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
-            const isExpenseReport = reportItem.type === CONST.REPORT.TYPE.EXPENSE;
-
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[reportItem.managerID] as SearchAccountDetails);
+            const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID],
-                to,
+                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                to: data.personalDetailsList?.[reportItem.managerID ?? -1],
                 transactions,
+                reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
-        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+        } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
-            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = isExpenseReport
-                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
-                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+            const to = data.personalDetailsList?.[transactionItem.managerID];
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -220,7 +282,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
+            } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
@@ -229,44 +291,25 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     return Object.values(reportIDToTransactions);
 }
 
-const searchTypeToItemMap: SearchTypeToItemMap = {
-    [CONST.SEARCH.DATA_TYPES.TRANSACTION]: {
-        listItem: TransactionListItem,
-        getSections: getTransactionsSections,
-        getSortedSections: getSortedTransactionData,
-    },
-    [CONST.SEARCH.DATA_TYPES.REPORT]: {
-        listItem: ReportListItem,
-        getSections: getReportSections,
-        // sorting for ReportItems not yet implemented
-        getSortedSections: getSortedReportData,
-    },
-};
-
-function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeToItemMap[K]['listItem'] {
-    return searchTypeToItemMap[type].listItem;
+function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof type, typeof status> {
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return ChatListItem;
+    }
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItem : ReportListItem;
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(
-    data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
-    type: K,
-): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return getReportActionsSections(data);
+    }
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getTransactionsSections(data, metadata) : getReportSections(data, metadata);
 }
 
-function getSortedSections<K extends keyof SearchTypeToItemMap>(
-    type: K,
-    data: SectionsType<K>,
-    sortBy?: SearchColumnType,
-    sortOrder?: SortOrder,
-): ReturnType<SearchTypeToItemMap[K]['getSortedSections']> {
-    return searchTypeToItemMap[type].getSortedSections(data, sortBy, sortOrder) as ReturnType<SearchTypeToItemMap[K]['getSortedSections']>;
-}
-
-function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
-    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
+function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return data;
+    }
+    return status === CONST.SEARCH.STATUS.EXPENSE.ALL ? getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder) : getSortedReportData(data as ReportListItemType[]);
 }
 
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
@@ -281,8 +324,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
-        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
@@ -314,8 +357,11 @@ function getSortedReportData(data: ReportListItemType[]) {
 }
 
 function getCurrentSearchParams() {
-    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
+    const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+
+    const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);
+
+    return lastSearchRoute ? (lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE]) : undefined;
 }
 
 function isSearchResultsEmpty(searchResults: SearchResults) {
@@ -326,31 +372,44 @@ function getQueryHashFromString(query: SearchQueryString): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, policyID?: string) {
+function buildSearchQueryJSON(query: SearchQueryString) {
     try {
-        // Add the full input and hash to the results
         const result = searchParser.parse(query) as SearchQueryJSON;
-        result.inputQuery = query;
 
-        // Temporary solution until we move policyID filter into the AST - then remove this line and keep only query
-        const policyIDPart = policyID ?? '';
-        result.hash = getQueryHashFromString(query + policyIDPart);
+        // Add the full input and hash to the results
+        result.inputQuery = query;
+        result.hash = getQueryHashFromString(query);
         return result;
     } catch (e) {
-        console.error(e);
+        console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
 }
 
-function buildSearchQueryString(partialQueryJSON?: Partial<SearchQueryJSON>) {
+function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    // For this const values are lowercase version of the keys. We are using lowercase for ast keys.
-    for (const [, value] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        if (partialQueryJSON?.[value]) {
-            queryParts.push(`${value}:${partialQueryJSON[value]}`);
-        } else if (defaultQueryJSON) {
-            queryParts.push(`${value}:${defaultQueryJSON[value]}`);
+    for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        const existingFieldValue = queryJSON?.[key];
+        const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
+
+        if (queryFieldValue) {
+            queryParts.push(`${key}:${queryFieldValue}`);
+        }
+    }
+
+    if (!queryJSON) {
+        return queryParts.join(' ');
+    }
+
+    const filters = getFilters(queryJSON);
+
+    for (const [, filterKey] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
+        const queryFilter = filters[filterKey];
+
+        if (queryFilter) {
+            const filterValueString = buildFilterString(filterKey, queryFilter);
+            queryParts.push(filterValueString);
         }
     }
 
@@ -370,8 +429,8 @@ function normalizeQuery(query: string) {
  * returns Date filter query string part, which needs special logic
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const dateBefore = filterValues[INPUT_IDS.DATE_BEFORE];
-    const dateAfter = filterValues[INPUT_IDS.DATE_AFTER];
+    const dateBefore = filterValues[FILTER_KEYS.DATE_BEFORE];
+    const dateAfter = filterValues[FILTER_KEYS.DATE_AFTER];
 
     let dateFilter = '';
     if (dateBefore) {
@@ -388,53 +447,124 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) 
 }
 
 /**
+ * @private
+ * returns Date filter query string part, which needs special logic
+ */
+function buildAmountFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const lessThan = filterValues[FILTER_KEYS.LESS_THAN];
+    const greaterThan = filterValues[FILTER_KEYS.GREATER_THAN];
+
+    let amountFilter = '';
+    if (greaterThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}>${greaterThan}`;
+    }
+    if (lessThan && greaterThan) {
+        amountFilter += ' ';
+    }
+    if (lessThan) {
+        amountFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}<${lessThan}`;
+    }
+
+    return amountFilter;
+}
+
+function sanitizeString(str: string) {
+    const safeStr = str;
+    if (safeStr.includes(' ') || safeStr.includes(',')) {
+        return `"${safeStr}"`;
+    }
+    return safeStr;
+}
+
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+    }
+}
+
+function getChatFiltersTranslationKey(has: ValueOf<typeof CONST.SEARCH.CHAT_TYPES>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (has) {
+        case CONST.SEARCH.CHAT_TYPES.LINK:
+            return 'search.filters.link';
+        case CONST.SEARCH.CHAT_TYPES.ATTACHMENT:
+            return 'common.attachment';
+    }
+}
+
+function getChatStatusTranslationKey(chatStatus: ValueOf<typeof CONST.SEARCH.CHAT_STATUS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (chatStatus) {
+        case CONST.SEARCH.CHAT_STATUS.PINNED:
+            return 'search.filters.pinned';
+        case CONST.SEARCH.CHAT_STATUS.UNREAD:
+            return 'search.filters.unread';
+        case CONST.SEARCH.CHAT_STATUS.DRAFT:
+            return 'search.filters.draft';
+    }
+}
+
+/**
  * Given object with chosen search filters builds correct query string from them
  */
 function buildQueryStringFromFilters(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    // TODO add handling of multiple values picked
-    const filtersString = Object.entries(filterValues)
-        .map(([filterKey, filterValue]) => {
-            if (filterKey === INPUT_IDS.TYPE && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${filterValue as string}`;
+    const filtersString = Object.entries(filterValues).map(([filterKey, filterValue]) => {
+        if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeString(filterValue as string)}`;
             }
-
-            if (filterKey === INPUT_IDS.STATUS && filterValue) {
-                return `${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValue as string}`;
+        }
+        if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${filterValue as string}`;
             }
-
-            return undefined;
-        })
-        .filter(Boolean)
-        .join(' ');
-
-    const dateFilter = buildDateFilterQuery(filterValues);
-
-    return dateFilter ? `${filtersString} ${dateFilter}` : filtersString;
-}
-
-function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFiltersKeys>>) {
-    let queryAST;
-
-    try {
-        queryAST = searchParser.parse(query) as SearchQueryJSON;
-    } catch (e) {
-        console.error(e);
-        return;
-    }
-
-    const filters = {} as QueryFilters;
-
-    fields.forEach((field) => {
-        const rootFieldKey = field as ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-        if (queryAST[rootFieldKey] === undefined) {
-            return;
         }
 
-        filters[field] = {
-            operator: 'eq',
-            value: queryAST[rootFieldKey],
-        };
+        if (
+            (filterKey === FILTER_KEYS.CATEGORY ||
+                filterKey === FILTER_KEYS.CARD_ID ||
+                filterKey === FILTER_KEYS.TAX_RATE ||
+                filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                filterKey === FILTER_KEYS.TAG ||
+                filterKey === FILTER_KEYS.CURRENCY ||
+                filterKey === FILTER_KEYS.FROM ||
+                filterKey === FILTER_KEYS.TO ||
+                filterKey === FILTER_KEYS.IN ||
+                filterKey === FILTER_KEYS.HAS ||
+                filterKey === FILTER_KEYS.IS) &&
+            Array.isArray(filterValue) &&
+            filterValue.length > 0
+        ) {
+            const filterValueArray = filterValues[filterKey] ?? [];
+            const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as KeysOfFilterKeysObject[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+            if (keyInCorrectForm) {
+                return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeString).join(',')}`;
+            }
+        }
+
+        return undefined;
     });
+
+    const dateFilter = buildDateFilterQuery(filterValues);
+    filtersString.push(dateFilter);
+
+    const amountFilter = buildAmountFilterQuery(filterValues);
+    filtersString.push(amountFilter);
+
+    return filtersString.filter(Boolean).join(' ');
+}
+
+function getFilters(queryJSON: SearchQueryJSON) {
+    const filters = {} as QueryFilters;
+    const filterKeys = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS);
 
     function traverse(node: ASTNode) {
         if (!node.operator) {
@@ -445,12 +575,12 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
             traverse(node.left);
         }
 
-        if (typeof node?.right === 'object' && node.right) {
+        if (typeof node?.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
 
         const nodeKey = node.left as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
-        if (!fields.includes(nodeKey)) {
+        if (!filterKeys.includes(nodeKey)) {
             return;
         }
 
@@ -458,28 +588,58 @@ function getFilters(query: SearchQueryString, fields: Array<Partial<AdvancedFilt
             filters[nodeKey] = [];
         }
 
-        const filterArray = filters[nodeKey] as QueryFilter[];
-        filterArray.push({
-            operator: node.operator,
-            value: node.right as string | number,
-        });
+        // the "?? []" is added only for typescript because otherwise TS throws an error, in newer TS versions this should be fixed
+        const filterArray = filters[nodeKey] ?? [];
+        if (!Array.isArray(node.right)) {
+            filterArray.push({
+                operator: node.operator,
+                value: node.right as string | number,
+            });
+        } else {
+            node.right.forEach((element) => {
+                filterArray.push({
+                    operator: node.operator,
+                    value: element as string | number,
+                });
+            });
+        }
     }
 
-    if (queryAST.filters) {
-        traverse(queryAST.filters);
+    if (queryJSON.filters) {
+        traverse(queryJSON.filters);
     }
 
     return filters;
 }
 
-function buildFilterValueString(filterName: string, queryFilters: QueryFilter[]) {
+/**
+ * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
+ * and return just the first policyID value from the filter.
+ *
+ * Note: `policyID` property can store multiple policy ids (just like many other search filters) as a comma separated value;
+ * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
+ */
+function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
+    const policyIDFilter = queryJSON.policyID;
+
+    if (!policyIDFilter) {
+        return;
+    }
+
+    // policyID is a comma-separated value
+    const [policyID] = policyIDFilter.split(',');
+
+    return policyID;
+}
+
+function buildFilterString(filterName: string, queryFilters: QueryFilter[]) {
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if ((queryFilter.operator === 'eq' && queryFilters[index - 1]?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters[index - 1]?.operator === 'neq')) {
-            filterValueString += `,${queryFilter.value}`;
+            filterValueString += ` ${sanitizeString(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${queryFilter.value}`;
+            filterValueString += ` ${filterName}${operatorToSignMap[queryFilter.operator]}${sanitizeString(queryFilter.value.toString())}`;
         }
     });
 
@@ -487,17 +647,31 @@ function buildFilterValueString(filterName: string, queryFilters: QueryFilter[])
 }
 
 function getSearchHeaderTitle(queryJSON: SearchQueryJSON) {
-    const {inputQuery, type, status} = queryJSON;
-    const filters = getFilters(inputQuery, Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS)) ?? {};
+    const {type, status} = queryJSON;
+    const filters = getFilters(queryJSON) ?? {};
 
     let title = `type:${type} status:${status}`;
 
     Object.keys(filters).forEach((key) => {
-        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] as QueryFilter[];
-        title += buildFilterValueString(key, queryFilter);
+        const queryFilter = filters[key as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>] ?? [];
+        title += buildFilterString(key, queryFilter);
     });
 
     return title;
+}
+
+function buildCannedSearchQuery(type: SearchDataTypes = CONST.SEARCH.DATA_TYPES.EXPENSE, status: SearchStatus = CONST.SEARCH.STATUS.EXPENSE.ALL): SearchQueryString {
+    return normalizeQuery(`type:${type} status:${status}`);
+}
+
+/**
+ * Returns whether a given search query is a Canned query.
+ *
+ * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
+ * For example: "type:trip status:all" is a canned query.
+ */
+function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
+    return !queryJSON.filters;
 }
 
 export {
@@ -506,16 +680,21 @@ export {
     buildSearchQueryString,
     getCurrentSearchParams,
     getFilters,
+    getPolicyIDFromSearchQuery,
     getListItem,
-    getQueryHash,
     getSearchHeaderTitle,
-    getSearchType,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
     isReportListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
+    isReportActionListItemType,
     normalizeQuery,
     shouldShowYear,
+    buildCannedSearchQuery,
+    isCannedSearchQuery,
+    getExpenseTypeTranslationKey,
+    getChatFiltersTranslationKey,
+    getChatStatusTranslationKey,
 };

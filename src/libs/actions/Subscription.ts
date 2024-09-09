@@ -288,6 +288,10 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
     API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
 }
 
+function requestTaxExempt() {
+    API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -297,4 +301,5 @@ export {
     updateSubscriptionType,
     clearOutstandingBalance,
     cancelBillingSubscription,
+    requestTaxExempt,
 };

@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import type {ComponentType} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -107,7 +108,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                     {isScanning && (
                         <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                             <MoneyRequestHeaderStatusBar
-                                title={
+                                icon={
                                     <Icon
                                         src={Expensicons.ReceiptScan}
                                         height={variables.iconSizeSmall}
@@ -176,7 +177,7 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },
-})(withReportAndReportActionOrNotFound(SplitBillDetailsPage));
+})(withReportAndReportActionOrNotFound(SplitBillDetailsPage) as ComponentType<SplitBillDetailsPageProps>);
 
 export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
     report: {

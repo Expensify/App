@@ -141,7 +141,11 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 
-    return tagArray.join(CONST.COLON).replace(/:*$/, '');
+    while (tagArray.length > 0 && !tagArray[tagArray.length - 1]) {
+        tagArray.pop();
+    }
+
+    return tagArray.map((tagItem) => tagItem.trim()).join(CONST.COLON);
 }
 
 function isMovingTransactionFromTrackExpense(action?: IOUAction) {
@@ -152,11 +156,16 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldUseTransactionDraft(action: IOUAction | undefined) {
+    return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
+    shouldUseTransactionDraft,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,

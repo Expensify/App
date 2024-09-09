@@ -6,6 +6,7 @@ import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPo
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
@@ -115,6 +116,37 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: failureCategoryMap,
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
+function updateImportSpreadsheetData(categoriesLength: number) {
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {
+                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', categoriesLength),
+                    },
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
             },
         ],
     };
@@ -266,8 +298,20 @@ function createPolicyCategory(policyID: string, categoryName: string) {
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
+function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
+    const onyxData = updateImportSpreadsheetData(categories.length);
+
+    const parameters = {
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': String(category['GL Code'])}))]),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SREADSHEET, parameters, onyxData);
+}
+
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
-    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -281,6 +325,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.newName,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         previousCategoryName: policyCategory.oldName,
@@ -300,6 +345,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         errors: null,
                         pendingAction: null,
                         pendingFields: {
+                            ...(policyCategoryToUpdate?.pendingFields ?? {}),
                             name: null,
                         },
                     },
@@ -761,4 +807,5 @@ export {
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
+    importPolicyCategories,
 };

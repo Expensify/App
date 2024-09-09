@@ -4,9 +4,8 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
@@ -19,6 +18,7 @@ import OnboardingWork from '@pages/OnboardingWork';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -26,24 +26,29 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {isMediumOrLargerScreenWidth} = useOnboardingLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-
-    useDisableModalDismissOnEscape();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
             return;
         }
         Navigation.isNavigationReady().then(() => {
-            // Need to go back to previous route and then redirect to Concierge,
+            // On small screens, pop all navigation states and go back to HOME.
+            // On large screens, need to go back to previous route and then redirect to Concierge,
             // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
+            if (shouldUseNarrowLayout) {
+                Navigation.setShouldPopAllStateOnUP(true);
+                Navigation.goBack(ROUTES.HOME, true, true);
+            } else {
+                Navigation.goBack();
+                Report.navigateToConciergeChat();
+            }
         });
-    }, [hasCompletedGuidedSetupFlow]);
+    }, [hasCompletedGuidedSetupFlow, shouldUseNarrowLayout]);
 
     const outerViewRef = React.useRef<View>(null);
 
@@ -67,7 +72,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(isMediumOrLargerScreenWidth)}
+                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                             <Stack.Screen

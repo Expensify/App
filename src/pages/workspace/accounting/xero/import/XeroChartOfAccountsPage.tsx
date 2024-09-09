@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {xeroSettingsPendingAction} from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -60,9 +60,15 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!xeroConfig?.enableNewCategories}
                 onToggle={() =>
-                    Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !xeroConfig?.enableNewCategories)
+                    Connections.updatePolicyConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES,
+                        !xeroConfig?.enableNewCategories,
+                        xeroConfig?.enableNewCategories,
+                    )
                 }
-                pendingAction={xeroSettingsPendingAction([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], xeroConfig?.pendingFields)}
+                pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES], xeroConfig?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
             />

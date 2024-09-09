@@ -122,7 +122,10 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     }
                     return errors;
                 case CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING:
-                    return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.MAPPING]);
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
+                        errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+                    }
+                    return errors;
                 default:
                     return errors;
             }
@@ -140,7 +143,13 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     mapping: formValues[INPUT_IDS.MAPPING] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 },
             ]);
-            Connections.updateNetSuiteCustomSegments(policyID, updatedCustomSegments, customSegments);
+            Connections.updateNetSuiteCustomSegments(
+                policyID,
+                updatedCustomSegments,
+                customSegments,
+                `${CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}_${customSegments.length}`,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             nextScreen();
         },
         [customSegments, nextScreen, policyID],
@@ -204,8 +213,9 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                         submitButtonStyles={[styles.ph5, styles.mb0]}
                         shouldUseScrollView={!selectionListForm}
                         enabledWhenOffline
-                        isSubmitDisabled={!!config?.syncOptions?.pendingFields?.customSegments}
+                        isSubmitDisabled={!!config?.pendingFields?.customSegments}
                         submitFlexEnabled={submitFlexAllowed}
+                        shouldHideFixErrorsAlert={screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.MAPPING}
                     >
                         {renderSubStepContent}
                     </FormProvider>

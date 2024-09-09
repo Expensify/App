@@ -43,6 +43,7 @@ type MenuItem = {
     icon: IconAsset;
     text: string;
     onSelected: () => void;
+    shouldCallAfterModalHide?: boolean;
 };
 
 type AvatarWithImagePickerProps = {
@@ -259,7 +260,7 @@ function AvatarWithImagePicker({
      * Create menu items list for avatar menu
      */
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
-        const menuItems = [
+        const menuItems: MenuItem[] = [
             {
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
@@ -271,6 +272,7 @@ function AvatarWithImagePicker({
                         onPicked: showAvatarCropModal,
                     });
                 },
+                shouldCallAfterModalHide: true,
             },
         ];
 
@@ -307,14 +309,14 @@ function AvatarWithImagePicker({
 
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
+            if (disabled && enablePreview && onViewPhotoPress) {
+                onViewPhotoPress();
+                return;
+            }
             if (isUsingDefaultAvatar) {
                 openPicker({
                     onPicked: showAvatarCropModal,
                 });
-                return;
-            }
-            if (disabled && enablePreview && onViewPhotoPress) {
-                onViewPhotoPress();
                 return;
             }
             setIsMenuVisible((prev) => !prev);
@@ -349,6 +351,7 @@ function AvatarWithImagePicker({
                                             }
                                             onViewPhotoPress();
                                         },
+                                        shouldCallAfterModalHide: true,
                                     });
                                 }
 
@@ -365,7 +368,7 @@ function AvatarWithImagePicker({
                                             >
                                                 <PressableWithoutFeedback
                                                     onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                                    accessibilityRole={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                                                     disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                                                     disabledStyle={disabledStyle}

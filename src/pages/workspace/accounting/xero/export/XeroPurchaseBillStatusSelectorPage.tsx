@@ -52,9 +52,15 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
                 return;
             }
             if (row.value !== invoiceStatus) {
-                Connections.updatePolicyXeroConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
-                    billStatus: {...config?.export?.billStatus, purchase: row.value},
-                });
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    CONST.XERO_CONFIG.EXPORT,
+                    {
+                        billStatus: {...config?.export?.billStatus, purchase: row.value},
+                    },
+                    {billStatus: config?.export?.billStatus ?? null},
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID));
         },
@@ -75,7 +81,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            pendingAction={PolicyUtils.xeroSettingsPendingAction([CONST.XERO_CONFIG.BILL_STATUS], config?.pendingFields)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.BILL_STATUS], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.BILL_STATUS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.BILL_STATUS)}

@@ -9,7 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -27,7 +27,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const {config} = policy?.connections?.intacct ?? {};
-    const {export: exportConfiguration} = policy?.connections?.intacct?.config ?? {};
+    const {export: exportConfiguration, pendingFields} = policy?.connections?.intacct?.config ?? {};
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
@@ -67,7 +67,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportConfiguration?.exporter) {
-                updateSageIntacctExporter(policyID, row.value);
+                updateSageIntacctExporter(policyID, row.value, exportConfiguration?.exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
@@ -98,7 +98,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             title="workspace.sageIntacct.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            pendingAction={config?.pendingFields?.exporter}
+            pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.EXPORTER], pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
