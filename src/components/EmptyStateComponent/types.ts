@@ -18,6 +18,7 @@ type SharedProps<T> = {
     subtitle: string | JSX.Element;
     buttonText?: string;
     buttonAction?: () => void;
+    containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;

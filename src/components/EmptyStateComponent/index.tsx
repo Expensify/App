@@ -19,6 +19,7 @@ function EmptyStateComponent({
     headerMedia,
     buttonText,
     buttonAction,
+    containerStyles,
     title,
     titleStyles,
     subtitle,
@@ -78,7 +79,7 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}]}>
+        <ScrollView contentContainerStyle={[styles.emptyStateScrollView, {minHeight: minModalHeight}, containerStyles]}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled

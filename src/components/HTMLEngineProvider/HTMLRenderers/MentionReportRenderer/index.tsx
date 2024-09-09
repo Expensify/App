@@ -60,7 +60,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const {currentReportID: currentReportIDContext} = useContext(MentionReportContext);
 
     const currentReportID = useCurrentReportID();
-    const currentReportIDValue = currentReportIDContext ?? currentReportID?.currentReportID;
+    const currentReportIDValue = currentReportIDContext || currentReportID?.currentReportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue || -1}`);
 

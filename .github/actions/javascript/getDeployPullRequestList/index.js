@@ -11526,7 +11526,7 @@ async function isReleaseValidBaseForEnvironment(releaseTag, isProductionDeploy) 
     return !isPrerelease;
 }
 /**
- * Was a given platformDeploy workflow run successful on at least one platform?
+ * Was a given deploy workflow run successful on at least one platform?
  */
 async function wasDeploySuccessful(runID) {
     const jobsForWorkflowRun = (await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
@@ -11566,7 +11566,7 @@ async function run() {
         const isProductionDeploy = !!(0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+        const platformDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -11576,6 +11576,20 @@ async function run() {
             // Note: we filter out cancelled runs instead of looking only for success runs
             // because if a build fails on even one platform, then it will have the status 'failure'
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
+        const deploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            workflow_id: 'deploy.yml',
+            status: 'completed',
+        })).data.workflow_runs
+            // Note: we filter out cancelled runs instead of looking only for success runs
+            // because if a build fails on even one platform, then it will have the status 'failure'
+            .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
+        // W've combined platformDeploy.yml and deploy.yml
+        // TODO: Remove this once there are successful staging and production deploys using the new deploy.yml workflow
+        const completedDeploys = [...deploys, ...platformDeploys];
+        completedDeploys.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         // Find the most recent deploy workflow targeting the correct environment, for which at least one of the build jobs finished successfully
         let lastSuccessfulDeploy = completedDeploys.shift();
         if (!lastSuccessfulDeploy) {

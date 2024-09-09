@@ -95,6 +95,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
                     buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1')),
                 };
+            case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
