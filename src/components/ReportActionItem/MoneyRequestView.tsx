@@ -47,31 +47,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
-// type MoneyRequestViewTransactionOnyxProps = {
-//     /** Violations detected in this transaction */
-//     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
-// };
-
-// type MoneyRequestViewOnyxPropsWithoutTransaction = {
-//     /** The policy object for the current route */
-//     policy: OnyxEntry<OnyxTypes.Policy>;
-
-//     /** Collection of categories attached to a policy */
-//     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-//     /** Collection of tags attached to a policy */
-//     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-
-//     /** The expense report or iou report (only will have a value if this is a transaction thread) */
-//     parentReport: OnyxEntry<OnyxTypes.Report>;
-
-//     /** The actions from the parent report */
-//     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-//     /** The distance rates from the policy */
-//     distanceRates: Record<string, MileageRate>;
-// };
-
 type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -85,8 +60,6 @@ type MoneyRequestViewProps = {
     /** Updated transaction to show in duplicate transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
-
-// type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_REQUIRED,
@@ -115,10 +88,6 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
     return originalMessage?.IOUTransactionID ?? -1;
 };
 
-function isLoadingOnyxValue(...results: ResultMetadata[]): boolean {
-    return results.some((result) => result.status === 'loading');
-}
-
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction}: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -126,20 +95,21 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [parentReport, parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
         selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
     });
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
-    const [policyCategories, policyCategoriesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
-    const [policyTagList, policyTagListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`);
-    const [parentReportActions, parentReportActionsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report?.parentReportID : '-1'}`, {
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report?.parentReportID : '-1'}`, {
         canEvict: false,
     });
-    const [distanceRates = {}, distanceRatesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
+    const [distanceRates = {}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: () => DistanceRequestUtils.getMileageRates(policy, true),
     });
-    const [transactionViolations, transactionViolationsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
+
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -449,20 +419,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             </OfflineWithFeedback>
         );
     });
-
-    if (
-        isLoadingOnyxValue(
-            policyMetadata,
-            policyCategoriesMetadata,
-            policyTagListMetadata,
-            parentReportMetadata,
-            parentReportActionsMetadata,
-            distanceRatesMetadata,
-            transactionViolationsMetadata,
-        )
-    ) {
-        return null;
-    }
 
     return (
         <View style={styles.pRelative}>
