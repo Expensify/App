@@ -141,7 +141,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
             return baseMenuItem;
         },
-        [hash, savedSearches, styles, getOverflowMenu, prevSavedSearchesLength],
+        [hash, savedSearches, styles, getOverflowMenu, prevSavedSearchesLength, translate],
     );
 
     const savedSearchesMenuItems = useMemo(() => {
