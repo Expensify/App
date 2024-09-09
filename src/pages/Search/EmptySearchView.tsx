@@ -114,16 +114,9 @@ function EmptySearchView({type}: EmptySearchViewProps) {
 
     return (
         <EmptyStateComponent
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...content}
             SkeletonComponent={SearchRowSkeleton}
-            headerMediaType={content.headerMediaType}
-            headerMedia={content.headerMedia}
-            headerStyles={content.headerStyles}
-            headerContentStyles={content.headerContentStyles}
-            title={content.title}
-            subtitle={content.subtitle}
-            titleStyles={content.titleStyles}
-            buttonText={content.buttonText}
-            buttonAction={content.buttonAction}
         />
     );
 }
