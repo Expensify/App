@@ -735,15 +735,8 @@ const unavailableTranslation = Localize.translateLocal('workspace.common.unavail
  */
 function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-
-    // Ensure policies and report are fully loaded before proceeding.
-    // On initial login, they may be partially loaded, so additional checks are necessary to prevent unexpected behavior.
-    if (isEmptyObject(report) || !report.reportID || isEmptyObject(allPolicies)) {
+    if (isEmptyObject(report) || (isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
-    }
-
-    if (isEmptyObject(allPolicies) && !report?.policyName) {
-        return unavailableTranslation;
     }
 
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
