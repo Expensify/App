@@ -104,11 +104,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
         );
 
-        const currentUserSelected = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
-
         newSections.push(formattedResults.section);
 
         if (chatOptions.currentUserOption) {
+            const currentUserSelected = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
             const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
             if (!currentUserSelected) {
                 newSections.push({
