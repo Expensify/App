@@ -102,7 +102,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
             const inputQuery = queryJSON.inputQuery ?? '';
             return SearchUtils.getOverflowMenu(itemName, hash, inputQuery, showDeleteModal, true, closeMenu);
         },
-        [queryJSON, showDeleteModal],
+        [queryJSON, showDeleteModal, closeMenu],
     );
 
     const allMenuItems = useMemo(() => {
@@ -119,14 +119,15 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
                     text: item.title ?? '',
                     styles: [styles.textSupporting],
                     onSelected: (event: GestureResponderEvent | KeyboardEvent) => {
-                        if (item.onPress) {
-                            item.onPress(event);
+                        if (!item.onPress) {
+                            return;
                         }
+                        item.onPress(event);
                     },
                     shouldShowRightComponent: true,
                     rightComponent: (
                         <ThreeDotsMenu
-                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), )}
+                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''))}
                             anchorPosition={{horizontal: 0, vertical: 380}}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -138,7 +139,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
             );
         }
         return [...items, ...newItems];
-    }, [popoverMenuItems, savedSearchesMenuItems, translate, closeMenu, getOverflowMenu, styles.textSupporting]);
+    }, [popoverMenuItems, savedSearchesMenuItems, translate, getOverflowMenu, styles.textSupporting]);
 
     return (
         <View style={[styles.pb4, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>

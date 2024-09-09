@@ -168,6 +168,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Star from '@assets/images/star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
@@ -192,7 +193,6 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
-import Star from '@assets/images/star.svg';
 
 export {
     ActiveRoomAvatar,

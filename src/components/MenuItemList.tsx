@@ -3,9 +3,9 @@ import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-nati
 import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
-import IconAsset from '@src/types/utils/IconAsset';
 
 type MenuItemLink = string | (() => Promise<string>);
 
@@ -37,7 +37,15 @@ type MenuItemListProps = {
     isPaneMenu?: boolean;
 };
 
-function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined, isPaneMenu = false}: MenuItemListProps) {
+function MenuItemList({
+    menuItems = [],
+    shouldUseSingleExecution = false,
+    wrapperStyle = {},
+    icon = undefined,
+    iconWidth = undefined,
+    iconHeight = undefined,
+    isPaneMenu = false,
+}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
 

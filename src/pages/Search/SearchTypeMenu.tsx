@@ -152,7 +152,7 @@ function SearchTypeMenu({queryJSON, isCustomQuery}: SearchTypeMenuProps) {
                         wrapperStyle={styles.sectionMenuItem}
                         icon={Expensicons.Star}
                         iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}                        
+                        iconHeight={variables.iconSizeNormal}
                         shouldUseSingleExecution
                         isPaneMenu
                     />
