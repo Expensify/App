@@ -1,18 +1,29 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
+import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type ReportActionName from './ReportActionName';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? typeof TransactionListItem : typeof ReportListItem;
+type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+    ? typeof ChatListItem
+    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+    ? typeof TransactionListItem
+    : typeof ReportListItem;
 
 /** Model of search list item data type */
-type ListItemDataType<T extends SearchStatus> = T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL ? TransactionListItemType[] : ReportListItemType[];
+type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+    ? ReportActionListItemType[]
+    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+    ? TransactionListItemType[]
+    : ReportListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -96,6 +107,39 @@ type SearchReport = {
 
     /** The action that can be performed for the report */
     action?: SearchTransactionAction;
+};
+
+/** Model of report action search result */
+type SearchReportAction = {
+    /** The report action sender ID */
+    accountID: number;
+
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
+
+    /** The report action created date */
+    created: string;
+
+    /** report action message */
+    message: Array<{
+        /** The type of the action item fragment. Used to render a corresponding component */
+        type: string;
+
+        /** The text content of the fragment. */
+        text: string;
+
+        /** The html content of the fragment. */
+        html: string;
+
+        /** Collection of accountIDs of users mentioned in message */
+        whisperedTo?: number[];
+    }>;
+
+    /** The ID of the report action */
+    reportActionID: string;
+
+    /** The ID of the report */
+    reportID: string;
 };
 
 /** Model of transaction search result */
@@ -212,13 +256,23 @@ type SearchTransaction = {
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
+/**
+ * A utility type that creates a record where all keys are strings that start with a specified prefix.
+ */
+type PrefixedRecord<Prefix extends string, ValueType> = {
+    [Key in `${Prefix}${string}`]: ValueType;
+};
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
     search: SearchResultsInfo;
 
     /** Search results data */
-    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchReport>;
+    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -226,4 +280,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport};
+export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport, SearchReportAction};
