@@ -11,6 +11,8 @@ As a workspace admin, you can set an approval workflow for the expenses submitte
 
 **Setting approval workflow and submission frequencies**
 
+Approval workflow settings and submission frequencies can be set in the Workflow settings of your workspace. 
+
 # Manually approve expense
 
 When someone sends an expense or a group of expenses to you for approval, you’ll receive the expense in Expensify Chat for the related workspace. Chats with new updates appear with a green dot to the right of the chat message. Concierge also sends you an email notification for the new expense.

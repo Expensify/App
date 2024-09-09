@@ -135,7 +135,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -173,7 +173,7 @@ function ReportActionCompose({
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
+        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -572,7 +572,7 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
