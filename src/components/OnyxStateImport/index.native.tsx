@@ -10,41 +10,10 @@ import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import transformNumericKeysToArray from './utils';
 
 // List of Onyx keys from the .txt file we want to omit for the local override
 const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.BETAS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.SESSION];
-
-function transformNumericKeysToArray(obj: unknown): unknown {
-    if (typeof obj !== 'object' || obj === null) {
-        return obj;
-    }
-
-    if (Array.isArray(obj)) {
-        return obj.map(transformNumericKeysToArray);
-    }
-
-    const keys = Object.keys(obj);
-    const length = keys.length;
-    let allKeysAreNumericAndSequential = true;
-
-    for (let i = 0; i < length; i++) {
-        const key = keys[i];
-        if (parseInt(key, 10) !== i) {
-            allKeysAreNumericAndSequential = false;
-            break;
-        }
-    }
-
-    if (allKeysAreNumericAndSequential) {
-        return keys.map((key) => transformNumericKeysToArray(obj[key]));
-    }
-
-    for (const key of keys) {
-        obj[key] = transformNumericKeysToArray(obj[key]);
-    }
-
-    return obj;
-}
 
 function readFileInChunks(fileUri: string, chunkSize = 1024 * 1024) {
     console.log('File URI:', fileUri); // Log the file URI
