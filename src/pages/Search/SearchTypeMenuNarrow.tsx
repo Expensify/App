@@ -100,7 +100,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
     const getOverflowMenu = useCallback(
         (itemName: string, hash: number) => {
             const inputQuery = queryJSON.inputQuery ?? '';
-            return SearchUtils.getOverflowMenu(itemName, hash, inputQuery, showDeleteModal);
+            return SearchUtils.getOverflowMenu(itemName, hash, inputQuery, showDeleteModal, true, closeMenu);
         },
         [queryJSON, showDeleteModal],
     );
@@ -122,12 +122,11 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, title, handleSave
                         if (item.onPress) {
                             item.onPress(event);
                         }
-                        closeMenu();
                     },
                     shouldShowRightComponent: true,
                     rightComponent: (
                         <ThreeDotsMenu
-                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''))}
+                            menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), )}
                             anchorPosition={{horizontal: 0, vertical: 380}}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
