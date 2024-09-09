@@ -125,8 +125,6 @@ function DetailsStep() {
         }
     };
 
-    const titleByProvider = CompanyCardUtils.getTranslationKeyForFeedDetails(feedProvider);
-
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
@@ -142,7 +140,9 @@ function DetailsStep() {
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{titleByProvider ? translate(titleByProvider) : ''}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
+                    {feedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                </Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
                     submitButtonText={translate('common.submit')}
