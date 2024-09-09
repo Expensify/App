@@ -43,6 +43,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}),
         },
         {
+            title: translate('common.chats'),
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.TRIP.ALL)}),
+        },
+        {
             title: translate('workspace.common.invoices'),
             type: CONST.SEARCH.DATA_TYPES.INVOICE,
             icon: Expensicons.InvoiceGeneric,

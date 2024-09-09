@@ -28,7 +28,8 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus;
+type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
+type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -41,7 +42,7 @@ type SearchContext = {
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
-    right: string | ASTNode;
+    right: string | ASTNode | string[];
 };
 
 type QueryFilter = {
@@ -88,4 +89,5 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
+    ChatSearchStatus,
 };

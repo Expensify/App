@@ -43,11 +43,13 @@ type AmountFormProps = {
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
+    /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
-    Pick<BaseTextInputProps, 'autoFocus'>;
+    Pick<BaseTextInputProps, 'autoFocus' | 'hasError'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -67,7 +69,6 @@ function AmountForm(
         currency = CONST.CURRENCY.USD,
         extraDecimals = 0,
         amountMaxLength,
-        errorText,
         onInputChange,
         onCurrencyButtonPress,
         displayAsTextInput = false,
@@ -296,11 +297,11 @@ function AmountForm(
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
-                {!!errorText && (
+                {!!rest.errorText && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
-                        message={errorText}
+                        message={rest.errorText}
                     />
                 )}
             </View>
