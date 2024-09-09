@@ -135,7 +135,7 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
-    const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all';
+    const DEFAULT_SAVE_SEARCH_QUERY_STRING = 'type:expense status:all sortBy:date sortOrder:desc';
 
     const advancedFilters = useMemo(
         () => [
