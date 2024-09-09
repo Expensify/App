@@ -992,6 +992,10 @@ function getDomainNameForPolicy(policyID?: string): string {
     return `${CONST.EXPENSIFY_POLICY_DOMAIN}${policyID}${CONST.EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
 }
 
+function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1100,6 +1104,7 @@ export {
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getDomainNameForPolicy,
+    getWorkflowApprovalsUnavailable,
 };
 
 export type {MemberEmailsToAccountIDs};
