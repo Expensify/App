@@ -89,7 +89,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     if (tnode.attributes.islarge === undefined) {
                         return;
                     }
-                    return styles.onlyEmojisBlockquoteLineHeight;
+                    return styles.onlyEmojisTextLineHeight;
                 },
             }),
         }),
@@ -102,7 +102,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSupporting,
             styles.textLineThrough,
             styles.mutedNormalTextLabel,
-            styles.onlyEmojisBlockquoteLineHeight,
+            styles.onlyEmojisTextLineHeight,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
