@@ -7240,7 +7240,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
     );
 }
 
-function getAllAncestorReportActions(report: Report | null | undefined): Ancestor[] {
+function getAllAncestorReportActions(report: Report | null | undefined, currentUpdatedReport?: OnyxEntry<Report>): Ancestor[] {
     if (!report) {
         return [];
     }
@@ -7249,7 +7249,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
     let parentReportActionID = report.parentReportActionID;
 
     while (parentReportID) {
-        const parentReport = getReportOrDraftReport(parentReportID);
+        const parentReport = currentUpdatedReport && currentUpdatedReport.reportID === parentReportID ? currentUpdatedReport : getReportOrDraftReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
 
         if (
