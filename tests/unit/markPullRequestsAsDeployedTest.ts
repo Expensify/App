@@ -73,6 +73,10 @@ const defaultTags = [
 
 function mockGetInputDefaultImplementation(key: string): boolean | string {
     switch (key) {
+        case 'DATE':
+            return '';
+        case 'DEPLOYER_LOGIN':
+            return '';
         case 'PR_LIST':
             return JSON.stringify(Object.keys(PRList));
         case 'IS_PRODUCTION_DEPLOY':
