@@ -12,7 +12,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
-const ESH_PARTICIPANT_ANNOUNCE_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_ADMINS_ROOM: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const ESH_PARTICIPANT_EXPENSE_CHAT = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 const WORKSPACE_NAME = "Esh's Workspace";
@@ -74,7 +73,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Three reports should be created: #announce, #admins and expense report
+            // Two reports should be created: #admins and expense report
             const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
             expect(workspaceReports.length).toBe(2);
             workspaceReports.forEach((report) => {
