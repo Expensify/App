@@ -1821,10 +1821,11 @@ const CONST = {
     MISSING_PERSONAL_DETAILS_INDEXES: {
         MAPPING: {
             LEGAL_NAME: 0,
-            ADDRESS: 1,
-            PHONE_NUMBER: 2,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
         },
-        INDEX_LIST: ['1', '2', '3'],
+        INDEX_LIST: ['1', '2', '3', '4'],
     },
 
     ACCOUNT_ID: {

@@ -1657,6 +1657,7 @@ export default {
     },
     privatePersonalDetails: {
         enterLegalName: 'Enter legal name',
+        enterDateOfBirth: 'Enter date of birth',
         enterAddress: 'Enter address',
         addPhoneNumber: 'Add phone number',
         personalDetails: 'Datos personales',

@@ -85,7 +85,7 @@ function AddressStep({privatePersonalDetails}: CustomSubStepProps) {
                         handleAddressChange(data, key);
                     }}
                     defaultValue={street1}
-                    containerStyles={styles.mt6}
+                    containerStyles={styles.mt3}
                     renamedInputKeys={{
                         street: INPUT_IDS.ADDRESS_LINE_1,
                         street2: INPUT_IDS.ADDRESS_LINE_2,

@@ -22,11 +22,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import Address from './substeps/Address';
+import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CountryZipRegex, CustomSubStepProps} from './types';
 
-const formSteps = [LegalName, Address, PhoneNumber];
+const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
 
 function MissingPersonalDetails() {
     const styles = useThemeStyles();
@@ -54,7 +55,7 @@ function MissingPersonalDetails() {
             return;
         }
 
-        // Clicking back on the first screen should go back to listing
+        // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
             Navigation.goBack();
             return;
@@ -102,6 +103,15 @@ function MissingPersonalDetails() {
                     }
                     if (ValidationUtils.doesContainReservedWord(values[INPUT_IDS.LEGAL_LAST_NAME], CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                         ErrorUtils.addErrorMessage(errors, INPUT_IDS.LEGAL_LAST_NAME, translate('personalDetails.error.containsReservedWord'));
+                    }
+                    return errors;
+                case CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.DATE_OF_BIRTH:
+                    if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.DATE_OF_BIRTH])) {
+                        errors[INPUT_IDS.DATE_OF_BIRTH] = translate('common.error.fieldRequired');
+                    } else if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DATE_OF_BIRTH]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DATE_OF_BIRTH])) {
+                        errors[INPUT_IDS.DATE_OF_BIRTH] = translate('bankAccount.error.dob');
+                    } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DATE_OF_BIRTH])) {
+                        errors[INPUT_IDS.DATE_OF_BIRTH] = translate('bankAccount.error.age');
                     }
                     return errors;
                 case CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.ADDRESS:

@@ -5,6 +5,7 @@ import type Form from './Form';
 const INPUT_IDS = {
     LEGAL_FIRST_NAME: 'legalFirstName',
     LEGAL_LAST_NAME: 'legalLastName',
+    DATE_OF_BIRTH: 'dob',
     ADDRESS_LINE_1: 'addressLine1',
     ADDRESS_LINE_2: 'addressLine2',
     COUNTRY: 'country',
@@ -21,6 +22,7 @@ type PersonalDetailsForm = Form<
     {
         [INPUT_IDS.LEGAL_FIRST_NAME]: string;
         [INPUT_IDS.LEGAL_LAST_NAME]: string;
+        [INPUT_IDS.DATE_OF_BIRTH]: string;
         [INPUT_IDS.ADDRESS_LINE_1]: string;
         [INPUT_IDS.ADDRESS_LINE_2]: string;
         [INPUT_IDS.COUNTRY]: Country | '';
