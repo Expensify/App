@@ -10,6 +10,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import { FallbackAvatar } from '@components/Icon/Expensicons';
 
 type WorkspacesListRowProps = {
     /** The last four digits of the card */
@@ -38,7 +39,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency}: 
         <View style={[styles.flexRow, styles.gap5, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.flex5, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={getDefaultAvatarURL(cardholder?.accountID)}
+                    source={cardholder?.avatar ?? FallbackAvatar} 
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
