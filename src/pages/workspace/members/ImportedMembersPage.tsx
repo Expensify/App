@@ -123,6 +123,12 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         return;
     }
 
+    const closeImportPageAndModal = () => {
+        setIsImporting(false);
+        closeImportPage();
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
+
     return (
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
@@ -147,11 +153,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={() => {
-                    setIsImporting(false);
-                    closeImportPage();
-                    Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-                }}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
