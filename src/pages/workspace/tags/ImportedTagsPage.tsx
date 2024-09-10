@@ -28,6 +28,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -88,23 +89,33 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         const tagsNames = spreadsheet?.data[tagsNamesColumn].map((name) => name);
         const tagsEnabled = tagsEnabledColumn !== -1 ? spreadsheet?.data[tagsEnabledColumn].map((enabled) => enabled) : [];
         const tagsGLCode = tagsGLCodeColumn !== -1 ? spreadsheet?.data[tagsGLCodeColumn].map((glCode) => glCode) : [];
-        const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => ({
-            name,
-            enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'GL Code': tagsGLCodeColumn !== -1 ? tagsGLCode?.[containsHeader ? index + 1 : index] : '',
-        }));
+        const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
+            const tagAlreadyExists = policyTags?.[name];
+            const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
+            return {
+                name,
+                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'GL Code': tagsGLCodeColumn !== -1 ? tagsGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
+            };
+        });
 
         if (tags) {
             setIsImportingTags(true);
             importPolicyTags(policyID, tags);
         }
-    }, [validate, spreadsheet, containsHeader, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyTags, policyID]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
         return;
     }
+
+    const closeImportPageAndModal = () => {
+        setIsImportingTags(false);
+        closeImportPage();
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
 
     return (
         <ScreenWrapper
@@ -129,11 +140,8 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={() => {
-                    setIsImportingTags(false);
-                    closeImportPage();
-                    Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-                }}
+                onConfirm={closeImportPageAndModal}
+                onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
