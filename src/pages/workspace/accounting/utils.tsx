@@ -257,7 +257,6 @@ function getSynchronizationErrorMessage(
     translate: LocaleContextProps['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
-    
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
