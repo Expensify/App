@@ -2214,7 +2214,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCurrencies(currency?: string) {
+function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
     if (!currency) {
         return [];
     }
@@ -3999,7 +3999,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
-    buildOptimisticPolicyRecentlyUsedCurrencies,
+    buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
