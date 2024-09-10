@@ -509,7 +509,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
     isOneOnOneSplit = false,
     existingTransactionThreadReportID?: string,
-    optimisticPolicyRecentlyUsedCurrencies?: string[],
+    optimisticRecentlyUsedCurrencies?: string[],
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
@@ -635,11 +635,11 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (optimisticPolicyRecentlyUsedCurrencies?.length) {
+    if (optimisticRecentlyUsedCurrencies?.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            value: optimisticPolicyRecentlyUsedCurrencies,
+            value: optimisticRecentlyUsedCurrencies,
         });
     }
 
@@ -921,7 +921,7 @@ function buildOnyxDataForInvoice(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    optimisticPolicyRecentlyUsedCurrencies?: string[],
+    optimisticRecentlyUsedCurrencies?: string[],
     companyName?: string,
     companyWebsite?: string,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
@@ -1012,11 +1012,11 @@ function buildOnyxDataForInvoice(
         });
     }
 
-    if (optimisticPolicyRecentlyUsedCurrencies?.length) {
+    if (optimisticRecentlyUsedCurrencies?.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            value: optimisticPolicyRecentlyUsedCurrencies,
+            value: optimisticRecentlyUsedCurrencies,
         });
     }
 
@@ -1908,7 +1908,7 @@ function getSendInvoiceInformation(
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
-    const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
@@ -1962,7 +1962,7 @@ function getSendInvoiceInformation(
         policy,
         policyTagList,
         policyCategories,
-        optimisticPolicyRecentlyUsedCurrencies,
+        optimisticRecentlyUsedCurrencies,
         companyName,
         companyWebsite,
     );
@@ -2686,12 +2686,12 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used currencies if the category is changed
     if ('currency' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
-        if (optimisticPolicyRecentlyUsedCurrencies.length) {
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
+        if (optimisticRecentlyUsedCurrencies.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-                value: optimisticPolicyRecentlyUsedCurrencies,
+                value: optimisticRecentlyUsedCurrencies,
             });
         }
     }
@@ -4253,7 +4253,7 @@ function createSplitsAndOnyxData(
         // Add category to optimistic policy recently used categories when a participant is a workspace
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
@@ -4280,7 +4280,7 @@ function createSplitsAndOnyxData(
             null,
             true,
             undefined,
-            optimisticPolicyRecentlyUsedCurrencies,
+            optimisticRecentlyUsedCurrencies,
         );
 
         const individualSplit = {
@@ -4747,7 +4747,7 @@ function startSplitBill({
 
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
@@ -4757,11 +4757,11 @@ function startSplitBill({
             });
         }
 
-        if (optimisticPolicyRecentlyUsedCurrencies.length > 0) {
+        if (optimisticRecentlyUsedCurrencies.length > 0) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-                value: optimisticPolicyRecentlyUsedCurrencies,
+                value: optimisticRecentlyUsedCurrencies,
             });
         }
 
@@ -5351,12 +5351,12 @@ function editRegularMoneyRequest(
 
     // Update recently used currencies if the category is changed
     if ('currency' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
-        if (optimisticPolicyRecentlyUsedCurrencies.length) {
+        const optimisticRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
+        if (optimisticRecentlyUsedCurrencies.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-                value: optimisticPolicyRecentlyUsedCurrencies,
+                value: optimisticRecentlyUsedCurrencies,
             });
         }
     }
