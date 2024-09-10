@@ -140,7 +140,7 @@ const ROUTES = {
         getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
     },
     SETTINGS_UPDATE_DELEGATE_ROLE: {
-        route: 'settings/security/delegate/:login/update-role/:role',
+        route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
