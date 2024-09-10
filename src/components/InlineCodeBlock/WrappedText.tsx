@@ -3,11 +3,11 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import variables from '@styles/variables';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -50,7 +50,7 @@ function splitLongWord(word: string, maxLength: number): string[] {
         return [word];
     }
 
-    return word.match(new RegExp(`.{1,${maxLength}}`, 'g')) || [];
+    return word.match(new RegExp(`.{1,${maxLength}}`, 'g')) ?? [];
 }
 
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
