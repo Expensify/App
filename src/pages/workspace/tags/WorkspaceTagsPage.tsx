@@ -293,7 +293,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const menuItems = [
             {
                 icon: Expensicons.Table,
-                text: translate('common.importSpreadsheet'),
+                text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);

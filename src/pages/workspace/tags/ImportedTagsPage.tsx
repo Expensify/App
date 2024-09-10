@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
@@ -90,7 +92,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         const tagsEnabled = tagsEnabledColumn !== -1 ? spreadsheet?.data[tagsEnabledColumn].map((enabled) => enabled) : [];
         const tagsGLCode = tagsGLCodeColumn !== -1 ? spreadsheet?.data[tagsGLCodeColumn].map((glCode) => glCode) : [];
         const tags = tagsNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
-            const tagAlreadyExists = policyTags?.[name];
+            const tagAlreadyExists = policyTagLists[0]?.tags?.[name];
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
@@ -104,7 +106,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             setIsImportingTags(true);
             importPolicyTags(policyID, tags);
         }
-    }, [validate, spreadsheet, containsHeader, policyTags, policyID]);
+    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
