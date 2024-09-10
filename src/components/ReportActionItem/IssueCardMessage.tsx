@@ -16,13 +16,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
+
+    policyID: string | undefined;
 };
 
 type IssueNewCardOriginalMessage = OriginalMessage<
     typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
 >;
 
-function IssueCardMessage({action}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -59,7 +61,12 @@ function IssueCardMessage({action}: IssueCardMessageProps) {
             <RenderHTML html={`<muted-text>${getTranslation()}</muted-text>`} />
             {shouldShowDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(policyID));
+                    }}
                     success
                     medium
                     style={[styles.alignSelfStart, styles.mt3]}

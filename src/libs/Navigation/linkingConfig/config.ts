@@ -1120,7 +1120,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
-                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
+                        [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS.route,
                     },
                 },
             },

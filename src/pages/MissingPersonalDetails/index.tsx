@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useRef} from 'react';
 import type {ForwardedRef} from 'react';
@@ -16,10 +17,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import Address from './substeps/Address';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -27,9 +30,15 @@ import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CountryZipRegex, CustomSubStepProps} from './types';
 
+type MissingPersonalDetailsProps = StackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.MISSING_PERSONAL_DETAILS_ROOT>;
+
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber];
 
-function MissingPersonalDetails() {
+function MissingPersonalDetails({
+    route: {
+        params: {policyID},
+    },
+}: MissingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
@@ -160,10 +169,10 @@ function MissingPersonalDetails() {
     const updatePersonalDetails = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
             // TODO: Implement the updatePersonalDetails function
-            console.log('updatePersonalDetails', formValues);
+            console.log('updatePersonalDetails', formValues, policyID);
             nextScreen();
         },
-        [nextScreen],
+        [nextScreen, policyID],
     );
 
     return (
