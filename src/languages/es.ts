@@ -3902,6 +3902,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' y ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('del flujo', 'de los flujos', submittersNames.length);
+            const chatWord = Str.pluralize('del chat', 'de los chats', submittersNames.length);
+            return `te eliminó ${workflowWord} de trabajo de aprobaciones y ${chatWord} del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

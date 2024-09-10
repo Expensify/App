@@ -3851,6 +3851,19 @@ export default {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames[0];
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' and ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames[submittersNames.length - 1]}`;
+            }
+            const workflowWord = Str.pluralize('workflow', 'workflows', submittersNames.length);
+            const chatWord = Str.pluralize('chat', 'chats', submittersNames.length);
+            return `removed you from ${joinedNames}'s approval ${workflowWord} and workspace ${chatWord}. Previously submitted reports will remain available for approval in your Inbox.`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
