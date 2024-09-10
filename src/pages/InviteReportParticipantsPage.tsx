@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type InviteReportParticipantsPageOnyxProps = {
     /** All of the personal details for everyone */
@@ -47,6 +48,11 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
@@ -200,7 +206,10 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
             <FormAlertWithSubmitButton
                 isDisabled={!selectedOptions.length}
                 buttonText={translate('common.invite')}
-                onSubmit={inviteUsers}
+                onSubmit={() => {
+                    SearchInputManager.searchInput = '';
+                    inviteUsers();
+                }}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
@@ -228,7 +237,10 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 ListItem={InviteMemberListItem}
                 textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
+                onChangeText={(value) => {
+                    SearchInputManager.searchInput = value;
+                    setSearchTerm(value);
+                }}
                 headerMessage={headerMessage}
                 onSelectRow={toggleOption}
                 onConfirm={inviteUsers}

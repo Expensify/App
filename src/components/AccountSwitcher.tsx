@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -50,7 +51,7 @@ function AccountSwitcher() {
         const error = Object.values(errors ?? {})[0] ?? '';
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
-            description: personalDetails?.login,
+            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? -1,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -163,7 +164,7 @@ function AccountSwitcher() {
                             numberOfLines={1}
                             style={[styles.colorMuted, styles.fontSizeLabel]}
                         >
-                            {currentUserPersonalDetails?.login}
+                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                         </Text>
                     </View>
                 </View>
