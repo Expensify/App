@@ -995,6 +995,9 @@ type NetSuiteConnection = {
     /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
+
     /** Where did the connection's last sync came from */
     source: JobSourceValues;
 

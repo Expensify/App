@@ -307,9 +307,6 @@ function hasSynchronizationErrorMessage(policy: OnyxEntry<Policy>, connectionNam
 }
 
 function isAuthenticationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return false;
-    }
     const connection = policy?.connections?.[connectionName];
     return connection?.lastSync?.isAuthenticationError === true;
 }
