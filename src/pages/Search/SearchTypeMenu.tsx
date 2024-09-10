@@ -181,7 +181,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 activeItemIndex={activeItemIndex}
                 title={title}
                 savedSearchesMenuItems={savedSearchesMenuItems()}
-                queryJSON={queryJSON}
             />
         );
     }
