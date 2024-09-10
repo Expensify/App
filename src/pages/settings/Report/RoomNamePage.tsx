@@ -42,10 +42,11 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
+    const reportID = report?.reportID ?? '-1';
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', route.params.backTo));
-    }, [report?.reportID, route.params.backTo]);
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo));
+    }, [reportID, route.params.backTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
