@@ -1,8 +1,10 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
+    SetMissingPersonalDetailsAndShipExpensifyCardParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
@@ -425,6 +427,48 @@ function clearAvatarErrors() {
     });
 }
 
+function updatePersonalDetailsAndShipExpensifyCard(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, cardID: number) {
+    const parameters: SetMissingPersonalDetailsAndShipExpensifyCardParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: values.phoneNumber?.trim() ?? '',
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: values.state.trim(),
+        dob: values.dob,
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_MISSING_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARD, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    addresses: [
+                        ...(privatePersonalDetails?.addresses ?? []),
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(parameters.addressStreet, parameters.addressStreet2),
+                            city: parameters.addressCity,
+                            state: parameters.addressState,
+                            zip: parameters.addressZip,
+                            country: parameters.addressCountry as Country | '',
+                            current: true,
+                        },
+                    ],
+                    legalFirstName: parameters.legalFirstName,
+                    legalLastName: parameters.legalLastName,
+                    dob: parameters.dob,
+                    phoneNumber: parameters.phoneNumber,
+                },
+            },
+        ],
+    });
+}
+
 export {
     clearAvatarErrors,
     deleteAvatar,
@@ -438,4 +482,5 @@ export {
     updateLegalName,
     updatePronouns,
     updateSelectedTimezone,
+    updatePersonalDetailsAndShipExpensifyCard,
 };

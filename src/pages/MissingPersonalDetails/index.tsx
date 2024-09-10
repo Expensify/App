@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -20,6 +20,7 @@ import * as PhoneNumberUtils from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -38,6 +39,9 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const firstCardNotIssued = useMemo(() => Object.values(cardsList ?? {}).find((card) => card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED), [cardsList]);
 
     const handleFinishStep = useCallback(() => {
         Navigation.goBack();
@@ -163,11 +167,10 @@ function MissingPersonalDetails({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     const updatePersonalDetails = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-            // TODO: Implement the updatePersonalDetails function
-            console.log('updatePersonalDetails', formValues, cardsList);
+            PersonalDetails.updatePersonalDetailsAndShipExpensifyCard(formValues, firstCardNotIssued?.cardID ?? 0);
             nextScreen();
         },
-        [nextScreen, cardsList],
+        [nextScreen, firstCardNotIssued],
     );
 
     return (
