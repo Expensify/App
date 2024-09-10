@@ -4,7 +4,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUtils from '@libs/SearchUtils';
+import Permissions from '@libs/Permissions';
 import {useSearchRouterContext} from './SearchRouterContext';
 
 function SearchButton() {
@@ -12,7 +12,7 @@ function SearchButton() {
     const theme = useTheme();
     const {toggleSearchRouter} = useSearchRouterContext();
 
-    if (!SearchUtils.shouldDisplayNewSearchRouter()) {
+    if (!Permissions.canUseNewSearchRouter()) {
         return;
     }
 
