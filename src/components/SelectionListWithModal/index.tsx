@@ -1,16 +1,15 @@
-import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {forwardRef, useEffect, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
@@ -24,8 +23,10 @@ function SelectionListWithModal<TItem extends ListItem>(
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
+    // See https://github.com/Expensify/App/issues/48675 for more details
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectionMode} = useMobileSelectionMode(true);
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
@@ -62,8 +63,6 @@ function SelectionListWithModal<TItem extends ListItem>(
             onTurnOnSelectionMode(longPressedItem);
         }
     };
-
-    useEffect(() => turnOffMobileSelectionMode(), []);
 
     return (
         <>

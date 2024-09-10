@@ -429,6 +429,10 @@ export default {
         paddingVertical: 20,
     },
 
+    pv6: {
+        paddingVertical: 24,
+    },
+
     pv10: {
         paddingVertical: 40,
     },
@@ -547,6 +551,10 @@ export default {
 
     pl6: {
         paddingLeft: 24,
+    },
+
+    pt9: {
+        paddingTop: 36,
     },
 
     pl10: {

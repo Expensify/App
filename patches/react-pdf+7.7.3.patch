@@ -1,3 +1,15 @@
+diff --git a/node_modules/react-pdf/dist/cjs/Document.js b/node_modules/react-pdf/dist/cjs/Document.js
+index 9bb0398..032d898 100644
+--- a/node_modules/react-pdf/dist/cjs/Document.js
++++ b/node_modules/react-pdf/dist/cjs/Document.js
+@@ -289,6 +289,7 @@ const Document = (0, react_1.forwardRef)(function Document(_a, ref) {
+             pdfDispatch({ type: 'REJECT', error });
+         });
+         return () => {
++            loadingTask._worker.destroy();
+             loadingTask.destroy();
+         };
+     }
 diff --git a/node_modules/react-pdf/dist/esm/Document.js b/node_modules/react-pdf/dist/esm/Document.js
 index b1c5a81..569769e 100644
 --- a/node_modules/react-pdf/dist/esm/Document.js

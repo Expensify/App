@@ -196,7 +196,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             isWaitingOnBankAccount: reportOnyx?.isWaitingOnBankAccount,
             iouReportID: reportOnyx?.iouReportID,
             isOwnPolicyExpenseChat: reportOnyx?.isOwnPolicyExpenseChat,
-            notificationPreference: reportOnyx?.notificationPreference,
             isPinned: reportOnyx?.isPinned,
             chatReportID: reportOnyx?.chatReportID,
             visibility: reportOnyx?.visibility,
@@ -209,6 +208,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             avatarUrl: reportOnyx?.avatarUrl,
             permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
+            policyAvatar: reportOnyx?.policyAvatar,
         }),
         [
             reportOnyx?.lastReadTime,
@@ -239,7 +239,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.isWaitingOnBankAccount,
             reportOnyx?.iouReportID,
             reportOnyx?.isOwnPolicyExpenseChat,
-            reportOnyx?.notificationPreference,
             reportOnyx?.isPinned,
             reportOnyx?.chatReportID,
             reportOnyx?.visibility,
@@ -251,6 +250,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             reportOnyx?.avatarUrl,
             permissions,
             reportOnyx?.invoiceReceiver,
+            reportOnyx?.policyAvatar,
         ],
     );
 
@@ -522,10 +522,9 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     useEffect(() => {
         // Call OpenReport only if we are not linking to a message or the report is not available yet
-        if (isLoadingReportOnyx || (reportActionIDFromRoute && report.reportID && isLinkedMessagePageReady)) {
+        if (isLoadingReportOnyx || reportActionIDFromRoute) {
             return;
         }
-
         fetchReportIfNeeded();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isLoadingReportOnyx]);
@@ -549,7 +548,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             !isFocused ||
             prevIsFocused ||
             !ReportUtils.isChatThread(report) ||
-            report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
+            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
             isSingleTransactionView
         ) {
             return;
@@ -559,7 +558,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report.notificationPreference, isFocused, isSingleTransactionView]);
+    }, [prevIsFocused, report.participants, isFocused, isSingleTransactionView]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.

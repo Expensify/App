@@ -18,6 +18,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import type {PolicyTagLists} from '@src/types/onyx';
@@ -39,15 +40,19 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName));
+    }, [orderWeight, route.params.policyID, tagName]);
+
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            Navigation.dismissModal();
+            goBack();
         },
-        [glCode, route.params.policyID, tagName, orderWeight],
+        [glCode, route.params.policyID, tagName, orderWeight, goBack],
     );
 
     return (
@@ -64,7 +69,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.glCode')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}

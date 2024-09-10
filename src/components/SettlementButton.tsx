@@ -158,15 +158,16 @@ function SettlementButton({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID), [activePolicyID]);
-
     const session = useSession();
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID, session?.email), [activePolicyID, session?.email]);
+
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport));
+    const shouldShowPaywithExpensifyOption =
+        !isPaidGroupPolicy ||
+        (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL);
     const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];

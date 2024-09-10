@@ -141,7 +141,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -179,7 +179,7 @@ function ReportActionCompose({
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
+        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -213,25 +213,13 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
-    // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1) + 1)),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
-
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (includesConcierge) {
-            if (userBlockedFromConcierge) {
-                return translate('reportActionCompose.blockedFromConcierge');
-            }
-
-            return translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
+        if (includesConcierge && userBlockedFromConcierge) {
+            return translate('reportActionCompose.blockedFromConcierge');
         }
-
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge]);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -546,8 +534,11 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
-                                                const data = event.dataTransfer?.items[0];
-                                                displayFileInModal(data as unknown as FileObject);
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
                                             }}
                                         />
                                     </>
@@ -578,7 +569,7 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}

@@ -194,8 +194,8 @@ function MoneyRequestView({
     const canEditMerchant = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasReceipt = TransactionUtils.hasReceipt(updatedTransaction ?? transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && TransactionUtils.didReceiptScanSucceed(transaction);
     const canEditDistance = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
     const canEditDistanceRate = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
@@ -257,6 +257,8 @@ function MoneyRequestView({
         }
         return TransactionUtils.getDescription(updatedTransaction ?? null);
     }, [updatedTransaction]);
+    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : updatedTransaction?.modifiedMerchant ?? merchantTitle;
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -292,7 +294,7 @@ function MoneyRequestView({
     let receiptURIs;
     const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
-        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
@@ -410,7 +412,13 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
-    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
+    const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
+        const tagForDisplay = TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index);
+        const shouldShow = !!tagForDisplay || OptionsListUtils.hasEnabledOptions(tags);
+        if (!shouldShow) {
+            return null;
+        }
+
         const tagError = getErrorForField(
             'tag',
             {
@@ -418,7 +426,7 @@ function MoneyRequestView({
                 tagListName: name,
             },
             PolicyUtils.hasDependentTags(policy, policyTagList),
-            TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index),
+            tagForDisplay,
         );
         return (
             <OfflineWithFeedback
@@ -427,7 +435,7 @@ function MoneyRequestView({
             >
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
-                    title={TransactionUtils.getTagForDisplay(updatedTransaction ?? transaction, index)}
+                    title={tagForDisplay}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
@@ -490,7 +498,7 @@ function MoneyRequestView({
                                     image={receiptURIs?.image}
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     filename={receiptURIs?.filename}
-                                    transaction={transaction}
+                                    transaction={updatedTransaction ?? transaction}
                                     enablePreviewModal
                                     readonly={readonly}
                                 />
@@ -517,7 +525,7 @@ function MoneyRequestView({
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
                         shouldShowTitleIcon={isSettled}
@@ -556,7 +564,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={updatedTransaction?.modifiedMerchant ?? merchantTitle}
+                            title={updatedMerchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
@@ -683,17 +691,18 @@ function MoneyRequestView({
 MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestViewOnyxPropsWithoutTransaction>({
+    // Fallback to empty string will fetch the whole collection (e.g., policy_), so we need to fallback to -1 (policy_-1)
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`,
     },
     policyTagList: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`,
     },
     parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`,
     },
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report?.parentReportID : '-1'}`,

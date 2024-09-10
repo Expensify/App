@@ -30,7 +30,7 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                 animate={shouldAnimate}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
-                height={avatarPlaceholderSize + styles.pb5.paddingBottom}
+                height={avatarPlaceholderSize + styles.pb3.paddingBottom}
             >
                 <Circle
                     cx={startPositionX}
