@@ -1001,7 +1001,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        uploadReceiptView: (isSmallScreenWidth: boolean) =>
+        uploadFileView: (isSmallScreenWidth: boolean) =>
             ({
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -1017,7 +1017,7 @@ const styles = (theme: ThemeColors) =>
                 flex: 1,
             } satisfies ViewStyle),
 
-        receiptViewTextContainer: {
+        uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
         },
@@ -1412,14 +1412,14 @@ const styles = (theme: ThemeColors) =>
             color: theme.textError,
         },
 
-        textReceiptUpload: {
+        textFileUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             color: theme.text,
             textAlign: 'center',
         },
 
-        subTextReceiptUpload: {
+        subTextFileUpload: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
@@ -3757,19 +3757,19 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
+        fileDropOverlay: {
+            backgroundColor: theme.fileDropUIBG,
             zIndex: 2,
         },
 
         isDraggingOver: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
-        receiptImageWrapper: (receiptImageTopPosition: number) =>
+        fileUploadImageWrapper: (fileTopPosition: number) =>
             ({
                 position: 'absolute',
-                top: receiptImageTopPosition,
+                top: fileTopPosition,
             } satisfies ViewStyle),
 
         cardSectionContainer: {
@@ -4833,7 +4833,7 @@ const styles = (theme: ThemeColors) =>
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
-            backgroundColor: theme.receiptDropUIBG,
+            backgroundColor: theme.fileDropUIBG,
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -5210,6 +5210,13 @@ const styles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        importColumnCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 16,
+            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {

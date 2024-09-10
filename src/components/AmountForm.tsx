@@ -43,8 +43,10 @@ type AmountFormProps = {
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
+    /** Custom label for the TextInput */
     label?: string;
 
+    /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
@@ -296,7 +298,7 @@ function AmountForm(
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
-                {!!errorText && (
+                {!errorText && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
