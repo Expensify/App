@@ -879,6 +879,12 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
+    if (PolicyUtils.isPaidGroupPolicy(policy)) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
+    }
+
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transaction,
         [],
@@ -1640,13 +1646,6 @@ function buildOnyxDataForTrackExpense(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
-    }
-
-    // Show field violations only for control policies
-    if (PolicyUtils.isControlPolicy(policy) && iouReport) {
-        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        optimisticData.push(...fieldViolationsOptimisticData);
-        failureData.push(...fieldViolationsFailureData);
     }
 
     return [optimisticData, successData, failureData];
