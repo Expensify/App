@@ -12709,15 +12709,15 @@ async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID'));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP'));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS'));
+    const webResult = getDeployTableMessage(core.getInput('WEB'));
     // Used in deployManualPRsCommenter.yml workflow
     const manualDeployerLogin = core.getInput('DEPLOYER_LOGIN');
     const manualDeployDate = core.getInput('DATE');
     // Whether this was triggreed by deployManualPRsCommenter.yml workflow
     const isManualDeployNotification = !!manualDeployerLogin && !!manualDeployDate;
-    const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: !isManualDeployNotification }));
-    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: !isManualDeployNotification }));
-    const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: !isManualDeployNotification }));
-    const webResult = getDeployTableMessage(core.getInput('WEB', { required: !isManualDeployNotification }));
     function getDeployMessage(deployer, deployVerb, prTitle) {
         const deployerLogin = isManualDeployNotification ? manualDeployerLogin : deployer;
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
