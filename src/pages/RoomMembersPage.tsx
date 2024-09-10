@@ -114,7 +114,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         }
         setSearchValue('');
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
-    }, [report]);
+    }, [report, setSearchValue]);
 
     /**
      * Remove selected users from the room
@@ -205,7 +205,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             UserSearchPhraseActions.clearUserSearchPhrase();
             setSearchValue('');
         }
-    }, [isFocusedScreen, shouldShowTextInput]);
+    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
