@@ -92,6 +92,8 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     const tagApprover = PolicyUtils.getTagApproverRule(policyID, currentPolicyTag.name)?.approver;
 
     const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
         <AccessOrNotFoundWrapper
@@ -165,10 +167,10 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                                     description={translate(`workspace.tags.approverDescription`)}
                                     onPress={navigateToEditTagApprover}
                                     shouldShowRightIcon
-                                    disabled={!policy?.areWorkflowsEnabled}
+                                    disabled={approverDisabled}
                                 />
                             </OfflineWithFeedback>
-                            {!policy?.areWorkflowsEnabled && (
+                            {approverDisabled && (
                                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
                                     <TextLink
