@@ -2,6 +2,7 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import type {RequestError} from '@octokit/types';
+import format from 'date-fns/format';
 import memoize from 'lodash/memoize';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
@@ -49,6 +50,7 @@ async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
+    const date = format(new Date(), CONST.DATE_FORMAT_STRING);
     const androidResult = getDeployTableMessage(core.getInput('ANDROID') as PlatformResult);
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP') as PlatformResult);
     const iOSResult = getDeployTableMessage(core.getInput('IOS') as PlatformResult);
@@ -66,8 +68,10 @@ async function run() {
         message += ` by https://github.com/${deployerLogin} in version: ${version} 🚀`;
 
         if (isManualDeployNotification) {
-            message += ` on ${manualDeployDate} 🗓️`;
+            const formattedManualDeployDate = format(new Date(manualDeployDate), CONST.DATE_FORMAT_STRING);
+            message += ` on ${formattedManualDeployDate} 🗓️`;
         } else {
+            message += ` on ${date} 🗓️`;
             message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
             message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
         }
