@@ -1333,6 +1333,8 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+        validateCardTitle: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details`,
     },
     workflowsPage: {
         workflowTitle: 'Spend',
@@ -2948,10 +2950,10 @@ export default {
                 disableCardButton: 'Chat with Concierge',
                 feed: {
                     title: 'Get the Expensify Card',
-                    subTitle: 'Streamline your business with the Expensify Card',
+                    subTitle: 'Streamline your business with the Expensify Card.',
                     features: {
-                        cashBack: 'Up to 2% cash back on every US purchase',
-                        unlimited: 'Issue unlimited virtual cards',
+                        cashBack: 'Cash back on every US purchase',
+                        unlimited: 'Unlimited virtual cards',
                         spend: 'Spend controls and custom limits',
                     },
                     ctaTitle: 'Issue new card',

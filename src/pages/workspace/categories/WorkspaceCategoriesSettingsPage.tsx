@@ -94,7 +94,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     shouldPlaceSubtitleBelowSwitch
                 />
                 <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && listItems && canUseWorkspaceRules && (
+                    {!!currentPolicy && listItems.length > 0 && canUseWorkspaceRules && (
                         <>
                             <View style={[styles.mh5, styles.mt2, styles.mb1]}>
                                 <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>

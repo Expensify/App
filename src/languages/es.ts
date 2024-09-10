@@ -1339,6 +1339,8 @@ export default {
             updateAddress: 'Actualizar dirección',
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
+        validateCardTitle: 'Asegurémonos de que eres tú',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta`,
     },
     workflowsPage: {
         workflowTitle: 'Gasto',
@@ -2996,10 +2998,10 @@ export default {
                 disableCardButton: 'Chatear con Concierge',
                 feed: {
                     title: 'Consigue la Tarjeta Expensify',
-                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify',
+                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify.',
                     features: {
-                        cashBack: 'Hasta un 2% de devolución en cada compra en Estadios Unidos',
-                        unlimited: 'Emitir un número ilimitado de tarjetas virtuales',
+                        cashBack: 'Devolución de dinero en cada compra en Estados Unidos',
+                        unlimited: 'Un número ilimitado de tarjetas virtuales',
                         spend: 'Controles de gastos y límites personalizados',
                     },
                     ctaTitle: 'Emitir nueva tarjeta',

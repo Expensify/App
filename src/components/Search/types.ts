@@ -42,7 +42,7 @@ type SearchContext = {
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
-    right: string | ASTNode;
+    right: string | ASTNode | string[];
 };
 
 type QueryFilter = {
