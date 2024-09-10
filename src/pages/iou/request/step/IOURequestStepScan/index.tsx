@@ -480,6 +480,7 @@ function IOURequestStepScan({
                                 setReceiptAndNavigate(jpegFile, isPdfValidated);
                             })
                             .catch((err) => {
+                                console.error('Error converting HEIC to JPEG:', err);
                                 setIsLoadingReceipt(false);
                             });
                     } else {
