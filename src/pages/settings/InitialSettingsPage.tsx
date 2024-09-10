@@ -41,7 +41,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -73,7 +73,7 @@ type InitialSettingsPageOnyxProps = {
 type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 type MenuData = {
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
     icon: IconAsset;
     routeName?: Route;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
@@ -92,7 +92,7 @@ type MenuData = {
     badgeStyle?: ViewStyle;
 };
 
-type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
+type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPath; items: MenuData[]};
 
 function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
     const network = useNetwork();

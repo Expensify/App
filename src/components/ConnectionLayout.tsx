@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -20,7 +20,7 @@ type ConnectionLayoutProps = {
     displayName: string;
 
     /** Header title to be translated for the connection component */
-    headerTitle?: TranslationPaths;
+    headerTitle?: TranslationPath;
 
     /** The subtitle to show in the header */
     headerSubtitle?: string;
@@ -29,7 +29,7 @@ type ConnectionLayoutProps = {
     children?: React.ReactNode;
 
     /** Title to be translated for the connection component */
-    title?: TranslationPaths;
+    title?: TranslationPath;
 
     /** The current policyID */
     policyID: string;

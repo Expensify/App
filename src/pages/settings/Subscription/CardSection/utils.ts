@@ -5,7 +5,7 @@ import DateUtils from '@libs/DateUtils';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -21,7 +21,7 @@ type BillingStatusResult = {
 };
 
 function getBillingStatus(
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: <TKey extends TranslationPath>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     accountData?: AccountData,
 ): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);

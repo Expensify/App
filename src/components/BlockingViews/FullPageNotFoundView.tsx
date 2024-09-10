@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -18,10 +18,10 @@ type FullPageNotFoundViewProps = {
     shouldShow?: boolean;
 
     /** The key in the translations file to use for the title */
-    titleKey?: TranslationPaths;
+    titleKey?: TranslationPath;
 
     /** The key in the translations file to use for the subtitle. Pass an empty key to not show the subtitle. */
-    subtitleKey?: TranslationPaths | '';
+    subtitleKey?: TranslationPath | '';
 
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink?: boolean;
@@ -30,7 +30,7 @@ type FullPageNotFoundViewProps = {
     shouldShowBackButton?: boolean;
 
     /** The key in the translations file to use for the go back link */
-    linkKey?: TranslationPaths;
+    linkKey?: TranslationPath;
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress?: () => void;

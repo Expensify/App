@@ -17,7 +17,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
@@ -116,11 +116,11 @@ function NetSuiteImportCustomFieldView({
                         return (
                             <MenuItemWithTopDescription
                                 key={fieldName}
-                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPath)}
                                 shouldShowRightIcon={isEditable}
                                 title={
                                     fieldName === 'mapping'
-                                        ? translate(`workspace.netsuite.import.importTypes.${customField[fieldName as keyof CustomField].toUpperCase()}.label` as TranslationPaths)
+                                        ? translate(`workspace.netsuite.import.importTypes.${customField[fieldName as keyof CustomField].toUpperCase()}.label` as TranslationPath)
                                         : customField[fieldName as keyof CustomField]
                                 }
                                 onPress={

@@ -8,14 +8,14 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressErrors = Record<keyof Address, boolean>;
 
 type AddressFormProps = {
     /** Translate key for Street name */
-    streetTranslationKey: TranslationPaths;
+    streetTranslationKey: TranslationPath;
 
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange?: <T>(value: T) => void;

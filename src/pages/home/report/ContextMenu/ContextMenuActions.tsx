@@ -28,7 +28,7 @@ import * as TaskUtils from '@libs/TaskUtils';
 import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
@@ -100,9 +100,9 @@ type ContextMenuActionWithContent = {
 };
 
 type ContextMenuActionWithIcon = {
-    textTranslateKey: TranslationPaths;
+    textTranslateKey: TranslationPath;
     icon: IconAsset;
-    successTextTranslateKey?: TranslationPaths;
+    successTextTranslateKey?: TranslationPath;
     successIcon?: IconAsset;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -462,7 +462,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     const reason = originalMessage?.reason;
                     const violationName = originalMessage?.violationName;
-                    Clipboard.setString(Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
+                    Clipboard.setString(Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPath));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
                     setClipboardMessage(ReportActionsUtils.getExportIntegrationMessageHTML(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -642,7 +642,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
-const restrictedReadOnlyActions: TranslationPaths[] = [
+const restrictedReadOnlyActions: TranslationPath[] = [
     'reportActionContextMenu.replyInThread',
     'reportActionContextMenu.editAction',
     'reportActionContextMenu.joinThread',

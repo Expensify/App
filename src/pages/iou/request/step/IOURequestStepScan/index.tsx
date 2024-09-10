@@ -39,7 +39,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -63,8 +63,8 @@ function IOURequestStepScan({
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPath>();
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPath>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
@@ -190,7 +190,7 @@ function IOURequestStepScan({
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      */
-    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
+    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPath, reason: TranslationPath) => {
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);

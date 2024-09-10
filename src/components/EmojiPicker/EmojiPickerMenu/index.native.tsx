@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
@@ -91,7 +91,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             if ('header' in item && item.header) {
                 return (
                     <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPath)}</Text>
                     </View>
                 );
             }

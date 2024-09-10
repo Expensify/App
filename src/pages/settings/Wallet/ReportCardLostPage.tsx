@@ -20,7 +20,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {ReplacementReason} from '@userActions/Card';
 import * as CardActions from '@userActions/Card';
 import * as FormActions from '@userActions/FormActions';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -35,7 +35,7 @@ const OPTIONS_KEYS = {
 
 type Option = {
     key: string;
-    label: TranslationPaths;
+    label: TranslationPath;
 };
 
 /** Options for reason selector */

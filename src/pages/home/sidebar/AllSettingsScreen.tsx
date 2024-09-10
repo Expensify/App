@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
@@ -78,7 +78,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
         ];
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
+            title: translate(item.translationKey as TranslationPath),
             icon: item.icon,
             link: item.link,
             iconRight: item.iconRight,

@@ -30,7 +30,7 @@ import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -73,7 +73,7 @@ function ProfilePage({
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
-        return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
+        return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPath) : translate('profilePage.selectYourPronouns');
     };
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';

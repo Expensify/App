@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type BaseAttachmentPickerProps from './types';
@@ -33,7 +33,7 @@ type Item = {
     /** The icon associated with the item. */
     icon: IconAsset;
     /** The key in the translations file to use for the title */
-    textTranslationKey: TranslationPaths;
+    textTranslationKey: TranslationPath;
     /** Function to call when the user clicks the item */
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };

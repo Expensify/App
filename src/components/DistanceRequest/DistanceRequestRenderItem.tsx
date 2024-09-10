@@ -3,7 +3,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 type DistanceRequestProps = {
@@ -55,7 +55,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
 
     return (
         <MenuItemWithTopDescription
-            description={translate(descriptionKey as TranslationPaths)}
+            description={translate(descriptionKey as TranslationPath)}
             title={title}
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}

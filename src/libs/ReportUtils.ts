@@ -18,7 +18,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams, TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -2388,7 +2388,7 @@ function getDisplayNamesWithTooltips(
             let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPath);
             }
 
             return {
@@ -2446,7 +2446,7 @@ function getReimbursementQueuedActionMessage(
     const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    let messageKey: TranslationPaths;
+    let messageKey: TranslationPath;
     if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         messageKey = 'iou.waitingOnEnabledWallet';
     } else {
@@ -3363,7 +3363,7 @@ function getReportPreviewMessage(
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
-        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
+        let translatePhraseKey: TranslationPath = 'iou.paidElsewhereWithAmount';
         if (isPreviewMessageForParentChatReport) {
             translatePhraseKey = 'iou.payerPaidAmount';
         } else if (
@@ -6938,7 +6938,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const {IOUReportID} = originalMessage ?? {};
     const iouReport = getReportOrDraftReport(IOUReportID);
-    let translationKey: TranslationPaths;
+    let translationKey: TranslationPath;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
         // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`

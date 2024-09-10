@@ -9,10 +9,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
-const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
+const actionTranslationsMap: Record<SearchTransactionAction, TranslationPath> = {
     view: 'common.view',
     review: 'common.review',
     done: 'common.done',

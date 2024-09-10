@@ -12,7 +12,7 @@ import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
@@ -30,7 +30,7 @@ import Tooltip from './Tooltip';
 import withNavigationFocus from './withNavigationFocus';
 
 type ErrorData = {
-    validationError?: TranslationPaths | null | '';
+    validationError?: TranslationPath | null | '';
     phraseParam: Record<string, unknown>;
 };
 
@@ -177,7 +177,7 @@ function AvatarWithImagePicker({
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
 
-    const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
+    const setError = (error: TranslationPath | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
             validationError: error,
             phraseParam,

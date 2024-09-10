@@ -7,7 +7,7 @@ import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, Updat
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -292,7 +292,7 @@ function setApprovalWorkflowApprover(approver: Approver, approverIndex: number, 
     }
 
     // Always clear the additional approver error when an approver is added
-    const errors: Record<string, TranslationPaths | null> = {additionalApprover: null};
+    const errors: Record<string, TranslationPath | null> = {additionalApprover: null};
 
     // Check for circular references (approver forwards to themselves) and reset other errors
     const updatedApprovers = approvers.map((existingApprover, index) => {
@@ -349,7 +349,7 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
  * @returns true if the approval workflow is valid, false otherwise
  */
 function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
-    const errors: Record<string, TranslationPaths> = {};
+    const errors: Record<string, TranslationPath> = {};
 
     approvalWorkflow.approvers.forEach((approver, approverIndex) => {
         if (!approver) {

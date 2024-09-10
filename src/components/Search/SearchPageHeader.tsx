@@ -24,7 +24,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
@@ -101,7 +101,7 @@ type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES
 
 type HeaderContent = {
     icon: IconAsset;
-    titleText: TranslationPaths;
+    titleText: TranslationPath;
 };
 
 function getHeaderContent(type: SearchDataTypes): HeaderContent {

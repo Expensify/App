@@ -35,7 +35,7 @@ import * as PersonalDetailsActions from '@userActions/PersonalDetails';
 import * as ReportActions from '@userActions/Report';
 import * as SessionActions from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -137,7 +137,7 @@ function ProfilePage({route}: ProfilePageProps) {
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-        pronouns = translate(`pronouns.${localeKey}` as TranslationPaths);
+        pronouns = translate(`pronouns.${localeKey}` as TranslationPath);
     }
 
     const isSMSLogin = Str.isSMSLogin(login);
@@ -158,9 +158,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
 
     const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const notificationPreference = shouldShowNotificationPreference
-        ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
-        : '';
+    const notificationPreference = shouldShowNotificationPreference ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPath) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {

@@ -31,7 +31,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -127,7 +127,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     }
 };
 
-const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
+const getQuickActionTitle = (action: QuickActionName): TranslationPath => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return 'quickAction.requestMoney';
@@ -152,7 +152,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
-            return '' as TranslationPaths;
+            return '' as TranslationPath;
     }
 };
 

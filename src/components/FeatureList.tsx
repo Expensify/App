@@ -4,7 +4,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -14,7 +14,7 @@ import Section from './Section';
 
 type FeatureListItem = {
     icon: IconAsset;
-    translationKey: TranslationPaths;
+    translationKey: TranslationPath;
 };
 
 type FeatureListProps = {

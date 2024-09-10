@@ -16,7 +16,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 type ImportField = 'jobs' | 'customers';
@@ -68,7 +68,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.ph5, styles.flexRow, styles.pb5]}>
-                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />
+                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPath))}</comment>`} />
             </View>
 
             <ToggleSettingOptionRow

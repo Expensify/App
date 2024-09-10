@@ -28,7 +28,7 @@ import Terms from '@pages/signin/Terms';
 import * as SessionActions from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -58,7 +58,7 @@ type BaseValidateCodeFormRef = {
 
 type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryCode';
 
-type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
+type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPath>>;
 
 function BaseValidateCodeForm(
     {account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps,

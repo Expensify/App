@@ -17,7 +17,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
@@ -63,7 +63,7 @@ function NetSuiteImportMappingPage({
         () => (
             <View style={[styles.ph5, styles.pb5]}>
                 <View style={[styles.flexRow]}>
-                    <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
+                    <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPath))}</comment>`} />
                 </View>
             </View>
         ),
@@ -80,7 +80,7 @@ function NetSuiteImportMappingPage({
         alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
     }));
 
-    const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
+    const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPath;
 
     const updateImportMapping = useCallback(
         ({value}: ImportListItem) => {

@@ -20,7 +20,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, ValidateMagicCodeAction} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -32,7 +32,7 @@ type ValidateCodeFormHandle = {
 };
 
 type ValidateCodeFormError = {
-    validateCode?: TranslationPaths;
+    validateCode?: TranslationPath;
 };
 
 type BaseValidateCodeFormOnyxProps = {

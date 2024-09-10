@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type CategoryShortcutButtonProps = {
@@ -32,7 +32,7 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
 
     return (
         <Tooltip
-            text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+            text={translate(`emojiPicker.headers.${code}` as TranslationPath)}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback

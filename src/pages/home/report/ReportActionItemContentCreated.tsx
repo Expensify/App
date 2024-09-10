@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -78,7 +78,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
         if (ReportActionsUtils.isMessageDeleted(parentReportAction) || isReversedTransaction) {
-            let message: TranslationPaths;
+            let message: TranslationPath;
 
             if (isReversedTransaction) {
                 message = 'parentReportAction.reversedTransaction';

@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
@@ -47,8 +47,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                         .then((statuses) => {
                             const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
                             const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
-                            let alertTitle: TranslationPaths | '' = '';
-                            let alertMessage: TranslationPaths | '' = '';
+                            let alertTitle: TranslationPath | '' = '';
+                            let alertMessage: TranslationPath | '' = '';
                             if (!isCameraAllowed) {
                                 alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
                                 alertMessage = 'onfidoStep.cameraRequestMessage';

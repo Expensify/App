@@ -1,7 +1,7 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type {Modal} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -14,7 +14,7 @@ type ThreeDotsMenuOnyxProps = {
 
 type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
     /** Tooltip for the popup icon */
-    iconTooltip?: TranslationPaths;
+    iconTooltip?: TranslationPath;
 
     /** icon for the popup trigger */
     icon?: IconAsset;

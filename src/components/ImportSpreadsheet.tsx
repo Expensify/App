@@ -11,7 +11,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from './AttachmentModal';
 import Button from './Button';
@@ -39,8 +39,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const [isReadingFile, setIsReadingFIle] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPath>();
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPath>();
 
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -51,7 +51,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         }),
     ).current;
 
-    const setUploadFileError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
+    const setUploadFileError = (isInvalid: boolean, title: TranslationPath, reason: TranslationPath) => {
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);

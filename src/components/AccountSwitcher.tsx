@@ -14,7 +14,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import Avatar from './Avatar';
@@ -46,7 +46,7 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = canUseNewDotCopilot && (delegators.length > 0 || isActingAsDelegate);
 
-    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPaths, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
+    const createBaseMenuItem = (personalDetails: PersonalDetails | undefined, error?: TranslationPath, additionalProps: MenuItemWithLink = {}): MenuItemWithLink => {
         return {
             title: personalDetails?.displayName ?? personalDetails?.login,
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),

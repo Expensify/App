@@ -5,7 +5,7 @@ import type {Phrase, PhraseParameters} from '@libs/Localize';
 import {getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagLists, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
@@ -234,7 +234,7 @@ const ViolationsUtils = {
      */
     getViolationTranslation(
         violation: TransactionViolation,
-        translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+        translate: <TKey extends TranslationPath>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     ): string {
         const {
             brokenBankConnection = false,

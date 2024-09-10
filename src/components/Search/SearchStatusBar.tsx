@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryString, SearchStatus, TripSearchStatus} from './types';
@@ -21,7 +21,7 @@ type SearchStatusBarProps = {
     resetOffset: () => void;
 };
 
-const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: TranslationPath; query: SearchQueryString}> = [
     {
         key: CONST.SEARCH.STATUS.EXPENSE.ALL,
         icon: Expensicons.All,
@@ -54,7 +54,7 @@ const expenseOptions: Array<{key: ExpenseSearchStatus; icon: IconAsset; text: Tr
     },
 ];
 
-const invoiceOptions: Array<{key: InvoiceSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const invoiceOptions: Array<{key: InvoiceSearchStatus; icon: IconAsset; text: TranslationPath; query: SearchQueryString}> = [
     {
         key: CONST.SEARCH.STATUS.INVOICE.ALL,
         icon: Expensicons.All,
@@ -75,7 +75,7 @@ const invoiceOptions: Array<{key: InvoiceSearchStatus; icon: IconAsset; text: Tr
     },
 ];
 
-const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: TranslationPath; query: SearchQueryString}> = [
     {
         key: CONST.SEARCH.STATUS.TRIP.ALL,
         icon: Expensicons.All,
@@ -96,7 +96,7 @@ const tripOptions: Array<{key: TripSearchStatus; icon: IconAsset; text: Translat
     },
 ];
 
-const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: TranslationPaths; query: SearchQueryString}> = [
+const chatOptions: Array<{key: ChatSearchStatus; icon: IconAsset; text: TranslationPath; query: SearchQueryString}> = [
     {
         key: CONST.SEARCH.STATUS.CHAT.ALL,
         icon: Expensicons.All,

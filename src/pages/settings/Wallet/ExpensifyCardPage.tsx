@@ -27,7 +27,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -56,7 +56,7 @@ type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<Sett
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
 type LimitTypeTranslationKeys = {
-    limitNameKey: TranslationPaths | undefined;
+    limitNameKey: TranslationPath | undefined;
     limitTitleKey: PossibleTitles | undefined;
 };
 

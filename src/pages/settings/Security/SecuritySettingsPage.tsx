@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 function SecuritySettingsPage() {
@@ -38,7 +38,7 @@ function SecuritySettingsPage() {
 
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
+            title: translate(item.translationKey as TranslationPath),
             icon: item.icon,
             onPress: item.action,
             shouldShowRightIcon: true,

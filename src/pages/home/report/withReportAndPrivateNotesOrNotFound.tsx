@@ -10,7 +10,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -24,7 +24,7 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
 
 type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps;
 
-export default function (pageTitle: TranslationPaths) {
+export default function (pageTitle: TranslationPath) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
         WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,

@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -97,7 +97,7 @@ function IOURequestStepWaypoint({
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
-    const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPaths>> => {
+    const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPath>> => {
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {

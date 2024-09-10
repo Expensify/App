@@ -16,7 +16,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
 
@@ -30,7 +30,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const [title, description] = useMemo(() => {
-        let titleText: TranslationPaths | undefined;
+        let titleText: TranslationPath | undefined;
         let descriptionText: string | undefined;
         switch (qboConfig?.reimbursableExpensesExportDestination) {
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:

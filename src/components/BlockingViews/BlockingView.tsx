@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 
 type BaseBlockingViewProps = {
     /** Title message below the icon */
@@ -28,7 +28,7 @@ type BaseBlockingViewProps = {
     subtitleStyle?: StyleProp<TextStyle>;
 
     /** Link message below the subtitle */
-    linkKey?: TranslationPaths;
+    linkKey?: TranslationPath;
 
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink?: boolean;

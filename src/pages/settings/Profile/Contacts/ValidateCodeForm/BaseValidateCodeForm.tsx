@@ -21,7 +21,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPath} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, LoginList, PendingContactAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -32,7 +32,7 @@ type ValidateCodeFormHandle = {
 };
 
 type ValidateCodeFormError = {
-    validateCode?: TranslationPaths;
+    validateCode?: TranslationPath;
 };
 
 type BaseValidateCodeFormOnyxProps = {
