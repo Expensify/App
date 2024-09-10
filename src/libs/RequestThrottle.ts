@@ -57,16 +57,5 @@ function sleep(): Promise<void> {
     });
 }
 
-// TODO remove before merging
-function sleepOld(): Promise<void> {
-    requestRetryCount++;
-    return new Promise((resolve, reject) => {
-        if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-            setTimeout(resolve, getRequestWaitTime());
-            return;
-        }
-        reject();
-    });
-}
 
 export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime, sleepOld};
