@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo} from 'react';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import useLocalize from '@hooks/useLocalize';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -13,19 +13,19 @@ import * as ReportAction from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {NewGroupChatDraft, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 type ReportAvatarOnyxProps = {
     report: OnyxEntry<Report>;
     isLoadingApp: OnyxEntry<boolean>;
     policies: OnyxCollection<Policy>;
-    newGroupDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true, newGroupDraft}: ReportAvatarProps) {
+function ReportAvatar({report = {} as Report, route, policies, isLoadingApp = true}: ReportAvatarProps) {
     const {translate} = useLocalize();
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const reportIDFromRoute = String(route.params?.reportID || 0);
     const isNewGroupDraftAvatar = reportIDFromRoute === newGroupDraft?.optimisticReportID;
 
@@ -120,8 +120,5 @@ export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
 })(ReportAvatar);
