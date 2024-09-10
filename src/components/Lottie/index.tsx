@@ -9,8 +9,8 @@ import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type Props = {
@@ -55,7 +55,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
         const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
             const state = navigationContainerRef.getRootState();
             const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
-            if (targetRouteName !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            if (!isSideModalNavigator(targetRouteName)) {
                 setHasNavigatedAway(true);
             }
         });
