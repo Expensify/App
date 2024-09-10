@@ -42,6 +42,8 @@ const mockedData: CardFeeds = {
     },
     companyCardNicknames: {
         cdfbmo: 'BMO MasterCard',
+        vcf: 'Visa Corporate Card',
+        gl1025: 'Corporate Amex',
     },
 };
 

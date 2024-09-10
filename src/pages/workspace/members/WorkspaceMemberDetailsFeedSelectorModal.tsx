@@ -10,6 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -32,10 +33,13 @@ type WorkspaceMemberDetailsFeedSelectorModalProps = {
     onClose: () => void;
 };
 
-function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose}: WorkspaceMemberDetailsFeedSelectorModalProps) {
+function WorkspaceMemberDetailsFeedSelectorModal({isVisible, onClose, policyID}: WorkspaceMemberDetailsFeedSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    // TODO: use data form onyx instead of mocked one when API is implemented
+    // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
 
