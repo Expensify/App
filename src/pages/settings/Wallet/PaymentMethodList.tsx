@@ -24,6 +24,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -199,6 +200,16 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
+    const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+        const match = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME);
+        if (match) {
+            const policyID = match[1];
+            const policy = PolicyUtils.getPolicy(policyID);
+            return policy?.name ?? domainName;
+        }
+        return domainName;
+    };
+
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(cardList ?? {})
@@ -214,7 +225,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: card.bank,
-                        description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
+                        description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
