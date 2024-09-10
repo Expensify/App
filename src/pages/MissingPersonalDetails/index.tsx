@@ -110,8 +110,6 @@ function MissingPersonalDetails() {
                         errors[INPUT_IDS.DATE_OF_BIRTH] = translate('common.error.fieldRequired');
                     } else if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DATE_OF_BIRTH]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DATE_OF_BIRTH])) {
                         errors[INPUT_IDS.DATE_OF_BIRTH] = translate('bankAccount.error.dob');
-                    } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DATE_OF_BIRTH])) {
-                        errors[INPUT_IDS.DATE_OF_BIRTH] = translate('bankAccount.error.age');
                     }
                     return errors;
                 case CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.ADDRESS:

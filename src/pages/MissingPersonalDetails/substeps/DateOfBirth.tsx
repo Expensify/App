@@ -14,7 +14,7 @@ function DateOfBirthStep({privatePersonalDetails}: CustomSubStepProps) {
     const styles = useThemeStyles();
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE);
 
     return (
         <>
