@@ -1334,6 +1334,8 @@ export default {
             updateAddress: 'Update address',
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
+        validateCardTitle: "Let's make sure it's you",
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details`,
     },
     workflowsPage: {
         workflowTitle: 'Spend',
