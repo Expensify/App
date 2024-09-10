@@ -367,7 +367,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         }
                         Navigation.goBack();
                     }}
-                    shouldShowThreeDotsButton
+                    shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
